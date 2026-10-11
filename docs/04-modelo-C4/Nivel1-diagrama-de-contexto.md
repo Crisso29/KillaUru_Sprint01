@@ -21,7 +21,7 @@ Mostrar **KillaUru como una sola caja**: quiénes lo usan y con qué sistemas ex
 
 ## 2. Diagrama
 
-![Diagrama de contexto de KillaUru](../img/fuentes-svg/C1_Contexto.svg)
+![Diagrama de contexto de KillaUru](../../img/fuentes-svg/C1_Contexto.svg)
 
 > Exportado en SVG (vectorial, sin pérdida de calidad) desde Structurizr Lite. Fuente editable: `workspace.dsl` del repositorio del proyecto.
 
