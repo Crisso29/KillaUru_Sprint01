@@ -2,7 +2,7 @@
 
 > **Proyecto:** KillaUru (ViaLibre) · **Componentes detallados:** Ingesta de Anomalías, Validación de Calidad, Clasificación Persistente/Episódica
 > **Modelo:** C4 · Nivel 4 de 4 · **Versión:** 1.0
-> **Notación:** UML de clases en Mermaid (Structurizr no modela este nivel)
+> **Herramienta:** Structurizr (DSL) · vistas `C4_Flujo`, `C4_Kernel`, `C4_Ingesta`, `C4_Validacion`, `C4_Clasificacion` · respaldo UML en Mermaid
 
 ---
 
@@ -17,13 +17,31 @@ Abrir los componentes del **flujo central de KillaUru** (de que llega un lote de
 | Por qué estos tres módulos | Concentran las reglas de negocio propias de KillaUru (RN-11, RN-12) y la mayor carga del backend. Los demás módulos siguen la misma plantilla (sección 3) |
 | Qué **no** muestra | Código de módulos de soporte (Auditoría, Dashboard, Exportación, Usuarios), la app Android ni el panel React |
 | Nivel anterior | [`Nivel3-diagrama-de-componentes.md`](Nivel3-diagrama-de-componentes.md) |
-| Herramienta | Mermaid `classDiagram` dentro de este archivo. C4 solo recomienda este nivel para componentes críticos y no tiene soporte en Structurizr DSL |
+| Herramienta | **Structurizr (DSL)**: cada clase se modela como componente y se colorea por capa de Clean Architecture. Como respaldo, cada vista incluye su versión UML en Mermaid con atributos y métodos. C4 solo recomienda este nivel para componentes críticos |
 
 > Los nombres de clases, carpetas e interfaces son la **propuesta de diseño** previa a la implementación. Los que ya aparecen en `enfoque-arquitectonico.md` (`ValidarAnomaliaUseCase`, `ClasificarPersistenciaUseCase`, `SyncController`, `EventoBatchDTO`, `IAnomaliaRepository`, `AnomaliaRepositoryPostGIS`) se mantienen.
+
+### Leyenda de las vistas de Structurizr
+
+| Color | Capa de Clean Architecture | Ejemplos |
+|---|---|---|
+| 🟥 Rojo | Dominio | `ReglasCalidad`, `Anomalia`, `Severidad` |
+| 🟨 Amarillo | Aplicación (casos de uso y puertos) | `ValidarAnomaliaUseCase`, `IAnomaliaRepository` |
+| 🟩 Verde | Adaptadores | `SyncController`, `EventoMapper` |
+| 🟦 Azul | Infraestructura | `AnomaliaRepositoryPostGIS`, `ColaEventosChannel` |
+| Borde punteado | Contrato público entre módulos (`Contracts/`) | `IValidacionService`, `IClasificacionService` |
+| Flecha punteada | «Implementa» (puerto ← adaptador) | |
+
+> Fuente editable: `c4-codigo/workspace.dsl`. Las imágenes se exportan como SVG desde Structurizr Lite a `img/fuentes-svg/`.
 
 ---
 
 ## 2. Visión general: el flujo en el código
+
+![Flujo central de KillaUru: de la cola de eventos a la anomalía persistida](../../img/fuentes-svg/C4_Flujo.svg)
+
+<details>
+<summary>Ver versión UML en Mermaid (con atributos y métodos)</summary>
 
 ```mermaid
 flowchart LR
@@ -37,6 +55,8 @@ flowchart LR
     CL --> CA["CacheMapaMemoria"]
     VA -. "IAnomaliaConsultas<br/>(lectura)" .-> RP
 ```
+
+</details>
 
 Los módulos se hablan **solo por interfaces de su carpeta `Contracts/`** (reglas 2 y 3 del monolito modular, nivel 3).
 
@@ -79,6 +99,11 @@ flowchart LR
 ## 4. Kernel compartido
 
 Value objects y el evento de entrada que usan los tres módulos. Se validan en su fábrica: **no puede existir** una `Severidad` fuera de 1–5 ni una `Confidence` fuera de 0.0–1.0.
+
+![Shared Kernel: value objects y evento de entrada](../../img/fuentes-svg/C4_Kernel.svg)
+
+<details>
+<summary>Ver versión UML en Mermaid (con atributos y métodos)</summary>
 
 ```mermaid
 classDiagram
@@ -125,6 +150,8 @@ classDiagram
     EventoReportado --> TipoAnomalia
 ```
 
+</details>
+
 | Clase | Regla que protege |
 |---|---|
 | `Severidad` | Escala 1–5; `EsAlta` define cuándo se exige confirmación |
@@ -135,6 +162,11 @@ classDiagram
 ---
 
 ## 5. Módulo Ingesta de Anomalías
+
+![Módulo Ingesta de Anomalías](../../img/fuentes-svg/C4_Ingesta.svg)
+
+<details>
+<summary>Ver versión UML en Mermaid (con atributos y métodos)</summary>
 
 ```mermaid
 classDiagram
@@ -189,6 +221,8 @@ classDiagram
     ProcesadorEventosBackgroundService --> IValidacionService
 ```
 
+</details>
+
 | Clase | Capa | Responsabilidad |
 |---|---|---|
 | `SyncController` | Adaptadores | `POST /api/v1/anomalies/batch`. Valida el esquema, mapea y traduce `ResultadoLote` a HTTP: `200` aceptado, `400` lote inválido, `503` con `Retry-After` si la cola está llena (la app aplica su backoff exponencial) |
@@ -221,6 +255,11 @@ public sealed class ColaEventosChannel : IColaEventos
 ---
 
 ## 6. Módulo Validación de Calidad
+
+![Módulo Validación de Calidad](../../img/fuentes-svg/C4_Validacion.svg)
+
+<details>
+<summary>Ver versión UML en Mermaid (con atributos y métodos)</summary>
 
 ```mermaid
 classDiagram
@@ -294,6 +333,8 @@ classDiagram
     ConfirmacionesReaderAdapter --> IAnomaliaConsultas
 ```
 
+</details>
+
 **Algoritmo de `ValidarAnomaliaUseCase`:**
 
 1. `ReglasCalidad.EvaluarIntrinseca` revisa confidence, precisión GPS y timestamp. Si hay motivo → registra el descarte en Auditoría y devuelve `Descartado`.
@@ -325,6 +366,11 @@ public static class ReglasCalidad
 ---
 
 ## 7. Módulo Clasificación Persistente/Episódica
+
+![Módulo Clasificación Persistente/Episódica](../../img/fuentes-svg/C4_Clasificacion.svg)
+
+<details>
+<summary>Ver versión UML en Mermaid (con atributos y métodos)</summary>
 
 ```mermaid
 classDiagram
@@ -397,6 +443,8 @@ classDiagram
     AnomaliaRepositoryPostGIS ..|> IAnomaliaConsultas
     CacheMapaMemoria ..|> ICacheMapa
 ```
+
+</details>
 
 **Algoritmo de `ClasificarPersistenciaUseCase`:**
 
@@ -502,4 +550,4 @@ Las pruebas de arquitectura hacen **ejecutables** las reglas 2, 3 y 5 del nivel 
 - **Jira:** `KU-xx` — Diagrama y documentación C4 (Código) *(completar con el ID real)*
 - **Épica:** `[EPIC-04] Documentación: Modelo C4`
 - **Requisitos:** RF-11, RF-12, RF-13 · HU-04, HU-05, HU-06 · EP-03 · RN-11, RN-12
-- **Documentos relacionados:** `Nivel3-diagrama-de-componentes.md`, `enfoque-arquitectonico.md`, `estilo-arquitectonico.md`, `07-decisiones-arquitectonicas.md
+- **Documentos relacionados:** `Nivel3-diagrama-de-componentes.md`, `enfoque-arquitectonico.md`, `estilo-arquitectonico.md`, `07-decisiones-arquitectonicas.md`
