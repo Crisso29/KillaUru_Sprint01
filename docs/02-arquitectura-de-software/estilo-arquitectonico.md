@@ -1,154 +1,171 @@
 # Estilo Arquitectónico
 
-## ¿Qué es un estilo arquitectónico?
+> **Proyecto:** KillaUru · **Versión:** 2.0 · **Revisión:** 2026-10-12 · **Estado:** Vigente (alineado con ADR-001…ADR-012)
+> **Relacionados:** `arquitectura-inicial.md`, `enfoque-arquitectonico.md`, `componentes-arquitectonicos.md`, `06-driver-arquitectonicos.md`, `07-decisiones-arquitectonicas.md`
 
-Un estilo arquitectónico define la forma global en que se organiza y despliega un sistema. No describe qué hace el sistema, sino cómo está estructurado internamente y cómo se relacionan sus partes. Elegir el estilo correcto es una de las decisiones más importantes del arquitecto de software, porque condiciona todo lo que viene después: los módulos, las tecnologías, el despliegue y la capacidad de evolución.
+## 1. ¿Qué es un estilo arquitectónico?
 
----
-## Estilo seleccionado: Monolito Modular con Arquitectura en Capas
+Un estilo arquitectónico define la forma global en que se organiza y despliega un sistema. No describe qué hace el sistema, sino cómo se estructura y cómo se relacionan sus partes. Condiciona los módulos, las tecnologías, el despliegue y la capacidad de evolución.
 
-KillaUru adopta el **Monolito Modular** como estilo arquitectónico global. Todo el backend corre en un único proceso ASP.NET Core (.NET 8), pero organizado internamente en módulos con responsabilidades claramente delimitadas. Cada módulo tiene sus propias capas internas siguiendo Clean Architecture, lo que permite extraerlo como servicio independiente en versiones futuras sin reescribir su lógica de negocio.
+## 2. Estilo seleccionado
+
+KillaUru combina **un estilo principal y tres estilos de apoyo**:
+
+| Estilo | Dónde se aplica | Por qué |
+|---|---|---|
+| **Monolito modular** *(principal)* | Backend: un único proceso ASP.NET Core 8 con 8 módulos (*bounded contexts*) | Una sola persona, 6–8 semanas, recursos mínimos (DA-06, DA-12) |
+| **Capas por módulo (Clean Architecture)** | Dentro de cada módulo: Domain, Application, Adapters, Infrastructure | Reglas de negocio independientes de frameworks (ADR-002) |
+| **Offline-first con Store-and-Forward** | App Android y protocolo de sincronización | Más del 50 % del corredor no tiene señal (DA-01, DA-02) |
+| **Edge AI** | Clasificación en el dispositivo con TFLite | Sin internet y en < 50 ms (DA-03, DA-04) |
 
 > **Capas = organización lógica interna. Monolito = unidad de despliegue.**
 
-### ¿Por qué Monolito Modular?
+Se apoya además en dos mecanismos de comunicación:
+
+- **Cliente-servidor REST/JSON** entre app/panel y la API.
+- **Procesamiento asíncrono interno ligero** (tabla de recepción + `Channel` + `BackgroundService`) para absorber ráfagas de sincronización (DA-05). No usa broker externo.
+
+### 2.1 ¿Por qué monolito modular?
 
 | Razón | Explicación |
 |---|---|
-| **Un solo desarrollador** | No hay equipo que paralelice el trabajo en múltiples servicios. La complejidad operacional debe ser mínima. |
-| **Plazo académico** | 6 a 8 semanas para tener el sistema en producción. Un monolito se despliega con un solo comando. |
-| **Presupuesto cero** | Oracle Cloud ARM Free Tier tiene recursos limitados. Un solo proceso consume menos memoria que varios servicios corriendo en paralelo. |
-| **Evolución ordenada** | Los módulos internos tienen interfaces claras desde el inicio. Cuando el sistema crezca, cada módulo puede convertirse en un servicio independiente sin tocar los demás. |
+| **Un solo desarrollador** | No hay equipo que paralelice servicios; la complejidad operacional debe ser mínima (R-09) |
+| **Plazo académico** | Con 6 a 8 semanas, un monolito se despliega con un solo comando (R-10, RNF-17) |
+| **Presupuesto cero** | Un proceso consume menos memoria en Oracle ARM Free Tier que varios servicios (R-04, DA-08) |
+| **Evolución ordenada** | Contratos públicos entre módulos desde el inicio: cada módulo puede extraerse sin reescribir su lógica (DA-09) |
 
----
+### 2.2 Estilos evaluados y descartados
 
-## Diagrama de arquitectura del sistema
+| Estilo | Motivo del descarte |
+|---|---|
+| Microservicios | Complejidad operacional inviable para una persona (ADR-001) |
+| Monolito tradicional sin módulos | Se vuelve difícil de mantener y no permite evolucionar a servicios |
+| Clasificación en el servidor (señal cruda) | Requiere internet permanente y latencia inaceptable (ADR-004) |
+| Broker externo (RabbitMQ, Kafka) | Costo y operación inviables; la tabla de recepción cubre la durabilidad (ADR-005) |
+| Redis como caché | Un contenedor más que operar; `IMemoryCache` basta con una instancia (ADR-006) |
+| App híbrida (Flutter, React Native) | Se requiere acceso directo a sensores a 50 Hz (R-01) |
+| *Event sourcing* / CQRS completo | Complejidad desproporcionada; se usan puertos de lectura y escritura separados dentro del mismo proceso |
+
+## 3. Diagrama de estilo (módulos y reglas de dependencia)
 
 ```mermaid
 flowchart TD
+    classDef cliente fill:#1565C0,color:#fff,stroke:#0d47a1
+    classDef host fill:#0D47A1,color:#fff,stroke:#082a66
+    classDef modulo fill:#A9C9F5,color:#0F2744,stroke:#1565C0
+    classDef compartido fill:#E3F2FD,color:#0F2744,stroke:#1565C0,stroke-dasharray: 4 3
+    classDef datos fill:#1E88E5,color:#fff,stroke:#0d47a1
 
-    subgraph ACTORES["👤 ACTORES"]
-        CONDUCTOR["Conductor\n(Android)"]
-        ADMIN["Administrador\n(Panel web)"]
-    end
+    APP["App Android<br/>offline-first · Edge AI"]:::cliente
+    PANEL["Panel Admin<br/>SPA"]:::cliente
 
-    subgraph PRESENTACION["🖥️ CAPA DE PRESENTACIÓN"]
-        APP["App Android\nKotlin + TFLite"]
-        PANEL["Panel Web\nReact + Leaflet"]
-    end
+    subgraph BACKEND["⚙️ BACKEND · Monolito modular (.NET 8)"]
+        HOST["API REST (host)<br/>JWT/RBAC · rate limiting · logs · /health"]:::host
 
-    subgraph BACKEND["⚙️ BACKEND — Monolito Modular (.NET 8 / ASP.NET Core)"]
-
-        MIDDLEWARE["Middlewares transversales\nJWT Auth · Rate Limiting · Logger · Error Handling"]
-
-        subgraph MODULO_DETECCION["Módulo: Detección"]
-            DET_CTRL["SensorController"]
-            DET_UC["ClasificarAnomaliaUseCase"]
-            DET_ENT["Anomalia · Severidad · Confidence"]
+        subgraph NEGOCIO["Módulos (cada uno con Domain · Application · Adapters · Infrastructure)"]
+            ID["Identidad y Accesos"]:::modulo
+            ING["Ingesta"]:::modulo
+            VAL["Validación"]:::modulo
+            CLA["Clasificación"]:::modulo
+            MAPA["Consulta de Mapa"]:::modulo
+            DASH["Dashboard"]:::modulo
+            EXP["Exportación"]:::modulo
+            AUD["Auditoría"]:::modulo
         end
 
-        subgraph MODULO_SYNC["Módulo: Sincronización"]
-            SYNC_CTRL["SyncController"]
-            SYNC_UC["SincronizarEventosUseCase"]
-            SYNC_ENT["EventoPendiente · EstadoSync"]
-        end
-
-        subgraph MODULO_ANOMALIAS["Módulo: Gestión de Anomalías"]
-            ANOM_CTRL["AnomaliaController"]
-            ANOM_UC["ValidarAnomaliaUseCase\nClasificarPersistenciaUseCase"]
-            ANOM_ENT["AnomaliaVial · TipoAnomalia"]
-        end
-
-        subgraph MODULO_AUTH["Módulo: Autenticación y Accesos"]
-            AUTH_CTRL["AuthController"]
-            AUTH_UC["LoginUseCase · GestionUsuariosUseCase"]
-            AUTH_ENT["Usuario · Rol · Token"]
-        end
-
-        subgraph MODULO_INFRA["Módulo: Infraestructura"]
-            CHANNELS[".NET Channels\n(procesamiento asíncrono)"]
-            REPOS["Repositorios\n(PostGIS · Redis · SQLite)"]
-            HEALTH["HealthController\n/health · /metrics"]
-        end
-
-        MIDDLEWARE --> MODULO_DETECCION
-        MIDDLEWARE --> MODULO_SYNC
-        MIDDLEWARE --> MODULO_ANOMALIAS
-        MIDDLEWARE --> MODULO_AUTH
-
-        DET_CTRL --> DET_UC --> DET_ENT
-        SYNC_CTRL --> SYNC_UC --> SYNC_ENT
-        ANOM_CTRL --> ANOM_UC --> ANOM_ENT
-        AUTH_CTRL --> AUTH_UC --> AUTH_ENT
-
-        MODULO_DETECCION --> MODULO_INFRA
-        MODULO_SYNC --> CHANNELS
-        CHANNELS --> MODULO_ANOMALIAS
-        MODULO_ANOMALIAS --> REPOS
-        MODULO_AUTH --> REPOS
+        SHARED["Shared<br/>Kernel de dominio · ICacheMapa · Configuración · TimeProvider"]:::compartido
     end
 
-    subgraph DATOS["🗄️ DATOS"]
-        SQLITE["SQLite\nBuffer local en dispositivo"]
-        POSTGRES["PostgreSQL + PostGIS\nAnomalías geolocalizadas"]
-        REDIS["Redis\nCaché del mapa público"]
-    end
+    DB[("PostgreSQL + PostGIS<br/>un solo motor")]:::datos
 
-    subgraph INFRA["☁️ INFRAESTRUCTURA"]
-        DOCKER["Docker Compose\nOracle Cloud ARM"]
-        CF["Cloudflare\nCDN · SSL · DNS"]
-        UR["UptimeRobot\nMonitoreo 24/7"]
-    end
+    APP -- "HTTPS/JSON" --> HOST
+    PANEL -- "HTTPS/JSON" --> HOST
+    HOST --> ID
+    HOST --> ING
+    HOST --> CLA
+    HOST --> MAPA
+    HOST --> DASH
+    HOST --> EXP
+    HOST --> AUD
 
-    CONDUCTOR --> APP
-    ADMIN --> PANEL
+    ING -- "Contracts" --> VAL
+    VAL -- "Contracts" --> CLA
+    MAPA -- "Contracts (lectura)" --> CLA
+    DASH -- "Contracts (lectura)" --> CLA
+    EXP -- "Contracts (lectura)" --> CLA
+    ID -- "Contracts" --> AUD
+    CLA -- "Contracts" --> AUD
+    EXP -- "Contracts" --> AUD
 
-    APP -->|HTTPS / REST| MIDDLEWARE
-    PANEL -->|HTTPS / REST| MIDDLEWARE
-
-    APP -->|SQLite local| SQLITE
-    SQLITE -->|Sync batch| MODULO_SYNC
-
-    REPOS --> POSTGRES
-    REPOS --> REDIS
-
-    BACKEND --> DOCKER
-    DOCKER --> CF
-    CF --> UR
+    ING --> DB
+    CLA --> DB
+    ID --> DB
+    AUD --> DB
+    DASH --> DB
+    NEGOCIO -.-> SHARED
 ```
 
----
+> Solo el **dueño** de cada tabla escribe en ella (`ING`, `CLA`, `ID`, `AUD`, `DASH`). Los módulos que solo leen (`VAL`, `MAPA`, `EXP`) lo hacen **a través del contrato** del dueño, no con SQL propio.
 
-## Reglas fundamentales de la arquitectura
+## 4. Reglas fundamentales
 
-Estas reglas no son sugerencias — son los límites que mantienen el sistema ordenado conforme crece:
+Estas reglas no son sugerencias: mantienen el sistema ordenado conforme crece. Las 1 a 4 y 12 se verifican con pruebas de arquitectura en cada build (RNF-28).
 
-**1. Invocación descendente por capas**
-Cada capa solo invoca a la capa inmediatamente inferior. El controlador llama al caso de uso, el caso de uso llama al repositorio. Nunca al revés.
+| # | Regla | Motivo | Cómo se verifica |
+|---|---|---|---|
+| 1 | **Invocación descendente por capas.** Adapters → Application → Domain. Infrastructure implementa los puertos de Application. | Orden predecible y testeable | Pruebas de arquitectura |
+| 2 | **Aislamiento entre módulos.** Un módulo usa a otro **solo** mediante su carpeta `Contracts/`. | Un cambio interno no rompe a los demás (DA-09) | Pruebas de arquitectura |
+| 3 | **Un dueño por tabla.** Solo el módulo dueño escribe; los demás leen por el contrato del dueño. | Independencia de los datos | Revisión de código y pruebas |
+| 4 | **Sin ciclos entre módulos.** Las dependencias forman un grafo acíclico. | Evita acoplamiento circular (ADR-009 eliminó el de Autenticación ↔ Usuarios) | Pruebas de arquitectura |
+| 5 | **Dominio sin dependencias externas.** Nada de ASP.NET, EF Core ni SDKs en `Domain/`. | RN-11 y RN-12 se prueban sin infraestructura | Pruebas de arquitectura |
+| 6 | **Despliegue único.** Un proceso API, una BD y `cloudflared`; sin orquestación de múltiples servicios en v1.0. | R-09, RNF-17 | `docker compose up -d` |
+| 7 | **Ingesta durable.** El HTTP 200 se responde **solo tras el *commit*** en `evento_recibido`; el procesamiento es asíncrono e idempotente por `eventoId`. | RNF-06, DA-02 | EQ-02, EQ-09 |
+| 8 | **El servidor decide el acceso.** RBAC y recorte por rol se aplican en la API; la app no es frontera de seguridad. | R-07, DA-10 | EQ-04, EQ-11 |
+| 9 | **Offline-first.** La app nunca depende de la red para detectar, guardar, mostrar el mapa descargado ni alertar. | R-08, DA-01 | EQ-01 |
+| 10 | **Privacidad por diseño.** Seudónimo rotativo, purga a 72 h, historial solo local, exportación sin seudónimos. | R-06, DA-07 | EQ-04 |
+| 11 | **Una integración externa por módulo.** El proveedor de correo se integra solo desde Identidad y Accesos, mediante un adaptador. | Fácil de reemplazar | Revisión de código |
+| 12 | **Umbrales por configuración, reloj inyectado.** Ninguna regla de negocio usa constantes ni `DateTime.UtcNow`. Día local con desfase fijo UTC−5. | Calibrar con el piloto sin tocar código (S-04) | Pruebas con `FakeTimeProvider` |
+| 13 | **Evolución controlada.** Un módulo se extrae como servicio sin tocar a los demás, porque sus contratos ya existen. Candidatos: Ingesta y Consulta de Mapa. | DA-09 | — |
 
-**2. Aislamiento entre módulos**
-Un módulo no puede acceder directamente al repositorio o a las tablas de otro módulo. Si el módulo de Anomalías necesita datos de Autenticación, lo hace a través de la interfaz del servicio correspondiente, nunca tocando su base de datos directamente.
+## 5. Tácticas por atributo de calidad
 
-**3. Dominio sin dependencias externas**
-Las entidades del dominio (Anomalia, EventoPendiente, Usuario) no conocen nada de ASP.NET, PostgreSQL ni ningún framework. Son clases puras de C# que pueden probarse sin levantar ningún servicio.
+| Atributo | Táctica arquitectónica | Dónde vive |
+|---|---|---|
+| AC-01 Disponibilidad offline | Store-and-Forward, mapa base y anomalías locales | App: Buffer, Mapa, Proximidad |
+| AC-02 Confiabilidad del dato | Ingesta durable, idempotencia, conciliación recibidos = procesados + descartados + pendientes | Ingesta; tabla `evento_recibido` |
+| AC-03 Rendimiento en móvil | Edge AI con modelo cuantizado | App: Detector |
+| AC-04 Seguridad y privacidad | Seudónimo rotativo, purga a 72 h, RBAC en servidor, Tunnel, CSP/HSTS | Identidad y Accesos, API REST, Clasificación |
+| AC-05 Mantenibilidad | Módulos aislados, pruebas de arquitectura, umbrales por configuración | Todos los módulos |
+| AC-06 Escalabilidad | Cola por lote, serialización por celda geográfica, caché por celdas | Ingesta, Clasificación, Consulta de Mapa |
+| AC-07 Observabilidad | `/health` (liveness y readiness), logs estructurados, métricas por minuto | API REST, Dashboard |
+| AC-08 Usabilidad | Detección pasiva en servicio en primer plano | App: Sensores |
 
-**4. Despliegue único**
-Todo el backend corre en un único contenedor Docker conectado a una única base de datos PostgreSQL. No hay orquestación de múltiples servicios en v1.0.
-
-**5. Evolución controlada**
-Cuando el sistema crezca y un módulo necesite escalar de forma independiente, puede extraerse como servicio sin modificar los demás, porque sus interfaces ya están definidas desde el inicio.
-
----
-
-## Stack tecnológico
+## 6. Stack tecnológico
 
 | Componente | Tecnología | Justificación |
 |---|---|---|
-| App móvil | Kotlin + TFLite | Acceso directo a sensores a 50 Hz. TFLite para inferencia local < 50 ms. |
-| Backend | ASP.NET Core .NET 8 | Tecnología principal del autor. Alto rendimiento, soporte nativo para async/await y .NET Channels. |
-| Base de datos | PostgreSQL + PostGIS | Único motor open source con soporte geoespacial serio para producción. |
-| Caché | Redis | Respuestas del mapa público en menos de 250 ms sin consultar PostgreSQL en cada petición. |
-| Panel web | React + Leaflet | React para la interfaz administrativa. Leaflet para renderizar el mapa sobre OpenStreetMap. |
-| Infraestructura | Docker Compose + Oracle Cloud ARM | Costo operativo cero. Un solo comando levanta todo el sistema. |
-| CDN y SSL | Cloudflare Free | TLS 1.3, calificación A+ en SSL Labs, caché de assets estáticos sin costo. |
-| Monitoreo | UptimeRobot Free | Alerta por correo ante caídas, monitoreo cada 5 minutos de los 4 subdominios. |
+| App móvil | Kotlin · TFLite (MLP cuantizado) · SQLite · servicio en primer plano · WorkManager *(propuesta)* · MapLibre Native con PMTiles/MBTiles *(a confirmar)* | Sensores a 50 Hz, inferencia local < 50 ms, mapa offline (R-01, ADR-004, ADR-011) |
+| Backend | ASP.NET Core 8 · .NET Channels · `IMemoryCache` · rate limiting integrado · `TimeProvider` | Tecnología del autor (R-02) y procesamiento asíncrono nativo |
+| Acceso a datos | EF Core + NetTopologySuite · Npgsql | Una sola ruta de datos (ADR-012) |
+| Base de datos | PostgreSQL + PostGIS · columna `geography(Point, 4326)` · índice GiST · bloqueos consultivos por celda | Consultas espaciales y serialización por zona (R-03) |
+| Panel web | React + Leaflet sobre OpenStreetMap | Interfaz administrativa liviana |
+| Hosting del panel y mapa base | Cloudflare Pages (panel) y almacenamiento estático para el mapa base (p. ej. R2; **verificar límites de tamaño**) | Costo cero y sin servidor propio (ADR-010, ADR-011) |
+| Infraestructura | Docker Compose en Oracle Cloud ARM · `cloudflared` | Un comando levanta todo; origen sin puertos abiertos |
+| Borde | Cloudflare Free: DNS, TLS, proxy, caché de borde, Tunnel | TLS, A+ en SSL Labs y origen oculto (RNF-08) |
+| Monitoreo | UptimeRobot Free · `/health` | Alerta por correo en ≤ 5 min (RNF-20) |
+| Backups | `pg_dump` cifrado a almacenamiento de objetos, retención de 30 días | RNF-07, RNF-24 |
+| Correo transaccional | Proveedor por definir (roadmap) | HU-18b; el plan gratuito de SendGrid ya no existe |
+| Pruebas | xUnit · NSubstitute · `FakeTimeProvider` · Testcontainers (PostgreSQL + PostGIS) · `WebApplicationFactory` · NetArchTest · herramienta de carga *(p. ej. k6)* | Estrategia por capas (ver `enfoque-arquitectonico.md`) |
+
+> **Riesgos de la infraestructura gratuita:** ver RS-01…RS-06 en `05-restricciones.md`. En particular, comprobar que PostGIS tenga imagen arm64 y confirmar las condiciones vigentes de Oracle, UptimeRobot y del proveedor de correo.
+
+## 7. Camino de evolución
+
+| Disparador | Cambio | Qué no cambia |
+|---|---|---|
+| Más de una instancia del backend (supuesto S-03) | Migrar la caché a Redis y la cola a un mecanismo compartido | Contratos y reglas de dominio |
+| Carga de lectura del mapa creciente | Extraer **Consulta de Mapa** como servicio de solo lectura | Resto de módulos |
+| Carga de escritura creciente | Extraer **Ingesta** (con su tabla de recepción) | Validación y Clasificación |
+| Empresas y Autoridad Vial (v1.5+/v2.0+) | Nuevos roles y una *fachada* de API comercial | Módulos existentes |
+| Notificaciones desde el servidor (v1.5+) | Nuevo adaptador de salida (patrón *Observer*) | Alertas locales de la app |
+| Reglas distintas por versión de modelo | Umbrales por `modeloVersion` | Contrato de ingesta |
