@@ -1,6 +1,6 @@
 # Historias de Usuario
 
-> **Proyecto:** KillaUru · **Versión:** 1.0 · **Revisión:** 2026-10-12
+> **Proyecto:** KillaUru · **Versión:** 1.1 · **Revisión:** 2026-10-12
 > **Prioridad (MoSCoW):** **M** = Must · **S** = Should · **C** = Could. Las *Could* se recortan primero si el plazo de 6–8 semanas (R-10) se ajusta.
 > **Relacionados:** `01-actores.md`, `03-requisitos-funcionales.md`
 
@@ -25,7 +25,7 @@
 | ID | Historia de usuario | Prio. | Criterios de aceptación |
 |---|---|:---:|---|
 | HU-05 | Como sistema, necesito validar la calidad de cada evento recibido antes de mostrarlo en el mapa, para que solo aparezcan datos confiables. *(historia técnica)* | M | **Dado** un lote de hasta 50 eventos, **cuando** se procesa, **entonces** se rechazan los de confidence < 0.75, precisión GPS > 20 m o timestamp fuera de rango, y la respuesta indica el resultado **por evento**. Los de severidad alta se confirman con ≥ 2 dispositivos distintos. |
-| HU-06 | Como administrador, quiero que el sistema distinga automáticamente baches permanentes de obstáculos temporales y retire del mapa lo que ya no existe, para priorizar las alertas correctamente. | M | **Dado** reportes de una misma anomalía, **cuando** aparece en ≥ 3 días locales distintos dentro de 15 días, **entonces** es `PERSISTENTE`; si no, `EPISÓDICA`. **Y** una anomalía sin nuevos reportes durante su plazo de caducidad deja de mostrarse. |
+| HU-06 | Como administrador, quiero que el sistema distinga automáticamente baches permanentes de obstáculos temporales y retire del mapa lo que ya no existe, para priorizar las alertas correctamente. | M | **Dado** reportes de una misma anomalía, **cuando** aparece en ≥ 3 días locales distintos dentro de 15 días, **entonces** el servicio de fondo del servidor la clasifica como `PERSISTENTE`; si no, `EPISÓDICA`. **Y** una anomalía sin nuevos reportes durante su plazo de caducidad expira automáticamente. |
 
 ## EP-04: Mapa y visualización para el conductor
 
@@ -43,7 +43,7 @@
 | HU-11 | Como administrador, quiero iniciar sesión en el panel web con mis credenciales, para acceder a la gestión del sistema de forma segura. | M | **Dado** credenciales válidas, **entonces** obtengo un JWT de 8 h. **Dado** 3 intentos fallidos, **entonces** la cuenta se bloquea temporalmente y el evento se audita. |
 | HU-12 | Como administrador, quiero ver el mapa completo del corredor con todas las anomalías detectadas y filtrarlas, para monitorear el estado general de la vía. | M | **Dado** una sesión de administrador, **cuando** filtro por tipo, severidad, fecha o estado, **entonces** el mapa muestra también las anomalías sin confirmar. |
 | HU-13 | Como administrador, quiero ver el dashboard con estadísticas globales del sistema, para tomar decisiones sobre el funcionamiento de la plataforma. | S | **Entonces** veo eventos por día, usuarios activos, cobertura, latencia p95, descartes por motivo y tasa de confirmación. |
-| HU-14 | Como administrador, quiero gestionar los usuarios del sistema (crear, editar rol, desactivar), para mantener el control de acceso. | M | **Dado** una cuenta desactivada, **entonces** pierde el acceso en ≤ 5 min y la acción queda auditada. |
+| HU-14 | Como administrador, quiero gestionar los usuarios del sistema (crear, editar rol, desactivar), para mantener el control de acceso en el módulo Identidad y Accesos. | M | **Dado** una cuenta desactivada, **entonces** pierde el acceso en ≤ 5 min y la acción queda auditada. |
 | HU-15 | Como administrador, quiero ver el log de auditoría completo del sistema, para tener trazabilidad de todas las acciones sensibles. | S | **Entonces** puedo consultar registros inmutables (timestamp UTC, actor, acción, contexto) solo en modo lectura. |
 | HU-19 | Como administrador, quiero marcar una anomalía como reparada o descartarla, para que el mapa refleje la realidad de la vía. | S | **Cuando** modero una anomalía, **entonces** deja de mostrarse a los conductores y la acción se audita. |
 | HU-20 | Como administrador, quiero exportar el dataset de anomalías en CSV y GeoJSON, para analizarlo fuera de la plataforma. | C | **Cuando** exporto con filtros, **entonces** el archivo **no contiene** seudónimos de dispositivo y la exportación se audita. |
@@ -59,19 +59,20 @@
 
 | ID | Historia de usuario | Prio. | Criterios de aceptación |
 |---|---|:---:|---|
-| HU-18 | Como conductor, quiero registrarme e iniciar sesión con mi correo y contraseña, para acceder al corredor completo y a las alertas. | M | **Cuando** me registro, **entonces** obtengo el rol `ConductorRegistrado` y una sesión renovable. En v1.0 la verificación de correo es opcional (HU-11b). |
-| HU-11b | Como conductor, quiero verificar mi correo electrónico, para proteger mi cuenta. | C | **Cuando** abro el enlace recibido, **entonces** mi cuenta queda verificada. Depende de un proveedor de correo (roadmap). |
+| HU-18 | Como conductor, quiero registrarme e iniciar sesión con mi correo y contraseña, para acceder al corredor completo y a las alertas. | M | **Cuando** me registro, **entonces** obtengo el rol `ConductorRegistrado` y una sesión renovable. En v1.0 la verificación de correo es opcional (HU-18b). |
+| HU-18b | Como conductor, quiero verificar mi correo electrónico, para proteger mi cuenta. | C | **Cuando** abro el enlace recibido, **entonces** mi cuenta queda verificada. Depende de un proveedor de correo transaccional (roadmap). |
 | HU-21 | Como conductor, quiero que mi identidad no pueda reconstruirse a partir de los datos que envío, para proteger mi privacidad (Ley 29733). | M | **Entonces** los eventos usan un seudónimo rotativo que el servidor purga a las 72 h; ningún dato almacenado vincula mi cuenta con mis eventos o trayectorias. |
 
 ## Resumen por prioridad y orden de recorte
 
 | Prioridad | Historias |
 |---|---|
-| **Must** (núcleo de v1.0) | HU-01, 02, 03, 04, 05, 06, 07, 08, 11, 12, 14, 16, 18, 21 |
-| **Should** | HU-09, 13, 15, 17, 19 |
-| **Could** (recortar primero) | HU-10, 11b, 20 |
+| **Must** (núcleo de v1.0) | HU-01, HU-02, HU-03, HU-04, HU-05, HU-06, HU-07, HU-08, HU-11, HU-12, HU-14, HU-16, HU-18, HU-21 |
+| **Should** | HU-09, HU-13, HU-15, HU-17, HU-19 |
+| **Could** (recortar primero) | HU-10, HU-18b, HU-20 |
 
-**Orden de recorte si el plazo se aprieta:** HU-20 → HU-11b → HU-10 → HU-13 → HU-09.
+**Secuencia completa de recorte si el plazo se aprieta:** 
+`HU-20` → `HU-18b` → `HU-10` (bloque *Could*) → `HU-13` → `HU-19` → `HU-15` → `HU-17` → `HU-09` (bloque *Should*).
 
 ## Mapa de épicas
 
@@ -81,8 +82,8 @@
 | EP-02 Offline y sincronización | HU-03, HU-04 |
 | EP-03 Gestión de anomalías en el servidor | HU-05, HU-06 |
 | EP-04 Mapa y visualización | HU-07, HU-08, HU-09, HU-10 |
-| EP-05 Panel administrativo | HU-11, 12, 13, 14, 15, 19, 20 |
+| EP-05 Panel administrativo | HU-11, HU-12, HU-13, HU-14, HU-15, HU-19, HU-20 |
 | EP-06 Infraestructura | HU-16, HU-17 |
-| EP-07 Cuenta y privacidad del conductor | HU-18, HU-11b, HU-21 |
+| EP-07 Cuenta y privacidad del conductor | HU-18, HU-18b, HU-21 |
 
 > **Nota:** las épicas de producto (`EP-xx`) no deben confundirse con la épica de Jira `[EPIC-04] Documentación: Modelo C4`.

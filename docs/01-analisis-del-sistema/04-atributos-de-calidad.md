@@ -1,6 +1,6 @@
 # Atributos de Calidad
 
-> **Proyecto:** KillaUru · **Versión:** 1.0 · **Revisión:** 2026-10-12
+> **Proyecto:** KillaUru · **Versión:** 1.1 · **Revisión:** 2026-10-12 · **Estado:** Vigente
 > Este documento es el **único catálogo de metas numéricas**. Los demás documentos las referencian por ID (RNF-xx) y no repiten el valor.
 > Los IDs existentes se conservaron, por lo que dentro de cada categoría no son consecutivos.
 > **Relacionados:** `06-driver-arquitectonicos.md`, `08-escenarios-y-atributos-de-calidad.md`, `Nivel2-diagrama-de-contenedores.md`
@@ -70,13 +70,13 @@
 
 ## Resumen de prioridades
 
-| ID | Atributo | ¿Por qué es importante en KillaUru? | Prioridad | RNF clave | Escenario |
+| ID | Atributo | ¿Por qué es importante en KillaUru? | Prioridad | RNF clave | Escenarios asociados |
 |---|---|---|---|---|---|
 | AC-01 | Disponibilidad offline | Más del 50 % del corredor no tiene señal celular. Si el sistema no funciona sin internet, no sirve para la vía. | 🔴 Crítica | RNF-15 | EQ-01 |
-| AC-02 | Confiabilidad del dato | Un bache mal registrado o perdido silenciosamente daña la confianza del sistema. Cada evento aceptado debe llegar sí o sí. | 🔴 Crítica | RNF-06, RNF-24 | EQ-02, EQ-09, EQ-10 |
+| AC-02 | Confiabilidad del dato | Un bache mal registrado o perdido silenciosamente daña la confianza. Cada evento aceptado debe persistirse de forma durable ante cortes o reinicios. | 🔴 Crítica | RNF-06, RNF-07, RNF-24 | EQ-02, EQ-09, EQ-10 |
 | AC-03 | Rendimiento en móvil | El modelo ML debe clasificar en < 50 ms sin agotar la batería. Un sistema lento o que consume batería será desinstalado. | 🔴 Crítica | RNF-04, RNF-15 | EQ-03 |
-| AC-04 | Seguridad y privacidad | La Ley 29733 obliga a proteger la identidad del conductor. Un sistema que filtra datos personales tiene consecuencias legales. | 🔴 Crítica | RNF-08…11, RNF-25…27 | EQ-04, EQ-11 |
+| AC-04 | Seguridad y privacidad | La Ley 29733 obliga a proteger la identidad del conductor. Además, el servidor debe restringir el acceso a datos según el rol. | 🔴 Crítica | RNF-08…11, RNF-25…27 | EQ-04, EQ-11 |
 | AC-05 | Mantenibilidad | El sistema lo desarrolla y mantiene una sola persona. Si el código es difícil de modificar, el proyecto muere. | 🟠 Alta | RNF-17…19, RNF-28 | EQ-05 |
-| AC-06 | Escalabilidad | El sistema debe poder crecer sin reescribir todo. | 🟠 Alta | RNF-02, RNF-03, RNF-23 | EQ-06 |
-| AC-07 | Observabilidad | Si algo falla en producción, debe detectarse antes de que los usuarios lo reporten. | 🟠 Alta | RNF-05, RNF-20…22 | EQ-07 |
-| AC-08 | Usabilidad | El conductor no puede distraerse mientras maneja. La detección debe ser automática y pasiva. | 🟡 Media | RNF-12, RNF-14 | EQ-08 |
+| AC-06 | Escalabilidad | El sistema debe poder absorber ráfagas de sincronización de la flota sin reescribir la arquitectura. | 🟠 Alta | RNF-02, RNF-03, RNF-23 | EQ-06 |
+| AC-07 | Observabilidad | Si algo falla en producción, debe detectarse mediante monitoreo proactivo antes de que los usuarios lo reporten. | 🟠 Alta | RNF-05, RNF-20…22 | EQ-07 |
+| AC-08 | Usabilidad | El conductor no puede distraerse mientras maneja. La detección debe ser pasiva y automática. | 🟡 Media | RNF-12, RNF-14 | EQ-08 |

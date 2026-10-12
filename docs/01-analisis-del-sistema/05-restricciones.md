@@ -1,6 +1,6 @@
 # Restricciones
 
-> **Proyecto:** KillaUru · **Versión:** 1.0 · **Revisión:** 2026-10-12
+> **Proyecto:** KillaUru · **Versión:** 1.1 · **Revisión:** 2026-10-12
 > Las restricciones son condiciones que no podemos cambiar: límites fijos que la arquitectura debe respetar. Las **decisiones** que se derivan de ellas están en `07-decisiones-arquitectonicas.md`.
 > Los supuestos y riesgos que acompañan a las restricciones se registran en las secciones 2 y 3.
 
@@ -36,6 +36,6 @@
 | RS-01 | Oracle puede **recuperar instancias Always Free con baja utilización**. | Evaluar pasar la cuenta a Pay As You Go sin salir de los recursos gratuitos |
 | RS-02 | La imagen de PostGIS debe tener **soporte arm64**. | Verificar antes de fijar `docker-compose` |
 | RS-03 | UptimeRobot Free tiene restricciones de **uso comercial y de dominio propio** en la página de estado. | Revisar términos; alternativa de monitoreo y página de estado |
-| RS-04 | SendGrid **retiró su plan gratuito permanente**. | Elegir un proveedor de correo con costo marginal antes de implementar HU-11b |
+| RS-04 | SendGrid **retiró su plan gratuito permanente**. | Elegir un proveedor de correo con costo marginal antes de implementar HU-18b |
 | RS-05 | **La región de Oracle no está en Perú**, lo que añade latencia a RNF-01. | Registrar la región elegida y apoyarse en la caché de borde |
 | RS-06 | **Android restringe la ejecución en segundo plano** (servicios en primer plano, ahorro de batería). | Declarar el servicio en primer plano y probar en campo (RNF-15) |

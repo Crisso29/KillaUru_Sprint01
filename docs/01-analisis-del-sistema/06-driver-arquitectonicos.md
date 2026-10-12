@@ -1,6 +1,6 @@
 # Drivers Arquitectónicos
 
-> **Proyecto:** KillaUru · **Versión:** 1.0 · **Revisión:** 2026-10-12
+> **Proyecto:** KillaUru · **Versión:** 1.1 · **Revisión:** 2026-10-12
 > Un driver arquitectónico es un requisito, atributo o restricción que **obliga** a tomar una decisión de arquitectura. Criterio de inclusión: *si este driver no existiera, la arquitectura sería diferente.*
 > **Relacionados:** `04-atributos-de-calidad.md`, `05-restricciones.md`, `07-decisiones-arquitectonicas.md`
 
@@ -11,7 +11,7 @@
 | DA-03 | La detección debe ser automática y pasiva, sin acción del conductor. | RF-01, AC-08 | Obliga a un modelo ML embebido (TFLite) en lugar de reportes manuales. | ADR-004 | App: Detector |
 | DA-04 | El modelo ML debe clasificar en < 50 ms en un móvil de gama media. | RNF-04, AC-03 | Obliga a inferencia local (Edge AI) en lugar de enviar la señal cruda al servidor. | ADR-004 | App: Detector |
 | DA-05 | 300 dispositivos pueden sincronizar al mismo tiempo. | RNF-03, RNF-23 | Obliga a procesamiento asíncrono interno (.NET Channels) con contrapresión por lote. | ADR-005 | Ingesta: cola y `BackgroundService` |
-| DA-06 | Una sola persona desarrolla y opera el sistema. | R-09 | Obliga a monolito modular en lugar de microservicios. La complejidad operacional debe ser mínima. | ADR-001, ADR-006 | API: proceso único |
+| DA-06 | Una sola persona desarrolla y opera el sistema. | R-09 | Obliga a monolito modular en lugar de microservicios. La complejidad operacional debe ser mínima. | ADR-001, ADR-002, ADR-006 | API: proceso único |
 | DA-07 | La identidad del conductor no puede almacenarse ni vincularse a sus eventos. | R-06, AC-04 | Obliga a seudónimo rotativo, purga a 72 h e historial solo local. | ADR-007 | App: seudónimo; Clasificación: purga |
 | DA-08 | El costo operativo debe ser mínimo en este ciclo 2026-II. | R-04, RNF-16 | Obliga a infraestructura Free Tier (Oracle ARM, Cloudflare Free) y a evitar Redis y brokers. | ADR-006, ADR-010 | C2: despliegue |
 | DA-09 | El sistema debe escalar a más módulos en el futuro (empresas, autoridades). | AC-06 | Obliga a separar el backend en *bounded contexts* internos desde el inicio, aunque corran en un solo proceso. | ADR-001, ADR-002 | C3: módulos y `Contracts/` |

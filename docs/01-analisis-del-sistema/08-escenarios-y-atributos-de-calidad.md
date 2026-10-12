@@ -1,6 +1,6 @@
 # Escenarios de atributos de calidad de KillaUru
 
-> **Proyecto:** KillaUru · **Versión:** 1.0 · **Revisión:** 2026-10-12
+> **Proyecto:** KillaUru · **Versión:** 1.1 · **Revisión:** 2026-10-12 · **Estado:** Vigente
 > Traduce los atributos de `04-atributos-de-calidad.md` en escenarios verificables, con el formato de **seis partes** del método ATAM: **fuente, estímulo, artefacto, entorno, respuesta y medida de respuesta**. Se añaden *verificación*, *trazabilidad* y *estado* para el seguimiento del proyecto.
 > Las metas numéricas viven en `04`; aquí se referencian por ID.
 
@@ -32,7 +32,7 @@
 | **Medida** | 0 % de eventos válidos perdidos y 0 duplicados en anomalías y reportes (RNF-06). El conteo enviado por la app coincide con el de la tabla de recepción. |
 | **Verificación** | Interrupción simulada de red a mitad del envío, incluida la pérdida de la respuesta 200; reenviar y conciliar app ↔ PostgreSQL. |
 | **Trazabilidad** | DA-02, RF-06, RF-07, RF-11, HU-04, ADR-003, ADR-005 |
-| **Estado** | Definido — requiere ADR-005 (propuesto) |
+| **Estado** | Definido — alineado con ADR-005 (Aceptado) |
 
 ## EQ-03. Rendimiento en móvil: clasificación del modelo ML
 
@@ -124,7 +124,7 @@
 | **Trazabilidad** | DA-03, HU-01, ADR-004 |
 | **Estado** | Definido |
 
-## EQ-09. Reinicio del servidor sin pérdida de eventos aceptados *(nuevo)*
+## EQ-09. Reinicio del servidor sin pérdida de eventos aceptados
 
 | Elemento | Descripción |
 |---|---|
@@ -137,9 +137,9 @@
 | **Medida** | 0 eventos aceptados perdidos; tras recuperarse se cumple recibidos = procesados + descartados + pendientes; el procesamiento se reanuda en ≤ 2 min (RNF-06). |
 | **Verificación** | Prueba de caos: matar el proceso a mitad de un lote y conciliar los conteos. |
 | **Trazabilidad** | DA-02, RNF-06, ADR-005 |
-| **Estado** | Definido — requiere ADR-005 (propuesto) |
+| **Estado** | Definido — alineado con ADR-005 (Aceptado) |
 
-## EQ-10. Restauración desde backup *(nuevo)*
+## EQ-10. Restauración desde backup
 
 | Elemento | Descripción |
 |---|---|
@@ -154,7 +154,7 @@
 | **Trazabilidad** | RNF-07, RNF-24, HU-16, ADR-010 |
 | **Estado** | Definido |
 
-## EQ-11. Control de acceso al corredor completo *(nuevo)*
+## EQ-11. Control de acceso al corredor completo
 
 | Elemento | Descripción |
 |---|---|

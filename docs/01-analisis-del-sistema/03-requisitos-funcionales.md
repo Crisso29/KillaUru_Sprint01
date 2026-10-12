@@ -1,10 +1,10 @@
 # Requisitos Funcionales
 
-> **Proyecto:** KillaUru · **Versión:** 1.0 · **Revisión:** 2026-10-12
-> **Regla de trazabilidad:** cada RF tiene **una historia principal** y puede **apoyar** a otras. Cada HU debe tener al menos un RF (o RNF, en el caso de HU-16). Los IDs RF-01…RF-20 se conservan.
+> **Proyecto:** KillaUru · **Versión:** 1.1 · **Revisión:** 2026-10-12
+> **Regla de trazabilidad:** cada RF tiene **una historia principal** y puede **apoyar** a otras. Cada HU debe tener al menos un RF (o RNF, en el caso de HU-16). Los IDs RF-01…RF-28 se conservan.
 > **Relacionados:** `02-historias-de-usuario.md`, `Nivel3-diagrama-de-componentes.md`, `Nivel4-diagrama-de-codigo.md`
 
-## RF-01 a RF-10: App Android (Detección, Sincronización y Mapa)
+## RF-01 a RF-10 — App Android (Detección, Sincronización y Mapa)
 
 | ID | Requisito funcional | HU principal | Apoya a | Componente |
 |---|---|---|---|---|
@@ -19,7 +19,7 @@
 | RF-09 | El sistema debe mostrar al conductor registrado el mapa del corredor de 333 km con las anomalías activas, tiempo relativo, severidad y estado (persistente/episódica). | HU-08 | — | App · Mapa |
 | RF-10 | El sistema debe emitir alertas anticipadas (sonido + visual) al aproximarse a una anomalía activa **por delante en el sentido de la marcha**, usando solo GPS y la copia local de anomalías, sin internet. | HU-09 | — | App · Proximidad |
 
-## RF-11 a RF-15: Backend (Ingesta, Validación, Clasificación, Mapa y Auditoría)
+## RF-11 a RF-15 — Backend (Ingesta, Validación, Clasificación, Mapa y Auditoría)
 
 | ID | Requisito funcional | HU principal | Apoya a | Componente (C3) |
 |---|---|---|---|---|
@@ -29,22 +29,22 @@
 | RF-14 | El sistema debe exponer `GET /api/v1/anomalies?bbox=` en GeoJSON, con filtros opcionales (`tipo`, `severidad`, `desde`), `updatedSince` y `ETag`. **Debe recortar el resultado según el rol**: Anónimo → polígono del tramo demo; Registrado → corredor completo con anomalías activas y confirmadas; Administrador → todas. | HU-08 | HU-07, HU-12 | Consulta de Mapa · Caché |
 | RF-15 | El sistema debe registrar en un log append-only toda acción sensible: alta de usuario, cambio de rol, desactivación, login fallido y bloqueo, moderación de anomalías, exportaciones y accesos administrativos a datos. Los descartes de ingesta **no** se registran aquí (van a métricas, RF-18). | HU-15 | HU-14, HU-19, HU-20 | Auditoría |
 
-## RF-16 a RF-20: Panel Administrativo
+## RF-16 a RF-20 — Panel Administrativo e Identidad
 
 | ID | Requisito funcional | HU principal | Apoya a | Componente |
 |---|---|---|---|---|
-| RF-16 | El sistema debe permitir al administrador iniciar sesión con correo y contraseña, emitiendo un JWT con expiración de 8 horas y aplicando bloqueo temporal progresivo tras 3 intentos fallidos. | HU-11 | — | Autenticación |
+| RF-16 | El sistema debe permitir al administrador iniciar sesión con correo y contraseña, emitiendo un JWT con expiración de 8 horas y aplicando bloqueo temporal progresivo tras 3 intentos fallidos. | HU-11 | — | Identidad y Accesos |
 | RF-17 | El sistema debe mostrar al administrador el mapa completo con todas las anomalías (incluidas las no confirmadas) y filtros por tipo, severidad, fecha y estado. | HU-12 | — | Panel · Mapa |
 | RF-18 | El sistema debe mostrar al administrador un dashboard con: eventos por día, usuarios activos, cobertura del corredor, latencia p95, descartes por motivo y tasa de confirmación. | HU-13 | — | Dashboard |
-| RF-19 | El sistema debe permitir al administrador crear, editar el rol y desactivar usuarios. | HU-14 | — | Usuarios y Roles |
+| RF-19 | El sistema debe permitir al administrador crear, editar el rol y desactivar usuarios. | HU-14 | — | Identidad y Accesos |
 | RF-20 | El sistema debe permitir al administrador exportar el dataset en CSV y GeoJSON con filtros, **sin seudónimos de dispositivo**. | HU-20 | — | Exportación |
 
-## RF-21 a RF-28: Requisitos nuevos
+## RF-21 a RF-28 — Requisitos nuevos y de Identidad
 
 | ID | Requisito funcional | HU principal | Apoya a | Componente |
 |---|---|---|---|---|
-| RF-21 | El sistema debe permitir al conductor registrarse e iniciar sesión con correo y contraseña, emitiendo un JWT de acceso de corta duración con renovación (refresh) y asignando el rol `ConductorRegistrado`. | HU-18 | HU-08 | Autenticación · Usuarios |
-| RF-22 | *(Could, roadmap)* El sistema debe enviar un correo de verificación con enlace de confirmación al registrar una cuenta. | HU-11b | HU-18 | Usuarios (integración de correo) |
+| RF-21 | El sistema debe permitir al conductor registrarse e iniciar sesión con correo y contraseña, emitiendo un JWT de acceso de corta duración con renovación (refresh) y asignando el rol `ConductorRegistrado`. | HU-18 | HU-08 | Identidad y Accesos |
+| RF-22 | *(Could, roadmap)* El sistema debe enviar un correo de verificación con enlace de confirmación al registrar una cuenta. | HU-18b | HU-18 | Identidad y Accesos (correo) |
 | RF-23 | El sistema debe gestionar el **ciclo de vida** de las anomalías con los estados `Activa`, `PendienteConfirmacion`, `Expirada` y `Reparada`, con caducidad parametrizable (valores iniciales: episódica sin reportes durante 72 h; pendiente sin segundo dispositivo durante 72 h). El mapa y las alertas usan solo `Activa`. | HU-06 | HU-09 | Clasificación |
 | RF-24 | El sistema debe permitir al administrador marcar una anomalía como reparada, descartarla o reabrirla. | HU-19 | HU-06 | Clasificación · API REST |
 | RF-25 | El sistema debe mostrar al conductor registrado su historial de recorridos de 6 meses, calculado y almacenado **solo en el dispositivo**. | HU-10 | — | App · Historial |
@@ -58,12 +58,12 @@
 |---|---|---|
 | HU-01 Detección automática | RF-01 | RF-02, RF-03 |
 | HU-02 Tipos de anomalía | RF-02 | RF-03 |
-| HU-03 Operación sin señal | RF-03, RF-05 | RF-26 |
+| HU-03 Operación sin señal | RF-03, RF-04,  RF-05 | RF-26 |
 | HU-04 Sin pérdida de eventos | RF-04, RF-06, RF-07 | RF-11 |
 | HU-05 Validación de calidad | RF-11, RF-12 | RF-27 |
 | HU-06 Persistente vs episódica | RF-13, RF-23 | RF-24 |
 | HU-07 Mapa tramo demo | RF-08 | RF-14 |
-| HU-08 Mapa completo | RF-09, RF-14, RF-26 | — |
+| HU-08 Mapa completo | RF-09, RF-14, RF-21, RF-26 | — |
 | HU-09 Alertas anticipadas | RF-10 | RF-23, RF-26 |
 | HU-10 Historial | RF-25 | — |
 | HU-11 Login administrador | RF-16 | — |
@@ -73,8 +73,8 @@
 | HU-15 Log de auditoría | RF-15 | — |
 | HU-16 Despliegue y rollback | — (RNF-17, RNF-18) | — |
 | HU-17 Monitoreo | RF-28 | RNF-20, RNF-21 |
-| HU-18 Registro de conductor | RF-21 | — |
-| HU-11b Verificación de correo | RF-22 | — |
+| HU-18 Registro de conductor | RF-21, RF-22 | — |
+| HU-18b Verificación de correo | RF-22 | — |
 | HU-19 Moderación de anomalías | RF-24 | RF-15 |
 | HU-20 Exportar dataset | RF-20 | RF-15 |
 | HU-21 Privacidad del conductor | RF-27 | RNF-10, RNF-25 |
