@@ -14,59 +14,7 @@ KillaUru es una plataforma colaborativa que detecta, valida y presenta anomalía
 - un **panel web** de administración (SPA).
 
 ## 2. Diagrama de arquitectura (vista por zonas)
-
-```mermaid
-flowchart TD
-    classDef actor fill:#0F766E,color:#fff,stroke:#0a4f4a
-    classDef interno fill:#6D28D9,color:#fff,stroke:#4c1d95
-    classDef cliente fill:#1565C0,color:#fff,stroke:#0d47a1
-    classDef servidor fill:#A9C9F5,color:#0F2744,stroke:#1565C0
-    classDef datos fill:#1E88E5,color:#fff,stroke:#0d47a1
-    classDef externo fill:#475569,color:#fff,stroke:#334155
-
-    CNR["Conductor No Registrado"]:::actor
-    CR["Conductor Registrado"]:::actor
-    ADM["Administrador"]:::interno
-
-    subgraph DISP["📱 Zona 1 · Dispositivo Android (sin conexión permanente)"]
-        APP["App KillaUru · Kotlin<br/>Sensores · Detector TFLite · Buffer SQLite<br/>Sincronizador · Mapa · Proximidad · Historial"]:::cliente
-    end
-
-    subgraph NAV["🖥️ Zona 2 · Navegador"]
-        PANEL["Panel Admin · React + Leaflet"]:::cliente
-    end
-
-    subgraph BORDE["☁️ Zona 3 · Borde (Cloudflare)"]
-        CF["DNS · TLS · Proxy · Caché de borde"]:::externo
-        PAGES["Pages<br/>(panel.killauru.pe)"]:::externo
-        TUN["Tunnel<br/>(api.killauru.pe)"]:::externo
-    end
-
-    subgraph SRV["⚙️ Zona 4 · Servidor (Oracle Cloud ARM · Docker Compose)"]
-        CFD["cloudflared"]:::servidor
-        API["API KillaUru · ASP.NET Core 8<br/>Monolito modular: 8 módulos + API REST (host)"]:::servidor
-        DB[("PostgreSQL + PostGIS")]:::datos
-        BKP["Job de backup diario"]:::servidor
-    end
-
-    subgraph OPS["🔭 Zona 5 · Operación"]
-        UR["UptimeRobot<br/>(GET /health cada 5 min)"]:::externo
-        OBJ["Almacenamiento de objetos<br/>(backups cifrados, 30 días)"]:::externo
-    end
-
-    CNR --> APP
-    CR --> APP
-    ADM --> PANEL
-
-    APP -- "HTTPS/JSON" --> CF
-    PANEL -- "HTTPS/JSON + cookie de sesión" --> CF
-    PAGES -. "sirve los estáticos" .-> PANEL
-    CF --> TUN --> CFD --> API
-    API -- "SQL (Npgsql / EF Core)" --> DB
-    BKP -- "pg_dump cifrado" --> DB
-    BKP --> OBJ
-    UR -- "GET /health" --> CF
-```
+![Diagrama de Arquitectura por Zonas](../../img/fuentes-svg/VistaZonas.svg)
 
 ## 3. Descripción de las zonas
 
