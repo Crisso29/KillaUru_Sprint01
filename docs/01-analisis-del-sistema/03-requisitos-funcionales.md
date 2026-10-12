@@ -1,63 +1,89 @@
 # Requisitos Funcionales
 
-¿Qué debe hacer el sistema? Cada requisito viene directamente de las historias de usuario (un HU puede tener varios requisitos, pero un requisito no puede pertenecer a dos o más HUs).
+> **Proyecto:** KillaUru · **Versión:** 1.0 · **Revisión:** 2026-10-12
+> **Regla de trazabilidad:** cada RF tiene **una historia principal** y puede **apoyar** a otras. Cada HU debe tener al menos un RF (o RNF, en el caso de HU-16). Los IDs RF-01…RF-20 se conservan.
+> **Relacionados:** `02-historias-de-usuario.md`, `Nivel3-diagrama-de-componentes.md`, `Nivel4-diagrama-de-codigo.md`
 
-## RF-01 a RF-05 — App Android (Detección)
+## RF-01 a RF-10: App Android (Detección, Sincronización y Mapa)
 
-| ID | Requisito funcional |
-|---|---|
-| RF-01 | El sistema debe capturar lecturas del acelerómetro y giroscopio a 50 Hz cuando la velocidad GPS supera 5 km/h de forma sostenida. |
-| RF-02 | El sistema debe clasificar automáticamente cada ventana de 500 ms usando el modelo TFLite embebido, retornando categoría, severidad (1–5) y confidence (0.0–1.0). |
-| RF-03 | El sistema debe guardar en SQLite local todo evento con confidence ≥ 0.75, junto con timestamp, coordenadas GPS y hash del dispositivo. |
-| RF-04 | El sistema debe detectar cuando hay señal de internet y sincronizar automáticamente los eventos pendientes con el servidor. |
-| RF-05 | El sistema debe funcionar completamente sin internet — detección y almacenamiento local continúan sin interrupciones. |
+| ID | Requisito funcional | HU principal | Apoya a | Componente |
+|---|---|---|---|---|
+| RF-01 | El sistema debe capturar acelerómetro y giroscopio a 50 Hz, en segundo plano mediante un servicio en primer plano, cuando la velocidad GPS supere 5 km/h de forma sostenida. | HU-01 | — | App · Sensores |
+| RF-02 | El sistema debe clasificar cada ventana de 500 ms con el modelo TFLite embebido, retornando tipo, severidad (1–5) y confidence (0.0–1.0). | HU-02 | HU-01 | App · Detector |
+| RF-03 | El sistema debe guardar en SQLite local todo evento con confidence ≥ 0.75 con: `eventoId` (UUID generado en el dispositivo), timestamp UTC, coordenadas con precisión GPS, seudónimo de instalación, tipo, severidad, confidence y `modeloVersion`, en estado `PENDING`. | HU-03 | HU-01, HU-02 | App · Buffer |
+| RF-04 | El sistema debe detectar cuándo hay señal de internet y sincronizar automáticamente los eventos pendientes. Al recuperar conectividad debe **reiniciar** el backoff. | HU-04 | HU-03 | App · Sincronizador |
+| RF-05 | El sistema debe funcionar completamente sin internet: detección, almacenamiento local, mapa descargado y alertas continúan sin interrupciones. | HU-03 | — | App |
+| RF-06 | El sistema debe enviar eventos en lotes de hasta 50. Un evento pasa a `SYNCED` solo tras un HTTP 200 que lo incluya como aceptado, duplicado o rechazado. Ante HTTP 400 los marca `REJECTED_LOCAL` y no los reintenta. | HU-04 | — | App · Sincronizador |
+| RF-07 | El sistema debe reintentar con backoff exponencial (30 s → 2 min → 10 min → 30 min → 2 h, tope 2 h), con *jitter* de ±25 %, respetando `Retry-After` ante HTTP 429/503. | HU-04 | — | App · Sincronizador |
+| RF-08 | El sistema debe ofrecer al conductor no registrado solo el tramo demo Ayacucho–Vinchos (~65 km). El servidor aplica la misma restricción (RF-14). | HU-07 | — | App · Mapa |
+| RF-09 | El sistema debe mostrar al conductor registrado el mapa del corredor de 333 km con las anomalías activas, tiempo relativo, severidad y estado (persistente/episódica). | HU-08 | — | App · Mapa |
+| RF-10 | El sistema debe emitir alertas anticipadas (sonido + visual) al aproximarse a una anomalía activa **por delante en el sentido de la marcha**, usando solo GPS y la copia local de anomalías, sin internet. | HU-09 | — | App · Proximidad |
 
-## RF-06 a RF-10 — App Android (Sincronización y Mapa)
+## RF-11 a RF-15: Backend (Ingesta, Validación, Clasificación, Mapa y Auditoría)
 
-| ID | Requisito funcional |
-|---|---|
-| RF-06 | El sistema debe enviar eventos al servidor en lotes de hasta 50, marcándolos como sincronizados solo después de recibir confirmación del servidor. |
-| RF-07 | El sistema debe reintentar la sincronización con backoff exponencial (30s → 2min → 10min → 30min → 2h) si falla la conexión. |
-| RF-08 | El sistema debe mostrar al conductor no registrado solo el tramo demo Ayacucho–Vinchos (~65 km). |
-| RF-09 | El sistema debe mostrar al conductor registrado el mapa completo del corredor de 333 km con anomalías, timestamp y severidad. |
-| RF-10 | El sistema debe emitir alertas anticipadas (sonido + visual) cuando el conductor se aproxima a una anomalía conocida, usando solo GPS sin necesidad de internet. |
+| ID | Requisito funcional | HU principal | Apoya a | Componente (C3) |
+|---|---|---|---|---|
+| RF-11 | El sistema debe recibir lotes mediante `POST /api/v1/anomalies/batch`, validar el esquema y **persistir el lote de forma durable antes de responder HTTP 200**. La respuesta indica por evento: aceptados, duplicados y rechazados (con motivo). Ante saturación responde 503 con `Retry-After`. | HU-05 | HU-04 | Ingesta · API REST |
+| RF-12 | El sistema debe rechazar eventos con confidence < 0.75, precisión GPS > 20 m o timestamp fuera de rango (más de 7 días en el pasado o más de 5 min en el futuro). Para severidad alta (≥ 4, valor a confirmar en `09-reglas-de-negocio.md`) debe exigir ≥ 2 dispositivos distintos en 100 m y 72 h para marcar la anomalía como confirmada. | HU-05 | — | Validación |
+| RF-13 | El sistema debe agrupar reportes del mismo tipo a ≤ 100 m en una anomalía y clasificarla como PERSISTENTE (≥ 3 días locales distintos, zona America/Lima UTC−5, dentro de 15 días) o EPISÓDICA. | HU-06 | — | Clasificación |
+| RF-14 | El sistema debe exponer `GET /api/v1/anomalies?bbox=` en GeoJSON, con filtros opcionales (`tipo`, `severidad`, `desde`), `updatedSince` y `ETag`. **Debe recortar el resultado según el rol**: Anónimo → polígono del tramo demo; Registrado → corredor completo con anomalías activas y confirmadas; Administrador → todas. | HU-08 | HU-07, HU-12 | Consulta de Mapa · Caché |
+| RF-15 | El sistema debe registrar en un log append-only toda acción sensible: alta de usuario, cambio de rol, desactivación, login fallido y bloqueo, moderación de anomalías, exportaciones y accesos administrativos a datos. Los descartes de ingesta **no** se registran aquí (van a métricas, RF-18). | HU-15 | HU-14, HU-19, HU-20 | Auditoría |
 
-## RF-11 a RF-15 — Backend (Ingesta y Validación)
+## RF-16 a RF-20: Panel Administrativo
 
-| ID | Requisito funcional |
-|---|---|
-| RF-11 | El sistema debe recibir lotes de eventos desde la app mediante el endpoint POST /api/v1/anomalies/batch y validar su estructura. |
-| RF-12 | El sistema debe rechazar eventos con confidence < 0.75, GPS con precisión > 20 m, o timestamp fuera del rango válido. |
-| RF-13 | El sistema debe clasificar cada anomalía como PERSISTENTE (aparece en ≥ 3 días distintos en 15 días) o EPISÓDICA (temporal). |
-| RF-14 | El sistema debe exponer el endpoint GET /api/v1/anomalies?bbox= que retorna anomalías en formato GeoJSON. |
-| RF-15 | El sistema debe registrar en un log append-only toda acción sensible: alta de usuario, cambio de rol, acceso a datos, exportaciones. |
+| ID | Requisito funcional | HU principal | Apoya a | Componente |
+|---|---|---|---|---|
+| RF-16 | El sistema debe permitir al administrador iniciar sesión con correo y contraseña, emitiendo un JWT con expiración de 8 horas y aplicando bloqueo temporal progresivo tras 3 intentos fallidos. | HU-11 | — | Autenticación |
+| RF-17 | El sistema debe mostrar al administrador el mapa completo con todas las anomalías (incluidas las no confirmadas) y filtros por tipo, severidad, fecha y estado. | HU-12 | — | Panel · Mapa |
+| RF-18 | El sistema debe mostrar al administrador un dashboard con: eventos por día, usuarios activos, cobertura del corredor, latencia p95, descartes por motivo y tasa de confirmación. | HU-13 | — | Dashboard |
+| RF-19 | El sistema debe permitir al administrador crear, editar el rol y desactivar usuarios. | HU-14 | — | Usuarios y Roles |
+| RF-20 | El sistema debe permitir al administrador exportar el dataset en CSV y GeoJSON con filtros, **sin seudónimos de dispositivo**. | HU-20 | — | Exportación |
 
-## RF-16 a RF-20 — Panel Administrativo
+## RF-21 a RF-28: Requisitos nuevos
 
-| ID | Requisito funcional |
-|---|---|
-| RF-16 | El sistema debe permitir al administrador iniciar sesión con correo y contraseña, emitiendo un JWT con expiración de 8 horas. |
-| RF-17 | El sistema debe mostrar al administrador el mapa completo con todas las anomalías, filtros por tipo, severidad y fecha. |
-| RF-18 | El sistema debe mostrar al administrador un dashboard con: eventos por día, usuarios activos, cobertura del corredor y latencia del sistema. |
-| RF-19 | El sistema debe permitir al administrador crear, editar el rol y desactivar usuarios. |
-| RF-20 | El sistema debe permitir al administrador exportar el dataset de anomalías en formato CSV y GeoJSON. |
+| ID | Requisito funcional | HU principal | Apoya a | Componente |
+|---|---|---|---|---|
+| RF-21 | El sistema debe permitir al conductor registrarse e iniciar sesión con correo y contraseña, emitiendo un JWT de acceso de corta duración con renovación (refresh) y asignando el rol `ConductorRegistrado`. | HU-18 | HU-08 | Autenticación · Usuarios |
+| RF-22 | *(Could, roadmap)* El sistema debe enviar un correo de verificación con enlace de confirmación al registrar una cuenta. | HU-11b | HU-18 | Usuarios (integración de correo) |
+| RF-23 | El sistema debe gestionar el **ciclo de vida** de las anomalías con los estados `Activa`, `PendienteConfirmacion`, `Expirada` y `Reparada`, con caducidad parametrizable (valores iniciales: episódica sin reportes durante 72 h; pendiente sin segundo dispositivo durante 72 h). El mapa y las alertas usan solo `Activa`. | HU-06 | HU-09 | Clasificación |
+| RF-24 | El sistema debe permitir al administrador marcar una anomalía como reparada, descartarla o reabrirla. | HU-19 | HU-06 | Clasificación · API REST |
+| RF-25 | El sistema debe mostrar al conductor registrado su historial de recorridos de 6 meses, calculado y almacenado **solo en el dispositivo**. | HU-10 | — | App · Historial |
+| RF-26 | El sistema debe permitir descargar el mapa base vectorial del corredor y las anomalías activas para uso offline, con actualización incremental mediante `updatedSince`. | HU-08 | HU-03, HU-09 | App · Mapa · Consulta de Mapa |
+| RF-27 | El sistema debe identificar la instalación con un UUID aleatorio (no derivado de hardware) y enviarlo como **seudónimo rotativo** (rotación mensual). El servidor debe purgar el seudónimo de los reportes a las 72 h. | HU-21 | HU-05 | App · Ingesta · Clasificación |
+| RF-28 | El sistema debe exponer `GET /health` con comprobación de proceso (*liveness*) y de base de datos (*readiness*) para el monitoreo. | HU-17 | — | API REST |
 
-## Relación entre historias de usuario y requisitos funcionales
+## Trazabilidad inversa: historia → requisitos
 
-| Historia de usuario | Requisitos funcionales relacionados |
-|---|---|
-| HU-01 — Detección automática | RF-01, RF-02, RF-03 |
-| HU-02 — Tipos de anomalía | RF-02, RF-03 |
-| HU-03 — Operación sin señal | RF-05, RF-03 |
-| HU-04 — Sin pérdida de eventos | RF-06, RF-07 |
-| HU-05 — Validación de calidad | RF-11, RF-12 |
-| HU-06 — Persistente vs episódica | RF-13 |
-| HU-07 — Mapa tramo demo | RF-08 |
-| HU-08 — Mapa completo | RF-09 |
-| HU-09 — Alertas anticipadas | RF-10 |
-| HU-10 — Historial de recorridos | RF-09 |
-| HU-11 — Login administrador | RF-16 |
-| HU-12 — Mapa admin | RF-17, RF-20 |
-| HU-13 — Dashboard estadísticas | RF-18 |
-| HU-14 — Gestión de usuarios | RF-19 |
-| HU-15 — Log de auditoría | RF-15 |
+| Historia | RF principales | RF de apoyo |
+|---|---|---|
+| HU-01 Detección automática | RF-01 | RF-02, RF-03 |
+| HU-02 Tipos de anomalía | RF-02 | RF-03 |
+| HU-03 Operación sin señal | RF-03, RF-05 | RF-26 |
+| HU-04 Sin pérdida de eventos | RF-04, RF-06, RF-07 | RF-11 |
+| HU-05 Validación de calidad | RF-11, RF-12 | RF-27 |
+| HU-06 Persistente vs episódica | RF-13, RF-23 | RF-24 |
+| HU-07 Mapa tramo demo | RF-08 | RF-14 |
+| HU-08 Mapa completo | RF-09, RF-14, RF-26 | — |
+| HU-09 Alertas anticipadas | RF-10 | RF-23, RF-26 |
+| HU-10 Historial | RF-25 | — |
+| HU-11 Login administrador | RF-16 | — |
+| HU-12 Mapa administrador | RF-17 | RF-14 |
+| HU-13 Dashboard | RF-18 | — |
+| HU-14 Gestión de usuarios | RF-19 | RF-15 |
+| HU-15 Log de auditoría | RF-15 | — |
+| HU-16 Despliegue y rollback | — (RNF-17, RNF-18) | — |
+| HU-17 Monitoreo | RF-28 | RNF-20, RNF-21 |
+| HU-18 Registro de conductor | RF-21 | — |
+| HU-11b Verificación de correo | RF-22 | — |
+| HU-19 Moderación de anomalías | RF-24 | RF-15 |
+| HU-20 Exportar dataset | RF-20 | RF-15 |
+| HU-21 Privacidad del conductor | RF-27 | RNF-10, RNF-25 |
+
+## Contrato de respuesta del lote (RF-06 / RF-11)
+
+| Código | Cuándo | Acción de la app |
+|---|---|---|
+| **200** | Lote persistido. El cuerpo incluye `loteId`, `aceptados[]`, `duplicados[]` y `rechazados[{id, motivo}]`. | Marcar `SYNCED` **todos** los ids devueltos (reintentar un rechazado no lo corrige) |
+| **400** | Esquema inválido | Marcar `REJECTED_LOCAL`; no reintentar |
+| **429 / 503** | Límite de tasa o cola saturada, con `Retry-After` | Reintentar respetando `Retry-After` más *jitter* |
+| **5xx / timeout** | Falla del servidor o de red | Backoff exponencial (RF-07) |

@@ -1,18 +1,77 @@
 # Actores del Sistema
 
-En v1.0 el sistema tiene solo dos actores activos para limitar el alcance para su desarrollo en este ciclo 2026-II. Los demás están identificados para versiones futuras.
+> **Proyecto:** KillaUru · **Versión:** 1.0 · **Revisión:** 2026-10-12 · **Estado:** Vigente ·
+> **Relacionados:** `Nivel1-diagrama-de-contexto.md`, `02-historias-de-usuario.md`, `03-requisitos-funcionales.md`
 
-| Actor | Tipo | Descripción | Interfaz |
+El sistema tiene **tres actores humanos** (dos tipos de conductor y el administrador), **sistemas externos de infraestructura**. Las empresas y las autoridades viales están identificadas solo para versiones futuras, para limitar el alcance del ciclo 2026-II.
+
+## 1. Actores humanos
+
+| Actor (nombre en C1) | Rol RBAC | Tipo | Descripción | Interfaz | Alcance de datos | Autenticación |
+|---|---|---|---|---|---|---|
+| **Conductor No Registrado** | `Anonimo` (sin token) | Principal (v1.0) | Instala la app y no crea cuenta. Sus sensores detectan anomalías de forma pasiva y aporta eventos de forma anónima. | App Android | Solo el tramo demo Ayacucho–Vinchos (~65 km) | Ninguna. Se identifica solo con un seudónimo de instalación rotativo (RF-27) |
+| **Conductor Registrado** | `ConductorRegistrado` | Principal (v1.0) | Conductor con cuenta (correo y contraseña). Ve el corredor completo, recibe alertas anticipadas y consulta su historial local. | App Android | Corredor completo de 333 km (PE-28A, Vía Los Libertadores) | JWT de acceso con renovación (RF-21) |
+| **Administrador** | `Administrador` | Principal (v1.0) · Personal interno de CRISSO DEV S.A.C. | Gestiona usuarios y anomalías, consulta estadísticas globales, exporta datos y revisa la auditoría. | Panel web | Corredor completo y datos de operación | Correo y contraseña, JWT de 8 h, bloqueo temporal tras 3 intentos fallidos (RF-16) |
+
+> **Nota:** los dos tipos de conductor usan **la misma app (mismo APK)**. Cambian el alcance de los datos y las funciones disponibles, no la aplicación.
+
+
+## 2. Sistemas externos (infraestructura)
+
+| Sistema | Tipo | Responsabilidad | Estado |
 |---|---|---|---|
-| Conductor | Principal (v1.0) | Persona que transita la Vía Los Libertadores. Sus sensores detectan anomalías pasivamente. Puede ver el mapa del corredor. | App Android |
-| Administrador | Principal (v1.0) | Gestiona el sistema: usuarios, anomalías, auditoría, dashboard global. Es personal de CRISSO DEV S.A.C. | Panel web |
-| Empresa suscriptora | Futuro (v1.5+) | Empresas de transporte, aseguradoras. Acceden a analítica de flota y tramos. | Panel web |
-| Autoridad Vial | Futuro (v2.0+) | Provías Nacional, SUTRAN, gobiernos regionales. Acceden bajo convenio institucional. | Panel web |
+| Cloudflare | Infraestructura externa | DNS, terminación TLS, proxy HTTPS y protección perimetral | v1.0 |
+| UptimeRobot | Infraestructura externa | Consulta `GET /health` cada 5 minutos y alimenta `status.killauru.pe` | v1.0 |
+| SendGrid (o proveedor equivalente de correo) | Infraestructura externa | Correo de verificación de registro (HU-11b) | Roadmap (*Could*) |
 
-## Detalle de actores activos en v1.0
+> El mapa base offline se aloja como archivo estático propio (ADR-011), por lo que no añade un sistema externo en v1.0.
 
-**Conductor no registrado:** Instala la app, sus sensores aportan datos anónimamente. Ve solo el tramo demo Ayacucho–Vinchos (~65 km). No requiere correo ni contraseña.
+## 3. Actores futuros (fuera de alcance en este ciclo)
 
-**Conductor registrado:** Se registra con correo verificado. Accede al mapa completo de 333 km, historial de recorridos (6 meses) y alertas anticipadas en ruta.
+| Actor | Versión | Descripción | Interfaz |
+|---|---|---|---|
+| Empresa suscriptora | v1.5+ | Empresas de transporte y aseguradoras. Acceden a analítica de flota y tramos. | Panel web |
+| Autoridad Vial | v2.0+ | Provías Nacional, SUTRAN y gobiernos regionales. Acceden bajo convenio institucional. | Panel web |
 
-**Administrador:** Accede al panel web con correo y contraseña. Ve el mapa completo con todas las anomalías, estadísticas globales, gestión de usuarios y log de auditoría.
+Ambos requerirán nuevos roles RBAC y una API comercial (ver patrón *Facade* en `patrones-de-diseño.md`).
+
+## 4. Matriz de permisos por rol
+
+| Capacidad | Anónimo | Conductor Registrado | Administrador |
+|---|:---:|:---:|:---:|
+| Detectar anomalías y guardarlas localmente | ✅ | ✅ | — |
+| Sincronizar eventos (`POST /api/v1/anomalies/batch`) | ✅ | ✅ | — |
+| Ver mapa del tramo demo (~65 km) | ✅ | ✅ | ✅ |
+| Ver corredor completo (333 km) | ❌ | ✅ | ✅ |
+| Recibir alertas anticipadas | ❌ | ✅ | — |
+| Ver historial de recorridos (local, 6 meses) | ❌ | ✅ | — |
+| Registrarse e iniciar sesión | — | ✅ | ✅ (login) |
+| Mapa con filtros, incluidas anomalías sin confirmar | ❌ | ❌ | ✅ |
+| Dashboard de estadísticas | ❌ | ❌ | ✅ |
+| Gestionar usuarios y roles | ❌ | ❌ | ✅ |
+| Moderar anomalías (reparada, descartar) | ❌ | ❌ | ✅ |
+| Exportar dataset (CSV y GeoJSON) | ❌ | ❌ | ✅ |
+| Consultar log de auditoría | ❌ | ❌ | ✅ |
+| Límite de tasa (RNF-11) | 60 req/h | 1 000 req/h | Definido en RNF-11 |
+
+> **Regla de aplicación:** los permisos se **hacen cumplir en el servidor** (RBAC en la API), nunca solo en la app. Un anónimo que consulte fuera del tramo demo recibe la respuesta recortada al polígono demo (RF-14, RNF-27).
+
+## 5. Reglas de identidad y privacidad por actor
+
+| Actor | Qué datos se guardan | Qué **no** se guarda |
+|---|---|---|
+| Conductor No Registrado | Eventos de anomalía con seudónimo rotativo (se purga en 72 h) | Correo, nombre o cualquier dato personal |
+| Conductor Registrado | Correo y credenciales (consentimiento y finalidad definidos) | Vínculo entre su cuenta y sus eventos o trayectorias. El historial vive solo en su dispositivo (RF-25) |
+| Administrador | Correo, rol y acciones auditadas | — |
+
+Detalle normativo: R-06 (`05-restricciones.md`), RNF-10 y RNF-25 (`04-atributos-de-calidad.md`), ADR-007.
+
+## 6. Trazabilidad
+
+| Actor | Historias de usuario |
+|---|---|
+| Conductor No Registrado | HU-01, HU-02, HU-03, HU-04, HU-07, HU-21 |
+| Conductor Registrado | HU-01…HU-04, HU-08, HU-09, HU-10, HU-11b, HU-18, HU-21 |
+| Administrador | HU-06, HU-11, HU-12, HU-13, HU-14, HU-15, HU-19, HU-20 |
+| Sistema (historia técnica) | HU-05 |
+| Equipo KillaUru | HU-16, HU-17 |
