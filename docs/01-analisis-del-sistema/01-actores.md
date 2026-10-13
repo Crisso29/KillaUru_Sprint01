@@ -45,6 +45,9 @@ Ambos requerirán nuevos roles RBAC y una API comercial (ver patrón *Facade* en
 | Recibir alertas anticipadas | ❌ | ✅ | — |
 | Ver historial de recorridos (local, 6 meses) | ❌ | ✅ | — |
 | Registrarse e iniciar sesión | — | ✅ | ✅ (login) |
+| Aceptar la política de privacidad (RF-29) | ✅ (aviso) | ✅ | — |
+| Ver mis datos personales (RF-31) | — | ✅ | — |
+| Eliminar mi cuenta (RF-30) | — | ✅ | — |
 | Mapa con filtros, incluidas anomalías sin confirmar | ❌ | ❌ | ✅ |
 | Dashboard de estadísticas | ❌ | ❌ | ✅ |
 | Gestionar usuarios e identidad (Identidad y Accesos) | ❌ | ❌ | ✅ |
@@ -60,7 +63,7 @@ Ambos requerirán nuevos roles RBAC y una API comercial (ver patrón *Facade* en
 | Actor | Qué datos se guardan | Qué **no** se guarda |
 |---|---|---|
 | Conductor No Registrado | Eventos de anomalía con seudónimo rotativo (se purga en 72 h) | Correo, nombre o cualquier dato personal |
-| Conductor Registrado | Correo y credenciales (consentimiento y finalidad definidos) | Vínculo entre su cuenta y sus eventos o trayectorias. El historial vive solo en su dispositivo (RF-25) |
+| Conductor Registrado | Correo, credenciales y versión aceptada de la política de privacidad (RF-29). Puede verlos (RF-31) y borrarlos (RF-30) | Vínculo entre su cuenta y sus eventos o trayectorias. El historial vive solo en su dispositivo (RF-25) |
 | Administrador | Correo, rol y acciones auditadas | — |
 
 Detalle normativo: R-06 (`05-restricciones.md`), RNF-10 y RNF-25 (`04-atributos-de-calidad.md`), ADR-007.
@@ -69,8 +72,8 @@ Detalle normativo: R-06 (`05-restricciones.md`), RNF-10 y RNF-25 (`04-atributos-
 
 | Actor | Historias de usuario |
 |---|---|
-| Conductor No Registrado | HU-01, HU-02, HU-03, HU-04, HU-07, HU-21 |
-| Conductor Registrado | HU-01…HU-04, HU-08, HU-09, HU-10, HU-18, HU-18b, HU-21 |
+| Conductor No Registrado | HU-01, HU-02, HU-03, HU-04, HU-07, HU-21, HU-22 (aviso) |
+| Conductor Registrado | HU-01…HU-04, HU-08, HU-09, HU-10, HU-18, HU-18b, HU-21, HU-22, HU-23, HU-24 |
 | Administrador | HU-06, HU-11, HU-12, HU-13, HU-14, HU-15, HU-19, HU-20 |
 | Sistema (historia técnica) | HU-05 |
 | Equipo KillaUru | HU-16, HU-17 |

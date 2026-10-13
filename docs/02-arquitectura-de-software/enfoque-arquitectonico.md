@@ -13,7 +13,7 @@ Es un enfoque propuesto por Robert C. Martin que organiza el sistema alrededor d
 
 | Aplicación | Cómo se aplica | Sección |
 |---|---|---|
-| **Backend** (ASP.NET Core 8) | Clean Architecture **dentro de cada módulo** del monolito, con 4 capas y `Contracts/` | 3 a 8 |
+| **Backend** (ASP.NET Core 10) | Clean Architecture **dentro de cada módulo** del monolito, con 4 capas y `Contracts/` | 3 a 8 |
 | **App Android** (Kotlin) | Misma regla de dependencia, simplificada en 3 capas | 9 |
 
 > Las dos aplicaciones **no comparten código ni capas**. La detección y la sincronización viven solo en la app; el backend nunca recibe señal cruda (ADR-001, ADR-004).
@@ -65,8 +65,7 @@ No todos los módulos necesitan las cuatro capas con el mismo peso (DA-12):
 | Módulo | Domain | Application | Adapters (HTTP) | Infrastructure |
 |---|---|---|---|---|
 | **Ingesta** | Mínimo (lote y resultado) | `RecibirLoteEventosUseCase` | `SyncController` | `ColaLotesChannel`, `RecepcionEventosRepository`, `ProcesadorEventosBackgroundService` |
-| **Validación** | **Rico**: `ReglasCalidad`, `PoliticaConfirmacion` | `ValidarAnomaliaUseCase` | — (sin frontera HTTP) | `ConfirmacionesReaderAdapter` |
-| **Clasificación** | **Rico**: `Anomalia`, `ReporteAnomalia`, `ReglaPersistencia`, ciclo de vida | `ClasificarPersistenciaUseCase`, moderación, caducidad, purga | `ModeracionController` | `AnomaliaRepositoryPostGIS`, jobs de mantenimiento |
+| **Anomalías** | **Rico**: `ReglasCalidad`, `PoliticaConfirmacion`, `Anomalia` (agregado con ciclo de vida), `ReporteAnomalia`, `ReglaPersistencia` | `ProcesarReporteUseCase` (validar → confirmar → clasificar), `ModerarAnomaliaUseCase`, `CaducarAnomaliasUseCase`, `PurgarSeudonimosUseCase` | `ModeracionController` | `AnomaliaRepositoryPostGIS`, jobs de mantenimiento |
 | **Consulta de Mapa** | Recorte por rol (polígono demo) | `ConsultarMapaUseCase` | `AnomaliasController` (GET) | Caché por celdas |
 | **Identidad y Accesos** | `Usuario`, `Rol`, política de bloqueo | Registro, login, refresh, gestión de usuarios | `AuthController`, `UsuariosController` | Repositorio EF, emisor de JWT, adaptador de correo (roadmap) |
 | **Dashboard** | Indicadores | Casos de uso de consulta y agregación | `DashboardController` | Agregador de métricas |
@@ -79,12 +78,15 @@ No todos los módulos necesitan las cuatro capas con el mismo peso (DA-12):
 
 | Regla | Dónde vive | Parámetro (`ReglasOptions`) |
 |---|---|---|
-| Confidence mínimo | `ReglasCalidad` (Validación · Domain) | `ConfidenceMinimo = 0.75` |
+| Confidence mínimo (RN-11) | `ReglasCalidad` (Anomalías · Domain) | `ConfidenceMinimo = 0.75` |
 | Precisión GPS máxima (se rechaza si **>** 20 m) | `ReglasCalidad` | `PrecisionGpsMaximaMetros = 20` |
 | Timestamp en rango | `ReglasCalidad` | `AntiguedadMaximaDias = 7`, `ToleranciaFuturoMinutos = 5` |
-| Confirmación de severidad alta | `PoliticaConfirmacion` | `SeveridadAltaDesde = 4` *(a confirmar)*, `DispositivosRequeridos = 2`, `RadioMetros = 100`, `VentanaConfirmacionHoras = 72` |
-| Persistente / episódica | `ReglaPersistencia` (Clasificación · Domain) | `DiasDistintosMinimos = 3`, `VentanaDias = 15`, `DesfaseHorarioHoras = -5` |
-| Ciclo de vida de la anomalía | `Anomalia` (agregado) | `CaducidadEpisodicaHoras = 72`, `CaducidadPendienteHoras = 72` |
+| Confirmación de severidad alta | `PoliticaConfirmacion` | `SeveridadAltaDesde = 4` (RN-06), `DispositivosRequeridos = 2`, `RadioMetros = 100`, `VentanaConfirmacionHoras = 72` |
+| Fuera del corredor (RN-13) | `ReglasCalidad` (intrínseca: compara con la polilínea del corredor en memoria) | `DistanciaMaximaViaMetros = 50` |
+| Plausibilidad del dispositivo (RN-15) | `PoliticaPlausibilidad` (necesita los eventos previos del seudónimo, por eso se evalúa al procesar y no al recibir) | `MaxEventosPorHoraDeteccion = 120`, `VelocidadMaximaPlausibleKmh = 150` |
+| Sesión para confirmar (RN-14) | `PoliticaConfirmacion` | `ReportesConSesionRequeridos = 1` |
+| Persistente / episódica (RN-12) | `ReglaPersistencia` (Anomalías · Domain) | `DiasDistintosMinimos = 3`, `VentanaDias = 15`, `DesfaseHorarioHoras = -5` |
+| Ciclo de vida de la anomalía (RN-07) | `Anomalia` (agregado) | `CaducidadEpisodicaHoras = 72`, `CaducidadPendienteHoras = 72` |
 | Purga del seudónimo | Caso de uso de mantenimiento | `PurgaSeudonimoHoras = 72` |
 | Lote máximo | `RecibirLoteEventosUseCase.MaxEventosPorLote` | 50 |
 | Seudónimo con formato válido | `SeudonimoInstalacion.Crear` | — |
@@ -101,10 +103,15 @@ public sealed class ReglasOptions
     public int AntiguedadMaximaDias { get; init; } = 7;
     public int ToleranciaFuturoMinutos { get; init; } = 5;
 
-    public int SeveridadAltaDesde { get; init; } = 4;        // a confirmar (decisión abierta 2)
+    public int SeveridadAltaDesde { get; init; } = 4;        // RN-06: severidad 4 y 5 requieren confirmación
     public int DispositivosRequeridos { get; init; } = 2;
     public int RadioMetros { get; init; } = 100;
     public int VentanaConfirmacionHoras { get; init; } = 72;
+    public int ReportesConSesionRequeridos { get; init; } = 1;  // RN-14
+
+    public double DistanciaMaximaViaMetros { get; init; } = 50;  // RN-13
+    public int MaxEventosPorHoraDeteccion { get; init; } = 120;   // RN-15a: por hora de detección; al superarlo, se exige confirmación (no se descarta)
+    public int VelocidadMaximaPlausibleKmh { get; init; } = 150;  // RN-15b
 
     public int DiasDistintosMinimos { get; init; } = 3;
     public int VentanaDias { get; init; } = 15;
@@ -117,7 +124,7 @@ public sealed class ReglasOptions
 ```
 
 ```csharp
-// Modules/Validacion/Domain/ReglasCalidad.cs (esqueleto) · sin using de ASP.NET ni EF
+// Modules/Anomalias/Domain/ReglasCalidad.cs (esqueleto) · sin using de ASP.NET ni EF
 public sealed class ReglasCalidad(ReglasOptions o)
 {
     public MotivoDescarte? EvaluarIntrinseca(EventoReportado e, DateTimeOffset ahora)
@@ -135,7 +142,7 @@ public sealed class ReglasCalidad(ReglasOptions o)
 ```
 
 ```csharp
-// Modules/Clasificacion/Domain/ReglaPersistencia.cs (esqueleto)
+// Modules/Anomalias/Domain/ReglaPersistencia.cs (esqueleto)
 public sealed class ReglaPersistencia(ReglasOptions o)
 {
     public EstadoPersistencia Evaluar(IEnumerable<DateTimeOffset> reportesUtc, DateTimeOffset ahora)
@@ -163,25 +170,24 @@ public sealed class ReglaPersistencia(ReglasOptions o)
 ```mermaid
 flowchart LR
     SC["SyncController<br/>(Adapters)"] --> RL["RecibirLoteEventosUseCase<br/>(Ingesta · Application)"]
-    RL -- "IValidacionService.EvaluarIntrinseca" --> VAL0["ReglasCalidad<br/>(Validación · Domain)"]
+    RL -- "IAnomaliasService.EvaluarIntrinseca" --> VAL0["ReglasCalidad<br/>(Anomalías · Domain)"]
     RL -- "IRecepcionEventos" --> RE[("evento_recibido")]
     RL -- "IColaLotes (aviso)" --> Q["ColaLotesChannel"]
     Q --> BG["ProcesadorEventosBackgroundService<br/>(Ingesta · Infrastructure)"]
-    BG -- "IValidacionService" --> VA["ValidarAnomaliaUseCase<br/>(Validación · Application)"]
-    VA -- "IClasificacionService" --> CL["ClasificarPersistenciaUseCase<br/>(Clasificación · Application)"]
-    VA -. "IAnomaliaConsultas (lectura)" .-> CL
-    VA -- "IMetricasService" --> DA["Dashboard (métricas)"]
-    CL --> RP["AnomaliaRepositoryPostGIS"]
-    CL --> CA["CacheMapaMemoria"]
+    BG -- "IAnomaliasService.ProcesarReporteAsync" --> PR["ProcesarReporteUseCase<br/>(Anomalías · Application)"]
+    PR --> DOM["ReglasCalidad · PoliticaConfirmacion<br/>Anomalia · ReglaPersistencia<br/>(Anomalías · Domain)"]
+    PR -- "IMetricas" --> MT["Shared/Metricas"]
+    PR --> RP["AnomaliaRepositoryPostGIS"]
+    PR --> CA["CacheMapaMemoria"]
 ```
 
 ```csharp
 // Modules/Ingesta/Application/RecibirLoteEventosUseCase.cs (esqueleto)
 public sealed class RecibirLoteEventosUseCase(
-    IValidacionService validacion,       // Contracts de Validación (evaluación intrínseca pura)
+    IAnomaliasService anomalias,         // Contracts de Anomalías (evaluación intrínseca pura)
     IRecepcionEventos recepcion,         // puerto: persiste evento_recibido
     IColaLotes cola,                     // puerto: aviso de trabajo
-    IMetricasService metricas,           // Contracts de Dashboard
+    IMetricas metricas,                  // Shared/Metricas (puerto técnico)
     TimeProvider reloj)
 {
     public const int MaxEventosPorLote = 50;
@@ -194,7 +200,7 @@ public sealed class RecibirLoteEventosUseCase(
 
         var ahora = reloj.GetUtcNow();
         var rechazados = eventos
-            .Select(e => (e.EventoId, Motivo: validacion.EvaluarIntrinseca(e, ahora)))
+            .Select(e => (e.EventoId, Motivo: anomalias.EvaluarIntrinseca(e, ahora)))
             .Where(x => x.Motivo is not null)
             .ToDictionary(x => x.EventoId, x => x.Motivo!.Value);
 
@@ -213,20 +219,16 @@ public sealed class RecibirLoteEventosUseCase(
 1. Al **arrancar**, y luego cada ~60 s, busca filas `RECIBIDO` pendientes (barredor de recuperación, EQ-09).
 2. Con cada aviso de lote, carga sus eventos desde `evento_recibido`.
 3. Para cada evento, abre una transacción y toma un **bloqueo consultivo por celda geográfica** (la celda es ≥ 5× el radio de 100 m; si el punto está cerca del borde, toma los dos bloqueos en orden fijo). Así dos lectores no confirman ni crean la misma anomalía a la vez.
-4. Llama a `IValidacionService.ValidarAsync`, que descarta (`DESCARTADO` + motivo) o entrega el reporte a Clasificación con el indicador `confirmado`.
+4. Llama a `IAnomaliasService.ProcesarReporteAsync`, que devuelve `Descartado` (con motivo) o `Procesado`.
 5. Marca la fila como `PROCESADO` o `DESCARTADO`. Los descartes incrementan **métricas**, no auditoría.
 
-**Algoritmo de `ValidarAnomaliaUseCase`:**
+**Algoritmo de `ProcesarReporteUseCase`** (módulo Anomalías, todo dentro de la misma transacción y del bloqueo por celda):
 
-1. `ReglasCalidad.EvaluarIntrinseca` (otra vez, por seguridad ante filas antiguas): si hay motivo → `Descartado`.
-2. Si `PoliticaConfirmacion.Requiere(severidad)` es falsa → `IClasificacionService.RegistrarReporteAsync(evento, confirmado: true)` y `Valido`.
-3. Si la requiere → cuenta dispositivos distintos en el radio y la ventana con `IAnomaliaConsultas`. Con el actual suma ≥ 2 → `Valido`; si no → `PendienteConfirmacion`. En ambos casos entrega el reporte a Clasificación.
-
-**Algoritmo de `ClasificarPersistenciaUseCase`:**
-
-1. Busca una anomalía del mismo tipo a ≤ 100 m. Si no existe, `Anomalia.Crear`; si existe, `Anomalia.RegistrarReporte` (actualiza `UltimoReporteUtc` y el centroide).
-2. La entidad recalcula `Persistencia` con `ReglaPersistencia` y su estado de ciclo de vida: `Activa`, `PendienteConfirmacion`, `Expirada` o `Reparada`.
-3. Guarda y llama a `ICacheMapa.InvalidarCeldasAsync` para las celdas afectadas.
+1. **Validar** — `ReglasCalidad.EvaluarIntrinseca` otra vez, por seguridad ante filas antiguas (RN-11, RN-13), y `PoliticaPlausibilidad` con los eventos previos del mismo seudónimo: velocidad plausible (RN-15b). Si hay motivo → `IMetricas.RegistrarDescarte(motivo)` y `Descartado`. Si el seudónimo supera el tope por hora de **detección** (RN-15a), el evento **sigue** pero marcado `RequiereConfirmacion`.
+2. **Agrupar** — busca una anomalía del mismo tipo a ≤ 100 m (RN-05). Si no existe, `Anomalia.Crear`; si existe, `Anomalia.RegistrarReporte` (actualiza `UltimoReporteUtc` y el centroide). Si la anomalía está `Descartada`, el reporte se guarda pero no la reactiva (RN-07).
+3. **Confirmar** — si `PoliticaConfirmacion.Requiere(severidad)` (severidad 4–5, RN-06), cuenta los dispositivos distintos en el radio y la ventana, y los reportes con `con_sesion = true`, con una consulta **interna** del repositorio. Con ≥ 2 dispositivos y ≥ 1 con sesión (RN-14) → `Activa`; lo mismo aplica a cualquier severidad si el evento viene marcado `RequiereConfirmacion` (RN-15a); si no → `PendienteConfirmacion`. Severidad 1–3 → `Activa`.
+4. **Clasificar** — la entidad recalcula `Persistencia` con `ReglaPersistencia` (RN-12) y su estado de ciclo de vida (RN-07).
+5. Guarda y llama a `ICacheMapa.InvalidarCeldasAsync` para las celdas afectadas.
 
 **Procesos de mantenimiento** (ver `componentes-arquitectonicos.md`): caducidad diaria de anomalías (ADR-008), purga del seudónimo a 72 h y purga de `evento_recibido` a 30 días (RNF-25).
 
@@ -249,8 +251,8 @@ public static class IngestaModule
 builder.Services.Configure<ReglasOptions>(builder.Configuration.GetSection(ReglasOptions.Seccion));
 builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<ReglasOptions>>().Value);
 builder.Services.AddSingleton(TimeProvider.System);
-builder.Services.AddIdentidadModule().AddIngestaModule().AddValidacionModule()
-                .AddClasificacionModule().AddMapaModule().AddDashboardModule()
+builder.Services.AddIdentidadModule().AddIngestaModule().AddAnomaliasModule()
+                .AddMapaModule().AddDashboardModule()
                 .AddExportacionModule().AddAuditoriaModule();
 ```
 
@@ -308,8 +310,8 @@ Estos puntos de este documento aún no aparecen en `Nivel4-diagrama-de-codigo.md
 | Identificador del evento | No existe | `EventoReportado.EventoId` y `ModeloVersion` |
 | Cola | `IColaEventos` / `ColaEventosChannel` (por evento) | `IColaLotes` / `ColaLotesChannel` (por lote) y puerto `IRecepcionEventos` |
 | Reglas | Clases estáticas con constantes | Clases con `ReglasOptions` inyectado |
-| Auditoría de descartes | `IAuditoriaService` | `IMetricasService` (descartes = métricas) |
-| Validación intrínseca | Solo `ValidarAsync` | `IValidacionService.EvaluarIntrinseca` (síncrona y pura) |
+| Auditoría de descartes | `IAuditoriaService` | `IMetricas` en `Shared/Metricas` (descartes = métricas) |
+| Módulos Validación y Clasificación | Dos módulos con `IValidacionService` e `IClasificacionService` | Un módulo **Anomalías** con `IAnomaliasService` (`EvaluarIntrinseca` síncrona y pura + `ProcesarReporteAsync`) |
 | Agregado `Anomalia` | `Persistencia` y `Confirmada` | Estado de ciclo de vida y `UltimoReporteUtc` (ADR-008) |
 | Día de RN-12 | UTC | Desfase fijo UTC−5 |
-| Lecturas cruzadas | `IAnomaliaConsultas` | Añadir `IAnomaliaLectura` para Mapa, Dashboard y Exportación |
+| Lecturas cruzadas | `IAnomaliaConsultas` | `IAnomaliaLectura` para Mapa, Dashboard y Exportación; el conteo de dispositivos pasa a ser interno |

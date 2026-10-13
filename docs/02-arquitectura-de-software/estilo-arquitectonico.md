@@ -13,7 +13,7 @@ KillaUru combina **un estilo principal y tres estilos de apoyo**:
 
 | Estilo | Dónde se aplica | Por qué |
 |---|---|---|
-| **Monolito modular** *(principal)* | Backend: un único proceso ASP.NET Core 8 con 8 módulos (*bounded contexts*) | Una sola persona, 6–8 semanas, recursos mínimos (DA-06, DA-12) |
+| **Monolito modular** *(principal)* | Backend: un único proceso ASP.NET Core 10 con 7 módulos (*bounded contexts*) | Una sola persona, 6–8 semanas, recursos mínimos (DA-06, DA-12) |
 | **Capas por módulo (Clean Architecture)** | Dentro de cada módulo: Domain, Application, Adapters, Infrastructure | Reglas de negocio independientes de frameworks (ADR-002) |
 | **Offline-first con Store-and-Forward** | App Android y protocolo de sincronización | Más del 50 % del corredor no tiene señal (DA-01, DA-02) |
 | **Edge AI** | Clasificación en el dispositivo con TFLite | Sin internet y en < 50 ms (DA-03, DA-04) |
@@ -59,21 +59,20 @@ flowchart TD
     APP["App Android<br/>offline-first · Edge AI"]:::cliente
     PANEL["Panel Admin<br/>SPA"]:::cliente
 
-    subgraph BACKEND["⚙️ BACKEND · Monolito modular (.NET 8)"]
+    subgraph BACKEND["⚙️ BACKEND · Monolito modular (.NET 10)"]
         HOST["API REST (host)<br/>JWT/RBAC · rate limiting · logs · /health"]:::host
 
         subgraph NEGOCIO["Módulos (cada uno con Domain · Application · Adapters · Infrastructure)"]
             ID["Identidad y Accesos"]:::modulo
             ING["Ingesta"]:::modulo
-            VAL["Validación"]:::modulo
-            CLA["Clasificación"]:::modulo
+            ANO["Anomalías"]:::modulo
             MAPA["Consulta de Mapa"]:::modulo
             DASH["Dashboard"]:::modulo
             EXP["Exportación"]:::modulo
             AUD["Auditoría"]:::modulo
         end
 
-        SHARED["Shared<br/>Kernel de dominio · ICacheMapa · Configuración · TimeProvider"]:::compartido
+        SHARED["Shared<br/>Kernel de dominio · ICacheMapa · IMetricas · Configuración · TimeProvider"]:::compartido
     end
 
     DB[("PostgreSQL + PostGIS<br/>un solo motor")]:::datos
@@ -82,30 +81,30 @@ flowchart TD
     PANEL -- "HTTPS/JSON" --> HOST
     HOST --> ID
     HOST --> ING
-    HOST --> CLA
+    HOST --> ANO
     HOST --> MAPA
     HOST --> DASH
     HOST --> EXP
     HOST --> AUD
 
-    ING -- "Contracts" --> VAL
-    VAL -- "Contracts" --> CLA
-    MAPA -- "Contracts (lectura)" --> CLA
-    DASH -- "Contracts (lectura)" --> CLA
-    EXP -- "Contracts (lectura)" --> CLA
+    ING -- "Contracts" --> ANO
+    MAPA -- "Contracts (lectura)" --> ANO
+    DASH -- "Contracts (lectura)" --> ANO
+    DASH -- "Contracts (lectura)" --> ID
+    EXP -- "Contracts (lectura)" --> ANO
     ID -- "Contracts" --> AUD
-    CLA -- "Contracts" --> AUD
+    ANO -- "Contracts" --> AUD
     EXP -- "Contracts" --> AUD
 
     ING --> DB
-    CLA --> DB
+    ANO --> DB
     ID --> DB
     AUD --> DB
     DASH --> DB
     NEGOCIO -.-> SHARED
 ```
 
-> Solo el **dueño** de cada tabla escribe en ella (`ING`, `CLA`, `ID`, `AUD`, `DASH`). Los módulos que solo leen (`VAL`, `MAPA`, `EXP`) lo hacen **a través del contrato** del dueño, no con SQL propio.
+> Solo el **dueño** de cada tabla escribe en ella (`ING`, `ANO`, `ID`, `AUD`, `DASH`). Los módulos que solo leen (`MAPA`, `EXP`) lo hacen **a través del contrato** del dueño, no con SQL propio.
 
 ## 4. Reglas fundamentales
 
@@ -124,7 +123,7 @@ Estas reglas no son sugerencias: mantienen el sistema ordenado conforme crece. L
 | 9 | **Offline-first.** La app nunca depende de la red para detectar, guardar, mostrar el mapa descargado ni alertar. | R-08, DA-01 | EQ-01 |
 | 10 | **Privacidad por diseño.** Seudónimo rotativo, purga a 72 h, historial solo local, exportación sin seudónimos. | R-06, DA-07 | EQ-04 |
 | 11 | **Una integración externa por módulo.** El proveedor de correo se integra solo desde Identidad y Accesos, mediante un adaptador. | Fácil de reemplazar | Revisión de código |
-| 12 | **Umbrales por configuración, reloj inyectado.** Ninguna regla de negocio usa constantes ni `DateTime.UtcNow`. Día local con desfase fijo UTC−5. | Calibrar con el piloto sin tocar código (S-04) | Pruebas con `FakeTimeProvider` |
+| 12 | **Umbrales por configuración, reloj inyectado.** Ninguna regla de negocio (`09-reglas-de-negocio.md`) usa constantes ni `DateTime.UtcNow`. Día local con desfase fijo UTC−5. | Calibrar con el piloto sin tocar código (S-04) | Pruebas con `FakeTimeProvider` |
 | 13 | **Evolución controlada.** Un módulo se extrae como servicio sin tocar a los demás, porque sus contratos ya existen. Candidatos: Ingesta y Consulta de Mapa. | DA-09 | — |
 
 ## 5. Tácticas por atributo de calidad
@@ -134,9 +133,9 @@ Estas reglas no son sugerencias: mantienen el sistema ordenado conforme crece. L
 | AC-01 Disponibilidad offline | Store-and-Forward, mapa base y anomalías locales | App: Buffer, Mapa, Proximidad |
 | AC-02 Confiabilidad del dato | Ingesta durable, idempotencia, conciliación recibidos = procesados + descartados + pendientes | Ingesta; tabla `evento_recibido` |
 | AC-03 Rendimiento en móvil | Edge AI con modelo cuantizado | App: Detector |
-| AC-04 Seguridad y privacidad | Seudónimo rotativo, purga a 72 h, RBAC en servidor, Tunnel, CSP/HSTS | Identidad y Accesos, API REST, Clasificación |
+| AC-04 Seguridad y privacidad | Seudónimo rotativo, purga a 72 h, RBAC en servidor, Tunnel, CSP/HSTS | Identidad y Accesos, API REST, Anomalías |
 | AC-05 Mantenibilidad | Módulos aislados, pruebas de arquitectura, umbrales por configuración | Todos los módulos |
-| AC-06 Escalabilidad | Cola por lote, serialización por celda geográfica, caché por celdas | Ingesta, Clasificación, Consulta de Mapa |
+| AC-06 Escalabilidad | Cola por lote, serialización por celda geográfica, caché por celdas | Ingesta, Anomalías, Consulta de Mapa |
 | AC-07 Observabilidad | `/health` (liveness y readiness), logs estructurados, métricas por minuto | API REST, Dashboard |
 | AC-08 Usabilidad | Detección pasiva en servicio en primer plano | App: Sensores |
 
@@ -144,12 +143,12 @@ Estas reglas no son sugerencias: mantienen el sistema ordenado conforme crece. L
 
 | Componente | Tecnología | Justificación |
 |---|---|---|
-| App móvil | Kotlin · TFLite (MLP cuantizado) · SQLite · servicio en primer plano · WorkManager *(propuesta)* · MapLibre Native con PMTiles/MBTiles *(a confirmar)* | Sensores a 50 Hz, inferencia local < 50 ms, mapa offline (R-01, ADR-004, ADR-011) |
-| Backend | ASP.NET Core 8 · .NET Channels · `IMemoryCache` · rate limiting integrado · `TimeProvider` | Tecnología del autor (R-02) y procesamiento asíncrono nativo |
+| App móvil | Kotlin · TFLite (MLP cuantizado) · SQLite · servicio en primer plano · WorkManager *(propuesta)* · MapLibre Native (Android) con PMTiles (ADR-011) | Sensores a 50 Hz, inferencia local < 50 ms, mapa offline (R-01, ADR-004, ADR-011) |
+| Backend | ASP.NET Core 10 · .NET Channels · `IMemoryCache` · rate limiting integrado · `TimeProvider` | Tecnología del autor (R-02) y procesamiento asíncrono nativo |
 | Acceso a datos | EF Core + NetTopologySuite · Npgsql | Una sola ruta de datos (ADR-012) |
 | Base de datos | PostgreSQL + PostGIS · columna `geography(Point, 4326)` · índice GiST · bloqueos consultivos por celda | Consultas espaciales y serialización por zona (R-03) |
-| Panel web | React + Leaflet sobre OpenStreetMap | Interfaz administrativa liviana |
-| Hosting del panel y mapa base | Cloudflare Pages (panel) y almacenamiento estático para el mapa base (p. ej. R2; **verificar límites de tamaño**) | Costo cero y sin servidor propio (ADR-010, ADR-011) |
+| Panel web | React · **MapLibre GL JS** con el mismo PMTiles y estilo que la app | Un solo mapa base y una sola librería de mapas en todo el sistema (ADR-011) |
+| Hosting del panel y mapa base | Cloudflare Pages (panel) y **Cloudflare R2** para el mapa base PMTiles (Pages no admite archivos de más de 25 MiB) | Costo cero y sin servidor propio (ADR-010, ADR-011) |
 | Infraestructura | Docker Compose en Oracle Cloud ARM · `cloudflared` | Un comando levanta todo; origen sin puertos abiertos |
 | Borde | Cloudflare Free: DNS, TLS, proxy, caché de borde, Tunnel | TLS, A+ en SSL Labs y origen oculto (RNF-08) |
 | Monitoreo | UptimeRobot Free · `/health` | Alerta por correo en ≤ 5 min (RNF-20) |
@@ -165,7 +164,7 @@ Estas reglas no son sugerencias: mantienen el sistema ordenado conforme crece. L
 |---|---|---|
 | Más de una instancia del backend (supuesto S-03) | Migrar la caché a Redis y la cola a un mecanismo compartido | Contratos y reglas de dominio |
 | Carga de lectura del mapa creciente | Extraer **Consulta de Mapa** como servicio de solo lectura | Resto de módulos |
-| Carga de escritura creciente | Extraer **Ingesta** (con su tabla de recepción) | Validación y Clasificación |
+| Carga de escritura creciente | Extraer **Ingesta** (con su tabla de recepción) | Anomalías |
 | Empresas y Autoridad Vial (v1.5+/v2.0+) | Nuevos roles y una *fachada* de API comercial | Módulos existentes |
 | Notificaciones desde el servidor (v1.5+) | Nuevo adaptador de salida (patrón *Observer*) | Alertas locales de la app |
 | Reglas distintas por versión de modelo | Umbrales por `modeloVersion` | Contrato de ingesta |

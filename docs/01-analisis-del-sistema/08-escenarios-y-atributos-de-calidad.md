@@ -169,6 +169,21 @@
 | **Trazabilidad** | R-07, DA-10, RF-08, RF-14, HU-07, ADR-009 |
 | **Estado** | Definido |
 
+## EQ-12. Integridad del dato: envenenamiento con eventos falsos
+
+| Elemento | Descripción |
+|---|---|
+| **Atributo** | Seguridad (AC-04) y confiabilidad del dato (AC-02) |
+| **Fuente** | Atacante que analizó el APK y llama la API con un script, sin cuenta o con seudónimos inventados |
+| **Estímulo** | Envía cientos de eventos falsos (severidad 5), fabricados sin conexión y subidos de golpe al tener señal, para crear baches inexistentes. |
+| **Artefacto** | Ingesta y módulo Anomalías |
+| **Entorno** | Operación normal; conviven con subidas legítimas de conductores que acumularon horas de eventos sin señal. |
+| **Respuesta** | El servidor juzga cada evento por su contenido y no por el momento de la subida: descarta los que están fuera de la vía y los que implican velocidades imposibles; retiene sin publicar (hasta confirmación) los de un dispositivo que supera el tope por hora de detección; no confirma severidad 4–5 sin al menos un reporte con sesión. Los descartes se ven por motivo en el Dashboard. |
+| **Medida** | 0 anomalías de severidad 4–5 confirmadas solo con seudónimos anónimos; 0 eventos aceptados a más de 50 m de la vía; 0 anomalías publicadas solo por un dispositivo que supera el tope; 100 % de los eventos legítimos de una subida acumulada de 5 h aceptados y 0 eventos reales perdidos en un tramo de lluvia con ~600 eventos por hora (RN-13, RN-14, RN-15). |
+| **Verificación** | Prueba con un script que envía eventos fuera de la vía, en ráfaga y con saltos de posición; prueba paralela con un recorrido real de 5 h en modo avión. Conciliar aceptados y descartados por motivo. |
+| **Trazabilidad** | R-07, DA-10, RF-12, HU-05, ADR-005, ADR-009 |
+| **Estado** | Definido |
+
 ## Resumen de escenarios
 
 | Código | Atributo | Prioridad | Qué se busca comprobar |
@@ -184,3 +199,4 @@
 | EQ-09 | Confiabilidad (reinicio) | 🔴 Crítica | Un reinicio del servidor no pierde eventos aceptados |
 | EQ-10 | Continuidad (restauración) | 🟠 Alta | Se restaura la BD dentro de RPO y RTO |
 | EQ-11 | Seguridad (alcance por rol) | 🟠 Alta | El servidor impide acceder al corredor completo sin cuenta |
+| EQ-12 | Integridad (datos falsos) | 🔴 Crítica | Un script no puede crear ni confirmar baches falsos, y la subida acumulada legítima sí pasa |

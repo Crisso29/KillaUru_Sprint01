@@ -1,6 +1,6 @@
 # Historias de Usuario
 
-> **Proyecto:** KillaUru · **Versión:** 1.1 · **Revisión:** 2026-10-12
+> **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-13
 > **Prioridad (MoSCoW):** **M** = Must · **S** = Should · **C** = Could. Las *Could* se recortan primero si el plazo de 6–8 semanas (R-10) se ajusta.
 > **Relacionados:** `01-actores.md`, `03-requisitos-funcionales.md`
 
@@ -11,7 +11,7 @@
 | ID | Historia de usuario | Prio. | Criterios de aceptación |
 |---|---|:---:|---|
 | HU-01 | Como conductor, quiero que la app detecte baches automáticamente mientras manejo, para no tener que hacer nada con el celular durante el viaje. | M | **Dado** que la app está en ejecución y la velocidad GPS supera 5 km/h sostenida, **cuando** el vehículo pasa por un bache, **entonces** se registra un evento sin ninguna interacción (0 toques). |
-| HU-02 | Como conductor, quiero que la app distinga entre tipos de anomalía, para que la información sea útil para otros conductores. | M | **Dado** una ventana de 500 ms, **cuando** el modelo la clasifica, **entonces** devuelve tipo (del catálogo vigente), severidad 1–5 y confidence 0.0–1.0 en menos de 50 ms. El catálogo debe estar respaldado por la matriz de confusión del modelo. |
+| HU-02 | Como conductor, quiero que la app distinga entre tipos de anomalía, para que la información sea útil para otros conductores. | M | **Dado** una ventana de 500 ms, **cuando** el modelo la clasifica, **entonces** devuelve tipo (Bache o Hundimiento, RN-01), severidad 1–5 (RN-02) y confidence 0.0–1.0 en menos de 50 ms. El catálogo debe estar respaldado por la matriz de confusión del modelo. |
 
 ## EP-02: Operación offline y sincronización
 
@@ -33,7 +33,7 @@
 |---|---|:---:|---|
 | HU-07 | Como conductor no registrado, quiero ver el mapa de anomalías del tramo Ayacucho–Vinchos, para conocer el estado de la vía antes de decidir registrarme. | M | **Dado** un usuario sin cuenta, **cuando** consulta el mapa, **entonces** solo recibe anomalías dentro del tramo demo, aunque pida un `bbox` mayor (recorte en el servidor). |
 | HU-08 | Como conductor registrado, quiero ver el mapa completo del corredor de 333 km con las anomalías actualizadas, para planificar mi viaje con información real. | M | **Dado** una sesión válida, **cuando** abre el mapa, **entonces** ve las 333 km con anomalías activas, severidad y tiempo relativo («hace 2 horas»). **Y** sin señal, ve los datos y el mapa base descargados previamente. |
-| HU-09 | Como conductor registrado, quiero recibir alertas anticipadas de anomalías próximas durante mi viaje, para reducir la velocidad a tiempo. | S | **Dado** que me acerco a una anomalía activa por delante en mi sentido de marcha, **cuando** entro en su distancia de aviso, **entonces** recibo alerta sonora y visual sin necesidad de internet. |
+| HU-09 | Como conductor registrado, quiero recibir alertas anticipadas de anomalías próximas durante mi viaje, para reducir la velocidad a tiempo. | S | **Dado** que me acerco a una anomalía activa por delante en mi sentido de marcha, **cuando** faltan unos 8 s para llegar a ella según mi velocidad (mínimo 100 m, RN-16), **entonces** recibo una sola alerta sonora y visual sin necesidad de internet. |
 | HU-10 | Como conductor registrado, quiero ver mi historial de recorridos, para saber qué tramos he cubierto y cuántas anomalías detecté. | C | **Dado** 6 meses de uso, **cuando** abro el historial, **entonces** veo tramos cubiertos y anomalías detectadas, almacenados **solo en mi dispositivo**. |
 
 ## EP-05: Panel administrativo
@@ -62,17 +62,20 @@
 | HU-18 | Como conductor, quiero registrarme e iniciar sesión con mi correo y contraseña, para acceder al corredor completo y a las alertas. | M | **Cuando** me registro, **entonces** obtengo el rol `ConductorRegistrado` y una sesión renovable. En v1.0 la verificación de correo es opcional (HU-18b). |
 | HU-18b | Como conductor, quiero verificar mi correo electrónico, para proteger mi cuenta. | C | **Cuando** abro el enlace recibido, **entonces** mi cuenta queda verificada. Depende de un proveedor de correo transaccional (roadmap). |
 | HU-21 | Como conductor, quiero que mi identidad no pueda reconstruirse a partir de los datos que envío, para proteger mi privacidad (Ley 29733). | M | **Entonces** los eventos usan un seudónimo rotativo que el servidor purga a las 72 h; ningún dato almacenado vincula mi cuenta con mis eventos o trayectorias. |
+| HU-22 | Como conductor, quiero conocer y aceptar la política de privacidad antes de crear mi cuenta, para saber qué datos se guardan y para qué (consentimiento, Ley 29733). | M | **Dado** que me estoy registrando, **cuando** no marco la aceptación, **entonces** no puedo crear la cuenta. **Y** el sistema guarda la fecha y la versión de la política aceptada. **Y** al usar la app sin cuenta, se muestra un aviso de privacidad antes de iniciar la detección. |
+| HU-23 | Como conductor registrado, quiero eliminar mi cuenta desde la app, para que KillaUru deje de tener mis datos personales (derecho de cancelación, Ley 29733). | M | **Dado** que confirmo la eliminación, **entonces** se borran mi correo y mis credenciales, se revocan mis sesiones, mi historial local se borra del dispositivo y la acción queda auditada **sin guardar el correo**. Los eventos de anomalía ya enviados no se tocan porque no están vinculados a la cuenta (HU-21). |
+| HU-24 | Como conductor registrado, quiero ver qué datos personales tiene el sistema sobre mí, para ejercer mi derecho de acceso (Ley 29733). | S | **Cuando** abro «Mi perfil», **entonces** veo todos los datos personales guardados: correo, rol, fecha de alta y versión de la política aceptada. |
 
 ## Resumen por prioridad y orden de recorte
 
 | Prioridad | Historias |
 |---|---|
-| **Must** (núcleo de v1.0) | HU-01, HU-02, HU-03, HU-04, HU-05, HU-06, HU-07, HU-08, HU-11, HU-12, HU-14, HU-16, HU-18, HU-21 |
-| **Should** | HU-09, HU-13, HU-15, HU-17, HU-19 |
+| **Must** (núcleo de v1.0) | HU-01, HU-02, HU-03, HU-04, HU-05, HU-06, HU-07, HU-08, HU-11, HU-12, HU-14, HU-16, HU-18, HU-21, HU-22, HU-23 |
+| **Should** | HU-09, HU-13, HU-15, HU-17, HU-19, HU-24 |
 | **Could** (recortar primero) | HU-10, HU-18b, HU-20 |
 
 **Secuencia completa de recorte si el plazo se aprieta:** 
-`HU-20` → `HU-18b` → `HU-10` (bloque *Could*) → `HU-13` → `HU-19` → `HU-15` → `HU-17` → `HU-09` (bloque *Should*).
+`HU-20` → `HU-18b` → `HU-10` (bloque *Could*) → `HU-13` → `HU-24` → `HU-19` → `HU-15` → `HU-17` → `HU-09` (bloque *Should*). HU-22 y HU-23 son obligación legal y **no se recortan**.
 
 ## Mapa de épicas
 
@@ -84,6 +87,6 @@
 | EP-04 Mapa y visualización | HU-07, HU-08, HU-09, HU-10 |
 | EP-05 Panel administrativo | HU-11, HU-12, HU-13, HU-14, HU-15, HU-19, HU-20 |
 | EP-06 Infraestructura | HU-16, HU-17 |
-| EP-07 Cuenta y privacidad del conductor | HU-18, HU-18b, HU-21 |
+| EP-07 Cuenta y privacidad del conductor | HU-18, HU-18b, HU-21, HU-22, HU-23, HU-24 |
 
 > **Nota:** las épicas de producto (`EP-xx`) no deben confundirse con la épica de Jira `[EPIC-04] Documentación: Modelo C4`.

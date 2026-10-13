@@ -1,7 +1,7 @@
 # Requisitos Funcionales
 
-> **Proyecto:** KillaUru · **Versión:** 1.1 · **Revisión:** 2026-10-12
-> **Regla de trazabilidad:** cada RF tiene **una historia principal** y puede **apoyar** a otras. Cada HU debe tener al menos un RF (o RNF, en el caso de HU-16). Los IDs RF-01…RF-28 se conservan.
+> **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-13
+> **Regla de trazabilidad:** cada RF tiene **una historia principal** y puede **apoyar** a otras. Cada HU debe tener al menos un RF (o RNF, en el caso de HU-16). Los IDs RF-01…RF-28 se conservan; RF-29…RF-31 se agregaron el 2026-10-13.
 > **Relacionados:** `02-historias-de-usuario.md`, `Nivel3-diagrama-de-componentes.md`, `Nivel4-diagrama-de-codigo.md`
 
 ## RF-01 a RF-10 — App Android (Detección, Sincronización y Mapa)
@@ -17,17 +17,17 @@
 | RF-07 | El sistema debe reintentar con backoff exponencial (30 s → 2 min → 10 min → 30 min → 2 h, tope 2 h), con *jitter* de ±25 %, respetando `Retry-After` ante HTTP 429/503. | HU-04 | — | App · Sincronizador |
 | RF-08 | El sistema debe ofrecer al conductor no registrado solo el tramo demo Ayacucho–Vinchos (~65 km). El servidor aplica la misma restricción (RF-14). | HU-07 | — | App · Mapa |
 | RF-09 | El sistema debe mostrar al conductor registrado el mapa del corredor de 333 km con las anomalías activas, tiempo relativo, severidad y estado (persistente/episódica). | HU-08 | — | App · Mapa |
-| RF-10 | El sistema debe emitir alertas anticipadas (sonido + visual) al aproximarse a una anomalía activa **por delante en el sentido de la marcha**, usando solo GPS y la copia local de anomalías, sin internet. | HU-09 | — | App · Proximidad |
+| RF-10 | El sistema debe emitir alertas anticipadas (sonido + visual) al aproximarse a una anomalía activa **por delante en el sentido de la marcha**, a una distancia que depende de la velocidad (RN-16), usando solo GPS y la copia local de anomalías, sin internet. | HU-09 | — | App · Proximidad |
 
-## RF-11 a RF-15 — Backend (Ingesta, Validación, Clasificación, Mapa y Auditoría)
+## RF-11 a RF-15 — Backend (Ingesta, Anomalías, Consulta de Mapa y Auditoría)
 
 | ID | Requisito funcional | HU principal | Apoya a | Componente (C3) |
 |---|---|---|---|---|
 | RF-11 | El sistema debe recibir lotes mediante `POST /api/v1/anomalies/batch`, validar el esquema y **persistir el lote de forma durable antes de responder HTTP 200**. La respuesta indica por evento: aceptados, duplicados y rechazados (con motivo). Ante saturación responde 503 con `Retry-After`. | HU-05 | HU-04 | Ingesta · API REST |
-| RF-12 | El sistema debe rechazar eventos con confidence < 0.75, precisión GPS > 20 m o timestamp fuera de rango (más de 7 días en el pasado o más de 5 min en el futuro). Para severidad alta (≥ 4, valor a confirmar en `09-reglas-de-negocio.md`) debe exigir ≥ 2 dispositivos distintos en 100 m y 72 h para marcar la anomalía como confirmada. | HU-05 | — | Validación |
-| RF-13 | El sistema debe agrupar reportes del mismo tipo a ≤ 100 m en una anomalía y clasificarla como PERSISTENTE (≥ 3 días locales distintos, zona America/Lima UTC−5, dentro de 15 días) o EPISÓDICA. | HU-06 | — | Clasificación |
+| RF-12 | El sistema debe rechazar eventos con confidence < 0.75, precisión GPS > 20 m o timestamp fuera de rango (más de 7 días en el pasado o más de 5 min en el futuro), fuera del corredor o con velocidad imposible (RN-11, RN-13, RN-15b). Los eventos de un dispositivo que supera el tope por hora de detección no se descartan, pero esperan confirmación de otro dispositivo (RN-15a). Para severidad alta (4 o 5) debe exigir ≥ 2 dispositivos distintos en 100 m y 72 h antes de mostrar la anomalía, al menos uno con sesión iniciada (RN-06, RN-14). | HU-05 | — | Anomalías (validación) |
+| RF-13 | El sistema debe agrupar reportes del mismo tipo a ≤ 100 m en una anomalía y clasificarla como PERSISTENTE (≥ 3 días locales distintos, zona America/Lima UTC−5, dentro de 15 días) o EPISÓDICA (RN-05, RN-12). | HU-06 | — | Anomalías (clasificación) |
 | RF-14 | El sistema debe exponer `GET /api/v1/anomalies?bbox=` en GeoJSON, con filtros opcionales (`tipo`, `severidad`, `desde`), `updatedSince` y `ETag`. **Debe recortar el resultado según el rol**: Anónimo → polígono del tramo demo; Registrado → corredor completo con anomalías activas y confirmadas; Administrador → todas. | HU-08 | HU-07, HU-12 | Consulta de Mapa · Caché |
-| RF-15 | El sistema debe registrar en un log append-only toda acción sensible: alta de usuario, cambio de rol, desactivación, login fallido y bloqueo, moderación de anomalías, exportaciones y accesos administrativos a datos. Los descartes de ingesta **no** se registran aquí (van a métricas, RF-18). | HU-15 | HU-14, HU-19, HU-20 | Auditoría |
+| RF-15 | El sistema debe registrar en un log append-only toda acción sensible: alta de usuario, cambio de rol, desactivación, eliminación de cuenta, login fallido y bloqueo, moderación de anomalías, exportaciones y accesos administrativos a datos. Los descartes de ingesta **no** se registran aquí (van a métricas, RF-18). | HU-15 | HU-14, HU-19, HU-20 | Auditoría |
 
 ## RF-16 a RF-20 — Panel Administrativo e Identidad
 
@@ -45,12 +45,20 @@
 |---|---|---|---|---|
 | RF-21 | El sistema debe permitir al conductor registrarse e iniciar sesión con correo y contraseña, emitiendo un JWT de acceso de corta duración con renovación (refresh) y asignando el rol `ConductorRegistrado`. | HU-18 | HU-08 | Identidad y Accesos |
 | RF-22 | *(Could, roadmap)* El sistema debe enviar un correo de verificación con enlace de confirmación al registrar una cuenta. | HU-18b | HU-18 | Identidad y Accesos (correo) |
-| RF-23 | El sistema debe gestionar el **ciclo de vida** de las anomalías con los estados `Activa`, `PendienteConfirmacion`, `Expirada` y `Reparada`, con caducidad parametrizable (valores iniciales: episódica sin reportes durante 72 h; pendiente sin segundo dispositivo durante 72 h). El mapa y las alertas usan solo `Activa`. | HU-06 | HU-09 | Clasificación |
-| RF-24 | El sistema debe permitir al administrador marcar una anomalía como reparada, descartarla o reabrirla. | HU-19 | HU-06 | Clasificación · API REST |
+| RF-23 | El sistema debe gestionar el **ciclo de vida** de las anomalías con los estados `Activa`, `PendienteConfirmacion`, `Expirada`, `Reparada` y `Descartada` (RN-07), con caducidad parametrizable (valores iniciales: episódica sin reportes durante 72 h; pendiente sin segundo dispositivo durante 72 h). El mapa y las alertas usan solo `Activa`. | HU-06 | HU-09 | Anomalías (ciclo de vida) |
+| RF-24 | El sistema debe permitir al administrador marcar una anomalía como `Reparada`, `Descartada` (falso positivo) o reabrirla (RN-07). | HU-19 | HU-06 | Anomalías · API REST |
 | RF-25 | El sistema debe mostrar al conductor registrado su historial de recorridos de 6 meses, calculado y almacenado **solo en el dispositivo**. | HU-10 | — | App · Historial |
 | RF-26 | El sistema debe permitir descargar el mapa base vectorial del corredor y las anomalías activas para uso offline, con actualización incremental mediante `updatedSince`. | HU-08 | HU-03, HU-09 | App · Mapa · Consulta de Mapa |
-| RF-27 | El sistema debe identificar la instalación con un UUID aleatorio (no derivado de hardware) y enviarlo como **seudónimo rotativo** (rotación mensual). El servidor debe purgar el seudónimo de los reportes a las 72 h. | HU-21 | HU-05 | App · Ingesta · Clasificación |
+| RF-27 | El sistema debe identificar la instalación con un UUID aleatorio (no derivado de hardware) y enviarlo como **seudónimo rotativo** (rotación mensual). El servidor debe purgar el seudónimo de los reportes a las 72 h. | HU-21 | HU-05 | App · Ingesta · Anomalías |
 | RF-28 | El sistema debe exponer `GET /health` con comprobación de proceso (*liveness*) y de base de datos (*readiness*) para el monitoreo. | HU-17 | — | API REST |
+
+## RF-29 a RF-31 — Derechos del titular de datos (Ley 29733)
+
+| ID | Requisito funcional | HU principal | Apoya a | Componente |
+|---|---|---|---|---|
+| RF-29 | El sistema debe exigir la aceptación explícita de la política de privacidad para crear una cuenta, guardando la fecha y la versión aceptada, y mostrar un aviso de privacidad al conductor no registrado antes de iniciar la detección. | HU-22 | HU-18 | App · Sesión · Identidad y Accesos |
+| RF-30 | El sistema debe permitir al conductor registrado eliminar su cuenta: borrar correo y credenciales, revocar sus sesiones de *refresh*, borrar su historial local y auditar la acción usando solo el identificador interno (sin correo). | HU-23 | HU-21 | App · Sesión · Identidad y Accesos · Auditoría |
+| RF-31 | El sistema debe exponer al conductor registrado todos sus datos personales almacenados (`GET /api/v1/me`): correo, rol, fecha de alta y versión de la política aceptada. | HU-24 | — | Identidad y Accesos |
 
 ## Trazabilidad inversa: historia → requisitos
 
@@ -78,6 +86,9 @@
 | HU-19 Moderación de anomalías | RF-24 | RF-15 |
 | HU-20 Exportar dataset | RF-20 | RF-15 |
 | HU-21 Privacidad del conductor | RF-27 | RNF-10, RNF-25 |
+| HU-22 Consentimiento | RF-29 | — |
+| HU-23 Eliminar mi cuenta | RF-30 | RF-15 |
+| HU-24 Ver mis datos | RF-31 | — |
 
 ## Contrato de respuesta del lote (RF-06 / RF-11)
 

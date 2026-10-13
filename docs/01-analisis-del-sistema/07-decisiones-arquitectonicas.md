@@ -8,7 +8,7 @@
 
 | ID | Decisión | Estado | Drivers | Resultado |
 |---|---|---|---|---|
-| **ADR-001** | Monolito modular | Aceptado | DA-06, DA-09, DA-12 | Un proceso con los 8 módulos de C3: Identidad y Accesos, Ingesta, Validación, Clasificación, Consulta de Mapa, Dashboard, Exportación y Auditoría |
+| **ADR-001** | Monolito modular | Aceptado | DA-06, DA-09, DA-12 | Un proceso con 7 módulos: Identidad y Accesos, Ingesta, Anomalías, Consulta de Mapa, Dashboard, Exportación y Auditoría |
 | **ADR-002** | Clean Architecture por módulo | Aceptado | DA-06, DA-09 | Capas Domain, Application, Adapters e Infrastructure; puertos en Application; `Contracts/` entre módulos |
 | **ADR-003** | Store-and-Forward con SQLite | Aceptado | DA-01, DA-02 | Buffer local PENDING/SYNCED/REJECTED_LOCAL con reintentos y *jitter* |
 | **ADR-004** | Edge AI con TFLite embebido | Aceptado | DA-03, DA-04 | Modelo MLP cuantizado en el APK; `modeloVersion` en cada evento |
@@ -18,7 +18,7 @@
 | **ADR-008** | Ciclo de vida de la anomalía | Aceptado | DA-13 | Estados y caducidad parametrizable |
 | **ADR-009** | Identidad y accesos | Aceptado | DA-10 | Módulo unificado (fusión de Autenticación y Usuarios), JWT diferenciado por rol, alta de conductor en v1.0 |
 | **ADR-010** | Despliegue y operación | Aceptado | DA-08, DA-11 | Cloudflare Tunnel y Pages, backups, rollback por tag |
-| **ADR-011** | Mapa base vectorial offline | Aceptado | DA-14 | Mapa recortado al corredor, alojado como estático |
+| **ADR-011** | Mapa base vectorial offline | Aceptado | DA-14 | PMTiles del corredor en R2; MapLibre en app y panel |
 | **ADR-012** | Convenciones de diseño | Aceptado | DA-12 | Lenguaje ubicuo, una tecnología de datos, umbrales por configuración |
 
 ---
@@ -35,13 +35,14 @@
 | Monolito tradicional | Simple de desarrollar | Difícil de mantener y escalar conforme crece |
 | **Monolito modular** | Simple de desplegar; módulos separados; puede evolucionar hacia servicios | Requiere disciplina para mantener los límites |
 
-**Decisión.** Monolito modular en ASP.NET Core (.NET 8): un solo proceso con *bounded contexts* internos (8 módulos de C3, habiéndose unificado Autenticación y Usuarios en Identidad y Accesos según ADR-009). El backend **no** incluye módulos de detección ni de sincronización: esas funciones viven en la app Android (ADR-003, ADR-004).
+**Decisión.** Monolito modular en ASP.NET Core (.NET 10 LTS): un solo proceso con *bounded contexts* internos (7 módulos: se unificaron Autenticación y Usuarios en Identidad y Accesos según ADR-009, y Validación y Clasificación en **Anomalías**). El backend **no** incluye módulos de detección ni de sincronización: esas funciones viven en la app Android (ADR-003, ADR-004).
 
 **Consecuencias**
 - ✅ `docker compose up -d` levanta todo el sistema.
 - ✅ Los módulos con interfaces claras pueden extraerse como servicios (candidatos naturales: Ingesta y Consulta de Mapa).
 - ⚠️ Requiere disciplina: se hace cumplir con pruebas de arquitectura (RNF-28).
-- ⚠️ **Decisión abierta:** evaluar fusionar Validación y Clasificación (comparten agregado y tabla).
+- ✅ **Validación y Clasificación se unen en el módulo Anomalías** (2026-10-13): comparten agregado, tabla, bloqueo por celda y momento de ejecución; separarlas era una frontera artificial. Dentro del módulo se conservan como pasos del flujo (validar → confirmar → clasificar).
+- ⚠️ Las métricas operativas pasan a `Shared/Metricas` (puerto técnico, como la caché) para evitar el ciclo Anomalías ↔ Dashboard.
 
 ---
 
@@ -104,7 +105,7 @@
 
 **Consecuencias**
 - ✅ Clasificación < 50 ms sin internet; el modelo tiene validación de campo en Ayacucho–Vinchos.
-- ⚠️ El catálogo de tipos debe coincidir con las etiquetas del modelo y estar respaldado por su matriz de confusión por clase.
+- ⚠️ El catálogo de tipos (RN-01: Bache, Hundimiento y la clase interna Normal) debe coincidir con las etiquetas del modelo y estar respaldado por su matriz de confusión por clase.
 - ⚠️ Con distribución por APK, el modelo queda congelado en campo. **Decisión abierta:** descarga versionada del `.tflite` desde el servidor.
 - ⚠️ El servidor debe poder recibir eventos de varias versiones de modelo.
 
@@ -127,7 +128,7 @@
 1. El controlador valida esquema y reglas intrínsecas puras de `ReglasCalidad` (sin BD).
 2. Inserta el lote en la tabla `evento_recibido` con un único `INSERT … ON CONFLICT DO NOTHING` sobre `evento_id`, y **solo entonces responde 200** con el resultado por evento.
 3. El Channel queda como **aviso de trabajo** (el elemento es el lote completo, no el evento); al arrancar, el `BackgroundService` reprocesa las filas pendientes.
-4. Validación de confirmación y Clasificación procesan de forma asíncrona, **serializando por celda geográfica** (bloqueo consultivo de PostgreSQL por celda) para evitar carreras al confirmar y al crear anomalías.
+4. El módulo Anomalías (validación, confirmación y clasificación) procesa de forma asíncrona, **serializando por celda geográfica** (bloqueo consultivo de PostgreSQL por celda) para evitar carreras al confirmar y al crear anomalías.
 
 **Consecuencias**
 - ✅ RNF-06 pasa a ser verificable: recibidos = procesados + descartados + pendientes.
@@ -196,7 +197,7 @@
 | Sin caducidad (estado actual) | Simple | El mapa se llena de anomalías obsoletas |
 | **Estados + caducidad parametrizable + moderación** | Mapa fiel a la realidad | Un job y un campo `UltimoReporteUtc` |
 
-**Decisión.** Estados `Activa`, `PendienteConfirmacion`, `Expirada` y `Reparada`. Valores iniciales: episódica expira a las 72 h sin reportes; pendiente expira a las 72 h sin segundo dispositivo; el administrador puede marcar `Reparada` (RF-24). Un `BackgroundService` diario aplica la caducidad. El mapa y las alertas usan solo `Activa`. Los parámetros se calibran con el piloto.
+**Decisión.** Estados `Activa`, `PendienteConfirmacion`, `Expirada`, `Reparada` y `Descartada` (diagrama en RN-07). Valores iniciales: episódica expira a las 72 h sin reportes; pendiente expira a las 72 h sin segundo dispositivo; el administrador puede marcar `Reparada` o `Descartada` (RF-24). Un `BackgroundService` diario aplica la caducidad. El mapa y las alertas usan solo `Activa`. Los parámetros se calibran con el piloto.
 
 **Consecuencias**
 - ✅ Menos falsas alarmas.
@@ -267,11 +268,21 @@
 | Descargar teselas del servidor público de OSM | Sin infraestructura | Prohibido su uso masivo |
 | **Mapa vectorial recortado al corredor, alojado como archivo estático** | Offline, liviano (decenas de MB), costo cero | Preparar y publicar el recorte |
 
-**Decisión.** Mapa base vectorial recortado al corredor (formato de teselas empaquetadas, p. ej. PMTiles/MBTiles), alojado como estático, descargado una vez por Wi-Fi o con confirmación del usuario. Las anomalías son una capa aparte, actualizada con `updatedSince`. Se cumple la atribución de OpenStreetMap.
+**Decisión.**
+1. Mapa base vectorial de OpenStreetMap recortado al corredor, en **un solo archivo PMTiles**, alojado como estático en **Cloudflare R2** (Cloudflare Pages no admite archivos de más de 25 MiB).
+2. **Una sola librería de mapas en todo el sistema: MapLibre.** La app usa **MapLibre Native (Android)** y el panel usa **MapLibre GL JS**. Ambos leen **el mismo PMTiles** y comparten **el mismo estilo** (colores y símbolos por tipo y severidad).
+3. La app descarga el archivo una vez, por Wi-Fi o con confirmación del usuario; el panel lo lee en línea por rangos HTTP, sin descargarlo entero.
+4. Las anomalías son una capa aparte, actualizada con `updatedSince`. Se muestra la atribución de OpenStreetMap.
+
+| Opción para el panel | Pros | Contras |
+|---|---|---|
+| Leaflet con teselas del servidor público de OSM | Muy simple | Su política prohíbe el uso en producción; mapa distinto al de la app; dos librerías que mantener |
+| **MapLibre GL JS con el mismo PMTiles** | Un solo mapa base, un solo estilo, costo cero | Curva de aprendizaje algo mayor que Leaflet |
 
 **Consecuencias**
 - ✅ Mapa y alertas funcionan sin red; consumo de datos controlado.
-- ⚠️ Hay que decidir y documentar la librería de mapas de la app.
+- ✅ App y panel muestran exactamente el mismo mapa; un cambio en el recorte o en el estilo se publica una sola vez.
+- ⚠️ Hay que regenerar el PMTiles cuando se quiera actualizar la cartografía de OSM (proceso manual, pocas veces al año).
 
 ---
 
@@ -298,10 +309,10 @@
 
 | # | Tema | Opciones | Responsable |
 |---|---|---|---|
-| 1 | Granularidad de módulos | A) mantener Validación y Clasificación separadas; B) un módulo «Anomalías» con el pipeline interno | Autor |
-| 2 | Definición de «severidad alta» | ≥ 4 (propuesta) | Autor |
-| 3 | Catálogo de `TipoAnomalia` | Validar con la matriz de confusión del modelo (inundación y curva) | Autor |
-| 4 | Confirmación falsificable por anónimos | Límite de tasa; exigir sesión para confirmar severidad alta; verificación de integridad de la app | Autor |
+| ~~1~~ | ~~Granularidad de módulos~~ | **Cerrada (2026-10-13):** un módulo «Anomalías» con el flujo interno validar → confirmar → clasificar | Autor |
+| ~~2~~ | ~~Definición de «severidad alta»~~ | **Cerrada (2026-10-13):** 4 o 5 (RN-02, RN-06) | Autor |
+| ~~3~~ | ~~Catálogo de `TipoAnomalia`~~ | **Cerrada (2026-10-13):** Bache y Hundimiento (RN-01) | Autor |
+| ~~4~~ | ~~Confirmación falsificable por anónimos~~ | **Cerrada (2026-10-13):** solo eventos sobre la vía (RN-13), sesión para confirmar severidad 4–5 (RN-14), velocidad plausible y, si un dispositivo supera el tope por hora de detección, confirmación obligatoria en lugar de descarte para no perder datos reales en temporada de lluvia (RN-15). La verificación de integridad de Play queda para cuando se publique en Play Store | Autor |
 | 5 | Actualización del modelo TFLite | Nueva versión de la app vs descarga versionada | Autor |
 | 6 | Cuarto subdominio monitoreado | Confirmar o reducir a 3 | Autor |
 | 7 | Tope de costo RNF-16 | Confirmar el valor absoluto | Autor |

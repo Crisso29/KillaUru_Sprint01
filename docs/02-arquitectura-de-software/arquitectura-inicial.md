@@ -10,7 +10,7 @@ Este documento da la **visión de conjunto** de KillaUru: de qué zonas se compo
 KillaUru es una plataforma colaborativa que detecta, valida y presenta anomalías viales de la carretera PE-28A (Vía Los Libertadores, 333 km). Se compone de tres piezas ejecutables:
 
 - una **app Android** que detecta y clasifica en el dispositivo y funciona sin internet;
-- un **backend monolítico modular** (ASP.NET Core 8) con 8 módulos, que valida, clasifica y sirve el mapa;
+- un **backend monolítico modular** (ASP.NET Core 10) con 7 módulos, que valida, clasifica y sirve el mapa;
 - un **panel web** de administración (SPA).
 
 ## 2. Diagrama de arquitectura (vista por zonas)
@@ -40,8 +40,7 @@ sequenceDiagram
     participant API as API KillaUru (Ingesta)
     participant DB as PostgreSQL + PostGIS
     participant W as Procesador (BackgroundService)
-    participant V as Validación
-    participant C as Clasificación
+    participant A as Anomalías
     participant K as Caché del mapa
 
     S->>B: Evento con confidence ≥ 0.75 (PENDING, eventoId, seudónimo, modeloVersion)
@@ -52,13 +51,13 @@ sequenceDiagram
     API-->>Y: HTTP 200 {aceptados, duplicados, rechazados}
     Y->>B: Marca SYNCED (o REJECTED_LOCAL ante 400)
     API->>W: Aviso del lote (Channel)
-    W->>V: Valida cada evento recibido
+    W->>A: ProcesarReporteAsync(evento)
+    A->>A: Valida calidad (RN-11)
     alt Evento descartado
-        V->>DB: Marca DESCARTADO y registra el motivo (métrica)
+        A->>DB: Marca DESCARTADO y registra el motivo (métrica)
     else Evento válido
-        V->>C: Entrega el reporte (confirmado o pendiente)
-        C->>DB: Bloqueo por celda, agrupa, clasifica y persiste
-        C->>K: Invalida las celdas afectadas
+        A->>DB: Bloqueo por celda, confirma (RN-06), agrupa y clasifica (RN-05, RN-12), persiste
+        A->>K: Invalida las celdas afectadas
     end
 ```
 
@@ -134,7 +133,7 @@ sequenceDiagram
 
 | Decisión | Efecto visible |
 |---|---|
-| ADR-001 Monolito modular | Un solo proceso API con 8 módulos |
+| ADR-001 Monolito modular | Un solo proceso API con 7 módulos (Validación y Clasificación unidas en Anomalías) |
 | ADR-002 Clean Architecture | Cuatro capas por módulo y contratos públicos entre módulos |
 | ADR-003 / ADR-004 | La app es autónoma: buffer SQLite y modelo embebido |
 | ADR-005 Ingesta durable | Tabla `evento_recibido`, HTTP 200 tras el *commit*, idempotencia por `eventoId` |
