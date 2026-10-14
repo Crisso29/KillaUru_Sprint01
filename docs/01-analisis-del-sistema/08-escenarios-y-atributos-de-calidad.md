@@ -1,6 +1,6 @@
 # Escenarios de atributos de calidad de KillaUru
 
-> **Proyecto:** KillaUru · **Versión:** 1.1 · **Revisión:** 2026-10-12 · **Estado:** Vigente
+> **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-13 · **Estado:** Vigente
 > Traduce los atributos de `04-atributos-de-calidad.md` en escenarios verificables, con el formato de **seis partes** del método ATAM: **fuente, estímulo, artefacto, entorno, respuesta y medida de respuesta**. Se añaden *verificación*, *trazabilidad* y *estado* para el seguimiento del proyecto.
 > Las metas numéricas viven en `04`; aquí se referencian por ID.
 
@@ -14,7 +14,7 @@
 | **Artefacto** | App Android: Sensores, Detector, Buffer, Mapa y Proximidad |
 | **Entorno** | App en ejecución, GPS activo, sin datos móviles ni WiFi; mapa base y anomalías descargados previamente. |
 | **Respuesta** | La app sigue detectando con el modelo embebido, guarda los eventos en SQLite como `PENDING`, muestra el mapa y emite alertas con datos locales. Al recuperar señal **reinicia el backoff** y sincroniza sin intervención. |
-| **Medida** | 100 % de los eventos con confidence ≥ 0.75 quedan almacenados; la sincronización se inicia en ≤ 60 s tras recuperar señal (RF-04, RF-05, RF-26). |
+| **Medida** | 100 % de los eventos con confidence ≥ 0.75 quedan almacenados; la sincronización se inicia en ≤ 60 s tras recuperar señal (RNF-33, RF-04, RF-05, RF-26). |
 | **Verificación** | Prueba de campo en modo avión en Ayacucho–Vinchos durante un recorrido completo; comparar el conteo de SQLite antes y después de reactivar datos. |
 | **Trazabilidad** | R-08, DA-01, DA-14, HU-03, ADR-003, ADR-011 |
 | **Estado** | Definido |
@@ -102,7 +102,7 @@
 | **Fuente** | Componente de infraestructura (backend, base de datos, proxy) |
 | **Estímulo** | Un subdominio deja de responder o `/health` retorna un código distinto de 200. |
 | **Artefacto** | UptimeRobot, `/health` de la API, Dashboard |
-| **Entorno** | Monitoreo cada 5 minutos; logs estructurados y métricas por minuto. |
+| **Entorno** | UptimeRobot cada 5 minutos; OpenTelemetry y logs en Grafana Cloud con alertas de degradación. |
 | **Respuesta** | El sistema notifica al equipo antes de que los usuarios lo reporten y el estado queda visible en `status.killauru.pe`. |
 | **Medida** | Alerta por correo en ≤ 5 min (RNF-20); disponibilidad mensual registrada con historial de 30 días (RNF-05); el dashboard muestra p95, descartes por motivo y tasa de confirmación (RNF-22). |
 | **Verificación** | Simular la caída del endpoint `/health` y medir el tiempo hasta la alerta; revisar logs con correlación. |
@@ -184,6 +184,21 @@
 | **Trazabilidad** | R-07, DA-10, RF-12, HU-05, ADR-005, ADR-009 |
 | **Estado** | Definido |
 
+## EQ-13. Respuesta a un incidente con datos personales
+
+| Elemento | Descripción |
+|---|---|
+| **Atributo** | Seguridad y privacidad (AC-04) |
+| **Fuente** | Cuenta de administrador comprometida o uso indebido por personal interno |
+| **Estímulo** | Se detecta una exportación o un acceso a datos de usuarios que nadie autorizó. |
+| **Artefacto** | Auditoría, Identidad y Accesos, procedimiento de incidentes |
+| **Entorno** | Operación normal; la auditoría registra cada acción sensible en la misma transacción (ADR-013). |
+| **Respuesta** | Con la auditoría se reconstruye quién, qué, cuándo y qué datos; se desactiva la cuenta (≤ 5 min, RNF-26); se documenta el incidente y se notifica a la Autoridad y a los titulares afectados. |
+| **Medida** | Reconstrucción completa del incidente desde la auditoría; notificación en ≤ 48 h (RNF-29); 0 acciones sensibles sin registro (RNF-31). |
+| **Verificación** | Simulacro semestral: una exportación «no autorizada» en staging, cronometrando desde la detección hasta el borrador de notificación. |
+| **Trazabilidad** | R-06, DA-07, RF-15, RNF-29, RNF-30, RNF-31, ADR-013 |
+| **Estado** | Definido |
+
 ## Resumen de escenarios
 
 | Código | Atributo | Prioridad | Qué se busca comprobar |
@@ -200,3 +215,4 @@
 | EQ-10 | Continuidad (restauración) | 🟠 Alta | Se restaura la BD dentro de RPO y RTO |
 | EQ-11 | Seguridad (alcance por rol) | 🟠 Alta | El servidor impide acceder al corredor completo sin cuenta |
 | EQ-12 | Integridad (datos falsos) | 🔴 Crítica | Un script no puede crear ni confirmar baches falsos, y la subida acumulada legítima sí pasa |
+| EQ-13 | Seguridad (incidente legal) | 🔴 Crítica | Un incidente con datos personales se reconstruye y se notifica en ≤ 48 h |

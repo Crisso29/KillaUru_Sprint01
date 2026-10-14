@@ -1,6 +1,6 @@
 # Estilo Arquitectónico
 
-> **Proyecto:** KillaUru · **Versión:** 2.0 · **Revisión:** 2026-10-12 · **Estado:** Vigente (alineado con ADR-001…ADR-012)
+> **Proyecto:** KillaUru · **Versión:** 2.1 · **Revisión:** 2026-10-13 · **Estado:** Vigente (alineado con ADR-001…ADR-014)
 > **Relacionados:** `arquitectura-inicial.md`, `enfoque-arquitectonico.md`, `componentes-arquitectonicos.md`, `06-driver-arquitectonicos.md`, `07-decisiones-arquitectonicas.md`
 
 ## 1. ¿Qué es un estilo arquitectónico?
@@ -13,7 +13,7 @@ KillaUru combina **un estilo principal y tres estilos de apoyo**:
 
 | Estilo | Dónde se aplica | Por qué |
 |---|---|---|
-| **Monolito modular** *(principal)* | Backend: un único proceso ASP.NET Core 10 con 7 módulos (*bounded contexts*) | Una sola persona, 6–8 semanas, recursos mínimos (DA-06, DA-12) |
+| **Monolito modular** *(principal)* | Backend: un único proceso ASP.NET Core 10 con 6 módulos (*bounded contexts*) | Una sola persona, 6–8 semanas, recursos mínimos (DA-06, DA-12) |
 | **Capas por módulo (Clean Architecture)** | Dentro de cada módulo: Domain, Application, Adapters, Infrastructure | Reglas de negocio independientes de frameworks (ADR-002) |
 | **Offline-first con Store-and-Forward** | App Android y protocolo de sincronización | Más del 50 % del corredor no tiene señal (DA-01, DA-02) |
 | **Edge AI** | Clasificación en el dispositivo con TFLite | Sin internet y en < 50 ms (DA-03, DA-04) |
@@ -68,11 +68,10 @@ flowchart TD
             ANO["Anomalías"]:::modulo
             MAPA["Consulta de Mapa"]:::modulo
             DASH["Dashboard"]:::modulo
-            EXP["Exportación"]:::modulo
             AUD["Auditoría"]:::modulo
         end
 
-        SHARED["Shared<br/>Kernel de dominio · ICacheMapa · IMetricas · Configuración · TimeProvider"]:::compartido
+        SHARED["Shared<br/>Kernel mínimo · IPublicadorEventos · IMetricas · TimeProvider"]:::compartido
     end
 
     DB[("PostgreSQL + PostGIS<br/>un solo motor")]:::datos
@@ -84,17 +83,14 @@ flowchart TD
     HOST --> ANO
     HOST --> MAPA
     HOST --> DASH
-    HOST --> EXP
     HOST --> AUD
 
     ING -- "Contracts" --> ANO
     MAPA -- "Contracts (lectura)" --> ANO
     DASH -- "Contracts (lectura)" --> ANO
     DASH -- "Contracts (lectura)" --> ID
-    EXP -- "Contracts (lectura)" --> ANO
     ID -- "Contracts" --> AUD
     ANO -- "Contracts" --> AUD
-    EXP -- "Contracts" --> AUD
 
     ING --> DB
     ANO --> DB
@@ -104,7 +100,7 @@ flowchart TD
     NEGOCIO -.-> SHARED
 ```
 
-> Solo el **dueño** de cada tabla escribe en ella (`ING`, `ANO`, `ID`, `AUD`, `DASH`). Los módulos que solo leen (`MAPA`, `EXP`) lo hacen **a través del contrato** del dueño, no con SQL propio.
+> Solo el **dueño** de cada tabla escribe en ella (`ING`, `ANO`, `ID`, `AUD`, `DASH`). El módulo que solo lee (`MAPA`) lo hace **a través del contrato** del dueño, no con SQL propio.
 
 ## 4. Reglas fundamentales
 
@@ -112,9 +108,9 @@ Estas reglas no son sugerencias: mantienen el sistema ordenado conforme crece. L
 
 | # | Regla | Motivo | Cómo se verifica |
 |---|---|---|---|
-| 1 | **Invocación descendente por capas.** Adapters → Application → Domain. Infrastructure implementa los puertos de Application. | Orden predecible y testeable | Pruebas de arquitectura |
+| 1 | **Regla de dependencia hacia adentro.** Adapters → Application → Domain; Infrastructure implementa los puertos de Application y conoce Domain. Los controladores no usan Domain ni exponen entidades. | Orden predecible y testeable | Pruebas de arquitectura |
 | 2 | **Aislamiento entre módulos.** Un módulo usa a otro **solo** mediante su carpeta `Contracts/`. | Un cambio interno no rompe a los demás (DA-09) | Pruebas de arquitectura |
-| 3 | **Un dueño por tabla.** Solo el módulo dueño escribe; los demás leen por el contrato del dueño. | Independencia de los datos | Revisión de código y pruebas |
+| 3 | **Un dueño por tabla.** Un esquema de PostgreSQL y un `DbContext` por módulo; solo el dueño escribe; los demás leen por su contrato; sin llaves foráneas entre esquemas. | Independencia de los datos; extraer un módulo es mover su esquema | Pruebas de arquitectura (RNF-28) |
 | 4 | **Sin ciclos entre módulos.** Las dependencias forman un grafo acíclico. | Evita acoplamiento circular (ADR-009 eliminó el de Autenticación ↔ Usuarios) | Pruebas de arquitectura |
 | 5 | **Dominio sin dependencias externas.** Nada de ASP.NET, EF Core ni SDKs en `Domain/`. | RN-11 y RN-12 se prueban sin infraestructura | Pruebas de arquitectura |
 | 6 | **Despliegue único.** Un proceso API, una BD y `cloudflared`; sin orquestación de múltiples servicios en v1.0. | R-09, RNF-17 | `docker compose up -d` |
@@ -136,24 +132,25 @@ Estas reglas no son sugerencias: mantienen el sistema ordenado conforme crece. L
 | AC-04 Seguridad y privacidad | Seudónimo rotativo, purga a 72 h, RBAC en servidor, Tunnel, CSP/HSTS | Identidad y Accesos, API REST, Anomalías |
 | AC-05 Mantenibilidad | Módulos aislados, pruebas de arquitectura, umbrales por configuración | Todos los módulos |
 | AC-06 Escalabilidad | Cola por lote, serialización por celda geográfica, caché por celdas | Ingesta, Anomalías, Consulta de Mapa |
-| AC-07 Observabilidad | `/health` (liveness y readiness), logs estructurados, métricas por minuto | API REST, Dashboard |
+| AC-07 Observabilidad | `/health`, OpenTelemetry, logs estructurados y alertas de degradación | API REST, Grafana Cloud |
 | AC-08 Usabilidad | Detección pasiva en servicio en primer plano | App: Sensores |
 
 ## 6. Stack tecnológico
 
 | Componente | Tecnología | Justificación |
 |---|---|---|
-| App móvil | Kotlin · TFLite (MLP cuantizado) · SQLite · servicio en primer plano · WorkManager *(propuesta)* · MapLibre Native (Android) con PMTiles (ADR-011) | Sensores a 50 Hz, inferencia local < 50 ms, mapa offline (R-01, ADR-004, ADR-011) |
+| App móvil | Kotlin + corrutinas · **Jetpack Compose** · **Room** (SQLite) · **WorkManager** · servicio en primer plano (tipo `location`) · **Hilt** · **Retrofit + OkHttp** con kotlinx.serialization · **LiteRT** (antes TensorFlow Lite, MLP cuantizado) · **MapLibre Native** con PMTiles · **DataStore + Android Keystore** · `minSdk` 26 (Android 8.0) | Stack oficial de Google y gratuito; sensores a 50 Hz, inferencia local < 50 ms, sincronización resistente a reinicios y mapa offline en celulares de gama baja (R-01, ADR-003, ADR-004, ADR-011) |
 | Backend | ASP.NET Core 10 · .NET Channels · `IMemoryCache` · rate limiting integrado · `TimeProvider` | Tecnología del autor (R-02) y procesamiento asíncrono nativo |
 | Acceso a datos | EF Core + NetTopologySuite · Npgsql | Una sola ruta de datos (ADR-012) |
+| Persistencia (ADR-014) | SQL relacional (PostgreSQL) · documental (`JSONB`) · SQL embebido (SQLite en el celular) · objetos (R2) · clave-valor (`IMemoryCache`) | Cada dato en el almacén que mejor encaja, sin servicios nuevos |
 | Base de datos | PostgreSQL + PostGIS · columna `geography(Point, 4326)` · índice GiST · bloqueos consultivos por celda | Consultas espaciales y serialización por zona (R-03) |
 | Panel web | React · **MapLibre GL JS** con el mismo PMTiles y estilo que la app | Un solo mapa base y una sola librería de mapas en todo el sistema (ADR-011) |
 | Hosting del panel y mapa base | Cloudflare Pages (panel) y **Cloudflare R2** para el mapa base PMTiles (Pages no admite archivos de más de 25 MiB) | Costo cero y sin servidor propio (ADR-010, ADR-011) |
 | Infraestructura | Docker Compose en Oracle Cloud ARM · `cloudflared` | Un comando levanta todo; origen sin puertos abiertos |
 | Borde | Cloudflare Free: DNS, TLS, proxy, caché de borde, Tunnel | TLS, A+ en SSL Labs y origen oculto (RNF-08) |
-| Monitoreo | UptimeRobot Free · `/health` | Alerta por correo en ≤ 5 min (RNF-20) |
+| Observabilidad | OpenTelemetry (.NET 10) · Serilog (JSON) · **Grafana Cloud, plan gratuito, sin tarjeta** · UptimeRobot Free · `/health` | Métricas, trazas, logs y alertas sin código hecho a mano y con costo cero (RNF-20…22, RNF-32) |
 | Backups | `pg_dump` cifrado a almacenamiento de objetos, retención de 30 días | RNF-07, RNF-24 |
-| Correo transaccional | Proveedor por definir (roadmap) | HU-18b; el plan gratuito de SendGrid ya no existe |
+| Correo transaccional | Proveedor con plan gratuito o costo marginal (p. ej. Amazon SES, Brevo o Resend), detrás del adaptador `IEnviadorCorreo` | Verificación de correo y recuperación de contraseña en v1.0 (HU-18b, HU-25); el plan gratuito de SendGrid ya no existe (RS-04) |
 | Pruebas | xUnit · NSubstitute · `FakeTimeProvider` · Testcontainers (PostgreSQL + PostGIS) · `WebApplicationFactory` · NetArchTest · herramienta de carga *(p. ej. k6)* | Estrategia por capas (ver `enfoque-arquitectonico.md`) |
 
 > **Riesgos de la infraestructura gratuita:** ver RS-01…RS-06 en `05-restricciones.md`. En particular, comprobar que PostGIS tenga imagen arm64 y confirmar las condiciones vigentes de Oracle, UptimeRobot y del proveedor de correo.

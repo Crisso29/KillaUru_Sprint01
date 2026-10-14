@@ -1,6 +1,6 @@
 # Enfoque Arquitectónico — Clean Architecture
 
-> **Proyecto:** KillaUru · **Versión:** 2.0 · **Revisión:** 2026-10-12 · **Estado:** Vigente (alineado con ADR-002 y ADR-012)
+> **Proyecto:** KillaUru · **Versión:** 2.1 · **Revisión:** 2026-10-13 · **Estado:** Vigente (alineado con ADR-002 y ADR-012)
 > **Relacionados:** `estilo-arquitectonico.md`, `componentes-arquitectonicos.md`, `Nivel4-diagrama-de-codigo.md`, `07-decisiones-arquitectonicas.md`
 
 ## 1. ¿Qué es Clean Architecture?
@@ -32,9 +32,11 @@ flowchart LR
 |---|---|---|---|
 | **Domain** | Entidades, value objects, servicios de dominio, enumeraciones | Solo `Shared/Domain` y la BCL de .NET | Application, Adapters, Infrastructure, ASP.NET, EF Core |
 | **Application** | Casos de uso y **puertos** (interfaces que necesita el caso de uso) | Domain y `Contracts/` de otros módulos | Adapters, Infrastructure, EF Core |
-| **Adapters** | Controladores, DTOs HTTP y mappers (solo donde hay frontera HTTP) | Application y Domain (para mapear) | Infrastructure |
+| **Adapters** | Controladores, DTOs HTTP y mappers (solo donde hay frontera HTTP) | **Solo Application** (casos de uso y sus DTOs de entrada y salida) | Domain e Infrastructure. **Nunca expone entidades del dominio por HTTP** |
 | **Infrastructure** | EF Core, PostGIS, Channels, `IMemoryCache`, adaptador de correo; implementan los puertos | Application (sus puertos) y Domain | Adapters |
 
+> **Regla de dependencia:** las dependencias apuntan **hacia adentro**, hacia Domain; no es una fila estricta de «solo la capa inmediata». Infrastructure puede conocer Domain porque guarda y lee entidades; Adapters no, porque su contrato con el exterior son los DTOs del caso de uso. Así, cambiar una entidad no rompe la API que usa la app Android.
+>
 > **Los puertos viven en Application** (ADR-002), no en Domain. La capa interna define lo que necesita; la externa lo implementa.
 
 ## 4. Plantilla de un módulo
@@ -43,12 +45,13 @@ flowchart LR
 src/KillaUru.Api/
 ├── Api/                          → Componente «API REST» (Program.cs, middleware, composición)
 ├── Shared/
-│   ├── Domain/                   → Kernel: Coordenada, Severidad, Confidence, SeudonimoInstalacion, TipoAnomalia, EventoReportado
-│   ├── Cache/                    → ICacheMapa + CacheMapaMemoria (IMemoryCache)
-│   └── Configuracion/            → ReglasOptions (umbrales tipados)
+│   ├── Domain/                   → Kernel mínimo: Coordenada, Severidad, Confidence, SeudonimoInstalacion
+│   ├── Eventos/                  → IPublicadorEventos + PublicadorEnMemoria (patrón Observer)
+│   └── Metricas/                 → IMetricas (puerto técnico)
 └── Modules/
     └── <Modulo>/
         ├── Contracts/            → Interfaces y DTOs públicos: lo único que otros módulos pueden usar
+        │                           (p. ej. Anomalias/Contracts: IAnomaliasService, EventoReportado, TipoAnomalia, AnomaliaCambiada)
         ├── Domain/               → Entidades, value objects y reglas. Sin using de ASP.NET ni EF
         ├── Application/          → Casos de uso y puertos
         ├── Adapters/             → Controladores, DTOs HTTP y mappers (solo si hay frontera HTTP)
@@ -65,18 +68,17 @@ No todos los módulos necesitan las cuatro capas con el mismo peso (DA-12):
 | Módulo | Domain | Application | Adapters (HTTP) | Infrastructure |
 |---|---|---|---|---|
 | **Ingesta** | Mínimo (lote y resultado) | `RecibirLoteEventosUseCase` | `SyncController` | `ColaLotesChannel`, `RecepcionEventosRepository`, `ProcesadorEventosBackgroundService` |
-| **Anomalías** | **Rico**: `ReglasCalidad`, `PoliticaConfirmacion`, `Anomalia` (agregado con ciclo de vida), `ReporteAnomalia`, `ReglaPersistencia` | `ProcesarReporteUseCase` (validar → confirmar → clasificar), `ModerarAnomaliaUseCase`, `CaducarAnomaliasUseCase`, `PurgarSeudonimosUseCase` | `ModeracionController` | `AnomaliaRepositoryPostGIS`, jobs de mantenimiento |
+| **Anomalías** | **Rico**: `ReglasCalidad`, `PoliticaConfirmacion`, `Anomalia` (agregado con ciclo de vida), `ReporteAnomalia`, `ReglaPersistencia` | `ProcesarReporteUseCase` (validar → confirmar → clasificar), `ModerarAnomaliaUseCase`, `CaducarAnomaliasUseCase`, `PurgarSeudonimosUseCase`, `ExportarDatasetUseCase` | `ModeracionController`, `ExportacionController` | `AnomaliaRepositoryPostGIS`, escritores CSV y GeoJSON, jobs de mantenimiento |
 | **Consulta de Mapa** | Recorte por rol (polígono demo) | `ConsultarMapaUseCase` | `AnomaliasController` (GET) | Caché por celdas |
-| **Identidad y Accesos** | `Usuario`, `Rol`, política de bloqueo | Registro, login, refresh, gestión de usuarios | `AuthController`, `UsuariosController` | Repositorio EF, emisor de JWT, adaptador de correo (roadmap) |
-| **Dashboard** | Indicadores | Casos de uso de consulta y agregación | `DashboardController` | Agregador de métricas |
-| **Exportación** | — | `ExportarDatasetUseCase` | `ExportacionController` | Escritores CSV y GeoJSON |
+| **Identidad y Accesos** | `Usuario`, `Rol`, política de bloqueo | Registro, login, refresh, gestión de usuarios | `AuthController`, `UsuariosController` | Repositorio EF, emisor de JWT, adaptador de correo `IEnviadorCorreo` |
+| **Dashboard** | Indicadores de negocio | Consulta y cálculo diario de indicadores | `DashboardController` | Job diario de indicadores |
 | **Auditoría** | Registro inmutable | `RegistrarAuditoriaUseCase`, consulta | `AuditoriaController` (solo lectura) | Repositorio *append-only* |
 
-> Los módulos de soporte (Dashboard, Exportación, Auditoría) pueden mantener un dominio liviano. La regla de dependencia se respeta igual, pero no se crean entidades artificiales.
+> Los módulos de soporte (Dashboard, Auditoría) pueden mantener un dominio liviano. La regla de dependencia se respeta igual, pero no se crean entidades artificiales.
 
 ## 5. Las reglas de negocio viven en el dominio
 
-| Regla | Dónde vive | Parámetro (`ReglasOptions`) |
+| Regla | Dónde vive | Parámetro (`AnomaliasOptions`, salvo que se indique) |
 |---|---|---|
 | Confidence mínimo (RN-11) | `ReglasCalidad` (Anomalías · Domain) | `ConfidenceMinimo = 0.75` |
 | Precisión GPS máxima (se rechaza si **>** 20 m) | `ReglasCalidad` | `PrecisionGpsMaximaMetros = 20` |
@@ -86,48 +88,64 @@ No todos los módulos necesitan las cuatro capas con el mismo peso (DA-12):
 | Plausibilidad del dispositivo (RN-15) | `PoliticaPlausibilidad` (necesita los eventos previos del seudónimo, por eso se evalúa al procesar y no al recibir) | `MaxEventosPorHoraDeteccion = 120`, `VelocidadMaximaPlausibleKmh = 150` |
 | Sesión para confirmar (RN-14) | `PoliticaConfirmacion` | `ReportesConSesionRequeridos = 1` |
 | Persistente / episódica (RN-12) | `ReglaPersistencia` (Anomalías · Domain) | `DiasDistintosMinimos = 3`, `VentanaDias = 15`, `DesfaseHorarioHoras = -5` |
-| Ciclo de vida de la anomalía (RN-07) | `Anomalia` (agregado) | `CaducidadEpisodicaHoras = 72`, `CaducidadPendienteHoras = 72` |
+| Ciclo de vida de la anomalía (RN-07) | `Anomalia` (agregado) | `CaducidadEpisodicaHoras = 72`, `CaducidadPersistenteDias = 7`, `CaducidadPendienteHoras = 72` |
 | Purga del seudónimo | Caso de uso de mantenimiento | `PurgaSeudonimoHoras = 72` |
-| Lote máximo | `RecibirLoteEventosUseCase.MaxEventosPorLote` | 50 |
+| Lote máximo | `RecibirLoteEventosUseCase` | `IngestaOptions.MaxEventosPorLote = 50` |
 | Seudónimo con formato válido | `SeudonimoInstalacion.Crear` | — |
 | Severidad 1–5 y confidence 0.0–1.0 | Fábricas de `Severidad` y `Confidence` | — |
 
 ```csharp
-// Shared/Configuracion/ReglasOptions.cs (esqueleto) · ADR-012: umbrales por configuración tipada
-public sealed class ReglasOptions
+// Modules/Anomalias/Domain/AnomaliasOptions.cs (esqueleto) · POCO sin dependencias: Domain puede usarlo
+// ADR-012: umbrales por configuración tipada · ISP: cada módulo recibe solo SUS parámetros
+public sealed class AnomaliasOptions
 {
-    public const string Seccion = "Reglas";
+    public const string Seccion = "Anomalias";            // appsettings.json → "Anomalias": { ... }
 
+    // RN-11 · Calidad
     public double ConfidenceMinimo { get; init; } = 0.75;
     public double PrecisionGpsMaximaMetros { get; init; } = 20;
     public int AntiguedadMaximaDias { get; init; } = 7;
     public int ToleranciaFuturoMinutos { get; init; } = 5;
 
-    public int SeveridadAltaDesde { get; init; } = 4;        // RN-06: severidad 4 y 5 requieren confirmación
+    // RN-06 y RN-14 · Confirmación
+    public int SeveridadAltaDesde { get; init; } = 4;
     public int DispositivosRequeridos { get; init; } = 2;
     public int RadioMetros { get; init; } = 100;
     public int VentanaConfirmacionHoras { get; init; } = 72;
-    public int ReportesConSesionRequeridos { get; init; } = 1;  // RN-14
+    public int ReportesConSesionRequeridos { get; init; } = 1;
 
-    public double DistanciaMaximaViaMetros { get; init; } = 50;  // RN-13
-    public int MaxEventosPorHoraDeteccion { get; init; } = 120;   // RN-15a: por hora de detección; al superarlo, se exige confirmación (no se descarta)
-    public int VelocidadMaximaPlausibleKmh { get; init; } = 150;  // RN-15b
+    // RN-13 y RN-15 · Antifraude
+    public double DistanciaMaximaViaMetros { get; init; } = 50;
+    public int MaxEventosPorHoraDeteccion { get; init; } = 120;   // al superarlo se exige confirmación (no se descarta)
+    public int VelocidadMaximaPlausibleKmh { get; init; } = 150;
 
+    // RN-12 · Persistencia
     public int DiasDistintosMinimos { get; init; } = 3;
     public int VentanaDias { get; init; } = 15;
-    public int DesfaseHorarioHoras { get; init; } = -5;      // Perú no usa horario de verano
+    public int DesfaseHorarioHoras { get; init; } = -5;          // Perú no usa horario de verano
 
+    // RN-07 y RN-09 · Ciclo de vida y privacidad
     public int CaducidadEpisodicaHoras { get; init; } = 72;
+    public int CaducidadPersistenteDias { get; init; } = 7;     // un bache reparado sin aviso sale del mapa en ≤ 1 semana
     public int CaducidadPendienteHoras { get; init; } = 72;
     public int PurgaSeudonimoHoras { get; init; } = 72;
 }
 ```
 
+| Clase de configuración | Sección de `appsettings.json` | Qué contiene | Dónde vive |
+|---|---|---|---|
+| `IngestaOptions` | `Ingesta` | `MaxEventosPorLote = 50`, capacidad de la cola, retención de `evento_recibido` (30 días) | `Modules/Ingesta/Application/` |
+| `AnomaliasOptions` | `Anomalias` | RN-05 a RN-15 (arriba) | `Modules/Anomalias/Domain/` |
+| `IdentidadOptions` | `Identidad` | Duración de los tokens, intentos antes del bloqueo, versión vigente de la política de privacidad | `Modules/Identidad/Application/` |
+| `MapaOptions` | `Mapa` | Polígono del tramo demo, tamaño de celda, tiempo de caché | `Modules/Mapa/Application/` |
+
+> Cada módulo registra **su** clase en su `<Modulo>Module.cs`. Un módulo nunca lee la sección de configuración de otro (principio de segregación de interfaces).
+
 ```csharp
 // Modules/Anomalias/Domain/ReglasCalidad.cs (esqueleto) · sin using de ASP.NET ni EF
-public sealed class ReglasCalidad(ReglasOptions o)
+public sealed class ReglasCalidad(AnomaliasOptions o)
 {
-    public MotivoDescarte? EvaluarIntrinseca(EventoReportado e, DateTimeOffset ahora)
+    public MotivoDescarte? EvaluarIntrinseca(ReporteEntrante e, DateTimeOffset ahora)   // value object del dominio; Application lo mapea desde EventoReportado (Contracts)
     {
         if (e.Confidence.Valor < o.ConfidenceMinimo)
             return MotivoDescarte.ConfidenceBajo;
@@ -143,7 +161,7 @@ public sealed class ReglasCalidad(ReglasOptions o)
 
 ```csharp
 // Modules/Anomalias/Domain/ReglaPersistencia.cs (esqueleto)
-public sealed class ReglaPersistencia(ReglasOptions o)
+public sealed class ReglaPersistencia(AnomaliasOptions o)
 {
     public EstadoPersistencia Evaluar(IEnumerable<DateTimeOffset> reportesUtc, DateTimeOffset ahora)
     {
@@ -178,7 +196,8 @@ flowchart LR
     PR --> DOM["ReglasCalidad · PoliticaConfirmacion<br/>Anomalia · ReglaPersistencia<br/>(Anomalías · Domain)"]
     PR -- "IMetricas" --> MT["Shared/Metricas"]
     PR --> RP["AnomaliaRepositoryPostGIS"]
-    PR --> CA["CacheMapaMemoria"]
+    PR -. "AnomaliaCambiada" .-> EV["IPublicadorEventos"]
+    EV -.-> CA["Consulta de Mapa<br/>invalida su caché"]
 ```
 
 ```csharp
@@ -218,17 +237,19 @@ public sealed class RecibirLoteEventosUseCase(
 
 1. Al **arrancar**, y luego cada ~60 s, busca filas `RECIBIDO` pendientes (barredor de recuperación, EQ-09).
 2. Con cada aviso de lote, carga sus eventos desde `evento_recibido`.
-3. Para cada evento, abre una transacción y toma un **bloqueo consultivo por celda geográfica** (la celda es ≥ 5× el radio de 100 m; si el punto está cerca del borde, toma los dos bloqueos en orden fijo). Así dos lectores no confirman ni crean la misma anomalía a la vez.
-4. Llama a `IAnomaliasService.ProcesarReporteAsync`, que devuelve `Descartado` (con motivo) o `Procesado`.
-5. Marca la fila como `PROCESADO` o `DESCARTADO`. Los descartes incrementan **métricas**, no auditoría.
+3. Para cada evento llama a `IAnomaliasService.ProcesarReporteAsync`, que devuelve `Descartado` (con motivo) o `Procesado`. **Ingesta no abre transacciones ni toma bloqueos sobre tablas de Anomalías.**
+4. **Solo después** de una respuesta correcta marca la fila como `PROCESADO` o `DESCARTADO` (transacción propia de Ingesta, solo sobre `evento_recibido`). Los descartes incrementan **métricas**, no auditoría.
+5. Si el proceso se cae entre el paso 3 y el 4, la fila sigue `RECIBIDO`; el barredor la reenvía y Anomalías la reconoce como ya procesada (idempotencia por `eventoId`). Entrega **al menos una vez** + receptor idempotente = **efecto exactamente una vez**.
 
-**Algoritmo de `ProcesarReporteUseCase`** (módulo Anomalías, todo dentro de la misma transacción y del bloqueo por celda):
+**Algoritmo de `ProcesarReporteUseCase`** (módulo Anomalías). Anomalías es **dueño de su transacción y de su bloqueo**:
 
+0. **Idempotencia y bloqueo** — abre **su propia** transacción. Si ya existe un reporte con ese `eventoId` (restricción única en `reporte_anomalia.evento_id`), devuelve el resultado anterior sin hacer nada más. Si no, toma un **bloqueo consultivo por celda geográfica** (la celda es ≥ 5× el radio de 100 m; si el punto está cerca del borde, toma los dos bloqueos en orden fijo). Así dos reportes simultáneos del mismo bache no crean dos anomalías.
 1. **Validar** — `ReglasCalidad.EvaluarIntrinseca` otra vez, por seguridad ante filas antiguas (RN-11, RN-13), y `PoliticaPlausibilidad` con los eventos previos del mismo seudónimo: velocidad plausible (RN-15b). Si hay motivo → `IMetricas.RegistrarDescarte(motivo)` y `Descartado`. Si el seudónimo supera el tope por hora de **detección** (RN-15a), el evento **sigue** pero marcado `RequiereConfirmacion`.
 2. **Agrupar** — busca una anomalía del mismo tipo a ≤ 100 m (RN-05). Si no existe, `Anomalia.Crear`; si existe, `Anomalia.RegistrarReporte` (actualiza `UltimoReporteUtc` y el centroide). Si la anomalía está `Descartada`, el reporte se guarda pero no la reactiva (RN-07).
 3. **Confirmar** — si `PoliticaConfirmacion.Requiere(severidad)` (severidad 4–5, RN-06), cuenta los dispositivos distintos en el radio y la ventana, y los reportes con `con_sesion = true`, con una consulta **interna** del repositorio. Con ≥ 2 dispositivos y ≥ 1 con sesión (RN-14) → `Activa`; lo mismo aplica a cualquier severidad si el evento viene marcado `RequiereConfirmacion` (RN-15a); si no → `PendienteConfirmacion`. Severidad 1–3 → `Activa`.
 4. **Clasificar** — la entidad recalcula `Persistencia` con `ReglaPersistencia` (RN-12) y su estado de ciclo de vida (RN-07).
-5. Guarda y llama a `ICacheMapa.InvalidarCeldasAsync` para las celdas afectadas.
+5. Guarda el reporte (con su `eventoId`) y la anomalía, confirma (*commit*) y libera el bloqueo.
+6. **Después del *commit***, publica `AnomaliaCambiada(anomaliaId, celdas)` con `IPublicadorEventos`. Anomalías no sabe quién escucha; Consulta de Mapa invalida sus celdas (patrón Observer, ADR-006). Si se publicara antes del *commit* y la transacción fallara, el mapa se limpiaría por un cambio que nunca existió.
 
 **Procesos de mantenimiento** (ver `componentes-arquitectonicos.md`): caducidad diaria de anomalías (ADR-008), purga del seudónimo a 72 h y purga de `evento_recibido` a 30 días (RNF-25).
 
@@ -240,7 +261,8 @@ Cada módulo expone una extensión que registra sus tipos en el contenedor DI na
 // Modules/Ingesta/IngestaModule.cs (esqueleto)
 public static class IngestaModule
 {
-    public static IServiceCollection AddIngestaModule(this IServiceCollection s) => s
+    public static IServiceCollection AddIngestaModule(this IServiceCollection s, IConfiguration c) => s
+        .Configure<IngestaOptions>(c.GetSection(IngestaOptions.Seccion))          // solo SU sección
         .AddScoped<RecibirLoteEventosUseCase>()
         .AddScoped<IRecepcionEventos, RecepcionEventosRepository>()   // puerto → implementación
         .AddSingleton<IColaLotes, ColaLotesChannel>()
@@ -248,12 +270,11 @@ public static class IngestaModule
 }
 
 // Api/Program.cs (extracto)
-builder.Services.Configure<ReglasOptions>(builder.Configuration.GetSection(ReglasOptions.Seccion));
-builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<ReglasOptions>>().Value);
+// Cada módulo registra su propia configuración dentro de Add<Modulo>Module (ISP)
 builder.Services.AddSingleton(TimeProvider.System);
-builder.Services.AddIdentidadModule().AddIngestaModule().AddAnomaliasModule()
-                .AddMapaModule().AddDashboardModule()
-                .AddExportacionModule().AddAuditoriaModule();
+var cfg = builder.Configuration;
+builder.Services.AddIdentidadModule(cfg).AddIngestaModule(cfg).AddAnomaliasModule(cfg)
+                .AddMapaModule(cfg).AddDashboardModule(cfg).AddAuditoriaModule(cfg);
 ```
 
 ## 8. Estrategia de pruebas por capa
@@ -261,7 +282,7 @@ builder.Services.AddIdentidadModule().AddIngestaModule().AddAnomaliasModule()
 | Capa | Tipo de prueba | Herramientas *(propuestas)* | Qué se aísla |
 |---|---|---|---|
 | Domain | Unitarias puras (valores límite: 0.74/0.75/0.76, 19/20/21 m, 2 días vs 3 días locales, reporte nocturno en UTC−5) | xUnit | Nada: sin BD, sin red, sin reloj real |
-| Application | Unitarias con dobles de los puertos | xUnit + NSubstitute + `FakeTimeProvider` | `IRecepcionEventos`, `IColaLotes`, `IAnomaliaRepository`, `ICacheMapa`, contratos de otros módulos |
+| Application | Unitarias con dobles de los puertos | xUnit + NSubstitute + `FakeTimeProvider` | `IRecepcionEventos`, `IColaLotes`, `IAnomaliaRepository`, `IPublicadorEventos`, contratos de otros módulos |
 | Infrastructure | Integración con BD real | Testcontainers (PostgreSQL + PostGIS) | Consultas espaciales, `ON CONFLICT`, bloqueos por celda, mapeos EF |
 | Adapters | Pruebas de API | `WebApplicationFactory` | Contratos HTTP: 200 (con aceptados/duplicados/rechazados), 400, 429, 503; recorte por rol |
 | Arquitectura | Reglas de dependencia | NetArchTest | Domain sin dependencias externas; un módulo solo usa `Contracts/` de otro; sin ciclos (RNF-28) |
@@ -280,8 +301,8 @@ flowchart LR
 | Capa | Contiene | Reglas que viven aquí |
 |---|---|---|
 | **Dominio** | `Evento` y su estado (`PENDING`, `SYNCED`, `REJECTED_LOCAL`), política de guardado, política de reintento, rotación de seudónimo, filtro de proximidad | confidence ≥ 0.75 (RF-03); backoff 30 s → 2 h con *jitter* ±25 % y reinicio al recuperar red (RF-07); rotación mensual del seudónimo (RF-27); alerta solo para anomalías `Activa` por delante en el sentido de marcha (RF-10) |
-| **Datos** | Buffer SQLite, envoltorio de TFLite, cliente HTTP, almacén del mapa base y de anomalías locales (índice espacial) | Retención de eventos `SYNCED`; descarga incremental con `updatedSince` |
-| **Presentación** | Pantallas de mapa, historial, sesión y alertas; servicio en primer plano | Máximo 3 toques por acción principal (RNF-12); tiempos relativos (RNF-14) |
+| **Datos** | Buffer en **Room** (SQLite), envoltorio de **LiteRT**, cliente **Retrofit**, trabajos de **WorkManager** (sincronización y actualización del modelo), almacén del mapa base y de anomalías locales (índice espacial), token y derecho de acceso en **DataStore** cifrado con **Android Keystore** | Retención de eventos `SYNCED`; descarga incremental con `updatedSince` |
+| **Presentación** | Pantallas en **Jetpack Compose** (mapa, historial, sesión, perfil y alertas) con ViewModels; servicio en primer plano para los sensores | Máximo 3 toques por acción principal (RNF-12); tiempos relativos (RNF-14) |
 
 Principios de la app:
 
@@ -309,9 +330,9 @@ Estos puntos de este documento aún no aparecen en `Nivel4-diagrama-de-codigo.md
 | Seudónimo | `DispositivoHash` (SHA-256, 64 hex) | `SeudonimoInstalacion` (UUID aleatorio rotativo, ADR-007) |
 | Identificador del evento | No existe | `EventoReportado.EventoId` y `ModeloVersion` |
 | Cola | `IColaEventos` / `ColaEventosChannel` (por evento) | `IColaLotes` / `ColaLotesChannel` (por lote) y puerto `IRecepcionEventos` |
-| Reglas | Clases estáticas con constantes | Clases con `ReglasOptions` inyectado |
+| Reglas | Clases estáticas con constantes | Clases con la configuración **de su módulo** inyectada (`AnomaliasOptions`, etc.) |
 | Auditoría de descartes | `IAuditoriaService` | `IMetricas` en `Shared/Metricas` (descartes = métricas) |
 | Módulos Validación y Clasificación | Dos módulos con `IValidacionService` e `IClasificacionService` | Un módulo **Anomalías** con `IAnomaliasService` (`EvaluarIntrinseca` síncrona y pura + `ProcesarReporteAsync`) |
 | Agregado `Anomalia` | `Persistencia` y `Confirmada` | Estado de ciclo de vida y `UltimoReporteUtc` (ADR-008) |
 | Día de RN-12 | UTC | Desfase fijo UTC−5 |
-| Lecturas cruzadas | `IAnomaliaConsultas` | `IAnomaliaLectura` para Mapa, Dashboard y Exportación; el conteo de dispositivos pasa a ser interno |
+| Lecturas cruzadas | `IAnomaliaConsultas` | `IAnomaliaLectura` para Mapa y Dashboard (Exportación es un caso de uso de Anomalías); el conteo de dispositivos pasa a ser interno |

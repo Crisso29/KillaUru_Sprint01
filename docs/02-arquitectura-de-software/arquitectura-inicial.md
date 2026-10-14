@@ -1,6 +1,6 @@
 # Arquitectura Inicial del Sistema
 
-> **Proyecto:** KillaUru · **Versión:** 2.0 · **Revisión:** 2026-10-12 · **Estado:** Vigente (alineado con ADR-001…ADR-012)
+> **Proyecto:** KillaUru · **Versión:** 2.1 · **Revisión:** 2026-10-13 · **Estado:** Vigente (alineado con ADR-001…ADR-014)
 > **Relacionados:** `estilo-arquitectonico.md`, `enfoque-arquitectonico.md`, `componentes-arquitectonicos.md`, `Nivel1…Nivel4`, `07-decisiones-arquitectonicas.md`
 
 ## 1. Propósito y alcance
@@ -10,7 +10,7 @@ Este documento da la **visión de conjunto** de KillaUru: de qué zonas se compo
 KillaUru es una plataforma colaborativa que detecta, valida y presenta anomalías viales de la carretera PE-28A (Vía Los Libertadores, 333 km). Se compone de tres piezas ejecutables:
 
 - una **app Android** que detecta y clasifica en el dispositivo y funciona sin internet;
-- un **backend monolítico modular** (ASP.NET Core 10) con 7 módulos, que valida, clasifica y sirve el mapa;
+- un **backend monolítico modular** (ASP.NET Core 10) con 6 módulos, que valida, clasifica y sirve el mapa;
 - un **panel web** de administración (SPA).
 
 ## 2. Diagrama de arquitectura (vista por zonas)
@@ -57,7 +57,7 @@ sequenceDiagram
         A->>DB: Marca DESCARTADO y registra el motivo (métrica)
     else Evento válido
         A->>DB: Bloqueo por celda, confirma (RN-06), agrupa y clasifica (RN-05, RN-12), persiste
-        A->>K: Invalida las celdas afectadas
+        A-->>K: Publica AnomaliaCambiada (tras el commit) → Consulta de Mapa invalida sus celdas
     end
 ```
 
@@ -124,7 +124,7 @@ sequenceDiagram
 | Registro y login de conductor | ✅ | |
 | Panel: login, mapa con filtros, usuarios, auditoría | ✅ | |
 | Dashboard, moderación, exportación | ✅ (*Should* y *Could*) | |
-| Verificación de correo (HU-18b) | | Roadmap |
+| Verificación de correo y recuperación de contraseña (HU-18b, HU-25) | ✅ | |
 | Notificaciones push desde el servidor | | v1.5+ |
 | Empresas suscriptoras y Autoridad Vial | | v1.5+ / v2.0+ |
 | Caché distribuida (Redis) o extracción de módulos | | Solo si hay más de una instancia (S-03) |
@@ -133,7 +133,7 @@ sequenceDiagram
 
 | Decisión | Efecto visible |
 |---|---|
-| ADR-001 Monolito modular | Un solo proceso API con 7 módulos (Validación y Clasificación unidas en Anomalías) |
+| ADR-001 Monolito modular | Un solo proceso API con 6 módulos (Validación, Clasificación y Exportación integradas en Anomalías) |
 | ADR-002 Clean Architecture | Cuatro capas por módulo y contratos públicos entre módulos |
 | ADR-003 / ADR-004 | La app es autónoma: buffer SQLite y modelo embebido |
 | ADR-005 Ingesta durable | Tabla `evento_recibido`, HTTP 200 tras el *commit*, idempotencia por `eventoId` |
@@ -144,6 +144,8 @@ sequenceDiagram
 | ADR-010 Despliegue | Tunnel, Pages, backups y rollback por *tag* |
 | ADR-011 Mapa offline | Mapa base vectorial recortado al corredor |
 | ADR-012 Convenciones | Lenguaje ubicuo, EF Core, umbrales por configuración |
+| ADR-013 Auditoría transaccional | Ninguna acción sensible sin rastro |
+| ADR-014 Persistencia políglota | SQL, documental (`JSONB`), SQLite, objetos (R2) y clave-valor en memoria |
 
 ## 8. Mapa de documentos
 

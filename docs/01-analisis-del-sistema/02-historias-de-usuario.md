@@ -40,9 +40,9 @@
 
 | ID | Historia de usuario | Prio. | Criterios de aceptación |
 |---|---|:---:|---|
-| HU-11 | Como administrador, quiero iniciar sesión en el panel web con mis credenciales, para acceder a la gestión del sistema de forma segura. | M | **Dado** credenciales válidas, **entonces** obtengo un JWT de 8 h. **Dado** 3 intentos fallidos, **entonces** la cuenta se bloquea temporalmente y el evento se audita. |
+| HU-11 | Como administrador, quiero iniciar sesión en el panel web con mis credenciales, para acceder a la gestión del sistema de forma segura. | M | **Dado** credenciales válidas, **entonces** inicio una sesión que dura como máximo 8 h sin volver a escribir la contraseña. **Dado** 3 intentos fallidos, **entonces** la cuenta se bloquea temporalmente y el evento se audita. |
 | HU-12 | Como administrador, quiero ver el mapa completo del corredor con todas las anomalías detectadas y filtrarlas, para monitorear el estado general de la vía. | M | **Dado** una sesión de administrador, **cuando** filtro por tipo, severidad, fecha o estado, **entonces** el mapa muestra también las anomalías sin confirmar. |
-| HU-13 | Como administrador, quiero ver el dashboard con estadísticas globales del sistema, para tomar decisiones sobre el funcionamiento de la plataforma. | S | **Entonces** veo eventos por día, usuarios activos, cobertura, latencia p95, descartes por motivo y tasa de confirmación. |
+| HU-13 | Como administrador, quiero ver el dashboard con estadísticas globales del sistema, para tomar decisiones sobre el funcionamiento de la plataforma. | S | **Entonces** veo eventos por día, conductores registrados activos, dispositivos que aportaron datos, cobertura, tasa de confirmación y tasa de reaparición. **Y** desde el panel accedo a los paneles técnicos (latencia p95, errores, descartes por motivo). |
 | HU-14 | Como administrador, quiero gestionar los usuarios del sistema (crear, editar rol, desactivar), para mantener el control de acceso en el módulo Identidad y Accesos. | M | **Dado** una cuenta desactivada, **entonces** pierde el acceso en ≤ 5 min y la acción queda auditada. |
 | HU-15 | Como administrador, quiero ver el log de auditoría completo del sistema, para tener trazabilidad de todas las acciones sensibles. | S | **Entonces** puedo consultar registros inmutables (timestamp UTC, actor, acción, contexto) solo en modo lectura. |
 | HU-19 | Como administrador, quiero marcar una anomalía como reparada o descartarla, para que el mapa refleje la realidad de la vía. | S | **Cuando** modero una anomalía, **entonces** deja de mostrarse a los conductores y la acción se audita. |
@@ -59,8 +59,9 @@
 
 | ID | Historia de usuario | Prio. | Criterios de aceptación |
 |---|---|:---:|---|
-| HU-18 | Como conductor, quiero registrarme e iniciar sesión con mi correo y contraseña, para acceder al corredor completo y a las alertas. | M | **Cuando** me registro, **entonces** obtengo el rol `ConductorRegistrado` y una sesión renovable. En v1.0 la verificación de correo es opcional (HU-18b). |
-| HU-18b | Como conductor, quiero verificar mi correo electrónico, para proteger mi cuenta. | C | **Cuando** abro el enlace recibido, **entonces** mi cuenta queda verificada. Depende de un proveedor de correo transaccional (roadmap). |
+| HU-18 | Como conductor, quiero registrarme e iniciar sesión con mi correo y contraseña, para acceder al corredor completo y a las alertas. | M | **Cuando** me registro, **entonces** obtengo el rol `ConductorRegistrado` y una sesión renovable. **Y** recibo un correo para verificar mi dirección (HU-18b). |
+| HU-18b | Como conductor, quiero verificar mi correo electrónico, para proteger mi cuenta. | S | **Cuando** abro el enlace recibido (vigente 24 h), **entonces** mi cuenta queda verificada. Solo un correo verificado puede usarse para recuperar la contraseña (HU-25). |
+| HU-25 | Como conductor o administrador, quiero recuperar mi contraseña si la olvido, para no perder mi cuenta. | M | **Dado** que pido «Olvidé mi contraseña», **entonces** recibo un enlace de un solo uso que vence en 30 min. **Y** la respuesta en pantalla es la misma exista o no la cuenta (no revela qué correos están registrados). **Y** al cambiar la contraseña se cierran todas mis sesiones y la acción se audita. |
 | HU-21 | Como conductor, quiero que mi identidad no pueda reconstruirse a partir de los datos que envío, para proteger mi privacidad (Ley 29733). | M | **Entonces** los eventos usan un seudónimo rotativo que el servidor purga a las 72 h; ningún dato almacenado vincula mi cuenta con mis eventos o trayectorias. |
 | HU-22 | Como conductor, quiero conocer y aceptar la política de privacidad antes de crear mi cuenta, para saber qué datos se guardan y para qué (consentimiento, Ley 29733). | M | **Dado** que me estoy registrando, **cuando** no marco la aceptación, **entonces** no puedo crear la cuenta. **Y** el sistema guarda la fecha y la versión de la política aceptada. **Y** al usar la app sin cuenta, se muestra un aviso de privacidad antes de iniciar la detección. |
 | HU-23 | Como conductor registrado, quiero eliminar mi cuenta desde la app, para que KillaUru deje de tener mis datos personales (derecho de cancelación, Ley 29733). | M | **Dado** que confirmo la eliminación, **entonces** se borran mi correo y mis credenciales, se revocan mis sesiones, mi historial local se borra del dispositivo y la acción queda auditada **sin guardar el correo**. Los eventos de anomalía ya enviados no se tocan porque no están vinculados a la cuenta (HU-21). |
@@ -70,12 +71,12 @@
 
 | Prioridad | Historias |
 |---|---|
-| **Must** (núcleo de v1.0) | HU-01, HU-02, HU-03, HU-04, HU-05, HU-06, HU-07, HU-08, HU-11, HU-12, HU-14, HU-16, HU-18, HU-21, HU-22, HU-23 |
-| **Should** | HU-09, HU-13, HU-15, HU-17, HU-19, HU-24 |
-| **Could** (recortar primero) | HU-10, HU-18b, HU-20 |
+| **Must** (núcleo de v1.0) | HU-01, HU-02, HU-03, HU-04, HU-05, HU-06, HU-07, HU-08, HU-11, HU-12, HU-14, HU-16, HU-18, HU-21, HU-22, HU-23, HU-25 |
+| **Should** | HU-09, HU-13, HU-15, HU-17, HU-18b, HU-19, HU-24 |
+| **Could** (recortar primero) | HU-10, HU-20 |
 
 **Secuencia completa de recorte si el plazo se aprieta:** 
-`HU-20` → `HU-18b` → `HU-10` (bloque *Could*) → `HU-13` → `HU-24` → `HU-19` → `HU-15` → `HU-17` → `HU-09` (bloque *Should*). HU-22 y HU-23 son obligación legal y **no se recortan**.
+`HU-20` → `HU-10` (bloque *Could*) → `HU-18b` → `HU-13` → `HU-24` → `HU-19` → `HU-15` → `HU-17` → `HU-09` (bloque *Should*). HU-22 y HU-23 son obligación legal y **no se recortan**; HU-25 tampoco, porque sin ella una contraseña olvidada es una cuenta perdida.
 
 ## Mapa de épicas
 
@@ -87,6 +88,6 @@
 | EP-04 Mapa y visualización | HU-07, HU-08, HU-09, HU-10 |
 | EP-05 Panel administrativo | HU-11, HU-12, HU-13, HU-14, HU-15, HU-19, HU-20 |
 | EP-06 Infraestructura | HU-16, HU-17 |
-| EP-07 Cuenta y privacidad del conductor | HU-18, HU-18b, HU-21, HU-22, HU-23, HU-24 |
+| EP-07 Cuenta y privacidad del conductor | HU-18, HU-18b, HU-21, HU-22, HU-23, HU-24, HU-25 |
 
 > **Nota:** las épicas de producto (`EP-xx`) no deben confundirse con la épica de Jira `[EPIC-04] Documentación: Modelo C4`.

@@ -92,7 +92,7 @@ stateDiagram-v2
     [*] --> PendienteConfirmacion: severidad 4–5 o tope superado (RN-15a)
     PendienteConfirmacion --> Activa: 2.º dispositivo (RN-06)
     PendienteConfirmacion --> Expirada: 72 h sin confirmar
-    Activa --> Expirada: episódica sin reportes 72 h
+    Activa --> Expirada: episódica sin reportes 72 h · persistente sin reportes 7 días
     Activa --> Reparada: administrador
     Activa --> Descartada: administrador
     PendienteConfirmacion --> Descartada: administrador
@@ -108,11 +108,12 @@ stateDiagram-v2
 | `Reparada` | ❌ | ❌ |
 | `Descartada` | ❌ | ❌ |
 
-- Una anomalía **persistente** no expira sola: sale del mapa solo si el administrador la marca `Reparada` o `Descartada`.
+- Una anomalía **persistente** expira a los **7 días sin reportes nuevos** (más que la episódica, porque está confirmada en varios días). Así, un bache reparado sin aviso al administrador sale del mapa en una semana como máximo. Si seguía ahí, el siguiente reporte la reactiva.
+- El Dashboard muestra la **tasa de reaparición** (anomalías que vuelven a `Activa` después de expirar). Si en el piloto es alta, la caducidad es muy corta y se sube por configuración.
 - `Descartada` es para falsos positivos confirmados por el administrador (p. ej. un rompemuelles clasificado como bache). Los reportes nuevos del mismo punto **no** la reactivan automáticamente.
 - Toda transición hecha por el administrador se audita (RF-15).
 
-Parámetros: `CaducidadEpisodicaHoras = 72`, `CaducidadPendienteHoras = 72`.
+Parámetros: `CaducidadEpisodicaHoras = 72`, `CaducidadPersistenteDias = 7`, `CaducidadPendienteHoras = 72`.
 
 ### RN-08 — Alcance de los datos por rol
 
@@ -145,6 +146,7 @@ El servidor juzga cada evento por **su contenido** (ubicación y hora de detecci
 | ID | Regla | Valor inicial | Parámetro |
 |---|---|---|---|
 | RN-09 | El dispositivo se identifica con un UUID aleatorio que **rota cada mes**. El servidor **borra el seudónimo** de los reportes a las 72 h (solo se necesita para RN-06). | 30 días / 72 h | `RotacionSeudonimoDias`, `PurgaSeudonimoHoras` |
+| RN-17 | **Indicadores sin vincular identidad.** «Conductores registrados activos» se cuenta con las sesiones de Identidad; «dispositivos que aportaron datos» se cuenta como número diario de seudónimos distintos, calculado antes de la purga de 72 h. Ningún indicador une cuentas con eventos. | 7 días / 24 h | `DiasConductorActivo` |
 | RN-10 | Retenciones: eventos de recepción 30 días; historial de recorridos 6 meses, **solo en el dispositivo**; auditoría permanente. | — | `RetencionRecepcionDias` |
 
 ## 6. Trazabilidad
