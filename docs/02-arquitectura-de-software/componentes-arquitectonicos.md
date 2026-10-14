@@ -1,6 +1,6 @@
 # Componentes Arquitectónicos — KillaUru
 
-> **Proyecto:** KillaUru · **Versión:** 2.1 · **Revisión:** 2026-10-13 · **Estado:** Vigente (alineado con ADR-001…ADR-015)
+> **Proyecto:** KillaUru · **Versión:** 2.1 · **Revisión:** 2026-10-14 · **Estado:** Vigente (alineado con ADR-001…ADR-015)
 > **Modelo:** C4 · Nivel 3 (componentes) · **Detalle visual:** `Nivel3-diagrama-de-componentes.md`
 > **Relacionados:** `estilo-arquitectonico.md`, `enfoque-arquitectonico.md`, `03-requisitos-funcionales.md`
 
@@ -42,7 +42,7 @@ flowchart TD
     end
 
     CF --> REST
-    UR -- "GET /health" --> REST
+    UR -- "GET /health/ready" --> REST
 
     REST --> ID
     REST --> ING
@@ -78,10 +78,10 @@ flowchart TD
 | Componente | Responsabilidad | Funcionalidades principales | Carpeta |
 |---|---|---|---|
 | **API REST** (host) | Punto de entrada HTTP único y composición de módulos | Rutas `/api/v1`; middleware de sesión y **RBAC**; rate limiting con clave compuesta (seudónimo + IP, RNF-11); OpenTelemetry y logs Serilog enviados a Grafana Cloud (sin exponer `/metrics`); manejo de errores; `/health` con *liveness* y *readiness* (RF-28); auditoría de accesos administrativos sensibles. **Los controladores viven en `Adapters/` de cada módulo.** | `Api/` |
-| **Identidad y Accesos** | Cuentas, credenciales, sesión y roles (ADR-009) | Registro e inicio de sesión de conductor con *refresh* (RF-21); login de administrador con sesión de máximo 8 h (RF-16); tokens de acceso de 5 min y tokens de actualización revocables y rotativos para todos los roles (ADR-009); bloqueo temporal progresivo tras 3 intentos; CRUD de usuarios y roles (RF-19); desactivación efectiva en ≤ 5 min (RNF-26); consentimiento (RF-29), eliminación de cuenta (RF-30) y «mis datos» `GET /api/v1/me` (RF-31); verificación de correo y recuperación de contraseña mediante el adaptador `IEnviadorCorreo` (RF-22, RF-32) | `Modules/Identidad/` |
-| **Ingesta** | Recepción durable e idempotente de lotes (ADR-005) | `POST /api/v1/anomalies/batch`; valida esquema y reglas intrínsecas; persiste en `evento_recibido` con `ON CONFLICT DO NOTHING`; responde 200 con `aceptados`, `duplicados` y `rechazados`, o 400/503; avisa por Channel de lotes; barredor de recuperación (RF-11) | `Modules/Ingesta/` |
-| **Anomalías** | Dueño del agregado `Anomalia`: calidad del dato, confirmación, clasificación y ciclo de vida | **Validar:** descarta por confidence, precisión GPS, timestamp, tipo, distancia a la vía y velocidad imposible (RN-11, RN-13, RN-15b, RF-12) y cuenta los descartes como métricas; si el dispositivo supera su tope por hora, exige confirmación en lugar de descartar (RN-15a). **Confirmar:** severidad 4–5 exige ≥ 2 dispositivos distintos en 100 m y 72 h, al menos uno con sesión (RN-06, RN-14). **Clasificar:** agrupa reportes del mismo tipo a ≤ 100 m (RN-05); PERSISTENTE / EPISÓDICA con día local UTC−5 (RN-12, RF-13). **Ciclo de vida:** `Activa`, `PendienteConfirmacion`, `Expirada`, `Reparada`, `Descartada` (RN-07, RF-23); moderación (RF-24). Es **dueño de su transacción y de su bloqueo por celda**; idempotente por `eventoId` (restricción única en `reporte_anomalia`); invalida la caché. **Exportar:** CSV y GeoJSON filtrados, **sin seudónimos de dispositivo**, auditando cada exportación (RF-20, RF-15) | `Modules/Anomalias/` |
-| **Consulta de Mapa** | Lectura del mapa con alcance por rol | `GET /api/v1/anomalies?bbox=` en GeoJSON; **recorta el `bbox` por rol** (demo / corredor / todo); filtros `tipo`, `severidad`, `desde`; `updatedSince` y `ETag`; *cache-aside* por celdas con **su propia** `IMemoryCache`, que invalida al recibir `AnomaliaCambiada` (RF-14, ADR-006) | `Modules/Mapa/` |
+| **Identidad y Accesos** | Cuentas, credenciales, sesión y roles (ADR-009) | Registro e inicio de sesión de conductor con *refresh* (RF-21); login de administrador con sesión de máximo 8 h (RF-16); tokens de acceso de 5 min y tokens de actualización revocables y rotativos para todos los roles (ADR-009); bloqueo temporal progresivo por intentos fallidos (RN-19); versión aceptada de la política de privacidad y de los términos de uso (RF-29, RF-37); CRUD de usuarios y roles (RF-19); desactivación efectiva en ≤ 5 min (RNF-26); consentimiento (RF-29), eliminación de cuenta (RF-30) y «mis datos» `GET /api/v1/me` (RF-31); verificación de correo y recuperación de contraseña mediante el adaptador `IEnviadorCorreo` (RF-22, RF-32) | `Modules/Identidad/` |
+| **Ingesta** | Recepción durable e idempotente de lotes (ADR-005) | `POST /api/v1/anomalies/batch`; aplica a cada evento las reglas de recepción de RN-11; persiste solo los aceptados en `evento_recibido` con `ON CONFLICT DO NOTHING`; responde 200 con `aceptados`, `duplicados` y `rechazados`; 400 solo para un lote ilegible, vacío o de más de 50; 401 con token vencido; 503 si la cola está saturada; avisa por Channel de lotes; barredor de recuperación (RF-11) | `Modules/Ingesta/` |
+| **Anomalías** | Dueño del agregado `Anomalia`: calidad del dato, confirmación, clasificación y ciclo de vida | **Validar:** descarta por confidence, precisión GPS, timestamp, tipo, distancia a la vía y velocidad imposible (RN-11, RN-13, RN-15b, RF-12) y cuenta los descartes como métricas; si el dispositivo supera su tope por hora, exige confirmación en lugar de descartar (RN-15a). **Confirmar:** severidad 4–5 exige ≥ 2 dispositivos distintos en 100 m y 72 h, con detecciones separadas ≥ 3 min (mismo vehículo = uno), al menos uno con sesión (RN-06, RN-14). **Clasificar:** agrupa reportes del mismo tipo a ≤ 100 m y calcula la severidad mostrada como mediana de 15 días redondeada hacia arriba (RN-05); PERSISTENTE / EPISÓDICA con día local UTC−5 (RN-12, RF-13). **Ciclo de vida:** `Activa`, `PendienteConfirmacion`, `Expirada`, `Reparada`, `Descartada` (RN-07, RF-23); moderación (RF-24). Es **dueño de su transacción y de su bloqueo por celda**; idempotente por `eventoId` (restricción única en `reporte_anomalia`); invalida la caché. **Exportar:** CSV y GeoJSON filtrados, **sin seudónimos de dispositivo**, auditando cada exportación (RF-20, RF-15) | `Modules/Anomalias/` |
+| **Consulta de Mapa** | Lectura del mapa con alcance por rol | `GET /api/v1/anomalies?bbox=` en GeoJSON; **recorta el `bbox` por rol** (demo / corredor / todo); filtros `tipo`, `severidad`, `desde`, `hasta` y `estado` (solo administrador); `updatedSince` con las bajas como `{id, eliminada: true}` y `ETag`; *cache-aside* por celdas **y alcance del rol** con **su propia** `IMemoryCache` (solo las respuestas anónimas son cacheables en el borde), que invalida al recibir `AnomaliaCambiada` (RF-14, ADR-006) | `Modules/Mapa/` |
 | **Dashboard** | Indicadores **de negocio** | Eventos por día, conductores registrados activos (sesiones renovadas en 7 días), dispositivos que aportaron datos (conteo diario de seudónimos distintos, sin guardar cuáles), cobertura, tasa de confirmación y de reaparición (RF-18). Un proceso diario guarda los conteos en `dashboard.indicador_diario`. Las métricas técnicas no viven aquí: están en Grafana | `Modules/Dashboard/` |
 | **Auditoría** | Trazabilidad de acciones sensibles | Registro *append-only* (timestamp UTC, actor, acción, contexto); consulta de solo lectura (RF-15). **No** registra descartes de ingesta | `Modules/Auditoria/` |
 | **Eventos de dominio** | Componente técnico de comunicación (patrón Observer) | `IPublicadorEventos` en memoria: un módulo publica un hecho (`AnomaliaCambiada`) **después del *commit*** y los suscriptores reaccionan sin que el publicador los conozca (ADR-006) | `Shared/Eventos/` |
@@ -109,9 +109,10 @@ flowchart TD
 | Proceso | Módulo | Frecuencia | Qué hace | Referencia |
 |---|---|---|---|---|
 | `ProcesadorEventosBackgroundService` | Ingesta | Continuo + barrido cada ~60 s y al arrancar | Procesa lotes recibidos y recupera los pendientes tras un reinicio | ADR-005, EQ-09 |
-| Caducidad de anomalías | Anomalías | Diario | Marca `Expirada` según los plazos configurables (RN-07) | ADR-008 |
-| Purga de seudónimos | Anomalías | Periódica (≤ 1 h) | Elimina el seudónimo de los reportes con más de 72 h | RF-27, RNF-25 |
+| Caducidad de anomalías | Anomalías | Cada hora | Marca `Expirada` según los plazos configurables, medidos con la hora de detección (RN-07) | ADR-008 |
+| Purga de seudónimos | Anomalías e Ingesta | Cada hora | Elimina el seudónimo de los reportes y del `payload` de `evento_recibido` 72 h después de recibido | RF-27, RNF-25, RN-09 |
 | Purga de recepción | Ingesta | Diario | Elimina filas de `evento_recibido` con más de 30 días | RNF-25 |
+| Purga histórica | Anomalías | Diario | Borra los reportes con más de 2 años y las anomalías que llevan 2 años en un estado final | RN-10 |
 | Indicadores diarios | Dashboard | Diario | Guarda los conteos de negocio del día (conductores activos, dispositivos que aportaron, confirmación, reaparición) | RF-18, RN-17 |
 | Backup | Host (fuera de la API) | Diario | `pg_dump` cifrado a almacenamiento de objetos; retención de 30 días | RNF-07, ADR-010 |
 
@@ -124,7 +125,7 @@ flowchart LR
     classDef ext fill:#475569,color:#fff,stroke:#334155
 
     SEN["Sensores<br/>(servicio en primer plano)"]:::comp --> DET["Detector<br/>(TFLite)"]:::comp
-    DET --> BUF[("Buffer SQLite<br/>PENDING · SYNCED · REJECTED_LOCAL")]:::datos
+    DET --> BUF[("Buffer SQLite<br/>PENDING · ENVIANDO · SYNCED · REJECTED_LOCAL · EXPIRADO_LOCAL")]:::datos
     PRIV["Seudónimo<br/>(UUID rotativo)"]:::comp --> BUF
     BUF --> SYN["Sincronizador<br/>(lotes ≤ 50 · backoff + jitter)"]:::comp
     SYN -- "HTTPS/JSON" --> API["API KillaUru"]:::ext
@@ -138,16 +139,16 @@ flowchart LR
 
 | Componente | Responsabilidad | RF | RNF |
 |---|---|---|---|
-| **Sensores** | Capturar acelerómetro y giroscopio a 50 Hz en un servicio en primer plano si la velocidad GPS supera 5 km/h | RF-01 | RNF-15 |
+| **Sensores** | Capturar acelerómetro y giroscopio a 50 Hz en un servicio en primer plano si la velocidad GPS supera 5 km/h y la categoría elegida es Liviano (RN-18); mostrar el indicador de estado de la detección | RF-01, RF-34, RF-36 | RNF-15 |
 | **Detector** | Clasificar ventanas de 500 ms con TFLite (tipo, severidad, confidence) | RF-02, RF-05 | RNF-04 |
 | **Buffer** | Guardar eventos con `eventoId`, `modeloVersion` y estado; retener `SYNCED` según la política local | RF-03, RF-05 | RNF-15 |
 | **Seudónimo** | Generar el UUID de instalación y rotarlo mensualmente | RF-27 | RNF-10 |
-| **Sincronizador** | Enviar lotes ≤ 50; reintentar con backoff y *jitter*; reiniciar el backoff al recuperar red; interpretar 200/400/429/503 | RF-04, RF-06, RF-07 | — |
+| **Sincronizador** | Enviar lotes ≤ 50; reintentar con backoff y *jitter*; reiniciar el backoff al recuperar red; interpretar 200/400/401/429/503 y los estados locales del evento (RF-06) | RF-04, RF-06, RF-07 | — |
 | **Mapa** | Mostrar el mapa base vectorial descargado y las anomalías `Activa`; descarga incremental | RF-08, RF-09, RF-26, RF-05 | RNF-15 |
-| **Proximidad** | Alertar (sonido y visual) de anomalías por delante en el sentido de marcha, sin red | RF-10, RF-05 | — |
+| **Proximidad** | Alertar (sonido y visual) de anomalías por delante en el sentido de marcha, sin red, con más anticipación para vehículos pesados (RN-16) | RF-10, RF-05 | — |
 | **Historial** | Calcular y mostrar 6 meses de recorridos, solo en el dispositivo | RF-25 | RNF-10 |
 | **Actualizador de modelo** | Con Wi-Fi, consultar el manifiesto de `cdn.killauru.pe`, descargar el modelo nuevo, verificar su SHA-256 y activarlo; si falla, conservar el anterior | RF-33 | RNF-15 |
-| **Sesión** | Registro con aceptación de la política, inicio de sesión, renovación del JWT, derecho de acceso al corredor guardado localmente, «Mi perfil» y eliminación de cuenta (borra también el historial local) | RF-21, RF-29, RF-30, RF-31 | — |
+| **Sesión** | Registro con aceptación de la política, inicio de sesión, renovación del JWT, derecho de acceso al corredor guardado localmente, «Mi perfil» y eliminación de cuenta (borra también el historial local); solicitud de permisos de Android y aceptación de los términos de uso en el primer uso; cierre de sesión y vigencia del permiso local (RN-21) | RF-21, RF-29, RF-30, RF-31, RF-35, RF-37, RF-38 | — |
 
 ## 5.1 Componentes del Panel Admin
 
@@ -177,7 +178,7 @@ Cada tabla tiene **un solo módulo dueño** que escribe en ella. Los demás acce
 |---|---|---|---|
 | `identidad`: `usuarios`, `roles`, sesiones de *refresh*, `consentimientos` | Identidad y Accesos | Dashboard (`IIdentidadConsultas`) | Mientras la cuenta exista; se borran al eliminarla (RF-30) |
 | `ingesta`: `evento_recibido` | Ingesta | Anomalías (a través del procesador de Ingesta) | 30 días (RNF-25) |
-| `anomalias`: `anomalia`, `reporte_anomalia` (único por `evento_id`), `corredor_via` (polilínea de RN-13) | Anomalías | Consulta de Mapa, Dashboard (`IAnomaliaLectura`) | Reportes: seudónimo purgado a 72 h; anomalías según su ciclo de vida |
+| `anomalias`: `anomalia`, `reporte_anomalia` (único por `evento_id`), `corredor_via` (polilínea de RN-13) | Anomalías | Consulta de Mapa, Dashboard (`IAnomaliaLectura`) | Reportes: seudónimo purgado a 72 h; reportes y anomalías en estado final, 2 años (RN-10) |
 | `auditoria`: `registro` | Auditoría | Panel Admin, a través de la API | Permanente (solo inserción) |
 | `dashboard`: `indicador_diario` | Dashboard | Panel Admin, a través de la API | 2 años (son solo números agregados) |
 
@@ -187,7 +188,7 @@ Cada tabla tiene **un solo módulo dueño** que escribe en ella. Los demás acce
 |---|---|---|
 | **Cloudflare** | DNS, TLS, proxy, caché de borde, **Tunnel** hacia el origen y **Pages** para el panel | Borde: reenvía el tráfico a la API REST |
 | **Grafana Cloud** (plan gratuito) | Recibe métricas, trazas y logs por OTLP; paneles técnicos y alertas por degradación (RNF-20…22, RNF-32) | Host de la API (OpenTelemetry) |
-| **UptimeRobot** | Consulta `GET /health` cada 5 minutos; alerta por correo; alimenta `status.killauru.pe` | API REST |
+| **UptimeRobot** | Consulta `GET /health/ready` cada 5 minutos; alerta por correo; alimenta su página de estado pública gratuita (sin dominio propio) | API REST |
 | **Proveedor de correo transaccional** | Verificación de correo (HU-18b) y recuperación de contraseña (HU-25) | **Solo** Identidad y Accesos, mediante un adaptador |
 | **Almacenamiento de objetos** | Destino de los backups cifrados (30 días) | Job de backup del host |
 | **Cloudflare R2** (`cdn.killauru.pe`) | Archivo PMTiles del corredor (ADR-011), modelos TFLite versionados con su manifiesto (ADR-004) y backups cifrados en un *bucket* privado aparte (ADR-010) | La app lo descarga y el panel lo lee por rangos HTTP, ambos con MapLibre; no pasa por la API |

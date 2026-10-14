@@ -1,6 +1,6 @@
 # Arquitectura Inicial del Sistema
 
-> **Proyecto:** KillaUru · **Versión:** 2.1 · **Revisión:** 2026-10-13 · **Estado:** Vigente (alineado con ADR-001…ADR-015)
+> **Proyecto:** KillaUru · **Versión:** 2.1 · **Revisión:** 2026-10-14 · **Estado:** Vigente (alineado con ADR-001…ADR-015)
 > **Relacionados:** `estilo-arquitectonico.md`, `enfoque-arquitectonico.md`, `componentes-arquitectonicos.md`, `Nivel1…Nivel4`, `07-decisiones-arquitectonicas.md`
 
 ## 1. Propósito y alcance
@@ -49,7 +49,7 @@ sequenceDiagram
     API->>API: Valida esquema y reglas intrínsecas (sin BD)
     API->>DB: INSERT evento_recibido ON CONFLICT DO NOTHING
     API-->>Y: HTTP 200 {aceptados, duplicados, rechazados}
-    Y->>B: Marca SYNCED (o REJECTED_LOCAL ante 400)
+    Y->>B: Marca SYNCED los ids del 200 (ante 400 parte el lote; ante 401 renueva y reenvía)
     API->>W: Aviso del lote (Channel)
     W->>A: ProcesarReporteAsync(evento)
     A->>A: Valida calidad (RN-11)

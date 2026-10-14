@@ -1,6 +1,6 @@
 # Escenarios de atributos de calidad de KillaUru
 
-> **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-13 · **Estado:** Vigente
+> **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-14 · **Estado:** Vigente
 > Traduce los atributos de `04-atributos-de-calidad.md` en escenarios verificables, con el formato de **seis partes** del método ATAM: **fuente, estímulo, artefacto, entorno, respuesta y medida de respuesta**. Se añaden *verificación*, *trazabilidad* y *estado* para el seguimiento del proyecto.
 > Las metas numéricas viven en `04`; aquí se referencian por ID.
 
@@ -10,12 +10,12 @@
 |---|---|
 | **Atributo** | Disponibilidad offline (AC-01) |
 | **Fuente** | Conductor en tránsito por la Vía Los Libertadores |
-| **Estímulo** | Circula por un tramo sin señal (más del 50 % del corredor, hasta 4–5 h continuas). |
+| **Estímulo** | Circula por un tramo sin señal (más del 50 % del corredor, al menos 5 h continuas). |
 | **Artefacto** | App Android: Sensores, Detector, Buffer, Mapa y Proximidad |
 | **Entorno** | App en ejecución, GPS activo, sin datos móviles ni WiFi; mapa base y anomalías descargados previamente. |
-| **Respuesta** | La app sigue detectando con el modelo embebido, guarda los eventos en SQLite como `PENDING`, muestra el mapa y emite alertas con datos locales. Al recuperar señal **reinicia el backoff** y sincroniza sin intervención. |
-| **Medida** | 100 % de los eventos con confidence ≥ 0.75 quedan almacenados; la sincronización se inicia en ≤ 60 s tras recuperar señal (RNF-33, RF-04, RF-05, RF-26). |
-| **Verificación** | Prueba de campo en modo avión en Ayacucho–Vinchos durante un recorrido completo; comparar el conteo de SQLite antes y después de reactivar datos. |
+| **Respuesta** | La app sigue detectando con el modelo embebido, guarda los eventos en SQLite como `PENDING`, muestra el mapa y emite alertas con datos locales (si el rol las recibe, RN-08). Al recuperar señal **reinicia el backoff** y sincroniza sin intervención. |
+| **Medida** | Durante ≥ 5 h sin conexión, 100 % de los eventos con confidence ≥ 0.75 quedan almacenados; se conservan sin pérdida 7 días de eventos pendientes; la sincronización se inicia en ≤ 60 s tras recuperar señal (RNF-33, RF-04, RF-05, RF-26). |
+| **Verificación** | Prueba de campo en modo avión en Ayacucho–Vinchos durante un recorrido completo; prueba de 5 h con un reproductor de lecturas de sensores grabadas; prueba de 7 días adelantando el reloj del emulador; comparar el conteo de SQLite antes y después de reactivar datos. |
 | **Trazabilidad** | R-08, DA-01, DA-14, HU-03, ADR-003, ADR-011 |
 | **Estado** | Definido |
 
@@ -42,11 +42,11 @@
 | **Fuente** | Sensores del celular (acelerómetro y giroscopio) |
 | **Estímulo** | Se completa una ventana de 500 ms a 50 Hz con el vehículo a más de 5 km/h de forma sostenida. |
 | **Artefacto** | Detector (TFLite) de la app |
-| **Entorno** | Celular Android de gama media, app en primer o segundo plano, modelo ya cargado en memoria. |
+| **Entorno** | Celular Android de gama media en un soporte fijo, dentro de un vehículo liviano (RN-18), app en primer o segundo plano, modelo ya cargado en memoria. |
 | **Respuesta** | El modelo clasifica localmente (tipo, severidad 1–5, confidence), sin enviar la señal cruda. |
-| **Medida** | Latencia < 50 ms (p95) (RNF-04); precisión ≥ 90 % **por clase** en campo; consumo < 8 % de batería por hora (RNF-15). |
-| **Verificación** | Benchmark en ≥ 3 modelos de celular; matriz de confusión contra el dataset etiquetado del tramo demo. |
-| **Trazabilidad** | DA-03, DA-04, DA-18, RF-02, RF-33, HU-02, ADR-004 |
+| **Medida** | Latencia < 50 ms (p95) (RNF-04); *precision* y *recall* ≥ 0,90 por clase y severidad con ± 1 nivel en ≥ 80 % de los casos (RNF-35); consumo ≤ 5 % de batería por hora (RNF-15). |
+| **Verificación** | Benchmark en ≥ 3 modelos de celular; matriz de confusión contra el dataset etiquetado del tramo demo, grabado con vehículos livianos y el celular en soporte (S-06). |
+| **Trazabilidad** | DA-03, DA-04, DA-18, RF-02, RF-33, RNF-35, HU-02, ADR-004 |
 | **Estado** | Definido |
 
 ## EQ-04. Seguridad y privacidad: protección de la identidad y de los accesos
@@ -58,9 +58,9 @@
 | **Estímulo** | Intenta acceder al panel sin JWT, con token expirado o por fuerza bruta; o intenta reconstruir la identidad de un conductor a partir de los datos almacenados. |
 | **Artefacto** | API REST, Identidad y Accesos, base de datos |
 | **Entorno** | `api.killauru.pe` y `panel.killauru.pe` bajo HTTPS; seudónimos rotativos purgados a 72 h. |
-| **Respuesta** | El sistema rechaza el acceso sin exponer información, bloquea temporalmente tras 3 intentos fallidos y ningún dato almacenado permite reconstruir la identidad. |
-| **Medida** | 100 % de intentos no autorizados rechazados; 0 reidentificación posible en la auditoría del esquema (sin vínculo cuenta ↔ eventos y sin seudónimos con más de 72 h); A+ en SSL Labs; cuenta desactivada sin acceso en ≤ 5 min (RNF-08…11, RNF-25, RNF-26). |
-| **Verificación** | Pruebas de acceso al panel (sin token, expirado, fuerza bruta); auditoría del esquema; consulta de verificación de purga; escaneo SSL Labs; verificar que `/metrics` no es público. |
+| **Respuesta** | El sistema rechaza el acceso sin exponer información, bloquea temporalmente tras 3 intentos fallidos (RN-19) y ningún dato almacenado permite reconstruir la identidad. |
+| **Medida** | 100 % de intentos no autorizados rechazados; 0 reidentificación posible en la auditoría del esquema (sin vínculo cuenta ↔ eventos y sin seudónimos con más de 72 h, ni en los reportes ni en `evento_recibido`); A+ en SSL Labs; cuenta desactivada sin acceso en ≤ 5 min (RNF-08…11, RNF-25, RNF-26). |
+| **Verificación** | Pruebas de acceso al panel (sin token, expirado, fuerza bruta); auditoría del esquema; consulta de verificación de purga; escaneo SSL Labs de todos los subdominios; verificar que `/health/live` y `/health/ready` no devuelven datos internos. |
 | **Trazabilidad** | R-06, DA-07, DA-17, HU-11, HU-21, RNF-26, ADR-007, ADR-009 |
 | **Estado** | Definido |
 
@@ -75,7 +75,7 @@
 | **Entorno** | Backend como monolito modular, con pruebas de arquitectura en el pipeline. |
 | **Respuesta** | El cambio se concentra en un solo módulo; los umbrales se modifican **por configuración**, sin tocar código; el sistema completo se despliega con un único comando. |
 | **Medida** | El cambio de umbral toca 0 líneas de código; el cambio de componente toca solo 1 módulo; las pruebas del módulo y de regresión pasan; las pruebas de arquitectura pasan (RNF-28); despliegue con `docker compose up -d` y rollback en < 5 min (RNF-17, RNF-18). |
-| **Verificación** | Revisión de dependencias entre módulos; ejecución de la suite completa; medición del tiempo de rollback en staging. |
+| **Verificación** | Revisión de dependencias entre módulos; ejecución de la suite completa; medición del tiempo de rollback en el entorno de pruebas (R-11). |
 | **Trazabilidad** | R-09, DA-06, DA-09, HU-16, RNF-17, RNF-18, RNF-19, RNF-28, ADR-001, ADR-002, ADR-012 |
 | **Estado** | Definido |
 
@@ -100,12 +100,12 @@
 |---|---|
 | **Atributo** | Observabilidad (AC-07) |
 | **Fuente** | Componente de infraestructura (backend, base de datos, proxy) |
-| **Estímulo** | Un subdominio deja de responder o `/health` retorna un código distinto de 200. |
-| **Artefacto** | UptimeRobot, `/health` de la API, Dashboard |
+| **Estímulo** | Un subdominio deja de responder, `/health/ready` retorna un código distinto de 200, se llena el disco o una tarea programada deja de ejecutarse. |
+| **Artefacto** | UptimeRobot, `/health/ready` de la API, paneles y alertas de Grafana |
 | **Entorno** | UptimeRobot cada 5 minutos; OpenTelemetry y logs en Grafana Cloud con alertas de degradación. |
-| **Respuesta** | El sistema notifica al equipo antes de que los usuarios lo reporten y el estado queda visible en `status.killauru.pe`. |
-| **Medida** | Alerta por correo en ≤ 5 min (RNF-20); disponibilidad mensual registrada con historial de 30 días (RNF-05); el dashboard muestra p95, descartes por motivo y tasa de confirmación (RNF-22). |
-| **Verificación** | Simular la caída del endpoint `/health` y medir el tiempo hasta la alerta; revisar logs con correlación. |
+| **Respuesta** | El sistema notifica al equipo antes de que los usuarios lo reporten y el estado queda visible en la página de estado pública gratuita de UptimeRobot (enlazada desde la app y el panel). |
+| **Medida** | Alerta de caída por correo en ≤ 10 min (RNF-20); disponibilidad mensual registrada con historial de 30 días (RNF-05); los paneles de Grafana muestran p95, descartes por motivo, disco y última ejecución de cada tarea (RNF-22), y el panel administrativo muestra la tasa de confirmación (RF-18). |
+| **Verificación** | Simular la caída de `/health/ready` y medir el tiempo hasta la alerta; detener una tarea programada y comprobar su alerta; revisar logs con correlación. |
 | **Trazabilidad** | DA-11, HU-17, RF-28, ADR-010 |
 | **Estado** | Definido |
 
@@ -134,7 +134,7 @@
 | **Artefacto** | Tabla de recepción y `BackgroundService` de Ingesta |
 | **Entorno** | Carga normal con lotes en curso. |
 | **Respuesta** | Al arrancar, el servicio reprocesa los eventos pendientes de la tabla de recepción. |
-| **Medida** | 0 eventos aceptados perdidos; tras recuperarse se cumple recibidos = procesados + descartados + pendientes; el procesamiento se reanuda en ≤ 2 min (RNF-06). |
+| **Medida** | 0 eventos aceptados perdidos; tras recuperarse se cumple aceptados = procesados + descartados en procesamiento + pendientes; el procesamiento se reanuda en ≤ 2 min (RNF-06). |
 | **Verificación** | Prueba de caos: matar el proceso a mitad de un lote y conciliar los conteos. |
 | **Trazabilidad** | DA-02, RNF-06, ADR-005 |
 | **Estado** | Definido — alineado con ADR-005 (Aceptado) |
@@ -150,7 +150,7 @@
 | **Entorno** | Existe backup diario cifrado con retención de 30 días. |
 | **Respuesta** | El equipo restaura el último backup válido y el sistema vuelve a operar. |
 | **Medida** | **RTO ≤ 2 h** y **RPO ≤ 24 h** (RNF-24); backup restaurable verificado mensualmente (RNF-07). |
-| **Verificación** | Simulacro mensual de restauración en un entorno de prueba, con cronómetro. |
+| **Verificación** | Simulacro mensual de restauración en el entorno de pruebas (R-11), nunca sobre producción, con cronómetro. |
 | **Trazabilidad** | RNF-07, RNF-24, HU-16, ADR-010 |
 | **Estado** | Definido |
 
@@ -163,9 +163,9 @@
 | **Estímulo** | Solicita `GET /api/v1/anomalies?bbox=` fuera del tramo demo, o excede el límite de tasa. |
 | **Artefacto** | Consulta de Mapa y middleware de límite de tasa de la API REST |
 | **Entorno** | Sin JWT (Anónimo) o con JWT de Conductor Registrado. |
-| **Respuesta** | La respuesta se recorta al polígono del tramo demo para el Anónimo; al exceder 60 req/h se responde 429. El conductor registrado recibe el corredor completo. |
-| **Medida** | 100 % de las respuestas a Anónimos sin anomalías fuera del tramo demo (RNF-27); límite de 60 y 1 000 req/h aplicado (RNF-11). |
-| **Verificación** | Pruebas de API con y sin token, con `bbox` mayor al tramo demo y ráfaga de peticiones. |
+| **Respuesta** | La respuesta se recorta al polígono del tramo demo para el Anónimo; al exceder 60 req/h se responde 429. El conductor registrado recibe el corredor completo, y su respuesta nunca queda en la caché de borde para otros (ADR-006). |
+| **Medida** | 100 % de las respuestas a Anónimos sin anomalías fuera del tramo demo, también cuando la respuesta sale de la caché de borde (RNF-27); límites de 60, 1 000 y 3 000 req/h aplicados con la IP real (RNF-11). |
+| **Verificación** | Pruebas de API con y sin token, con `bbox` mayor al tramo demo y ráfaga de peticiones; pedir el mismo `bbox` primero con token y luego sin token a través de Cloudflare y comprobar que el anónimo recibe solo el tramo demo. |
 | **Trazabilidad** | R-07, DA-10, RF-08, RF-14, HU-07, ADR-009 |
 | **Estado** | Definido |
 
@@ -178,7 +178,7 @@
 | **Estímulo** | Envía cientos de eventos falsos (severidad 5), fabricados sin conexión y subidos de golpe al tener señal, para crear baches inexistentes. |
 | **Artefacto** | Ingesta y módulo Anomalías |
 | **Entorno** | Operación normal; conviven con subidas legítimas de conductores que acumularon horas de eventos sin señal. |
-| **Respuesta** | El servidor juzga cada evento por su contenido y no por el momento de la subida: descarta los que están fuera de la vía y los que implican velocidades imposibles; retiene sin publicar (hasta confirmación) los de un dispositivo que supera el tope por hora de detección; no confirma severidad 4–5 sin al menos un reporte con sesión. Los descartes se ven por motivo en el Dashboard. |
+| **Respuesta** | El servidor juzga cada evento por su contenido y no por el momento de la subida: descarta los que están fuera de la vía y los que implican velocidades imposibles; retiene sin publicar (hasta confirmación) los de un dispositivo que supera el tope por hora de detección; no confirma severidad 4–5 sin al menos un reporte con sesión. Los descartes se ven por motivo en los paneles técnicos (RNF-22). |
 | **Medida** | 0 anomalías de severidad 4–5 confirmadas solo con seudónimos anónimos; 0 eventos aceptados a más de 50 m de la vía; 0 anomalías publicadas solo por un dispositivo que supera el tope; 100 % de los eventos legítimos de una subida acumulada de 5 h aceptados y 0 eventos reales perdidos en un tramo de lluvia con ~600 eventos por hora (RN-13, RN-14, RN-15). |
 | **Verificación** | Prueba con un script que envía eventos fuera de la vía, en ráfaga y con saltos de posición; prueba paralela con un recorrido real de 5 h en modo avión. Conciliar aceptados y descartados por motivo. |
 | **Trazabilidad** | DA-15, RN-13, RN-14, RN-15, RF-12, HU-05, ADR-015 |
@@ -195,7 +195,7 @@
 | **Entorno** | Operación normal; la auditoría registra cada acción sensible en la misma transacción (ADR-013). |
 | **Respuesta** | Con la auditoría se reconstruye quién, qué, cuándo y qué datos; se desactiva la cuenta (≤ 5 min, RNF-26); se documenta el incidente y se notifica a la Autoridad y a los titulares afectados. |
 | **Medida** | Reconstrucción completa del incidente desde la auditoría; notificación en ≤ 48 h (RNF-29); 0 acciones sensibles sin registro (RNF-31). |
-| **Verificación** | Simulacro semestral: una exportación «no autorizada» en staging, cronometrando desde la detección hasta el borrador de notificación. |
+| **Verificación** | Simulacro semestral: una exportación «no autorizada» en el entorno de pruebas (R-11), cronometrando desde la detección hasta el borrador de notificación. |
 | **Trazabilidad** | R-06, DA-16, RF-15, RNF-29, RNF-30, RNF-31, ADR-013 |
 | **Estado** | Definido |
 
@@ -242,8 +242,8 @@
 | EQ-07 | Observabilidad | 🟠 Alta | Una falla se detecta antes que los usuarios |
 | EQ-08 | Usabilidad | 🟡 Media | El conductor no necesita tocar el celular |
 | EQ-09 | Confiabilidad (reinicio) | 🔴 Crítica | Un reinicio del servidor no pierde eventos aceptados |
-| EQ-10 | Continuidad (restauración) | 🟠 Alta | Se restaura la BD dentro de RPO y RTO |
-| EQ-11 | Seguridad (alcance por rol) | 🟠 Alta | El servidor impide acceder al corredor completo sin cuenta |
+| EQ-10 | Continuidad (restauración) | 🔴 Crítica | Se restaura la BD dentro de RPO y RTO |
+| EQ-11 | Seguridad (alcance por rol) | 🔴 Crítica | El servidor impide acceder al corredor completo sin cuenta |
 | EQ-12 | Integridad (datos falsos) | 🔴 Crítica | Un script no puede crear ni confirmar baches falsos, y la subida acumulada legítima sí pasa |
 | EQ-13 | Seguridad (incidente legal) | 🔴 Crítica | Un incidente con datos personales se reconstruye y se notifica en ≤ 48 h |
 | EQ-14 | Rendimiento (mapa) | 🟠 Alta | El mapa responde en p95 < 250 ms con 300 clientes |

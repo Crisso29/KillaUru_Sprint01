@@ -1,6 +1,6 @@
 # Drivers Arquitectónicos
 
-> **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-13
+> **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-14
 > Un driver arquitectónico es un requisito, atributo o restricción que **obliga** a tomar una decisión de arquitectura. Criterio de inclusión: *si este driver no existiera, la arquitectura sería diferente.*
 > **Método:** *Attribute-Driven Design* (ADD 3.0, SEI). Cada driver se clasifica por **tipo** y se prioriza con dos notas: **importancia para el negocio** y **dificultad técnica**: **A** (alta), **M** (media) o **B** (baja).
 > **Regla de trazabilidad:** la columna «ADR» de esta tabla coincide exactamente con el campo «Drivers» de cada ADR en `07-decisiones-arquitectonicas.md`.
@@ -59,5 +59,6 @@ Las restricciones **(A, B)** (DA-06 y DA-12) son fáciles de cumplir, pero **lim
 | RNF-13 (Chrome, Firefox, Edge) | Restringe las pruebas, no la arquitectura |
 | RNF-14 (tiempo relativo) | Es una regla de presentación |
 | RNF-16 como porcentaje de ingresos | No es medible en 2026-II; su efecto se captura en DA-08 mediante el tope absoluto |
-| RN-16 (distancia de aviso según velocidad) | Es una regla de negocio dentro de un componente existente (Proximidad); no cambia la estructura |
+| RN-16 (distancia de aviso según velocidad y tipo de vehículo) | Es una regla de negocio dentro de un componente existente (Proximidad); no cambia la estructura |
+| RN-18 y RF-34 (solo detecta el vehículo liviano con soporte) | Es un ajuste guardado en el celular que enciende o apaga un componente existente (Sensores); no añade componentes ni cambia el contrato con el servidor |
 | RF-22 y RF-32 (correo de verificación y recuperación) | Añaden un adaptador dentro de Identidad, ya previsto por la regla de una integración externa por módulo |

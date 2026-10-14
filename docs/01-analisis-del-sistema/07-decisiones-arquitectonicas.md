@@ -1,6 +1,6 @@
 # Decisiones Arquitectónicas
 
-> **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-13 · **Estado:** Vigente
+> **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-14 · **Estado:** Vigente
 > Un ADR (Architecture Decision Record) documenta una decisión importante: el contexto que la motivó, las alternativas evaluadas, la decisión tomada y sus consecuencias.
 > **Estados:** **Aceptado** (vigente). La columna «Drivers» de cada ADR coincide con la columna «ADR» de `06-driver-arquitectonicos.md` (trazabilidad en ambos sentidos).
 
@@ -89,7 +89,7 @@
 - ✅ La app funciona sin internet durante todo el trayecto.
 - ✅ Garantía *at-least-once*: ningún evento se pierde silenciosamente.
 - ⚠️ El servidor **debe** deduplicar por `eventoId` (ADR-005).
-- ⚠️ Hay que definir la retención local de eventos `SYNCED` (RNF-15).
+- ✅ Retención local definida (2026-10-14): los estados locales y su purga a los 7 días están en la tabla «Estados locales del evento» de `03-requisitos-funcionales.md` (RF-06).
 
 ---
 
@@ -103,13 +103,14 @@
 |---|---|---|
 | Enviar señal cruda al servidor | Modelo más potente en la nube | Requiere internet permanente; latencia inaceptable |
 | Reglas manuales con umbrales fijos | Sin dependencia de ML | Baja precisión; no distingue tipos |
-| **TFLite embebido en la app** | Inferencia < 50 ms; sin internet; modelo < 5 MB | Actualizar el modelo requiere nueva versión de la app |
+| **TFLite embebido en la app** | Inferencia < 50 ms; sin internet; modelo < 5 MB | Hay que distribuir los modelos nuevos (resuelto con el punto 2 de la decisión) |
 
 **Decisión.**
 1. Modelo MLP cuantizado convertido a TFLite. El APK incluye un **modelo inicial**, que clasifica ventanas de 500 ms y registra el evento si confidence ≥ 0.75. Cada evento incluye `modeloVersion`.
-2. **Actualización del modelo sin reinstalar la app** (2026-10-13): la app consulta, solo con Wi-Fi, un **manifiesto** en `cdn.killauru.pe` (Cloudflare R2) con la versión vigente, la URL del archivo y su **huella SHA-256**. Si hay una versión nueva, la descarga, verifica la huella y recién entonces la activa; si la verificación falla, la descarta y sigue con la anterior.
-3. Un modelo nuevo debe respetar el catálogo de RN-01 y venir con su matriz de confusión. Si cambia el catálogo, cambia la versión mayor y el servidor la acepta solo si conoce sus tipos.
-4. **Con Play Store (futuro):** las actualizaciones de la app llegan por Google Play automáticamente; el modelo puede seguir descargándose desde R2 (es un archivo de datos, no código ejecutable) o migrarse a la entrega de recursos de Google Play cambiando solo el componente Actualizador de modelo.
+2. **Actualización del modelo sin reinstalar la app** (2026-10-13; prioridad *Should* desde 2026-10-14, recortable: si no entra en v1.0, se usa el modelo del APK y este canal se agrega después sin cambiar la arquitectura): la app consulta, solo con Wi-Fi, un **manifiesto** en `cdn.killauru.pe` (Cloudflare R2) con la versión vigente, la URL del archivo y su **huella SHA-256**. Si hay una versión nueva, la descarga, verifica la huella y recién entonces la activa; si la verificación falla, la descarta y sigue con la anterior.
+3. **Calibrado para un solo tipo de vehículo** (2026-10-14): el modelo de v1.0 se entrena con vehículos livianos y el celular en soporte, y solo esa categoría detecta (RN-18, S-06). Para vehículos pesados o motos se entrenará otro modelo y se distribuirá por el mismo canal del punto 2.
+4. Un modelo nuevo debe respetar el catálogo de RN-01 y venir con su matriz de confusión. Si cambia el catálogo, cambia la versión mayor y el servidor la acepta solo si conoce sus tipos.
+5. **Con Play Store (futuro):** las actualizaciones de la app llegan por Google Play automáticamente; el modelo puede seguir descargándose desde R2 (es un archivo de datos, no código ejecutable) o migrarse a la entrega de recursos de Google Play cambiando solo el componente Actualizador de modelo.
 
 **Consecuencias**
 - ✅ Clasificación < 50 ms sin internet; el modelo tiene validación de campo en Ayacucho–Vinchos.
@@ -134,14 +135,14 @@
 | Broker externo (RabbitMQ, etc.) | Robusto | Complejidad y costo inviables (R-09, DA-08) |
 
 **Decisión**
-1. El controlador valida esquema y reglas intrínsecas puras de `ReglasCalidad` (sin BD).
-2. Inserta el lote en la tabla `evento_recibido` con un único `INSERT … ON CONFLICT DO NOTHING` sobre `evento_id`, y **solo entonces responde 200** con el resultado por evento.
+1. El controlador aplica a **cada evento** las reglas de recepción de RN-11 (esquema, confidence, GPS, timestamp, tipo y distancia a la polilínea cargada en memoria), sin consultar la BD. Los que fallan salen en `rechazados[]` y no se guardan; un evento mal formado nunca hace fallar el lote (el 400 queda solo para un lote ilegible, vacío o de más de 50).
+2. Inserta los eventos aceptados en la tabla `evento_recibido` con un único `INSERT … ON CONFLICT DO NOTHING` sobre `evento_id`, y **solo entonces responde 200** con el resultado por evento.
 3. El Channel queda como **aviso de trabajo** (el elemento es el lote completo, no el evento); al arrancar, el `BackgroundService` reprocesa las filas pendientes.
 4. El módulo Anomalías (validación, confirmación y clasificación) procesa de forma asíncrona, **serializando por celda geográfica** (bloqueo consultivo de PostgreSQL por celda) para evitar carreras al confirmar y al crear anomalías. **Anomalías es dueño de su transacción y de su bloqueo**; Ingesta solo lo invoca y marca `PROCESADO` después de una respuesta correcta.
 5. **Idempotencia de extremo a extremo:** `evento_recibido.evento_id` (Ingesta) y `reporte_anomalia.evento_id` (Anomalías) son únicos. Si el proceso se cae entre ambos pasos, el reintento no duplica nada (*at-least-once* + receptor idempotente).
 
 **Consecuencias**
-- ✅ RNF-06 pasa a ser verificable: recibidos = procesados + descartados + pendientes.
+- ✅ RNF-06 pasa a ser verificable: aceptados = procesados + descartados + pendientes.
 - ✅ Los descartes se cuentan como métricas, no como filas de auditoría.
 - ⚠️ La tabla se purga a los 30 días (RNF-25).
 - ⚠️ Cambia el flujo de C3 y C4 (HTTP 200 tras el *commit*).
@@ -160,7 +161,7 @@
 | Redis | Compartida entre instancias | Un contenedor más que operar (R-09) |
 | Sin caché | Simple | Riesgo para RNF-01 |
 
-**Decisión.** `IMemoryCache` **dentro del módulo Consulta de Mapa** (no en `Shared`). La invalidación usa el **patrón Observer con eventos de dominio en proceso**: después del *commit*, Anomalías publica `AnomaliaCambiada(anomaliaId, celdas)` y **no sabe quién escucha**; Consulta de Mapa se suscribe y borra sus celdas. Futuros interesados (notificaciones v1.5, empresas v2.0) se suscriben sin modificar Anomalías (principio abierto/cerrado). El publicador es una lista de suscriptores en memoria: sin broker y sin costo. Las claves se calculan por **celdas de rejilla** (el `bbox` se ajusta a celdas) para que se reutilicen. Las respuestas públicas llevan `Cache-Control` corto y `ETag` para que Cloudflare las cachee.
+**Decisión.** `IMemoryCache` **dentro del módulo Consulta de Mapa** (no en `Shared`). La invalidación usa el **patrón Observer con eventos de dominio en proceso**: después del *commit*, Anomalías publica `AnomaliaCambiada(anomaliaId, celdas)` y **no sabe quién escucha**; Consulta de Mapa se suscribe y borra sus celdas. Futuros interesados (notificaciones v1.5, empresas v2.0) se suscriben sin modificar Anomalías (principio abierto/cerrado). El publicador es una lista de suscriptores en memoria: sin broker y sin costo. Las claves se calculan por **celdas de rejilla y alcance del rol** (el `bbox` se ajusta a celdas; «anónimo», «registrado» y «administrador» nunca comparten una entrada) para que se reutilicen sin mezclar datos. **Solo las respuestas a anónimos** llevan `Cache-Control: public` corto y `ETag` para que Cloudflare las cachee; las respuestas a peticiones con token llevan `Cache-Control: private, no-store`, y la regla de caché de Cloudflare excluye las peticiones con cabecera `Authorization`. Así la caché nunca le entrega a un anónimo el corredor completo que pidió un registrado (R-07, RNF-27).
 
 **Consecuencias**
 - ✅ Sin componentes adicionales.
@@ -184,10 +185,10 @@
 **Decisión**
 1. La instalación genera un **UUID aleatorio** (no derivado de hardware).
 2. Al servidor se envía un **seudónimo rotativo** (rotación mensual).
-3. El servidor **purga el seudónimo de los reportes a las 72 h** (solo se necesita para la confirmación; RN-12 usa días distintos).
+3. El servidor **purga el seudónimo a las 72 h de recibir el evento**, tanto de los reportes como de la copia de recepción `evento_recibido` (solo se necesita para la confirmación, RN-06, y la plausibilidad, RN-15; RN-12 usa días distintos). Tras restaurar un backup se repite la purga (RN-10).
 4. El **historial de recorridos es solo local**: la cuenta nunca se une a los eventos.
 5. La exportación no incluye seudónimos.
-6. Se documenta una evaluación breve de impacto en privacidad, incluido el flujo transfronterizo (Cloudflare y la región Santiago, Chile, de Oracle), y se informa en la política de privacidad (RF-29).
+6. Se documenta una evaluación breve de impacto en privacidad, incluido el flujo transfronterizo hacia todos los proveedores que reciben datos (Cloudflare, Oracle en Santiago de Chile, el proveedor de correo y Grafana Cloud, R-06), y se informa en la política de privacidad junto con sus finalidades (RF-29). El conductor sin cuenta también acepta el aviso de forma explícita.
 
 **Consecuencias**
 - ✅ Cumple R-06 sin perder la confirmación por varios dispositivos.
@@ -207,7 +208,7 @@
 | Sin caducidad (estado actual) | Simple | El mapa se llena de anomalías obsoletas |
 | **Estados + caducidad parametrizable + moderación** | Mapa fiel a la realidad | Un job y un campo `UltimoReporteUtc` |
 
-**Decisión.** Estados `Activa`, `PendienteConfirmacion`, `Expirada`, `Reparada` y `Descartada` (diagrama en RN-07). Valores iniciales: episódica expira a las 72 h sin reportes; persistente expira a los 7 días sin reportes; pendiente expira a las 72 h sin segundo dispositivo; el administrador puede marcar `Reparada` o `Descartada` (RF-24). Un `BackgroundService` diario aplica la caducidad. El mapa y las alertas usan solo `Activa`. Los parámetros se calibran con el piloto.
+**Decisión.** Estados `Activa`, `PendienteConfirmacion`, `Expirada`, `Reparada` y `Descartada` (diagrama en RN-07). Valores iniciales: episódica expira a las 72 h sin reportes; persistente expira a los 7 días sin reportes; pendiente expira a las 72 h sin segundo dispositivo; el administrador puede marcar `Reparada` o `Descartada` (RF-24). Un `BackgroundService` aplica la caducidad **cada hora**, con la hora de detección del último reporte (RN-07); una anomalía `Expirada` o `Reparada` que recibe un reporte vuelve a nacer y pasa otra vez por la confirmación (RN-06). El mapa y las alertas usan solo `Activa`. Los parámetros se calibran con el piloto.
 
 **Consecuencias**
 - ✅ Menos falsas alarmas.
@@ -238,10 +239,10 @@
    | Administrador | 5 min | Máximo 8 h absolutas (RF-16) |
    | Conductor Registrado | 5 min | 30 días, se extiende con el uso (RF-21) |
 
-   Cada renovación verifica que la cuenta siga activa. Al desactivar o eliminar una cuenta se **revocan** sus tokens de actualización, así pierde el acceso en ≤ 5 min (RNF-26) sin consultar la BD en cada petición. Los tokens de actualización **rotan** en cada uso (si se reutiliza uno viejo, se revoca toda la sesión). El acceso offline al corredor usa el derecho de acceso local, no el token.
+   Cada renovación verifica que la cuenta siga activa. Al desactivar o eliminar una cuenta se **revocan** sus tokens de actualización, así pierde el acceso en ≤ 5 min (RNF-26) sin consultar la BD en cada petición. Los tokens de actualización **rotan** en cada uso. Si se reutiliza uno viejo **después de 60 s**, se revoca toda la sesión; dentro de esos 60 s se devuelve el mismo par nuevo, porque en la sierra es normal que la respuesta de la renovación se pierda y la app reintente con el token anterior. El acceso offline al corredor usa el derecho de acceso local, no el token; su vigencia, su revocación y el cierre de sesión siguen RN-21.
    - *Descartado:* JWT de 8 h sin revocación (incumple RNF-26) y consultar la BD en cada petición (más carga sin necesidad).
 5. El panel usa cookie `HttpOnly; Secure; SameSite=Strict`.
-6. **Bloqueo temporal progresivo** tras 3 intentos fallidos, más protección anti-bot en el login.
+6. **Bloqueo temporal progresivo** por intentos fallidos para administradores y conductores, con los valores de RN-19, más protección anti-bot en el login.
 7. La Consulta de Mapa recorta el `bbox` por rol (RF-14).
 
 **Consecuencias**
@@ -263,8 +264,10 @@
 
 **Decisión**
 - **Cloudflare Tunnel** para `api.killauru.pe` y **Cloudflare Pages** para `panel.killauru.pe` (cabeceras por archivo `_headers`).
-- **Backup** diario cifrado a almacenamiento de objetos, retención de 30 días, y simulacro de restauración mensual (RPO ≤ 24 h, RTO ≤ 2 h).
-- **Rollback**: imágenes con *tag* inmutable; volver al tag anterior con `docker compose up -d`; migraciones compatibles hacia atrás.
+- **Backup** diario cifrado a almacenamiento de objetos fuera de la VM (R2), retención de 30 días, y simulacro de restauración mensual (RPO ≤ 24 h, RTO ≤ 2 h; ≤ 4 h si se pierde la VM entera, RNF-24). La clave de cifrado y los demás secretos tienen copia fuera de la VM (RNF-34).
+- **Rollback**: imágenes con *tag* inmutable; volver al tag anterior con `docker compose up -d`. Las migraciones se ejecutan como paso explícito, precedidas de un `pg_dump`, y en dos fases (agregar primero, borrar en un despliegue posterior), para que la versión anterior funcione con el esquema nuevo (RNF-18).
+- **IP real del cliente:** detrás del túnel todas las peticiones llegan desde `cloudflared`, así que el límite de tasa usa la cabecera `CF-Connecting-IP` (RNF-11).
+- **Salud:** `/health/live` para el reinicio automático de Docker y `/health/ready` (BD y antigüedad de la cola) para UptimeRobot (RF-28).
 - **Observabilidad** (2026-10-13), con costo cero:
 
   | Pieza | Herramienta | Uso |
@@ -272,7 +275,7 @@
   | Instrumentación | **OpenTelemetry** (incluido en .NET 10) | Latencia, errores y trazas sin código de métricas hecho a mano |
   | Logs | **Serilog** en JSON con ID de correlación | Cada log dice qué petición lo generó |
   | Paneles y alertas | **Grafana Cloud, plan gratuito** | p95, errores, descartes por motivo, cola; alerta por correo |
-  | Disponibilidad | **UptimeRobot** + `/health` | Caída en ≤ 5 min y página `status.killauru.pe` |
+  | Disponibilidad | **UptimeRobot** + `/health/ready` | Caída en ≤ 10 min (RNF-20) y página de estado pública gratuita de UptimeRobot |
 
   **Control de costo (RNF-32):** cuenta sin tarjeta; muestreo de trazas ≤ 10 %; sin logs de `/health`; sin etiquetas de alta cardinalidad. No se expone `/metrics`: la API **envía** la telemetría a Grafana (OTLP), sin abrir puertos.
   - *Descartado:* métricas hechas a mano en tablas propias (reinventa lo que OpenTelemetry ya hace) y Prometheus + Grafana autoalojados (consumen memoria del único servidor y hay que operarlos).
@@ -294,12 +297,12 @@
 |---|---|---|
 | Teselas raster en línea | Simple | Rompe offline y RNF-15 |
 | Descargar teselas del servidor público de OSM | Sin infraestructura | Prohibido su uso masivo |
-| **Mapa vectorial recortado al corredor, alojado como archivo estático** | Offline, liviano (decenas de MB), costo cero | Preparar y publicar el recorte |
+| **Mapa vectorial recortado al corredor, alojado como archivo estático** | Offline, liviano (hasta 80 MB, RNF-15), costo cero | Preparar y publicar el recorte |
 
 **Decisión.**
 1. Mapa base vectorial de OpenStreetMap recortado al corredor, en **un solo archivo PMTiles**, alojado como estático en **Cloudflare R2** (Cloudflare Pages no admite archivos de más de 25 MiB).
 2. **Una sola librería de mapas en todo el sistema: MapLibre.** La app usa **MapLibre Native (Android)** y el panel usa **MapLibre GL JS**. Ambos leen **el mismo PMTiles** y comparten **el mismo estilo** (colores y símbolos por tipo y severidad).
-3. La app descarga el archivo una vez, por Wi-Fi o con confirmación del usuario; el panel lo lee en línea por rangos HTTP, sin descargarlo entero.
+3. La app descarga el archivo una vez, por Wi-Fi o con confirmación del usuario, de forma reanudable y verificando su SHA-256 con un manifiesto igual al del modelo (RF-26). Junto con el mapa descarga la **polilínea del corredor**, que usa para medir la distancia de aviso a lo largo de la vía (RN-16); el panel lo lee en línea por rangos HTTP, sin descargarlo entero.
 4. Las anomalías son una capa aparte, actualizada con `updatedSince`. Se muestra la atribución de OpenStreetMap.
 
 | Opción para el panel | Pros | Contras |
@@ -310,7 +313,7 @@
 **Consecuencias**
 - ✅ Mapa y alertas funcionan sin red; consumo de datos controlado.
 - ✅ App y panel muestran exactamente el mismo mapa; un cambio en el recorte o en el estilo se publica una sola vez.
-- ⚠️ Hay que regenerar el PMTiles cuando se quiera actualizar la cartografía de OSM (proceso manual, pocas veces al año).
+- ⚠️ Hay que regenerar el PMTiles cuando se quiera actualizar la cartografía de OSM (proceso manual, pocas veces al año). Al publicar una versión nueva se actualiza el manifiesto y las apps la descargan en el siguiente Wi-Fi.
 
 ---
 
@@ -387,7 +390,7 @@
 |---|---|---|
 | Hay más de una instancia del backend (S-03) | Redis/Valkey para caché compartida y límite de tasa | Clave-valor |
 | Las métricas superan ~10 millones de filas o se necesitan consultas de series largas | Base de series de tiempo (p. ej. TimescaleDB como extensión, o un servicio gestionado) | Series de tiempo |
-| La analítica de flota para empresas (v1.5+) exige consultas pesadas que afectan a la BD transaccional | Réplica de lectura o almacén analítico separado | Columnar |
+| La analítica de tramos para empresas (v1.5+) exige consultas pesadas que afectan a la BD transaccional | Réplica de lectura o almacén analítico separado | Columnar |
 
 **Consecuencias**
 - ✅ El sistema ya combina SQL relacional, SQL embebido, objetos y clave-valor sin añadir servicios ni costo.

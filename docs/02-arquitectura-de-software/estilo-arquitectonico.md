@@ -1,6 +1,6 @@
 # Estilo Arquitectónico
 
-> **Proyecto:** KillaUru · **Versión:** 2.1 · **Revisión:** 2026-10-13 · **Estado:** Vigente (alineado con ADR-001…ADR-015)
+> **Proyecto:** KillaUru · **Versión:** 2.1 · **Revisión:** 2026-10-14 · **Estado:** Vigente (alineado con ADR-001…ADR-015)
 > **Relacionados:** `arquitectura-inicial.md`, `enfoque-arquitectonico.md`, `componentes-arquitectonicos.md`, `06-driver-arquitectonicos.md`, `07-decisiones-arquitectonicas.md`
 
 ## 1. ¿Qué es un estilo arquitectónico?
@@ -127,7 +127,7 @@ Estas reglas no son sugerencias: mantienen el sistema ordenado conforme crece. L
 | Atributo | Táctica arquitectónica | Dónde vive |
 |---|---|---|
 | AC-01 Disponibilidad offline | Store-and-Forward, mapa base y anomalías locales | App: Buffer, Mapa, Proximidad |
-| AC-02 Confiabilidad del dato | Ingesta durable, idempotencia, conciliación recibidos = procesados + descartados + pendientes | Ingesta; tabla `evento_recibido` |
+| AC-02 Confiabilidad del dato | Ingesta durable, idempotencia, conciliación aceptados = procesados + descartados + pendientes | Ingesta; tabla `evento_recibido` |
 | AC-03 Rendimiento en móvil | Edge AI con modelo cuantizado | App: Detector |
 | AC-04 Seguridad y privacidad | Seudónimo rotativo, purga a 72 h, RBAC en servidor, Tunnel, CSP/HSTS | Identidad y Accesos, API REST, Anomalías |
 | AC-05 Mantenibilidad | Módulos aislados, pruebas de arquitectura, umbrales por configuración | Todos los módulos |

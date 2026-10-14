@@ -1,6 +1,6 @@
 # Glosario (lenguaje ubicuo)
 
-> **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-13 · **Estado:** Vigente
+> **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-14 · **Estado:** Vigente
 > Cada término tiene **una sola definición** y se usa igual en documentos, código, API y panel (ADR-012). Los términos de negocio van en español; los técnicos de capas, en inglés.
 > **Relacionados:** `09-reglas-de-negocio.md`, `07-decisiones-arquitectonicas.md`, `componentes-arquitectonicos.md`
 
@@ -17,16 +17,19 @@
 
 | Término | Código | Definición | No confundir con |
 |---|---|---|---|
+| **Categoría de vehículo** | `CategoriaVehiculo` | Liviano, Pesado o Moto; la elige el conductor y se guarda solo en el celular. En v1.0 solo **Liviano** (auto, camioneta, station wagon o colectivo, con el celular en soporte) detecta y envía eventos (RN-18). | Rol |
 | **Ventana** | — | 500 ms de lecturas del acelerómetro y el giroscopio a 50 Hz que clasifica el modelo. | Evento |
 | **Evento** | `EventoReportado` (contrato) | Detección guardada en el celular y enviada al servidor: `eventoId`, hora UTC, ubicación, precisión, tipo, severidad, confidence, `modeloVersion`, seudónimo. | Reporte, Anomalía |
 | **Lote** | `LoteRecibido` | Grupo de hasta 50 eventos enviado en un solo `POST`. | — |
-| **Evento recibido** | `ingesta.evento_recibido` | Copia durable del evento tal como llegó (`JSONB`), antes de procesarlo. Se borra a los 30 días. | Reporte |
+| **Recepción / Procesamiento** | — | Las dos etapas de la ingesta (RN-11). En la **recepción**, antes de responder 200, se aplican las reglas que no usan la BD y el evento sale como aceptado o rechazado. En el **procesamiento**, después, Anomalías aplica las reglas que necesitan la BD; lo que descarta solo se cuenta como métrica. | — |
+| **Evento recibido** | `ingesta.evento_recibido` | Copia durable del evento aceptado tal como llegó (`JSONB`), antes de procesarlo. El seudónimo se le borra a las 72 h (RN-09) y la fila se borra a los 30 días. | Reporte |
 | **Reporte** | `ReporteAnomalia` | Evento que pasó la validación y quedó asociado a una anomalía. Es único por `eventoId`. | Evento |
-| **Anomalía** | `Anomalia` | Punto de la vía con un problema (Bache o Hundimiento), formado por uno o más reportes del mismo tipo a ≤ 100 m (RN-05). Es lo que se muestra en el mapa. | Reporte |
+| **Anomalía** | `Anomalia` | Punto de la vía con un problema (Bache o Hundimiento), formado por uno o más reportes del mismo tipo a ≤ 100 m (RN-05). Es lo que se muestra en el mapa, con la mediana de las severidades de sus reportes de los últimos 15 días, redondeada hacia arriba. | Reporte |
+| **Posición de la anomalía** | — | Posición del reporte que creó la anomalía; no cambia. Los 100 m de RN-05 se miden desde ella. | Centroide |
 | **Tipo de anomalía** | `TipoAnomalia` | Bache o Hundimiento (RN-01). *Normal* es una clase interna del modelo que nunca se envía. | — |
 | **Severidad** | `Severidad` | Intensidad del golpe, de 1 a 5. **Alta** = 4 o 5 (RN-02). | Confidence |
 | **Confidence** | `Confidence` | Seguridad del modelo en su clasificación, de 0.0 a 1.0. Mínimo 0.75 (RN-04, RN-11). | Severidad |
-| **Descarte** | `MotivoDescarte` | Evento rechazado por una regla de calidad o antifraude; se cuenta como métrica por motivo, no se audita. | Anomalía `Descartada` |
+| **Descarte** | `MotivoDescarte` | Evento rechazado por una regla de calidad o antifraude, en la recepción (sale en `rechazados[]` de la respuesta) o en el procesamiento (solo métrica) (RN-11); se cuenta como métrica por motivo, no se audita. | Anomalía `Descartada` |
 
 ## 3. Estados y clasificación
 
@@ -34,13 +37,14 @@
 |---|---|---|
 | **Persistente** | `EstadoPersistencia.Persistente` | Anomalía con reportes en ≥ 3 días locales distintos dentro de 15 días (RN-12). |
 | **Episódica** | `EstadoPersistencia.Episodica` | Cualquier anomalía que no es persistente. |
-| **Confirmación** | `PoliticaConfirmacion` | Exigencia de ≥ 2 dispositivos distintos (al menos uno con sesión) para mostrar una anomalía de severidad alta o de un dispositivo que superó su tope (RN-06, RN-14, RN-15a). |
+| **Confirmación** | `PoliticaConfirmacion` | Exigencia de ≥ 2 dispositivos distintos, con detecciones separadas ≥ 3 min para que sean vehículos distintos, para mostrar una anomalía de severidad alta (con al menos un reporte con sesión, RN-14) o una anomalía creada por un dispositivo que superó su tope (sin exigir sesión) (RN-06, RN-14, RN-15a). También se aplica cuando una anomalía `Expirada` o `Reparada` vuelve a nacer. |
 | `Activa` | `EstadoAnomalia.Activa` | Visible en el mapa y genera alertas. |
 | `PendienteConfirmacion` | `EstadoAnomalia.PendienteConfirmacion` | Espera un segundo dispositivo; solo la ve el administrador. |
-| `Expirada` | `EstadoAnomalia.Expirada` | Sin reportes durante su plazo (episódica 72 h, persistente 7 días, pendiente 72 h); se reactiva con un nuevo reporte. |
+| `Expirada` | `EstadoAnomalia.Expirada` | Sin reportes durante su plazo (episódica 72 h, persistente 7 días, pendiente 72 h), medido con la hora de detección; con un nuevo reporte vuelve a nacer y pasa otra vez por la confirmación (RN-06). |
 | `Reparada` | `EstadoAnomalia.Reparada` | Marcada por el administrador como arreglada. |
-| `Descartada` | `EstadoAnomalia.Descartada` | Falso positivo confirmado por el administrador; un nuevo reporte no la reactiva. |
+| `Descartada` | `EstadoAnomalia.Descartada` | Falso positivo confirmado por el administrador; un nuevo reporte no la reactiva, pero si siguen llegando reportes de varios vehículos pasa a la lista «Por revisar» del panel (RN-07). |
 | **Reaparición** | — | Anomalía que vuelve a `Activa` después de expirar; su tasa sirve para calibrar la caducidad. |
+| **Pasada** | — | Paso del vehículo junto a una anomalía; termina cuando se aleja más de 500 m. Se emite una sola alerta por anomalía en cada pasada (RN-16). |
 
 ## 4. Personas, identidad y privacidad
 
@@ -51,12 +55,13 @@
 | **Administrador** | rol `Administrador` | Personal interno que gestiona el sistema desde el panel. | — |
 | **Seudónimo** | `SeudonimoInstalacion` | UUID aleatorio de la instalación que rota cada mes; el servidor lo borra a las 72 h (RN-09). No identifica a la persona. | Cuenta |
 | **Con sesión** | `con_sesion` | Marca sí/no de un reporte enviado con sesión iniciada; **no** guarda qué cuenta (RN-14). | — |
-| **Derecho de acceso local** | *entitlement* | Permiso guardado en el celular que habilita el corredor completo sin conexión. | Token |
+| **Derecho de acceso local** | *entitlement* | Permiso guardado en el celular que habilita el corredor completo y las alertas sin conexión. Dura lo mismo que la sesión (30 días), no se corta durante un viaje y se borra al cerrar sesión o al saberse que la cuenta fue desactivada (RN-21). | Token |
 | **Token de acceso** | JWT | Credencial de 5 min que acompaña cada petición. | Token de actualización |
 | **Token de actualización** | *refresh token* | Credencial revocable y de un solo uso que renueva el token de acceso; define la duración de la sesión (8 h admin, 30 días conductor). | Token de acceso |
 | **Conductor registrado activo** | — | Cuenta que renovó su sesión en los últimos 7 días (RN-17). | Dispositivo que aportó datos |
 | **Dispositivo que aportó datos** | — | Seudónimo distinto con eventos en las últimas 24 h; solo se guarda el número diario (RN-17). | Conductor activo |
 | **Derechos ARCO** | — | Acceso, Rectificación, Cancelación y Oposición del titular de datos (Ley 29733); en v1.0: ver mis datos (RF-31) y eliminar mi cuenta (RF-30). | — |
+| **Términos de uso** | — | Texto que todo conductor acepta antes de usar la app (RF-37): la app es una ayuda y no una garantía, puede no mostrar todos los baches o dar falsas alarmas, y el conductor sigue siendo responsable de su manejo. | Política de privacidad |
 
 ## 5. Arquitectura
 
