@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="987" height="233" viewBox="0 0 987 233" role="img" aria-label="Corredor PE-28A de 333 km entre Pisco y Ayacucho, con el tramo demo Ayacucho–Vinchos de unos 65 km">
+  <defs>
+    <style>
+      .t{font-family:'Segoe UI',Inter,Helvetica,Arial,sans-serif}
+      .city{font-size:21px;font-weight:700;fill:#fff}
+      .s{font-size:13px;fill:#c9d3ff}
+      .k{font-size:13px;fill:#8f9bd6;letter-spacing:2px}
+      .car{offset-path:path('M55 178 C140 175 180 160 233 120 C290 76 330 62 400 60 C470 58 520 70 560 64 C620 55 680 60 720 90 C760 118 820 125 932 130');animation:c 8s linear infinite}
+      @keyframes c{from{offset-distance:0%}to{offset-distance:100%}}
+    </style>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0e2a3a"/><stop offset="1" stop-color="#241b45"/></linearGradient>
+    <linearGradient id="alt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5b6bd6" stop-opacity=".6"/><stop offset="1" stop-color="#5b6bd6" stop-opacity="0"/></linearGradient>
+  </defs>
+  <rect width="987" height="233" rx="21" fill="url(#bg)"/>
+  <g class="t">
+    <text x="34" y="34" class="k">PERFIL ILUSTRATIVO DEL CORREDOR · 333 KM</text>
+    <path d="M55 178 C140 175 180 160 233 120 C290 76 330 62 400 60 C470 58 520 70 560 64 C620 55 680 60 720 90 C760 118 820 125 932 130 L932 190 L55 190Z" fill="url(#alt)"/>
+    <path d="M55 178 C140 175 180 160 233 120 C290 76 330 62 400 60 C470 58 520 70 560 64 C620 55 680 60 720 90 C760 118 820 125 932 130" fill="none" stroke="#ffd166" stroke-width="3"/>
+    <path d="M745 106 C790 122 840 127 932 130" fill="none" stroke="#2ee6a6" stroke-width="8" stroke-linecap="round" opacity=".85"/>
+    <circle class="car" r="6" fill="#fff"/>
+    <circle cx="55" cy="178" r="8" fill="#ffd166"/><circle cx="932" cy="130" r="8" fill="#ffd166"/>
+    <text x="55" y="215" class="city">Pisco</text><text x="34" y="160" class="s">costa</text>
+    <text x="932" y="215" class="city" text-anchor="end">Ayacucho</text>
+    <text x="400" y="40" class="s" text-anchor="middle">puna · más del 50 % sin cobertura celular</text>
+    <rect x="700" y="150" width="144" height="21" rx="10" fill="#2ee6a6" opacity=".15"/>
+    <text x="772" y="165" class="s" text-anchor="middle" style="fill:#2ee6a6">tramo demo ~65 km</text>
+  </g>
+</svg>

@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="987" height="377" viewBox="0 0 987 377" role="img" aria-label="KillaUru: la carretera que aprende de cada viaje">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b1026"/>
+      <stop offset=".62" stop-color="#1b2350"/>
+      <stop offset="1" stop-color="#3b2a5c"/>
+    </linearGradient>
+    <radialGradient id="moonGlow" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#ffe9a8" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#ffe9a8" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="m1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2e3a74"/><stop offset="1" stop-color="#1a1f45"/>
+    </linearGradient>
+    <linearGradient id="m2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1f2757"/><stop offset="1" stop-color="#11142e"/>
+    </linearGradient>
+    <style>
+      .t{font-family:'Segoe UI',Inter,Helvetica,Arial,sans-serif}
+      .tw{animation:tw 3s ease-in-out infinite}
+      .tw2{animation:tw 5s ease-in-out infinite}
+      @keyframes tw{0%,100%{opacity:.25}50%{opacity:1}}
+      .pulse{animation:p 2.1s ease-out infinite;transform-box:fill-box;transform-origin:center}
+      .pulse.d2{animation-delay:.7s}.pulse.d3{animation-delay:1.4s}
+      @keyframes p{0%{transform:scale(.4);opacity:.9}100%{transform:scale(2.6);opacity:0}}
+      .dash{stroke-dasharray:13 21;animation:d 2.5s linear infinite}
+      @keyframes d{to{stroke-dashoffset:-34}}
+    </style>
+  </defs>
+  <rect width="987" height="377" fill="url(#sky)"/>
+  <g fill="#fff">
+    <circle class="tw" cx="55" cy="34" r="1.3"/><circle class="tw2" cx="144" cy="89" r="1"/>
+    <circle class="tw" cx="233" cy="21" r="1.5"/><circle class="tw2" cx="377" cy="55" r="1"/>
+    <circle class="tw" cx="470" cy="13" r="1.2"/><circle class="tw2" cx="540" cy="70" r="1"/>
+    <circle class="tw" cx="610" cy="34" r="1.4"/><circle class="tw2" cx="700" cy="110" r="1"/>
+    <circle class="tw" cx="890" cy="21" r="1.2"/><circle class="tw2" cx="955" cy="89" r="1.5"/>
+    <circle class="tw2" cx="300" cy="120" r="1"/><circle class="tw" cx="89" cy="150" r="1"/>
+  </g>
+  <circle cx="821" cy="89" r="89" fill="url(#moonGlow)"/>
+  <circle cx="821" cy="89" r="34" fill="#ffe9a8"/>
+  <circle cx="808" cy="80" r="5" fill="#f2d68a"/><circle cx="832" cy="101" r="8" fill="#f2d68a"/><circle cx="836" cy="74" r="3" fill="#f2d68a"/>
+  <path d="M0 270 L89 190 L144 225 L233 140 L320 215 L377 175 L470 240 L560 160 L640 220 L720 150 L800 210 L880 170 L987 230 L987 377 L0 377Z" fill="url(#m1)"/>
+  <path d="M233 140 L255 160 L240 158 L225 166 Z M560 160 L580 178 L566 176 L550 182 Z M720 150 L742 170 L728 167 L712 174Z" fill="#c9d3ff" opacity=".55"/>
+  <path d="M0 320 L120 255 L250 300 L377 245 L520 305 L640 260 L780 300 L987 250 L987 377 L0 377Z" fill="url(#m2)"/>
+  <path d="M987 300 C860 300 820 330 700 330 C560 330 560 290 430 295 C300 300 280 345 150 345 C80 345 40 340 0 340" fill="none" stroke="#0a0c1c" stroke-width="13" stroke-linecap="round"/>
+  <path class="dash" d="M987 300 C860 300 820 330 700 330 C560 330 560 290 430 295 C300 300 280 345 150 345 C80 345 40 340 0 340" fill="none" stroke="#ffd166" stroke-width="2"/>
+  <circle class="pulse" cx="700" cy="330" r="8" fill="none" stroke="#ff5d73" stroke-width="2"/>
+  <circle cx="700" cy="330" r="5" fill="#ff5d73"/>
+  <circle class="pulse d2" cx="430" cy="295" r="8" fill="none" stroke="#ff9f43" stroke-width="2"/>
+  <circle cx="430" cy="295" r="5" fill="#ff9f43"/>
+  <circle class="pulse d3" cx="150" cy="345" r="8" fill="none" stroke="#ff5d73" stroke-width="2"/>
+  <circle cx="150" cy="345" r="5" fill="#ff5d73"/>
+  <text class="t" x="55" y="110" font-size="89" font-weight="800" fill="#ffffff" letter-spacing="-2">Killa<tspan fill="#ffd166">Uru</tspan></text>
+  <text class="t" x="58" y="155" font-size="21" fill="#c9d3ff">La carretera que aprende de cada viaje.</text>
+  <text class="t" x="58" y="185" font-size="13" fill="#8f9bd6" letter-spacing="3">PE-28A · VÍA LOS LIBERTADORES · AYACUCHO, PERÚ</text>
+</svg>
