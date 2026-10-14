@@ -1,6 +1,6 @@
 # Estilo Arquitectónico
 
-> **Proyecto:** KillaUru · **Versión:** 2.1 · **Revisión:** 2026-10-13 · **Estado:** Vigente (alineado con ADR-001…ADR-014)
+> **Proyecto:** KillaUru · **Versión:** 2.1 · **Revisión:** 2026-10-13 · **Estado:** Vigente (alineado con ADR-001…ADR-015)
 > **Relacionados:** `arquitectura-inicial.md`, `enfoque-arquitectonico.md`, `componentes-arquitectonicos.md`, `06-driver-arquitectonicos.md`, `07-decisiones-arquitectonicas.md`
 
 ## 1. ¿Qué es un estilo arquitectónico?
@@ -131,9 +131,10 @@ Estas reglas no son sugerencias: mantienen el sistema ordenado conforme crece. L
 | AC-03 Rendimiento en móvil | Edge AI con modelo cuantizado | App: Detector |
 | AC-04 Seguridad y privacidad | Seudónimo rotativo, purga a 72 h, RBAC en servidor, Tunnel, CSP/HSTS | Identidad y Accesos, API REST, Anomalías |
 | AC-05 Mantenibilidad | Módulos aislados, pruebas de arquitectura, umbrales por configuración | Todos los módulos |
-| AC-06 Escalabilidad | Cola por lote, serialización por celda geográfica, caché por celdas | Ingesta, Anomalías, Consulta de Mapa |
+| AC-06 Escalabilidad y rendimiento del servidor | Cola por lote, serialización por celda geográfica, caché por celdas, caché de borde con ETag | Ingesta, Anomalías, Consulta de Mapa, Cloudflare |
 | AC-07 Observabilidad | `/health`, OpenTelemetry, logs estructurados y alertas de degradación | API REST, Grafana Cloud |
 | AC-08 Usabilidad | Detección pasiva en servicio en primer plano | App: Sensores |
+| AC-09 Costo operativo | Planes gratuitos, un solo servidor, sin brokers ni Redis, telemetría con muestreo y sin tarjeta, alertas de presupuesto | Toda la infraestructura (ADR-010, ADR-014) |
 
 ## 6. Stack tecnológico
 

@@ -46,7 +46,7 @@
 | **Respuesta** | El modelo clasifica localmente (tipo, severidad 1–5, confidence), sin enviar la señal cruda. |
 | **Medida** | Latencia < 50 ms (p95) (RNF-04); precisión ≥ 90 % **por clase** en campo; consumo < 8 % de batería por hora (RNF-15). |
 | **Verificación** | Benchmark en ≥ 3 modelos de celular; matriz de confusión contra el dataset etiquetado del tramo demo. |
-| **Trazabilidad** | DA-03, DA-04, RF-02, HU-02, ADR-004 |
+| **Trazabilidad** | DA-03, DA-04, DA-18, RF-02, RF-33, HU-02, ADR-004 |
 | **Estado** | Definido |
 
 ## EQ-04. Seguridad y privacidad: protección de la identidad y de los accesos
@@ -61,7 +61,7 @@
 | **Respuesta** | El sistema rechaza el acceso sin exponer información, bloquea temporalmente tras 3 intentos fallidos y ningún dato almacenado permite reconstruir la identidad. |
 | **Medida** | 100 % de intentos no autorizados rechazados; 0 reidentificación posible en la auditoría del esquema (sin vínculo cuenta ↔ eventos y sin seudónimos con más de 72 h); A+ en SSL Labs; cuenta desactivada sin acceso en ≤ 5 min (RNF-08…11, RNF-25, RNF-26). |
 | **Verificación** | Pruebas de acceso al panel (sin token, expirado, fuerza bruta); auditoría del esquema; consulta de verificación de purga; escaneo SSL Labs; verificar que `/metrics` no es público. |
-| **Trazabilidad** | R-06, DA-07, HU-11, HU-21, ADR-007, ADR-009 |
+| **Trazabilidad** | R-06, DA-07, DA-17, HU-11, HU-21, RNF-26, ADR-007, ADR-009 |
 | **Estado** | Definido |
 
 ## EQ-05. Mantenibilidad: cambios aislados por módulo
@@ -76,14 +76,14 @@
 | **Respuesta** | El cambio se concentra en un solo módulo; los umbrales se modifican **por configuración**, sin tocar código; el sistema completo se despliega con un único comando. |
 | **Medida** | El cambio de umbral toca 0 líneas de código; el cambio de componente toca solo 1 módulo; las pruebas del módulo y de regresión pasan; las pruebas de arquitectura pasan (RNF-28); despliegue con `docker compose up -d` y rollback en < 5 min (RNF-17, RNF-18). |
 | **Verificación** | Revisión de dependencias entre módulos; ejecución de la suite completa; medición del tiempo de rollback en staging. |
-| **Trazabilidad** | R-09, DA-06, DA-09, HU-16, ADR-001, ADR-002, ADR-012 |
+| **Trazabilidad** | R-09, DA-06, DA-09, HU-16, RNF-17, RNF-18, RNF-19, RNF-28, ADR-001, ADR-002, ADR-012 |
 | **Estado** | Definido |
 
 ## EQ-06. Escalabilidad: sincronización concurrente de la flota
 
 | Elemento | Descripción |
 |---|---|
-| **Atributo** | Escalabilidad (AC-06) |
+| **Atributo** | Escalabilidad y rendimiento del servidor (AC-06) |
 | **Fuente** | Flota de dispositivos Android |
 | **Estímulo** | 300 dispositivos intentan sincronizar lotes de hasta 50 eventos en una ventana corta (p. ej. al recuperar señal juntos). |
 | **Artefacto** | Ingesta (tabla de recepción, Channel y `BackgroundService`) |
@@ -143,7 +143,7 @@
 
 | Elemento | Descripción |
 |---|---|
-| **Atributo** | Disponibilidad y continuidad (AC-02, AC-07) |
+| **Atributo** | Confiabilidad del dato y continuidad (AC-02) |
 | **Fuente** | Falla de disco, corrupción de datos o eliminación accidental |
 | **Estímulo** | Se pierde o corrompe la base de datos. |
 | **Artefacto** | Job de backup y almacenamiento de objetos |
@@ -181,7 +181,7 @@
 | **Respuesta** | El servidor juzga cada evento por su contenido y no por el momento de la subida: descarta los que están fuera de la vía y los que implican velocidades imposibles; retiene sin publicar (hasta confirmación) los de un dispositivo que supera el tope por hora de detección; no confirma severidad 4–5 sin al menos un reporte con sesión. Los descartes se ven por motivo en el Dashboard. |
 | **Medida** | 0 anomalías de severidad 4–5 confirmadas solo con seudónimos anónimos; 0 eventos aceptados a más de 50 m de la vía; 0 anomalías publicadas solo por un dispositivo que supera el tope; 100 % de los eventos legítimos de una subida acumulada de 5 h aceptados y 0 eventos reales perdidos en un tramo de lluvia con ~600 eventos por hora (RN-13, RN-14, RN-15). |
 | **Verificación** | Prueba con un script que envía eventos fuera de la vía, en ráfaga y con saltos de posición; prueba paralela con un recorrido real de 5 h en modo avión. Conciliar aceptados y descartados por motivo. |
-| **Trazabilidad** | R-07, DA-10, RF-12, HU-05, ADR-005, ADR-009 |
+| **Trazabilidad** | DA-15, RN-13, RN-14, RN-15, RF-12, HU-05, ADR-015 |
 | **Estado** | Definido |
 
 ## EQ-13. Respuesta a un incidente con datos personales
@@ -196,7 +196,37 @@
 | **Respuesta** | Con la auditoría se reconstruye quién, qué, cuándo y qué datos; se desactiva la cuenta (≤ 5 min, RNF-26); se documenta el incidente y se notifica a la Autoridad y a los titulares afectados. |
 | **Medida** | Reconstrucción completa del incidente desde la auditoría; notificación en ≤ 48 h (RNF-29); 0 acciones sensibles sin registro (RNF-31). |
 | **Verificación** | Simulacro semestral: una exportación «no autorizada» en staging, cronometrando desde la detección hasta el borrador de notificación. |
-| **Trazabilidad** | R-06, DA-07, RF-15, RNF-29, RNF-30, RNF-31, ADR-013 |
+| **Trazabilidad** | R-06, DA-16, RF-15, RNF-29, RNF-30, RNF-31, ADR-013 |
+| **Estado** | Definido |
+
+## EQ-14. Rendimiento del servidor: consulta del mapa en hora punta
+
+| Elemento | Descripción |
+|---|---|
+| **Atributo** | Escalabilidad y rendimiento del servidor (AC-06) |
+| **Fuente** | Conductores registrados y el panel del administrador |
+| **Estímulo** | 300 clientes consultan `GET /api/v1/anomalies?bbox=` en la misma ventana (p. ej. a la salida de los buses de la madrugada), mientras la flota sincroniza. |
+| **Artefacto** | Consulta de Mapa, su caché por celdas, PostgreSQL + PostGIS y la caché de borde de Cloudflare |
+| **Entorno** | Un único servidor Oracle ARM en Santiago (Chile); caché caliente para el tramo más consultado. |
+| **Respuesta** | La mayoría de las consultas se resuelven desde la caché de borde o la caché por celdas; las demás usan el índice GiST. Las respuestas sin cambios devuelven 304 por `ETag`. |
+| **Medida** | p95 < 250 ms medido en la API y < 300 ms de extremo a extremo desde Lima (RNF-01); tasa de error < 1 %; aciertos de caché ≥ 80 % en el tramo demo. |
+| **Verificación** | Prueba de carga con k6 (300 usuarios virtuales consultando y 300 sincronizando); prueba sintética desde Lima; panel de Grafana con p95 y aciertos de caché. |
+| **Trazabilidad** | DA-05, RNF-01, RF-14, HU-08, ADR-006 |
+| **Estado** | Definido |
+
+## EQ-15. Costo operativo: el gasto se acerca al tope
+
+| Elemento | Descripción |
+|---|---|
+| **Atributo** | Costo operativo (AC-09) |
+| **Fuente** | Proveedores de infraestructura (Oracle Cloud, Cloudflare, correo, Grafana Cloud) |
+| **Estímulo** | Un plan gratuito cambia sus condiciones, un uso crece más de lo previsto o la cuenta de Oracle pasa a pago por uso (mitigación de RS-01) y aparece un cobro. |
+| **Artefacto** | Cuentas de los proveedores y configuración de telemetría |
+| **Entorno** | Operación normal del MVP con tope de US$ 10 al mes. |
+| **Respuesta** | Las alertas de presupuesto avisan por correo al llegar a US$ 8; se identifica el servicio que generó el gasto y se aplica la mitigación (bajar el muestreo de telemetría, ajustar la retención, cambiar de proveedor detrás de su adaptador). |
+| **Medida** | 0 meses por encima de US$ 10 (RNF-16); alerta recibida antes de superar el tope; Grafana Cloud siempre sin tarjeta registrada (RNF-32). |
+| **Verificación** | Revisión mensual de la facturación de cada proveedor; prueba de la alerta de presupuesto con un umbral bajo. |
+| **Trazabilidad** | R-04, DA-08, RNF-16, RNF-32, RS-01…RS-04, ADR-010, ADR-014 |
 | **Estado** | Definido |
 
 ## Resumen de escenarios
@@ -216,3 +246,5 @@
 | EQ-11 | Seguridad (alcance por rol) | 🟠 Alta | El servidor impide acceder al corredor completo sin cuenta |
 | EQ-12 | Integridad (datos falsos) | 🔴 Crítica | Un script no puede crear ni confirmar baches falsos, y la subida acumulada legítima sí pasa |
 | EQ-13 | Seguridad (incidente legal) | 🔴 Crítica | Un incidente con datos personales se reconstruye y se notifica en ≤ 48 h |
+| EQ-14 | Rendimiento (mapa) | 🟠 Alta | El mapa responde en p95 < 250 ms con 300 clientes |
+| EQ-15 | Costo operativo | 🟠 Alta | El gasto nunca supera US$ 10 al mes y se avisa antes |

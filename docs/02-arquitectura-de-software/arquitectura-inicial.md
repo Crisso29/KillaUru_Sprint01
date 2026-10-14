@@ -1,6 +1,6 @@
 # Arquitectura Inicial del Sistema
 
-> **Proyecto:** KillaUru · **Versión:** 2.1 · **Revisión:** 2026-10-13 · **Estado:** Vigente (alineado con ADR-001…ADR-014)
+> **Proyecto:** KillaUru · **Versión:** 2.1 · **Revisión:** 2026-10-13 · **Estado:** Vigente (alineado con ADR-001…ADR-015)
 > **Relacionados:** `estilo-arquitectonico.md`, `enfoque-arquitectonico.md`, `componentes-arquitectonicos.md`, `Nivel1…Nivel4`, `07-decisiones-arquitectonicas.md`
 
 ## 1. Propósito y alcance
@@ -146,6 +146,7 @@ sequenceDiagram
 | ADR-012 Convenciones | Lenguaje ubicuo, EF Core, umbrales por configuración |
 | ADR-013 Auditoría transaccional | Ninguna acción sensible sin rastro |
 | ADR-014 Persistencia políglota | SQL, documental (`JSONB`), SQLite, objetos (R2) y clave-valor en memoria |
+| ADR-015 Integridad del dato | Solo eventos sobre la vía, sesión para confirmar lo grave, plausibilidad sin descartar picos reales |
 
 ## 8. Mapa de documentos
 

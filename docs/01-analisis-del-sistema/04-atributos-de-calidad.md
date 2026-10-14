@@ -53,7 +53,7 @@
 | ID | Requisito | Cómo se mide |
 |---|---|---|
 | RNF-15 | La app debe consumir < 8 % de batería por hora activa, < 1 MB de datos por hora (sin contar la descarga única del mapa base) y < 100 MB de almacenamiento tras 30 días (sin contar el mapa base, que puede ocupar hasta 80 MB aparte). | Perfilado en campo |
-| RNF-16 | El costo operativo mensual de infraestructura debe ser **≤ US$ 10** (confirmado el 2026-10-13; costo estimado de v1.0: ~US$ 4/mes, casi todo el dominio `.pe` prorrateado). Cuando exista ingreso recurrente, además debe ser ≤ 40 % de este. | Facturación mensual |
+| RNF-16 | El costo operativo mensual de infraestructura debe ser **≤ US$ 10**, con alertas de presupuesto en Oracle Cloud y Cloudflare al llegar a US$ 8 (confirmado el 2026-10-13; costo estimado de v1.0: ~US$ 4/mes, casi todo el dominio `.pe` prorrateado). Cuando exista ingreso recurrente, además debe ser ≤ 40 % de este. | Facturación mensual |
 
 ## Mantenibilidad
 
@@ -78,10 +78,11 @@
 | ID | Atributo | ¿Por qué es importante en KillaUru? | Prioridad | RNF clave | Escenarios asociados |
 |---|---|---|---|---|---|
 | AC-01 | Disponibilidad offline | Más del 50 % del corredor no tiene señal celular. Si el sistema no funciona sin internet, no sirve para la vía. | 🔴 Crítica | RNF-33, RNF-15 | EQ-01 |
-| AC-02 | Confiabilidad del dato | Un bache mal registrado o perdido silenciosamente daña la confianza. Cada evento aceptado debe persistirse de forma durable ante cortes o reinicios. | 🔴 Crítica | RNF-06, RNF-07, RNF-24 | EQ-02, EQ-09, EQ-10 |
+| AC-02 | Confiabilidad del dato | Un bache mal registrado o perdido silenciosamente daña la confianza. Cada evento aceptado debe persistirse de forma durable ante cortes o reinicios. | 🔴 Crítica | RNF-06, RNF-07, RNF-24 | EQ-02, EQ-09, EQ-10, EQ-12 |
 | AC-03 | Rendimiento en móvil | El modelo ML debe clasificar en < 50 ms sin agotar la batería. Un sistema lento o que consume batería será desinstalado. | 🔴 Crítica | RNF-04, RNF-15 | EQ-03 |
 | AC-04 | Seguridad y privacidad | La Ley 29733 obliga a proteger la identidad del conductor. Además, el servidor debe restringir el acceso a datos según el rol y no aceptar datos falsos (RN-13…RN-15). | 🔴 Crítica | RNF-08…11, RNF-25…27, RNF-29…31 | EQ-04, EQ-11, EQ-12, EQ-13 |
 | AC-05 | Mantenibilidad | El sistema lo desarrolla y mantiene una sola persona. Si el código es difícil de modificar, el proyecto muere. | 🟠 Alta | RNF-17…19, RNF-28 | EQ-05 |
-| AC-06 | Escalabilidad | El sistema debe poder absorber ráfagas de sincronización de la flota sin reescribir la arquitectura. | 🟠 Alta | RNF-02, RNF-03, RNF-23 | EQ-06 |
+| AC-06 | Escalabilidad y rendimiento del servidor | El sistema debe absorber ráfagas de sincronización de la flota y responder el mapa con rapidez, sin reescribir la arquitectura. | 🟠 Alta | RNF-01, RNF-02, RNF-03, RNF-23 | EQ-06, EQ-14 |
 | AC-07 | Observabilidad | Si algo falla en producción, debe detectarse mediante monitoreo proactivo antes de que los usuarios lo reporten. | 🟠 Alta | RNF-05, RNF-20…22, RNF-32 | EQ-07 |
-| AC-08 | Usabilidad | El conductor no puede distraerse mientras maneja. La detección debe ser pasiva y automática. | 🟡 Media | RNF-12, RNF-14 | EQ-08 |
+| AC-08 | Usabilidad | El conductor no puede distraerse mientras maneja. La detección debe ser pasiva y automática. | 🟡 Media | RNF-12, RNF-13, RNF-14 | EQ-08 |
+| AC-09 | Costo operativo | El MVP es autofinanciado: si la infraestructura empieza a cobrar, el proyecto no se sostiene. Cada decisión debe caber en los planes gratuitos o en el tope mensual. | 🟠 Alta | RNF-16, RNF-32 | EQ-15 |

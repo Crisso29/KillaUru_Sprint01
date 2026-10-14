@@ -2,7 +2,7 @@
 
 > **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-13 · **Estado:** Vigente
 > Un ADR (Architecture Decision Record) documenta una decisión importante: el contexto que la motivó, las alternativas evaluadas, la decisión tomada y sus consecuencias.
-> **Estados:** **Aceptado** (ya reflejado en C2–C4)
+> **Estados:** **Aceptado** (vigente). La columna «Drivers» de cada ADR coincide con la columna «ADR» de `06-driver-arquitectonicos.md` (trazabilidad en ambos sentidos).
 
 ## Resumen de decisiones
 
@@ -11,23 +11,24 @@
 | **ADR-001** | Monolito modular | Aceptado | DA-06, DA-09, DA-12 | Un proceso con 6 módulos: Identidad y Accesos, Ingesta, Anomalías, Consulta de Mapa, Dashboard y Auditoría |
 | **ADR-002** | Clean Architecture por módulo | Aceptado | DA-06, DA-09 | Capas Domain, Application, Adapters e Infrastructure; puertos en Application; `Contracts/` entre módulos |
 | **ADR-003** | Store-and-Forward con SQLite | Aceptado | DA-01, DA-02 | Buffer local PENDING/SYNCED/REJECTED_LOCAL con reintentos y *jitter* |
-| **ADR-004** | Edge AI con TFLite embebido | Aceptado | DA-03, DA-04 | Modelo MLP cuantizado en el APK; `modeloVersion` en cada evento |
+| **ADR-004** | Edge AI con LiteRT (TFLite) | Aceptado | DA-03, DA-04, DA-18 | Modelo MLP cuantizado; inicial en el APK y actualizable desde R2 con SHA-256; `modeloVersion` en cada evento |
 | **ADR-005** | Ingesta durable e idempotente | Aceptado | DA-02, DA-05 | Tabla de recepción + Channel como aviso + HTTP 200 tras el *commit* |
-| **ADR-006** | Caché en memoria (`IMemoryCache`) | Aceptado | DA-06, DA-08 | Caché por celdas, propiedad de Consulta de Mapa, invalidada por eventos de dominio (Observer); Redis diferido |
+| **ADR-006** | Caché en memoria (`IMemoryCache`) | Aceptado | DA-05, DA-08, DA-09 | Caché por celdas, propiedad de Consulta de Mapa, invalidada por eventos de dominio (Observer); Redis diferido |
 | **ADR-007** | Privacidad por diseño | Aceptado | DA-07 | Seudónimo rotativo, purga a 72 h, historial local |
 | **ADR-008** | Ciclo de vida de la anomalía | Aceptado | DA-13 | Estados y caducidad parametrizable |
-| **ADR-009** | Identidad y accesos | Aceptado | DA-10 | Módulo unificado (fusión de Autenticación y Usuarios), JWT diferenciado por rol, alta de conductor en v1.0 |
+| **ADR-009** | Identidad y accesos | Aceptado | DA-10, DA-17 | Módulo unificado; tokens de acceso de 5 min y de actualización revocables; RBAC y recorte por rol en el servidor |
 | **ADR-010** | Despliegue y operación | Aceptado | DA-08, DA-11 | Cloudflare Tunnel y Pages, backups, rollback por tag |
 | **ADR-011** | Mapa base vectorial offline | Aceptado | DA-14 | PMTiles del corredor en R2; MapLibre en app y panel |
-| **ADR-012** | Convenciones de diseño | Aceptado | DA-12 | Lenguaje ubicuo, una tecnología de datos, umbrales por configuración |
-| **ADR-013** | Auditoría en la misma transacción | Aceptado | DA-07, DA-10 | «No hay acción sensible sin rastro»; excepción documentada a la transacción por módulo |
+| **ADR-012** | Convenciones de diseño | Aceptado | DA-09, DA-12 | Lenguaje ubicuo, una tecnología de datos, umbrales por configuración |
+| **ADR-013** | Auditoría en la misma transacción | Aceptado | DA-06, DA-16 | «No hay acción sensible sin rastro»; excepción documentada a la transacción por módulo |
 | **ADR-014** | Estrategia de persistencia (políglota) | Aceptado | DA-01, DA-06, DA-08, DA-14 | PostgreSQL + JSONB, SQLite en el dispositivo, objetos en R2 y clave-valor en memoria; disparadores para NoSQL dedicado |
+| **ADR-015** | Integridad del dato contra eventos falsos | Aceptado | DA-15 | Solo sobre la vía, sesión para confirmar lo grave, plausibilidad del dispositivo sin descartar picos reales |
 
 ---
 
 ## ADR-001 — Monolito Modular
 
-**Estado:** Aceptado (revisión 2026-10-12) · **Drivers:** DA-06, DA-09, DA-12
+**Estado:** Aceptado (revisión 2026-10-13) · **Drivers:** DA-06, DA-09, DA-12
 
 **Contexto y problema.** KillaUru lo desarrolla y opera una sola persona con un plazo de 6 a 8 semanas. Los microservicios exigirían gestionar varios servicios y una infraestructura compleja, lo que haría inviable el proyecto; además no son óptimos cuando un proyecto recién inicia.
 
@@ -51,7 +52,7 @@
 
 ## ADR-002 — Clean Architecture por módulo
 
-**Estado:** Aceptado (revisión 2026-10-12) · **Drivers:** DA-06, DA-09
+**Estado:** Aceptado (revisión 2026-10-13) · **Drivers:** DA-06, DA-09
 
 **Contexto y problema.** Con un solo desarrollador, el código debe ser fácil de modificar y probar. Si la lógica de negocio se mezcla con controladores o base de datos, cualquier cambio tecnológico rompe el sistema.
 
@@ -94,7 +95,7 @@
 
 ## ADR-004 — Edge AI con TFLite para clasificación local
 
-**Estado:** Aceptado (revisión 2026-10-12) · **Drivers:** DA-03, DA-04
+**Estado:** Aceptado (revisión 2026-10-13) · **Drivers:** DA-03, DA-04, DA-18
 
 **Contexto y problema.** El conductor no puede tocar el celular mientras maneja. La clasificación debe ser automática, en tiempo real y sin internet.
 
@@ -121,7 +122,7 @@
 
 ## ADR-005 — Ingesta durable e idempotente
 
-**Estado:** Aceptado (revisión 2026-10-12) · **Drivers:** DA-02, DA-05
+**Estado:** Aceptado (revisión 2026-10-13) · **Drivers:** DA-02, DA-05
 
 **Contexto y problema.** Responder HTTP 200 al *encolar* en un Channel en memoria hace que un reinicio pierda eventos que la app ya marcó `SYNCED` (viola RF-06 y RNF-06). Además, el lote se encola evento por evento (un lote parcial genera duplicados al reintentar) y no hay deduplicación.
 
@@ -149,7 +150,7 @@
 
 ## ADR-006 — Caché en memoria (`IMemoryCache`)
 
-**Estado:** Aceptado (revisión 2026-10-12) · **Drivers:** DA-06, DA-08
+**Estado:** Aceptado (revisión 2026-10-13) · **Drivers:** DA-05, DA-08, DA-09
 
 **Contexto y problema.** La consulta del mapa debe responder en < 250 ms. Algunos documentos antiguos mencionaban Redis.
 
@@ -170,7 +171,7 @@
 
 ## ADR-007 — Privacidad por diseño
 
-**Estado:** Aceptado (revisión 2026-10-12) · **Drivers:** DA-07
+**Estado:** Aceptado (revisión 2026-10-13) · **Drivers:** DA-07
 
 **Contexto y problema.** Un hash estable del dispositivo junto con ubicación y hora es **seudonimización, no anonimización**: con pocos días se infieren domicilio y trabajo. Un SHA-256 sin sal de un identificador de baja entropía es reversible por fuerza bruta. Además HU-10 (historial) y las cuentas de conductor podrían vincular identidad con trayectorias.
 
@@ -197,7 +198,7 @@
 
 ## ADR-008 — Ciclo de vida de la anomalía
 
-**Estado:** Aceptado (revisión 2026-10-12) · **Drivers:** DA-13
+**Estado:** Aceptado (revisión 2026-10-13) · **Drivers:** DA-13
 
 **Contexto y problema.** Hoy solo existe `Episodica | Persistente`. Un bache reparado o una inundación seguiría en el mapa para siempre y generaría falsas alarmas (HU-09). Un evento de severidad alta sin confirmar queda `Confirmada = false` indefinidamente.
 
@@ -216,7 +217,7 @@
 
 ## ADR-009 — Identidad y accesos
 
-**Estado:** Aceptado (revisión 2026-10-12) · **Drivers:** DA-10
+**Estado:** Aceptado (revisión 2026-10-13) · **Drivers:** DA-10, DA-17
 
 **Contexto y problema.** El conductor registrado existe en v1.0, pero no hay mecanismo de alta ni de sesión. Además, en C3 Autenticación y Usuarios dependen entre sí (Usuarios valida sesión con Autenticación, y Autenticación lee la tabla `usuarios` de Usuarios), lo que viola la regla de no tener ciclos entre módulos.
 
@@ -251,7 +252,7 @@
 
 ## ADR-010 — Despliegue y operación
 
-**Estado:** Aceptado (revisión 2026-10-12) · **Drivers:** DA-08, DA-11
+**Estado:** Aceptado (revisión 2026-10-13) · **Drivers:** DA-08, DA-11
 
 **Contexto y problema.** RNF-07 (backup), RNF-18 (rollback) y «solo Cloudflare alcanza el origen» no tienen mecanismo definido; el hosting del panel sigue pendiente.
 
@@ -285,7 +286,7 @@
 
 ## ADR-011 — Mapa base vectorial offline
 
-**Estado:** Aceptado (revisión 2026-10-12) · **Drivers:** DA-14
+**Estado:** Aceptado (revisión 2026-10-13) · **Drivers:** DA-14
 
 **Contexto y problema.** EQ-01 exige mapa sin señal y RNF-15 limita datos y almacenamiento. Las teselas raster en línea rompen ambos, y los servidores de teselas públicos de OpenStreetMap no permiten descarga masiva.
 
@@ -315,7 +316,7 @@
 
 ## ADR-012 — Convenciones de diseño
 
-**Estado:** Aceptado (revisión 2026-10-12) · **Drivers:** DA-12
+**Estado:** Aceptado (revisión 2026-10-13) · **Drivers:** DA-09, DA-12
 
 **Contexto y problema.** Hay nombres distintos para un mismo concepto (Sincronización/Ingesta, `Anomalia`/`AnomaliaVial`, Categoría/Tipo) y dos tecnologías de datos en los documentos (Dapper vs EF Core).
 
@@ -336,7 +337,7 @@
 
 ## ADR-013 — Auditoría en la misma transacción que la acción
 
-**Estado:** Aceptado (2026-10-13) · **Drivers:** DA-07, DA-10 · **Requisitos:** RF-15, RNF-29, RNF-30, RNF-31
+**Estado:** Aceptado (2026-10-13) · **Drivers:** DA-06, DA-16 · **Requisitos:** RF-15, RNF-29, RNF-30, RNF-31
 
 **Contexto y problema.** Las acciones sensibles (cambio de rol, desactivación, eliminación de cuenta, moderación, exportación) escriben en la tabla de su módulo y además en `auditoria`. Si la acción se confirma y el registro falla, queda una acción **sin rastro**. El D.S. 016-2024-JUS exige gestionar y verificar accesos, y documentar y notificar incidentes en 48 h; sin un rastro confiable eso no es posible.
 
@@ -395,6 +396,34 @@
 
 ---
 
+## ADR-015 — Integridad del dato contra eventos falsos
+
+**Estado:** Aceptado (2026-10-13) · **Drivers:** DA-15 · **Reglas:** RN-13, RN-14, RN-15 · **Escenario:** EQ-12
+
+**Contexto y problema.** La API de ingesta es pública y acepta eventos anónimos. El APK se puede analizar y su protocolo, imitar; como se distribuye fuera de Play Store (S-02), no existe la verificación de integridad de Google Play. Un script podría inventar baches en cualquier parte o confirmar baches graves con seudónimos falsos, y destruir la confianza en el mapa. Además, la defensa **no puede castigar al conductor real**: tras horas sin señal sube muchos eventos de golpe, y en temporada de lluvia detecta cientos por hora.
+
+| Opción | Pros | Contras |
+|---|---|---|
+| No hacer nada (solo límite de tasa) | Simple | Cualquiera publica o confirma baches falsos |
+| Exigir cuenta para enviar eventos | Atribuye cada evento | Rompe la detección anónima y pasiva; menos datos; choca con la privacidad (ADR-007) |
+| Verificación de integridad de Google Play | Fuerte: certifica app y dispositivo | Solo funciona con Play Store; no disponible en el MVP |
+| Límite fijo de eventos por hora que **descarta** el exceso | Simple | Pierde datos reales en lluvia y tras horas offline |
+| **Defensas por contenido, sin descartar datos reales** | Detiene los ataques baratos, conserva el anonimato y no castiga picos legítimos | Más lógica en el dominio; un atacante con varias cuentas reales aún podría confirmar |
+
+**Decisión.** El servidor juzga cada evento por **su contenido** (ubicación y hora de detección), **nunca por el momento en que llega**:
+1. **Solo sobre la vía (RN-13):** se descarta todo evento a más de 50 m del eje de la PE-28A (polilínea `anomalias.corredor_via`).
+2. **Sesión para confirmar lo grave (RN-14):** una anomalía de severidad 4–5 pasa a `Activa` solo si al menos uno de los dispositivos que la confirman envió su reporte con sesión. El reporte guarda solo `con_sesion` (sí/no), nunca la cuenta.
+3. **Plausibilidad del dispositivo (RN-15):** (a) si un seudónimo supera 120 eventos por hora **de detección**, sus eventos se guardan pero exigen confirmación de otro dispositivo, en lugar de descartarse; (b) se descartan los saltos de posición que implican más de 150 km/h.
+4. Los descartes y retenciones se cuentan por motivo en la telemetría, con alerta en Grafana (ADR-010).
+
+**Consecuencias**
+- ✅ Un script con un solo dispositivo no puede publicar baches fuera de la vía, ni confirmar graves, ni inundar el mapa.
+- ✅ Ningún evento real se pierde por picos legítimos (lluvia, subida tras horas offline).
+- ⚠️ Riesgo residual: varios atacantes con cuentas reales coordinadas. Se mitiga con la moderación del administrador (`Descartada`, RN-07) y la revisión de las métricas de descartes.
+- 🔜 **Disparador:** al publicar en Play Store, añadir la verificación de integridad de Google Play como señal adicional en Ingesta.
+
+---
+
 ## Decisiones abiertas
 
 | # | Tema | Opciones | Responsable |
@@ -402,7 +431,7 @@
 | ~~1~~ | ~~Granularidad de módulos~~ | **Cerrada (2026-10-13):** un módulo «Anomalías» con el flujo interno validar → confirmar → clasificar | Autor |
 | ~~2~~ | ~~Definición de «severidad alta»~~ | **Cerrada (2026-10-13):** 4 o 5 (RN-02, RN-06) | Autor |
 | ~~3~~ | ~~Catálogo de `TipoAnomalia`~~ | **Cerrada (2026-10-13):** Bache y Hundimiento (RN-01) | Autor |
-| ~~4~~ | ~~Confirmación falsificable por anónimos~~ | **Cerrada (2026-10-13):** solo eventos sobre la vía (RN-13), sesión para confirmar severidad 4–5 (RN-14), velocidad plausible y, si un dispositivo supera el tope por hora de detección, confirmación obligatoria en lugar de descarte para no perder datos reales en temporada de lluvia (RN-15). La verificación de integridad de Play queda para cuando se publique en Play Store | Autor |
+| ~~4~~ | ~~Confirmación falsificable por anónimos~~ | **Cerrada (2026-10-13), ver ADR-015:** solo eventos sobre la vía (RN-13), sesión para confirmar severidad 4–5 (RN-14), velocidad plausible y, si un dispositivo supera el tope por hora de detección, confirmación obligatoria en lugar de descarte para no perder datos reales en temporada de lluvia (RN-15). La verificación de integridad de Play queda para cuando se publique en Play Store | Autor |
 | ~~5~~ | ~~Actualización del modelo TFLite~~ | **Cerrada (2026-10-13):** descarga versionada desde R2 con manifiesto y SHA-256, solo con Wi-Fi (ADR-004) | Autor |
 | ~~6~~ | ~~Cuarto subdominio~~ | **Cerrada (2026-10-13):** `cdn.killauru.pe` publica R2 (mapa base y modelos) | Autor |
 | ~~7~~ | ~~Tope de costo RNF-16~~ | **Cerrada (2026-10-13):** ≤ US$ 10/mes; región Oracle Santiago (Chile) | Autor |

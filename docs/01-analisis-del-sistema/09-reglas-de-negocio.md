@@ -162,4 +162,4 @@ El servidor juzga cada evento por **su contenido** (ubicación y hora de detecci
 | RN-07 | RF-23, RF-24 | HU-06, HU-19 | ADR-008 |
 | RN-08 | RF-08, RF-14 | HU-07, HU-08, HU-12 | ADR-009 |
 | RN-09, RN-10 | RF-25, RF-27 | HU-10, HU-21 | ADR-007 |
-| RN-13, RN-14, RN-15 | RF-12 | HU-05 | ADR-005, ADR-009 |
+| RN-13, RN-14, RN-15 | RF-12 | HU-05 | ADR-015 |
