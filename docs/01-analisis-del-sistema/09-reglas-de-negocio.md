@@ -1,6 +1,6 @@
 # Reglas de Negocio
 
-> **Proyecto:** KillaUru · **Versión:** 1.0 · **Revisión:** 2026-10-13 · **Estado:** Vigente
+> **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-13 · **Estado:** Vigente
 > Una regla de negocio dice **qué es válido en el dominio**, sin importar la tecnología. Este documento es el **único catálogo de reglas y umbrales de negocio** (`RN-xx`); los demás documentos las referencian por ID y no repiten el valor.
 > Todos los umbrales son **parámetros de configuración** (ADR-012) con un valor inicial que se calibra con los datos del piloto (S-04).
 > **Relacionados:** `03-requisitos-funcionales.md`, `04-atributos-de-calidad.md`, `07-decisiones-arquitectonicas.md`

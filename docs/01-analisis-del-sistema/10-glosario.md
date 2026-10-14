@@ -1,6 +1,6 @@
 # Glosario (lenguaje ubicuo)
 
-> **Proyecto:** KillaUru · **Versión:** 1.0 · **Revisión:** 2026-10-13 · **Estado:** Vigente
+> **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-13 · **Estado:** Vigente
 > Cada término tiene **una sola definición** y se usa igual en documentos, código, API y panel (ADR-012). Los términos de negocio van en español; los técnicos de capas, en inglés.
 > **Relacionados:** `09-reglas-de-negocio.md`, `07-decisiones-arquitectonicas.md`, `componentes-arquitectonicos.md`
 

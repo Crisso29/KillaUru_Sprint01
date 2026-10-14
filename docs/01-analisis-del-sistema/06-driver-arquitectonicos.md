@@ -1,6 +1,6 @@
 # Drivers Arquitectónicos
 
-> **Proyecto:** KillaUru · **Versión:** 2.0 · **Revisión:** 2026-10-13
+> **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-13
 > Un driver arquitectónico es un requisito, atributo o restricción que **obliga** a tomar una decisión de arquitectura. Criterio de inclusión: *si este driver no existiera, la arquitectura sería diferente.*
 > **Método:** *Attribute-Driven Design* (ADD 3.0, SEI). Cada driver se clasifica por **tipo** y se prioriza con dos notas: **importancia para el negocio** y **dificultad técnica**: **A** (alta), **M** (media) o **B** (baja).
 > **Regla de trazabilidad:** la columna «ADR» de esta tabla coincide exactamente con el campo «Drivers» de cada ADR en `07-decisiones-arquitectonicas.md`.
