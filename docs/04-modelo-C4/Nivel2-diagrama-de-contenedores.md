@@ -16,7 +16,7 @@ Abrir la caja «KillaUru» y mostrar sus **contenedores**: las aplicaciones y al
 | Siguiente nivel | [`Nivel3-diagrama-de-componentes.md`](Nivel3-diagrama-de-componentes.md) |
 
 ## 2. Diagrama
-
+![C2: Diagrama de Contenedores del Sistema KillaUru](../../img/fuentes-svg/C2_Contenedores.svg)
 ```mermaid
 flowchart TB
     classDef persona fill:#0F766E,color:#fff,stroke:#0b5a54

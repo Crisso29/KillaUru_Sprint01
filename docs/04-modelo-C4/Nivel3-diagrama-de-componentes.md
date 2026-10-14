@@ -16,6 +16,7 @@ Abrir los dos contenedores con lógica propia, la **API** y la **App**, y mostra
 | Siguiente nivel | [`Nivel4-diagrama-de-codigo.md`](Nivel4-diagrama-de-codigo.md) |
 
 ## 2. API KillaUru: componentes
+![C3: Diagrama del API KillaUru](../../img/fuentes-svg/C3_API.svg)
 
 ```mermaid
 flowchart TD
@@ -102,7 +103,7 @@ flowchart TD
 | Indicadores diarios | Dashboard | Diaria (antes de la purga) | RN-17 |
 
 ## 3. App KillaUru: componentes
-
+![C3: Diagrama interno del APP KillaUru](../../img/fuentes-svg/C3_App.svg)
 ```mermaid
 flowchart LR
     classDef comp fill:#A9C9F5,color:#0F2744,stroke:#1565C0

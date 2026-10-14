@@ -16,6 +16,9 @@ Mostrar **KillaUru como una sola caja**: quién lo usa y con qué sistemas exter
 
 ## 2. Diagrama
 
+![C1: Diagrama de Contexto del Sistema KillaUru](../../img/fuentes-svg/C1_Contexto.svg)
+
+
 ```mermaid
 flowchart TB
     classDef sistema fill:#1565C0,color:#fff,stroke:#0d47a1
