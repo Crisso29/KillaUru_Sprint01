@@ -161,7 +161,7 @@
 | Redis | Compartida entre instancias | Un contenedor más que operar (R-09) |
 | Sin caché | Simple | Riesgo para RNF-01 |
 
-**Decisión.** `IMemoryCache` **dentro del módulo Consulta de Mapa** (no en `Shared`). La invalidación usa el **patrón Observer con eventos de dominio en proceso**: después del *commit*, Anomalías publica `AnomaliaCambiada(anomaliaId, celdas)` y **no sabe quién escucha**; Consulta de Mapa se suscribe y borra sus celdas. Futuros interesados (notificaciones v1.5, empresas v2.0) se suscriben sin modificar Anomalías (principio abierto/cerrado). El publicador es una lista de suscriptores en memoria: sin broker y sin costo. Las claves se calculan por **celdas de rejilla y alcance del rol** (el `bbox` se ajusta a celdas; «anónimo», «registrado» y «administrador» nunca comparten una entrada) para que se reutilicen sin mezclar datos. **Solo las respuestas a anónimos** llevan `Cache-Control: public` corto y `ETag` para que Cloudflare las cachee; las respuestas a peticiones con token llevan `Cache-Control: private, no-store`, y la regla de caché de Cloudflare excluye las peticiones con cabecera `Authorization`. Así la caché nunca le entrega a un anónimo el corredor completo que pidió un registrado (R-07, RNF-27).
+**Decisión.** `IMemoryCache` **dentro del módulo Consulta de Mapa** (no en `Shared`), usada a través de **HybridCache** de .NET, cuyo nivel 1 es justamente `IMemoryCache`: protege contra la estampida de peticiones simultáneas, invalida por etiqueta y admite Redis como nivel 2 sin cambiar el código si algún día hay más de una instancia (S-03). Diseño detallado en `diseño-interno-de-modulos.md`, sección 4. La invalidación usa el **patrón Observer con eventos de dominio en proceso**: después del *commit*, Anomalías publica `AnomaliaCambiada(anomaliaId, celdas)` y **no sabe quién escucha**; Consulta de Mapa se suscribe y borra sus celdas. Futuros interesados (notificaciones v1.5, empresas v2.0) se suscriben sin modificar Anomalías (principio abierto/cerrado). El publicador es una lista de suscriptores en memoria: sin broker y sin costo. Las claves se calculan por **celdas de rejilla y alcance del rol** (el `bbox` se ajusta a celdas; «anónimo», «registrado» y «administrador» nunca comparten una entrada) para que se reutilicen sin mezclar datos. **Solo las respuestas a anónimos** llevan `Cache-Control: public` corto y `ETag` para que Cloudflare las cachee; las respuestas a peticiones con token llevan `Cache-Control: private, no-store`, y la regla de caché de Cloudflare excluye las peticiones con cabecera `Authorization`. Así la caché nunca le entrega a un anónimo el corredor completo que pidió un registrado (R-07, RNF-27).
 
 **Consecuencias**
 - ✅ Sin componentes adicionales.
@@ -206,13 +206,13 @@
 | Opción | Pros | Contras |
 |---|---|---|
 | Sin caducidad (estado actual) | Simple | El mapa se llena de anomalías obsoletas |
-| **Estados + caducidad parametrizable + moderación** | Mapa fiel a la realidad | Un job y un campo `UltimoReporteUtc` |
+| **Estados + caducidad parametrizable + moderación** | Mapa fiel a la realidad | Un job y un campo `UltimaDeteccionUtc` |
 
 **Decisión.** Estados `Activa`, `PendienteConfirmacion`, `Expirada`, `Reparada` y `Descartada` (diagrama en RN-07). Valores iniciales: episódica expira a las 72 h sin reportes; persistente expira a los 7 días sin reportes; pendiente expira a las 72 h sin segundo dispositivo; el administrador puede marcar `Reparada` o `Descartada` (RF-24). Un `BackgroundService` aplica la caducidad **cada hora**, con la hora de detección del último reporte (RN-07); una anomalía `Expirada` o `Reparada` que recibe un reporte vuelve a nacer y pasa otra vez por la confirmación (RN-06). El mapa y las alertas usan solo `Activa`. Los parámetros se calibran con el piloto.
 
 **Consecuencias**
 - ✅ Menos falsas alarmas.
-- ⚠️ Cambia el agregado `Anomalia` en C4 (campo `Estado` y `UltimoReporteUtc`).
+- ⚠️ Cambia el agregado `Anomalia` en C4 (campo `Estado` y `UltimaDeteccionUtc`).
 
 ---
 

@@ -60,7 +60,7 @@ flowchart TD
     PANEL["Panel Admin<br/>SPA"]:::cliente
 
     subgraph BACKEND["⚙️ BACKEND · Monolito modular (.NET 10)"]
-        HOST["API REST (host)<br/>JWT/RBAC · rate limiting · logs · /health"]:::host
+        HOST["API REST (host)<br/>JWT/RBAC · rate limiting · logs · /health/live · /health/ready"]:::host
 
         subgraph NEGOCIO["Módulos (cada uno con Domain · Application · Adapters · Infrastructure)"]
             ID["Identidad y Accesos"]:::modulo
@@ -117,23 +117,23 @@ Estas reglas no son sugerencias: mantienen el sistema ordenado conforme crece. L
 | 7 | **Ingesta durable.** El HTTP 200 se responde **solo tras el *commit*** en `evento_recibido`; el procesamiento es asíncrono e idempotente por `eventoId`. | RNF-06, DA-02 | EQ-02, EQ-09 |
 | 8 | **El servidor decide el acceso.** RBAC y recorte por rol se aplican en la API; la app no es frontera de seguridad. | R-07, DA-10 | EQ-04, EQ-11 |
 | 9 | **Offline-first.** La app nunca depende de la red para detectar, guardar, mostrar el mapa descargado ni alertar. | R-08, DA-01 | EQ-01 |
-| 10 | **Privacidad por diseño.** Seudónimo rotativo, purga a 72 h, historial solo local, exportación sin seudónimos. | R-06, DA-07 | EQ-04 |
+| 10 | **Privacidad por diseño.** Seudónimo rotativo, purga a 72 h en reportes y copia de recepción, historial solo local, exportación sin seudónimos, `con_sesion` sin guardar quién. | R-06, DA-07 | EQ-04 |
 | 11 | **Una integración externa por módulo.** El proveedor de correo se integra solo desde Identidad y Accesos, mediante un adaptador. | Fácil de reemplazar | Revisión de código |
-| 12 | **Umbrales por configuración, reloj inyectado.** Ninguna regla de negocio (`09-reglas-de-negocio.md`) usa constantes ni `DateTime.UtcNow`. Día local con desfase fijo UTC−5. | Calibrar con el piloto sin tocar código (S-04) | Pruebas con `FakeTimeProvider` |
+| 12 | **Umbrales por configuración, reloj inyectado.** Ninguna regla de negocio (`09-reglas-de-negocio.md`) usa constantes ni `DateTime.UtcNow`. Todas las ventanas usan la **hora de detección** del evento (RN-05). Día local con desfase fijo UTC−5. | Calibrar con el piloto sin tocar código (S-04) | Pruebas con `FakeTimeProvider` |
 | 13 | **Evolución controlada.** Un módulo se extrae como servicio sin tocar a los demás, porque sus contratos ya existen. Candidatos: Ingesta y Consulta de Mapa. | DA-09 | — |
 
 ## 5. Tácticas por atributo de calidad
 
 | Atributo | Táctica arquitectónica | Dónde vive |
 |---|---|---|
-| AC-01 Disponibilidad offline | Store-and-Forward, mapa base y anomalías locales | App: Buffer, Mapa, Proximidad |
-| AC-02 Confiabilidad del dato | Ingesta durable, idempotencia, conciliación aceptados = procesados + descartados + pendientes | Ingesta; tabla `evento_recibido` |
-| AC-03 Rendimiento en móvil | Edge AI con modelo cuantizado | App: Detector |
-| AC-04 Seguridad y privacidad | Seudónimo rotativo, purga a 72 h, RBAC en servidor, Tunnel, CSP/HSTS | Identidad y Accesos, API REST, Anomalías |
+| AC-01 Disponibilidad offline | Store-and-Forward, mapa base, polilínea y anomalías locales con bajas incrementales, permiso local (RN-21) | App: Buffer, Mapa, Proximidad, Sesión |
+| AC-02 Confiabilidad del dato | Ingesta durable, resultado por evento (un evento malo no rechaza el lote), idempotencia, conciliación aceptados = procesados + descartados + pendientes, defensas por contenido (ADR-015) | Ingesta; tabla `evento_recibido`; Anomalías |
+| AC-03 Rendimiento en móvil | Edge AI con modelo cuantizado y medido con RNF-35; ahorro con batería baja que conserva las alertas (RN-22) | App: Detector, Sensores |
+| AC-04 Seguridad y privacidad | Seudónimo rotativo, purga a 72 h, RBAC en servidor, caché de borde solo para anónimos, Tunnel, CSP/HSTS, bloqueo progresivo (RN-19), secretos fuera de la VM (RNF-34) | Identidad y Accesos, API REST, Anomalías, Consulta de Mapa |
 | AC-05 Mantenibilidad | Módulos aislados, pruebas de arquitectura, umbrales por configuración | Todos los módulos |
 | AC-06 Escalabilidad y rendimiento del servidor | Cola por lote, serialización por celda geográfica, caché por celdas, caché de borde con ETag | Ingesta, Anomalías, Consulta de Mapa, Cloudflare |
-| AC-07 Observabilidad | `/health`, OpenTelemetry, logs estructurados y alertas de degradación | API REST, Grafana Cloud |
-| AC-08 Usabilidad | Detección pasiva en servicio en primer plano | App: Sensores |
+| AC-07 Observabilidad | `/health/live` y `/health/ready`, OpenTelemetry, logs estructurados; alertas de degradación, disco, tareas programadas y acciones de riesgo | API REST, Grafana Cloud |
+| AC-08 Usabilidad | Detección pasiva en servicio en primer plano; alerta sonora que no exige mirar la pantalla (RN-20); indicador de estado (RF-36) | App: Sensores, Proximidad |
 | AC-09 Costo operativo | Planes gratuitos, un solo servidor, sin brokers ni Redis, telemetría con muestreo y sin tarjeta, alertas de presupuesto | Toda la infraestructura (ADR-010, ADR-014) |
 
 ## 6. Stack tecnológico
@@ -141,7 +141,7 @@ Estas reglas no son sugerencias: mantienen el sistema ordenado conforme crece. L
 | Componente | Tecnología | Justificación |
 |---|---|---|
 | App móvil | Kotlin + corrutinas · **Jetpack Compose** · **Room** (SQLite) · **WorkManager** · servicio en primer plano (tipo `location`) · **Hilt** · **Retrofit + OkHttp** con kotlinx.serialization · **LiteRT** (antes TensorFlow Lite, MLP cuantizado) · **MapLibre Native** con PMTiles · **DataStore + Android Keystore** · `minSdk` 26 (Android 8.0) | Stack oficial de Google y gratuito; sensores a 50 Hz, inferencia local < 50 ms, sincronización resistente a reinicios y mapa offline en celulares de gama baja (R-01, ADR-003, ADR-004, ADR-011) |
-| Backend | ASP.NET Core 10 · .NET Channels · `IMemoryCache` · rate limiting integrado · `TimeProvider` | Tecnología del autor (R-02) y procesamiento asíncrono nativo |
+| Backend | ASP.NET Core 10 · .NET Channels · HybridCache (nivel 1 `IMemoryCache`) · rate limiting integrado · `TimeProvider` | Tecnología del autor (R-02) y procesamiento asíncrono nativo |
 | Acceso a datos | EF Core + NetTopologySuite · Npgsql | Una sola ruta de datos (ADR-012) |
 | Persistencia (ADR-014) | SQL relacional (PostgreSQL) · documental (`JSONB`) · SQL embebido (SQLite en el celular) · objetos (R2) · clave-valor (`IMemoryCache`) | Cada dato en el almacén que mejor encaja, sin servicios nuevos |
 | Base de datos | PostgreSQL + PostGIS · columna `geography(Point, 4326)` · índice GiST · bloqueos consultivos por celda | Consultas espaciales y serialización por zona (R-03) |
@@ -149,12 +149,12 @@ Estas reglas no son sugerencias: mantienen el sistema ordenado conforme crece. L
 | Hosting del panel y mapa base | Cloudflare Pages (panel) y **Cloudflare R2** para el mapa base PMTiles (Pages no admite archivos de más de 25 MiB) | Costo cero y sin servidor propio (ADR-010, ADR-011) |
 | Infraestructura | Docker Compose en Oracle Cloud ARM · `cloudflared` | Un comando levanta todo; origen sin puertos abiertos |
 | Borde | Cloudflare Free: DNS, TLS, proxy, caché de borde, Tunnel | TLS, A+ en SSL Labs y origen oculto (RNF-08) |
-| Observabilidad | OpenTelemetry (.NET 10) · Serilog (JSON) · **Grafana Cloud, plan gratuito, sin tarjeta** · UptimeRobot Free · `/health` | Métricas, trazas, logs y alertas sin código hecho a mano y con costo cero (RNF-20…22, RNF-32) |
-| Backups | `pg_dump` cifrado a almacenamiento de objetos, retención de 30 días | RNF-07, RNF-24 |
+| Observabilidad | OpenTelemetry (.NET 10) · Serilog (JSON) · **Grafana Cloud, plan gratuito, sin tarjeta** · UptimeRobot Free con su página de estado pública · `/health/live` y `/health/ready` | Métricas, trazas, logs y alertas sin código hecho a mano y con costo cero (RNF-20…22, RNF-32) |
+| Backups | `pg_dump` cifrado a Cloudflare R2 (fuera de la VM), retención de 30 días; `pg_dump` adicional antes de cada migración; clave de cifrado guardada fuera (RNF-34); simulacros en el entorno de pruebas (R-11) | RNF-07, RNF-18, RNF-24 |
 | Correo transaccional | Proveedor con plan gratuito o costo marginal (p. ej. Amazon SES, Brevo o Resend), detrás del adaptador `IEnviadorCorreo` | Verificación de correo y recuperación de contraseña en v1.0 (HU-18b, HU-25); el plan gratuito de SendGrid ya no existe (RS-04) |
 | Pruebas | xUnit · NSubstitute · `FakeTimeProvider` · Testcontainers (PostgreSQL + PostGIS) · `WebApplicationFactory` · NetArchTest · herramienta de carga *(p. ej. k6)* | Estrategia por capas (ver `enfoque-arquitectonico.md`) |
 
-> **Riesgos de la infraestructura gratuita:** ver RS-01…RS-06 en `05-restricciones.md`. En particular, comprobar que PostGIS tenga imagen arm64 y confirmar las condiciones vigentes de Oracle, UptimeRobot y del proveedor de correo.
+> **Riesgos de la infraestructura gratuita:** ver RS-01…RS-06 en `05-restricciones.md` (y los riesgos del dominio RS-07 y RS-08). En particular, comprobar que PostGIS tenga imagen arm64 y confirmar las condiciones vigentes de Oracle, UptimeRobot y del proveedor de correo.
 
 ## 7. Camino de evolución
 
@@ -163,6 +163,7 @@ Estas reglas no son sugerencias: mantienen el sistema ordenado conforme crece. L
 | Más de una instancia del backend (supuesto S-03) | Migrar la caché a Redis y la cola a un mecanismo compartido | Contratos y reglas de dominio |
 | Carga de lectura del mapa creciente | Extraer **Consulta de Mapa** como servicio de solo lectura | Resto de módulos |
 | Carga de escritura creciente | Extraer **Ingesta** (con su tabla de recepción) | Anomalías |
-| Empresas y Autoridad Vial (v1.5+/v2.0+) | Nuevos roles y una *fachada* de API comercial | Módulos existentes |
+| Empresas y Autoridad Vial (v1.5+/v2.0+) | Nuevos roles y una *fachada* de API comercial de **analítica de tramos** (histórico de 2 años, RN-10) | Módulos existentes |
+| Vehículos pesados y motos | Otro modelo entrenado con sus datos, distribuido por el canal de RF-33 (S-06) | Contrato de ingesta y reglas del servidor |
 | Notificaciones desde el servidor (v1.5+) | Nuevo adaptador de salida (patrón *Observer*) | Alertas locales de la app |
 | Reglas distintas por versión de modelo | Umbrales por `modeloVersion` | Contrato de ingesta |

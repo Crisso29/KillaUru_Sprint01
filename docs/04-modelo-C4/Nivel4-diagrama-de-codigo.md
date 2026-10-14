@@ -1,553 +1,407 @@
-# Nivel 4 · Diagrama de código
+# Nivel 4 · Diagrama de Código
 
-> **Proyecto:** KillaUru (ViaLibre) · **Componentes detallados:** Ingesta de Anomalías, Validación de Calidad, Clasificación Persistente/Episódica
-> **Modelo:** C4 · Nivel 4 de 4 · **Versión:** 1.0
-> **Herramienta:** Structurizr (DSL) · vistas `C4_Flujo`, `C4_Kernel`, `C4_Ingesta`, `C4_Validacion`, `C4_Clasificacion` · respaldo UML en Mermaid
-
----
+> **Proyecto:** KillaUru · **Modelo:** C4 · Nivel 4 de 4 · **Versión:** 3.0 · **Revisión:** 2026-10-14 · **Estado:** Vigente (alineado con `diseño-interno-de-modulos.md`)
+> **Componentes detallados:** Ingesta, Anomalías y Consulta de Mapa (backend) · Proximidad (app)
+> **Herramienta:** diagramas de clases UML en Mermaid (C4 recomienda este nivel solo para los componentes críticos)
 
 ## 1. Objetivo
 
-Abrir los componentes del **flujo central de KillaUru** (de que llega un lote de eventos hasta que la anomalía queda persistida y clasificada) y mostrar su **estructura de código**: clases, interfaces, capas de Clean Architecture y dónde vive cada regla de negocio.
+Mostrar **cómo están construidos por dentro** los componentes que concentran las reglas y la carga: dónde vive cada regla de negocio, qué interfaces separan las capas y qué patrón se aplica en cada punto. El código de referencia de estas clases está en `diseño-interno-de-modulos.md`, sección 6.
 
 | Aspecto | Descripción |
 |---|---|
-| Pregunta que responde | ¿Cómo está construido por dentro un módulo y dónde está cada regla de negocio en el código? |
-| Audiencia | Desarrolladores, QA, docente del curso IS488 |
-| Por qué estos tres módulos | Concentran las reglas de negocio propias de KillaUru (RN-11, RN-12) y la mayor carga del backend. Los demás módulos siguen la misma plantilla (sección 3) |
-| Qué **no** muestra | Código de módulos de soporte (Auditoría, Dashboard, Exportación, Usuarios), la app Android ni el panel React |
+| Pregunta que responde | ¿En qué clase está cada regla y cómo se conectan las capas? |
+| Audiencia | Desarrolladores y QA |
+| Qué **no** muestra | Módulos de soporte (Dashboard, Auditoría, Identidad), que siguen la misma plantilla con menos reglas |
 | Nivel anterior | [`Nivel3-diagrama-de-componentes.md`](Nivel3-diagrama-de-componentes.md) |
-| Herramienta | **Structurizr (DSL)**: cada clase se modela como componente y se colorea por capa de Clean Architecture. Como respaldo, cada vista incluye su versión UML en Mermaid con atributos y métodos. C4 solo recomienda este nivel para componentes críticos |
 
-> Los nombres de clases, carpetas e interfaces son la **propuesta de diseño** previa a la implementación. Los que ya aparecen en `enfoque-arquitectonico.md` (`ValidarAnomaliaUseCase`, `ClasificarPersistenciaUseCase`, `SyncController`, `EventoBatchDTO`, `IAnomaliaRepository`, `AnomaliaRepositoryPostGIS`) se mantienen.
+### Leyenda de capas
 
-### Leyenda de las vistas de Structurizr
-
-| Color | Capa de Clean Architecture | Ejemplos |
+| Estereotipo | Capa | Puede depender de |
 |---|---|---|
-| 🟥 Rojo | Dominio | `ReglasCalidad`, `Anomalia`, `Severidad` |
-| 🟨 Amarillo | Aplicación (casos de uso y puertos) | `ValidarAnomaliaUseCase`, `IAnomaliaRepository` |
-| 🟩 Verde | Adaptadores | `SyncController`, `EventoMapper` |
-| 🟦 Azul | Infraestructura | `AnomaliaRepositoryPostGIS`, `ColaEventosChannel` |
-| Borde punteado | Contrato público entre módulos (`Contracts/`) | `IValidacionService`, `IClasificacionService` |
-| Flecha punteada | «Implementa» (puerto ← adaptador) | |
+| `«domain»` | Domain | Solo `Shared/Domain` |
+| `«application»` | Application (casos de uso y puertos) | Domain y `Contracts/` de otros módulos |
+| `«adapter»` | Adapters (HTTP) | Solo Application |
+| `«infrastructure»` | Infrastructure | Application y Domain |
+| `«contract»` | `Contracts/` (público) | Shared |
 
-> Fuente editable: `c4-codigo/workspace.dsl`. Las imágenes se exportan como SVG desde Structurizr Lite a `img/fuentes-svg/`.
-
----
-
-## 2. Visión general: el flujo en el código
-
-![Flujo central de KillaUru: de la cola de eventos a la anomalía persistida](../../img/fuentes-svg/C4_Flujo.svg)
-
-<details>
-<summary>Ver versión UML en Mermaid (con atributos y métodos)</summary>
+## 2. Flujo en el código: del lote a la anomalía
 
 ```mermaid
-flowchart LR
-    SC["SyncController<br/>(Adaptador)"] --> RL["RecibirLoteEventosUseCase<br/>(Ingesta · Aplicación)"]
-    RL --> Q[("ColaEventosChannel<br/>.NET Channel")]
-    Q --> BG["ProcesadorEventosBackgroundService<br/>(Ingesta · Infraestructura)"]
-    BG -- "IValidacionService" --> VA["ValidarAnomaliaUseCase<br/>(Validación · Aplicación)"]
-    VA -- "IClasificacionService" --> CL["ClasificarPersistenciaUseCase<br/>(Clasificación · Aplicación)"]
-    VA -- "IAuditoriaService<br/>(descartes)" --> AU["Auditoría<br/>(otro módulo)"]
-    CL --> RP["AnomaliaRepositoryPostGIS"]
-    CL --> CA["CacheMapaMemoria"]
-    VA -. "IAnomaliaConsultas<br/>(lectura)" .-> RP
+sequenceDiagram
+    participant C as SyncController «adapter»
+    participant R as RecibirLoteEventosUseCase «application»
+    participant S as IAnomaliasService «contract»
+    participant P as RecepcionEventosPostgres «infrastructure»
+    participant Q as ColaLotesChannel «infrastructure»
+    participant W as ProcesadorEventos (trabajadores)
+    participant U as ProcesarReporteUseCase «application»
+    participant A as Anomalia «domain»
+    participant B as IPublicadorEventos
+
+    C->>R: EjecutarAsync(lote)
+    R->>S: EvaluarIntrinseca(evento, ahora) × N
+    R->>P: InsertarAsync(aceptados) — un INSERT con unnest
+    R->>Q: TryEscribir(LoteRecibido)
+    R-->>C: ResultadoLote.Aceptado → 200 por evento
+    Q->>W: lote
+    W->>W: arma ContextoReporte (con_sesion, eventos en la hora)
+    W->>U: ProcesarReporteAsync(evento, contexto)
+    U->>U: transacción + bloqueo por celdas
+    U->>A: Crear(...) o RegistrarReporte(reporte, ventana, reglas)
+    U->>U: commit
+    U->>B: Publicar(AnomaliaCambiada)
 ```
 
-</details>
-
-Los módulos se hablan **solo por interfaces de su carpeta `Contracts/`** (reglas 2 y 3 del monolito modular, nivel 3).
-
----
-
-## 3. Plantilla de un módulo (Clean Architecture)
-
-```
-src/KillaUru.Api/
-├── Api/                         → Componente «API REST» (Program.cs, middleware)
-├── Shared/
-│   ├── Domain/                  → Kernel compartido: Coordenada, Severidad, Confidence, DispositivoHash, EventoReportado
-│   └── Cache/                   → ICacheMapa + CacheMapaMemoria (IMemoryCache)
-└── Modules/
-    └── <Modulo>/
-        ├── Contracts/           → Interfaces y DTOs públicos, lo único que otros módulos pueden usar
-        ├── Domain/              → Entidades, value objects, reglas. Sin ningún using de ASP.NET ni EF
-        ├── Application/         → Casos de uso y puertos (interfaces que necesita el caso de uso)
-        ├── Adapters/            → Controladores, DTOs HTTP y mappers (solo donde hay frontera HTTP)
-        └── Infrastructure/      → EF Core, PostGIS, Channels, IMemoryCache: implementan los puertos
-```
-
-```mermaid
-flowchart LR
-    AD["Adapters<br/>(Controllers · DTOs)"] --> AP["Application<br/>(Casos de uso · Puertos)"]
-    AP --> DO["Domain<br/>(Entidades · Reglas)"]
-    IN["Infrastructure<br/>(EF · PostGIS · Channels)"] --> AP
-    IN --> DO
-```
-
-| Capa | Puede referenciar | Nunca referencia |
-|---|---|---|
-| Domain | Solo `Shared/Domain` y la BCL de .NET | Application, Adapters, Infrastructure, ASP.NET, EF Core |
-| Application | Domain, `Contracts/` de otros módulos | Adapters, Infrastructure, EF Core |
-| Adapters | Application, Domain (para mapear) | Infrastructure |
-| Infrastructure | Application (implementa sus puertos), Domain | Adapters |
-
----
-
-## 4. Kernel compartido
-
-Value objects y el evento de entrada que usan los tres módulos. Se validan en su fábrica: **no puede existir** una `Severidad` fuera de 1–5 ni una `Confidence` fuera de 0.0–1.0.
-
-![Shared Kernel: value objects y evento de entrada](../../img/fuentes-svg/C4_Kernel.svg)
-
-<details>
-<summary>Ver versión UML en Mermaid (con atributos y métodos)</summary>
+## 3. Kernel compartido
 
 ```mermaid
 classDiagram
-    direction LR
-    class EventoReportado {
-        <<record>>
-        +DispositivoHash Dispositivo
-        +TipoAnomalia Tipo
-        +Severidad Severidad
-        +Confidence Confidence
-        +Coordenada Ubicacion
-        +DateTimeOffset TimestampUtc
-    }
     class Coordenada {
-        <<valueobject>>
+        <<value object>>
         +double Latitud
         +double Longitud
-        +double PrecisionMetros
-        +DistanciaMetrosA(Coordenada otra) double
+        +Crear(lat, lon)$ Coordenada?
     }
     class Severidad {
-        <<valueobject>>
+        <<value object>>
         +int Valor
-        +bool EsAlta
-        +Crear(int valor) Severidad
+        -Severidad(valor)
+        +Crear(v)$ Severidad?
+        +MedianaHaciaArriba(valores)$ Severidad
     }
     class Confidence {
-        <<valueobject>>
+        <<value object>>
         +double Valor
-        +Crear(double valor) Confidence
+        +Crear(v)$ Confidence?
     }
-    class DispositivoHash {
-        <<valueobject>>
-        +string Valor
-        +Crear(string sha256Hex) DispositivoHash
+    class SeudonimoInstalacion {
+        <<value object>>
+        +Guid Valor
     }
-    class TipoAnomalia {
-        <<enum>>
+    class Celda {
+        <<value object>>
+        +long Id
+        +De(Coordenada)$ Celda
+        +Alrededor(Coordenada, metros)$ IReadOnlyList~Celda~
     }
-    EventoReportado *-- DispositivoHash
-    EventoReportado *-- Severidad
-    EventoReportado *-- Confidence
-    EventoReportado *-- Coordenada
-    EventoReportado --> TipoAnomalia
+    class IPublicadorEventos {
+        <<interface>>
+        +PublicarAsync(evento, ct)
+    }
+    class IMetricas {
+        <<interface>>
+        +RegistrarLote(resultado)
+        +RegistrarDescarte(motivo)
+    }
+    Celda ..> Coordenada
 ```
 
-</details>
-
-| Clase | Regla que protege |
+| Clase | Garantía |
 |---|---|
-| `Severidad` | Escala 1–5; `EsAlta` define cuándo se exige confirmación |
-| `Confidence` | Rango 0.0–1.0 |
-| `DispositivoHash` | Exige 64 caracteres hexadecimales (SHA-256): el servidor **nunca** recibe un identificador de dispositivo en claro (privacidad, Ley 29733) |
-| `Coordenada` | Latitud/longitud válidas; `PrecisionMetros` alimenta la regla de GPS; `DistanciaMetrosA` usa Haversine para pruebas sin base de datos |
+| `Severidad` | Su constructor es privado: solo existen severidades de 1 a 5. Calcula la mediana de RN-05 |
+| `Celda` | Misma rejilla para el bloqueo de concurrencia y la clave de caché; `Alrededor` devuelve las celdas en orden fijo para evitar interbloqueos |
+| `SeudonimoInstalacion` | UUID aleatorio, no derivado del hardware (RF-27) |
 
----
-
-## 5. Módulo Ingesta de Anomalías
-
-![Módulo Ingesta de Anomalías](../../img/fuentes-svg/C4_Ingesta.svg)
-
-<details>
-<summary>Ver versión UML en Mermaid (con atributos y métodos)</summary>
+## 4. Módulo Ingesta
 
 ```mermaid
 classDiagram
-    direction TB
     class SyncController {
-        <<controller>>
-        +PostBatch(EventoBatchDTO dto) Task~IActionResult~
-    }
-    class EventoBatchDTO {
-        <<dto>>
-        +List~EventoDTO~ Eventos
-    }
-    class EventoMapper {
-        <<mapper>>
-        +ADominio(EventoDTO dto) EventoReportado
+        <<adapter>>
+        +Recibir(LoteDto, ct) IActionResult
     }
     class RecibirLoteEventosUseCase {
-        <<usecase>>
-        +int MaxEventosPorLote = 50
-        +EjecutarAsync(IReadOnlyList~EventoReportado~ eventos) Task~ResultadoLote~
+        <<application>>
+        +EjecutarAsync(lote, ct) ResultadoLote
     }
-    class IColaEventos {
+    class IRecepcionEventos {
         <<interface>>
-        +TryEscribir(EventoReportado evento) bool
-        +LeerTodoAsync(CancellationToken ct) IAsyncEnumerable~EventoReportado~
+        +InsertarAsync(LoteAceptado, ct) IReadOnlySet~Guid~
+        +ContarEnLaHoraAsync(seudonimo, hora, ct) int
     }
-    class ResultadoLote {
-        <<record>>
-        +EstadoLote Estado
-        +int Aceptados
+    class IColaLotes {
+        <<interface>>
+        +HayCapacidad() bool
+        +TryEscribir(LoteRecibido) bool
     }
-    class ColaEventosChannel {
+    class RecepcionEventosPostgres {
         <<infrastructure>>
-        -Channel~EventoReportado~ canal
+    }
+    class ColaLotesChannel {
+        <<infrastructure>>
     }
     class ProcesadorEventosBackgroundService {
         <<infrastructure>>
-        +ExecuteAsync(CancellationToken ct) Task
+        -int trabajadores
+        +ExecuteAsync(ct)
     }
-    class IValidacionService {
-        <<interface>>
-        +ValidarAsync(EventoReportado evento, CancellationToken ct) Task~ResultadoValidacion~
-    }
-
-    SyncController --> EventoBatchDTO
-    SyncController --> EventoMapper
-    SyncController --> RecibirLoteEventosUseCase
-    RecibirLoteEventosUseCase --> IColaEventos
-    RecibirLoteEventosUseCase --> ResultadoLote
-    ColaEventosChannel ..|> IColaEventos
-    ProcesadorEventosBackgroundService --> IColaEventos
-    ProcesadorEventosBackgroundService --> IValidacionService
-```
-
-</details>
-
-| Clase | Capa | Responsabilidad |
-|---|---|---|
-| `SyncController` | Adaptadores | `POST /api/v1/anomalies/batch`. Valida el esquema, mapea y traduce `ResultadoLote` a HTTP: `200` aceptado, `400` lote inválido, `503` con `Retry-After` si la cola está llena (la app aplica su backoff exponencial) |
-| `EventoBatchDTO` / `EventoDTO` | Adaptadores | Formato JSON del lote (hasta 50 eventos) |
-| `EventoMapper` | Adaptadores | Convierte DTO → `EventoReportado` usando las fábricas de los value objects |
-| `RecibirLoteEventosUseCase` | Aplicación | Verifica el máximo de 50 eventos y los publica en `IColaEventos` sin esperar la validación |
-| `IColaEventos` | Aplicación (puerto) | Abstrae la cola para que el caso de uso no conozca `System.Threading.Channels` |
-| `ColaEventosChannel` | Infraestructura | `Channel` acotado con `BoundedChannelFullMode.Wait`; `TryEscribir` devuelve `false` si está lleno |
-| `ProcesadorEventosBackgroundService` | Infraestructura | `BackgroundService` que consume la cola y llama a `IValidacionService`, con varios lectores en paralelo |
-
-```csharp
-// Infrastructure/ColaEventosChannel.cs (esqueleto)
-public sealed class ColaEventosChannel : IColaEventos
-{
-    private readonly Channel<EventoReportado> _canal =
-        Channel.CreateBounded<EventoReportado>(new BoundedChannelOptions(10_000)
-        {
-            FullMode = BoundedChannelFullMode.Wait,
-            SingleReader = false,
-            SingleWriter = false
-        });
-
-    public bool TryEscribir(EventoReportado evento) => _canal.Writer.TryWrite(evento);
-
-    public IAsyncEnumerable<EventoReportado> LeerTodoAsync(CancellationToken ct) =>
-        _canal.Reader.ReadAllAsync(ct);
-}
-```
-
----
-
-## 6. Módulo Validación de Calidad
-
-![Módulo Validación de Calidad](../../img/fuentes-svg/C4_Validacion.svg)
-
-<details>
-<summary>Ver versión UML en Mermaid (con atributos y métodos)</summary>
-
-```mermaid
-classDiagram
-    direction TB
-    class IValidacionService {
-        <<interface>>
-        +ValidarAsync(EventoReportado evento, CancellationToken ct) Task~ResultadoValidacion~
-    }
-    class ValidarAnomaliaUseCase {
-        <<usecase>>
-        +ValidarAsync(EventoReportado evento, CancellationToken ct) Task~ResultadoValidacion~
-    }
-    class IConfirmacionesReader {
-        <<interface>>
-        +ContarDispositivosAsync(EventoReportado evento, CancellationToken ct) Task~int~
-    }
-    class ReglasCalidad {
-        <<domainservice>>
-        +double ConfidenceMinimo = 0.75
-        +double PrecisionGpsMaximaMetros = 20
-        +EvaluarIntrinseca(EventoReportado e, DateTimeOffset ahora) MotivoDescarte
-    }
-    class PoliticaConfirmacion {
-        <<domainservice>>
-        +int DispositivosRequeridos = 2
-        +int RadioMetros = 100
-        +TimeSpan Ventana = 72h
-        +Requiere(Severidad s) bool
-        +Cumple(int dispositivosDistintos) bool
-    }
-    class ResultadoValidacion {
+    class ResultadoLote {
         <<record>>
-        +EstadoValidacion Estado
-        +MotivoDescarte Motivo
+        Aceptado
+        Saturado
+        Invalido
     }
-    class EstadoValidacion {
-        <<enum>>
-        Valido
-        PendienteConfirmacion
-        Descartado
-    }
-    class MotivoDescarte {
-        <<enum>>
-        ConfidenceBajo
-        PrecisionGpsInsuficiente
-        TimestampFueraDeRango
-    }
-    class ConfirmacionesReaderAdapter {
-        <<infrastructure>>
-    }
-    class IClasificacionService {
-        <<contrato otro módulo>>
-    }
-    class IAuditoriaService {
-        <<contrato otro módulo>>
-    }
-    class IAnomaliaConsultas {
-        <<contrato otro módulo>>
+    class IAnomaliasService {
+        <<contract>>
+        +EvaluarIntrinseca(evento, ahora) MotivoDescarte?
+        +ProcesarReporteAsync(evento, ContextoReporte, ct) ResultadoProceso
     }
 
-    ValidarAnomaliaUseCase ..|> IValidacionService
-    ValidarAnomaliaUseCase --> ReglasCalidad
-    ValidarAnomaliaUseCase --> PoliticaConfirmacion
-    ValidarAnomaliaUseCase --> IConfirmacionesReader
-    ValidarAnomaliaUseCase --> IClasificacionService
-    ValidarAnomaliaUseCase --> IAuditoriaService
-    ValidarAnomaliaUseCase --> ResultadoValidacion
-    ResultadoValidacion --> EstadoValidacion
-    ResultadoValidacion --> MotivoDescarte
-    ConfirmacionesReaderAdapter ..|> IConfirmacionesReader
-    ConfirmacionesReaderAdapter --> IAnomaliaConsultas
+    SyncController --> RecibirLoteEventosUseCase
+    RecibirLoteEventosUseCase --> IRecepcionEventos
+    RecibirLoteEventosUseCase --> IColaLotes
+    RecibirLoteEventosUseCase --> IAnomaliasService
+    RecibirLoteEventosUseCase ..> ResultadoLote
+    RecepcionEventosPostgres ..|> IRecepcionEventos
+    ColaLotesChannel ..|> IColaLotes
+    ProcesadorEventosBackgroundService --> IColaLotes
+    ProcesadorEventosBackgroundService --> IRecepcionEventos
+    ProcesadorEventosBackgroundService --> IAnomaliasService
 ```
 
-</details>
+| Clase | Regla o métrica | Patrón |
+|---|---|---|
+| `RecibirLoteEventosUseCase` | Resultado por evento; 400 solo para lote ilegible; 503 si la cola está llena (RF-11) | Result |
+| `RecepcionEventosPostgres` | Un `INSERT … ON CONFLICT DO NOTHING` por lote (RNF-02, DA-02) | Repository, Idempotent Receiver |
+| `ProcesadorEventosBackgroundService` | N trabajadores; arma `ContextoReporte` con datos de Ingesta; barredor cada 60 s (RNF-23, EQ-09) | Competing Consumers |
 
-**Algoritmo de `ValidarAnomaliaUseCase`:**
-
-1. `ReglasCalidad.EvaluarIntrinseca` revisa confidence, precisión GPS y timestamp. Si hay motivo → registra el descarte en Auditoría y devuelve `Descartado`.
-2. Si `PoliticaConfirmacion.Requiere(severidad)` es falsa → llama a `IClasificacionService` con el evento confirmado y devuelve `Valido`.
-3. Si la requiere → cuenta dispositivos distintos en 100 m / 72 h con `IConfirmacionesReader`. Con el evento actual suma ≥ 2 → `Valido`; si no → `PendienteConfirmacion`. En ambos casos el reporte se entrega a Clasificación (el estado indica si ya está confirmado).
-
-```csharp
-// Domain/ReglasCalidad.cs (esqueleto)
-public static class ReglasCalidad
-{
-    public const double ConfidenceMinimo = 0.75;
-    public const double PrecisionGpsMaximaMetros = 20;
-    public static readonly TimeSpan ToleranciaFuturo = TimeSpan.FromMinutes(5);
-
-    public static MotivoDescarte? EvaluarIntrinseca(
-        EventoReportado e, DateTimeOffset ahora, TimeSpan antiguedadMaxima)
-    {
-        if (e.Confidence.Valor < ConfidenceMinimo)
-            return MotivoDescarte.ConfidenceBajo;
-        if (e.Ubicacion.PrecisionMetros > PrecisionGpsMaximaMetros)
-            return MotivoDescarte.PrecisionGpsInsuficiente;
-        if (e.TimestampUtc > ahora + ToleranciaFuturo || e.TimestampUtc < ahora - antiguedadMaxima)
-            return MotivoDescarte.TimestampFueraDeRango;
-        return null;
-    }
-}
-```
-
----
-
-## 7. Módulo Clasificación Persistente/Episódica
-
-![Módulo Clasificación Persistente/Episódica](../../img/fuentes-svg/C4_Clasificacion.svg)
-
-<details>
-<summary>Ver versión UML en Mermaid (con atributos y métodos)</summary>
+## 5. Módulo Anomalías
 
 ```mermaid
 classDiagram
-    direction TB
-    class IClasificacionService {
-        <<interface>>
-        +RegistrarReporteAsync(EventoReportado evento, bool confirmado, CancellationToken ct) Task
+    class AnomaliasService {
+        <<application>>
+        implementa IAnomaliasService
     }
-    class IAnomaliaConsultas {
-        <<interface>>
-        +ContarDispositivosDistintosAsync(Coordenada c, int radioMetros, DateTimeOffset desde, TipoAnomalia tipo, CancellationToken ct) Task~int~
+    class ProcesarReporteUseCase {
+        <<application>>
+        +EjecutarAsync(evento, contexto, ct) ResultadoProceso
     }
-    class ClasificarPersistenciaUseCase {
-        <<usecase>>
-        +RegistrarReporteAsync(EventoReportado evento, bool confirmado, CancellationToken ct) Task
+    class ModerarAnomaliaUseCase {
+        <<application>>
+        +EjecutarAsync(id, AccionAdmin, actor, ct)
     }
     class IAnomaliaRepository {
         <<interface>>
-        +BuscarCercanaAsync(Coordenada c, int radioMetros, TipoAnomalia tipo, CancellationToken ct) Task~Anomalia~
-        +GuardarAsync(Anomalia anomalia, CancellationToken ct) Task
+        +AbrirAsync(celdas, ct) ITransaccion
+        +ExisteReporteAsync(eventoId, ct) bool
+        +AnteriorDelSeudonimoAsync(reporte, ct) ReporteAnomalia?
+        +MasCercanaAsync(reporte, ct) Anomalia?
+        +ReportesDesdeAsync(anomaliaId, desde, ct) IReadOnlyList~ReporteAnomalia~
+        +GuardarAsync(anomalia, reporte, ct)
     }
-    class ICacheMapa {
-        <<interface>>
-        +InvalidarTramoAsync(Coordenada c) Task
+    class AnomaliaRepositoryPostgis {
+        <<infrastructure>>
     }
     class Anomalia {
-        <<entity>>
+        <<aggregate root>>
         +Guid Id
-        +TipoAnomalia Tipo
-        +Severidad Severidad
-        +Coordenada Ubicacion
+        +Coordenada Posicion
+        +Celda Celda
+        +EstadoAnomalia Estado
+        +Severidad SeveridadMostrada
         +EstadoPersistencia Persistencia
-        +bool Confirmada
-        +IReadOnlyList~ReporteAnomalia~ Reportes
-        +Crear(EventoReportado e, bool confirmado) Anomalia
-        +RegistrarReporte(EventoReportado e, bool confirmado, DateTimeOffset ahora) void
+        +DateTimeOffset VenceUtc
+        +bool PorRevisar
+        -Dictionary PermitidoDesde
+        +Crear(reporte, porTope)$ Anomalia
+        +RegistrarReporte(reporte, ventana, reglas)
+        +Moderar(accion, ahora) ResultadoModeracion
     }
     class ReporteAnomalia {
-        <<entity>>
-        +DispositivoHash Dispositivo
-        +DateTimeOffset TimestampUtc
-        +Confidence Confidence
+        <<value object>>
+        +Guid EventoId
         +Severidad Severidad
+        +DateTimeOffset DetectadoUtc
+        +SeudonimoInstalacion? Seudonimo
+        +bool ConSesion
+        +Desde(evento, conSesion)$ ReporteAnomalia
+    }
+    class ReglasCalidad {
+        <<domain policy>>
+        +EvaluarIntrinseca(reporte, ahora) MotivoDescarte?
+    }
+    class CorredorVia {
+        <<domain>>
+        +DistanciaMetros(Coordenada) double
+    }
+    class PoliticaPlausibilidad {
+        <<domain policy>>
+        +Evaluar(reporte, anterior) MotivoDescarte?
+        +SuperaTope(eventosEnLaHora) bool
+    }
+    class PoliticaConfirmacion {
+        <<domain policy>>
+        +Decidir(ventana, mostrada, porTope, ultima) EstadoAnomalia
+        +EsVehiculoNuevo(reporte, ventana) bool
     }
     class ReglaPersistencia {
-        <<domainservice>>
-        +int DiasDistintosMinimos = 3
-        +int VentanaDias = 15
-        +Evaluar(IEnumerable~DateTimeOffset~ reportes, DateTimeOffset ahora) EstadoPersistencia
+        <<domain policy>>
+        +Evaluar(detecciones, ahora) EstadoPersistencia
     }
-    class EstadoPersistencia {
-        <<enum>>
-        Episodica
-        Persistente
+    class ReglasAnomalia {
+        <<record>>
+        +PoliticaConfirmacion Confirmacion
+        +ReglaPersistencia Persistencia
+        +Caducidad(estado, persistencia) TimeSpan
     }
-    class AnomaliaRepositoryPostGIS {
-        <<infrastructure>>
-    }
-    class CacheMapaMemoria {
-        <<infrastructure>>
+    class EstadoAnomalia {
+        <<enumeration>>
+        Activa
+        PendienteConfirmacion
+        Expirada
+        Reparada
+        Descartada
     }
 
-    ClasificarPersistenciaUseCase ..|> IClasificacionService
-    ClasificarPersistenciaUseCase --> IAnomaliaRepository
-    ClasificarPersistenciaUseCase --> ICacheMapa
-    Anomalia *-- ReporteAnomalia
-    Anomalia --> ReglaPersistencia
-    Anomalia --> EstadoPersistencia
-    AnomaliaRepositoryPostGIS ..|> IAnomaliaRepository
-    AnomaliaRepositoryPostGIS ..|> IAnomaliaConsultas
-    CacheMapaMemoria ..|> ICacheMapa
+    AnomaliasService --> ProcesarReporteUseCase
+    AnomaliasService --> ReglasCalidad
+    ProcesarReporteUseCase --> IAnomaliaRepository
+    ProcesarReporteUseCase --> ReglasCalidad
+    ProcesarReporteUseCase --> PoliticaPlausibilidad
+    ProcesarReporteUseCase --> ReglasAnomalia
+    ProcesarReporteUseCase ..> Anomalia
+    ModerarAnomaliaUseCase --> IAnomaliaRepository
+    AnomaliaRepositoryPostgis ..|> IAnomaliaRepository
+    ReglasCalidad --> CorredorVia
+    ReglasAnomalia o-- PoliticaConfirmacion
+    ReglasAnomalia o-- ReglaPersistencia
+    Anomalia ..> ReglasAnomalia
+    Anomalia "1" *-- "many" ReporteAnomalia : se agrupan en
+    Anomalia --> EstadoAnomalia
 ```
 
-</details>
+| Clase | Regla de negocio | Patrón |
+|---|---|---|
+| `ReglasCalidad` + `CorredorVia` | RN-11 y RN-13 (reglas de recepción, sin BD) | Policy |
+| `PoliticaPlausibilidad` | RN-15a (tope por hora) y RN-15b (velocidad con margen GPS y ≥ 10 s) | Policy |
+| `PoliticaConfirmacion` | RN-06 (vehículos distintos con ≥ 3 min), RN-14 (sesión solo para lo grave), RN-15a (confirmación sin sesión), revisión de `Descartada` (RN-07) | Policy |
+| `ReglaPersistencia` | RN-12 (días locales UTC−5) | Policy |
+| `Anomalia` | RN-05 (posición fija, mediana), RN-07 (tabla de transiciones, «vuelve a nacer», caducidad con `VenceUtc`) | Aggregate, Factory Method, tabla de transiciones |
+| `ProcesarReporteUseCase` | Orquesta; publica `AnomaliaCambiada` después del *commit* | Observer (publicador) |
+| `AnomaliaRepositoryPostgis` | Bloqueo por celda, `ST_DWithin`, ventanas por índice | Repository |
 
-**Algoritmo de `ClasificarPersistenciaUseCase`:**
+## 6. Módulo Consulta de Mapa
 
-1. Busca con `IAnomaliaRepository` una anomalía del mismo tipo a ≤ 100 m.
-2. Si no existe, `Anomalia.Crear`; si existe, `Anomalia.RegistrarReporte`.
-3. La entidad agrega el `ReporteAnomalia` y recalcula `Persistencia` con `ReglaPersistencia` (RN-12). Si llega `confirmado = true`, marca `Confirmada`.
-4. Guarda y llama a `ICacheMapa.InvalidarTramoAsync` para el tramo afectado.
-
-```csharp
-// Domain/ReglaPersistencia.cs (esqueleto)
-public static class ReglaPersistencia
-{
-    public const int DiasDistintosMinimos = 3;
-    public const int VentanaDias = 15;
-
-    public static EstadoPersistencia Evaluar(
-        IEnumerable<DateTimeOffset> reportesUtc, DateTimeOffset ahora)
-    {
-        var desde = ahora.AddDays(-VentanaDias);
-        var diasDistintos = reportesUtc
-            .Where(t => t >= desde && t <= ahora)
-            .Select(t => DateOnly.FromDateTime(t.UtcDateTime))
-            .Distinct()
-            .Count();
-
-        return diasDistintos >= DiasDistintosMinimos
-            ? EstadoPersistencia.Persistente
-            : EstadoPersistencia.Episodica;
+```mermaid
+classDiagram
+    class AnomaliasController {
+        <<adapter>>
+        +Consultar(bbox, updatedSince, filtros, ct) IResult
     }
-}
+    class ConsultarMapaUseCase {
+        <<application>>
+        +EjecutarAsync(consulta, alcance, ifNoneMatch, ct) RespuestaMapa
+    }
+    class IFuenteCeldas {
+        <<interface>>
+        +ObtenerAsync(celda, alcance, ct) CeldaGeoJson
+    }
+    class FuenteCeldasPostgis {
+        <<infrastructure>>
+        usa IAnomaliaLectura
+    }
+    class FuenteCeldasCacheada {
+        <<infrastructure · decorator>>
+        -IFuenteCeldas origen
+        -HybridCache cache
+    }
+    class VersionesCelda {
+        <<infrastructure>>
+        -long arranque
+        +ETag(celdas, alcance) string
+        +Incrementar(celda)
+    }
+    class ZonaDemo {
+        <<domain>>
+        +CeldasPermitidas(celdas) IEnumerable~Celda~
+        +Filtrar(features) features
+    }
+    class InvalidarCeldasMapa {
+        <<infrastructure · observer>>
+        +ManejarAsync(AnomaliaCambiada, ct)
+    }
+    class IAnomaliaLectura {
+        <<contract>>
+    }
+
+    AnomaliasController --> ConsultarMapaUseCase
+    ConsultarMapaUseCase --> IFuenteCeldas
+    ConsultarMapaUseCase --> VersionesCelda
+    ConsultarMapaUseCase --> ZonaDemo
+    FuenteCeldasPostgis ..|> IFuenteCeldas
+    FuenteCeldasCacheada ..|> IFuenteCeldas
+    FuenteCeldasCacheada --> IFuenteCeldas : envuelve
+    FuenteCeldasPostgis --> IAnomaliaLectura
+    InvalidarCeldasMapa --> VersionesCelda
+    InvalidarCeldasMapa --> FuenteCeldasCacheada : invalida por etiqueta
 ```
 
-`AnomaliaRepositoryPostGIS` usa EF Core con NetTopologySuite y un índice GiST sobre la columna de ubicación; es el **único** lugar con consultas espaciales (`ST_DWithin`).
-
----
-
-## 8. Trazabilidad regla de negocio → código
-
-| Regla | Dónde vive | Prueba que la valida |
+| Clase | Qué resuelve | Métrica |
 |---|---|---|
-| `confidence ≥ 0.75` | `ReglasCalidad.ConfidenceMinimo` (Dominio) | Unitaria: valores 0.74, 0.75, 0.76 |
-| Precisión GPS ≤ 20 m | `ReglasCalidad.PrecisionGpsMaximaMetros` | Unitaria: 19, 20, 21 m |
-| Timestamp en rango | `ReglasCalidad.EvaluarIntrinseca` | Unitaria con `FakeTimeProvider` |
-| Confirmación ≥ 2 dispositivos / 100 m / 72 h (severidad alta) | `PoliticaConfirmacion` + `IAnomaliaConsultas` | Unitaria (política) e integración (consulta espacial) |
-| PERSISTENTE si ≥ 3 días distintos en 15 días | `ReglaPersistencia.Evaluar` (Dominio) | Unitaria: 2 días, 3 días, 3 reportes el mismo día, reportes fuera de ventana |
-| Lote máximo de 50 eventos | `RecibirLoteEventosUseCase.MaxEventosPorLote` | Unitaria: 50 y 51 eventos |
-| Identificador de dispositivo hasheado (SHA-256) | `DispositivoHash.Crear` | Unitaria: hex válido, longitud incorrecta, texto en claro |
-| Severidad 1–5 / confidence 0–1 | Fábricas de `Severidad` y `Confidence` | Unitaria: límites |
+| `ConsultarMapaUseCase` | `bbox` → celdas; recorte por rol (`ZonaDemo`); 304 si el ETag coincide; concatena *features* ya serializadas | RNF-01, RNF-27 |
+| `FuenteCeldasCacheada` | Caché por celda y alcance con protección contra estampida | RNF-01, EQ-14 |
+| `VersionesCelda` | ETag en memoria; incluye el instante de arranque para evitar 304 falsos tras un reinicio | RNF-01 |
+| `InvalidarCeldasMapa` | Mantiene la caché fiel sin que Anomalías conozca a Mapa | ADR-006 |
 
----
+## 7. App: proximidad a lo largo de la vía
 
-## 9. Estrategia de pruebas por capa
+```mermaid
+classDiagram
+    class ProximidadUseCase {
+        -Map avisadas
+        +evaluar(fix, ParametrosAviso) List~AnomaliaEntity~
+    }
+    class Corredor {
+        -List vertices
+        -int ultimoSegmento
+        +proyectar(fix) PosicionEnVia?
+    }
+    class PosicionEnVia {
+        <<data>>
+        +Double km
+        +Int sentido
+    }
+    class ParametrosAviso {
+        <<strategy>>
+        +Int segundos
+        +Int minimoM
+        +Double finPasadaKm
+        +para(CategoriaVehiculo)$ ParametrosAviso
+    }
+    class AnomaliaDao {
+        <<interface>>
+        +enTramo(desde, hasta, ahora) List~AnomaliaEntity~
+        +guardar(lista)
+        +borrar(ids)
+    }
+    class AlertaSonora {
+        +emitir(cantidad)
+    }
 
-| Capa | Tipo de prueba | Herramientas *(propuestas)* | Qué se aísla |
-|---|---|---|---|
-| Dominio | Unitarias puras | xUnit | Nada: sin base de datos, sin red, sin reloj real |
-| Aplicación | Unitarias con dobles de los puertos | xUnit + NSubstitute + `FakeTimeProvider` | `IAnomaliaRepository`, `ICacheMapa`, `IAuditoriaService`, `IClasificacionService` |
-| Infraestructura | Integración con base real | Testcontainers (PostgreSQL + PostGIS) | Consultas espaciales y mapeos EF |
-| Adaptadores | Pruebas de API | `WebApplicationFactory` | Contratos HTTP: 200, 400, 503 |
-| Arquitectura | Reglas de dependencia | NetArchTest | Dominio sin dependencias externas; un módulo solo usa `Contracts/` de otro |
+    ProximidadUseCase --> Corredor
+    ProximidadUseCase --> AnomaliaDao
+    ProximidadUseCase ..> ParametrosAviso
+    Corredor ..> PosicionEnVia
+    ProximidadUseCase ..> AlertaSonora
+```
 
-Las pruebas de arquitectura hacen **ejecutables** las reglas 2, 3 y 5 del nivel 3: si alguien rompe el aislamiento entre módulos, el build falla.
-
----
-
-## 10. Impacto sobre los niveles anteriores
-
-| Cambio | Nivel afectado | Acción |
+| Clase | Regla | Por qué así |
 |---|---|---|
-| Aparece `Contracts/` con `IValidacionService`, `IClasificacionService`, `IAnomaliaConsultas` e `IAuditoriaService` como interfaces públicas | C3, reglas del monolito | Citar `Contracts/` en la regla 2 |
-| Los reportes por día y por dispositivo se guardan (`ReporteAnomalia`) | C3, sección 6 (datos) | La tabla `anomalias` incluye sus reportes; el dueño sigue siendo Clasificación. Sin ellos RN-12 y la confirmación por dispositivos no se pueden calcular |
-| La cola del Channel tiene consumidor propio (`BackgroundService`) | C3, componente Ingesta | Mencionarlo en la descripción de Ingesta |
+| `Corredor` | RN-16 (distancia a lo largo de la vía); sin alerta a más de 50 m de la vía | La búsqueda empieza en el último segmento usado: costo casi constante a 1 Hz |
+| `AnomaliaDao.enTramo` | Rango por `km` con índice | Sin geometría por cada lectura del GPS |
+| `ParametrosAviso` | 8 s / 100 m (Liviano, Moto) y 12 s / 150 m (Pesado); fin de pasada a 500 m | *Strategy* elegida por la categoría (RN-18) |
+| `AlertaSonora` | RN-20: baja la música, suena con la pantalla bloqueada, una alerta aunque sean varias anomalías | Una sola clase con acceso al audio |
 
----
+## 8. Trazabilidad
 
-## 11. Decisiones y supuestos
-
-| # | Decisión o supuesto | Motivo |
-|---|---|---|
-| 1 | Los puertos (`IAnomaliaRepository`, `IColaEventos`, `ICacheMapa`) viven en **Aplicación** | En Clean Architecture la capa interna define lo que necesita. `enfoque-arquitectonico.md` los ubica en Adaptadores; conviene alinear ese documento |
-| 2 | Los eventos de severidad alta sin confirmar se guardan con `Confirmada = false` y el mapa solo muestra confirmadas | Permite que un segundo dispositivo confirme sin perder el primer reporte |
-| 3 | Cola acotada con `503 + Retry-After` al saturarse | Da contrapresión; la app ya reintenta con backoff exponencial |
-| 4 | `TimeProvider` (nativo en .NET 8) en lugar de un reloj propio | Pruebas deterministas sin librerías extra |
-| 5 | Una anomalía agrupa reportes del mismo tipo a ≤ 100 m | Reutiliza el radio de la regla de confirmación; es un supuesto |
-
-### Pendientes por definir
-
-| Tema | Detalle |
+| Vista | Reglas y requisitos |
 |---|---|
-| Qué es «severidad alta» | Proponer `Severidad ≥ 4`; confirmar con la regla RN-11 original |
-| Antigüedad máxima del timestamp | Con Store-and-Forward un evento puede llegar días después; la ventana válida debe ser mayor que el tiempo máximo sin señal |
-| Día calendario de RN-12 | El código usa día UTC; Perú es UTC-5, por lo que un reporte nocturno puede caer en otro día. Decidir si se usa `America/Lima` |
-| Criterio de «misma anomalía» | ¿100 m y mismo tipo? Evaluar si también cuenta la severidad |
-| Lote con eventos mal formados | Hoy se rechaza el lote completo con 400; alternativa: aceptar los válidos y reportar los rechazados |
-| Catálogo de `TipoAnomalia` | Debe coincidir con las categorías del modelo TFLite |
-| Nombre de la entidad | `enfoque-arquitectonico.md` usa `Anomalia`; `estilo-arquitectonico.md` usa `AnomaliaVial`. Unificar |
-| Momento del HTTP 200 | Sigue pendiente del nivel 3: con el 200 al encolar, un reinicio pierde eventos ya marcados `SYNCED` en la app |
-
----
-
-## 12. Trazabilidad
+| Ingesta | RF-11, RN-11, RN-14, RNF-02, RNF-06, RNF-23, ADR-005 |
+| Anomalías | RN-05, RN-06, RN-07, RN-12, RN-13, RN-14, RN-15, RF-12, RF-13, RF-23, RF-24 |
+| Consulta de Mapa | RF-14, RN-08, RNF-01, RNF-27, ADR-006 |
+| App · Proximidad | RF-10, RN-16, RN-18, RN-20 |
 
 - **Jira:** `KU-xx` — Diagrama y documentación C4 (Código) *(completar con el ID real)*
 - **Épica:** `[EPIC-04] Documentación: Modelo C4`
-- **Requisitos:** RF-11, RF-12, RF-13 · HU-04, HU-05, HU-06 · EP-03 · RN-11, RN-12
-- **Documentos relacionados:** `Nivel3-diagrama-de-componentes.md`, `enfoque-arquitectonico.md`, `estilo-arquitectonico.md`, `07-decisiones-arquitectonicas.md`

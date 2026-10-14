@@ -1,4 +1,4 @@
-"""Verifica la trazabilidad de docs/01-analisis-del-sistema y docs/02-arquitectura-de-software.
+"""Verifica la trazabilidad de docs/01 (análisis), docs/02 (arquitectura), docs/03 (diseño) y docs/04 (C4).
 
 Uso (desde la raíz del repositorio):
     python tools/verificar-trazabilidad.py
@@ -12,11 +12,15 @@ import pathlib
 import re
 import sys
 
+sys.stdout.reconfigure(encoding='utf-8')   # la consola de Windows no siempre es UTF-8
+
 RAIZ = pathlib.Path(__file__).resolve().parent.parent / 'docs'
 A = RAIZ / '01-analisis-del-sistema'
 B = RAIZ / '02-arquitectura-de-software'
+C = RAIZ / '03-diseño-de-software'
+D = RAIZ / '04-modelo-C4'
 DOCS = {p.relative_to(RAIZ).as_posix(): p.read_text(encoding='utf-8')
-        for p in sorted(list(A.glob('*.md')) + list(B.glob('*.md')))}
+        for p in sorted(list(A.glob('*.md')) + list(B.glob('*.md')) + list(C.glob('*.md')) + list(D.glob('*.md')))}
 ID = r'(?:HU-\d+b?|RF-\d+|RNF-\d+|RN-\d+|EQ-\d+|DA-\d+|ADR-\d+|AC-\d+|RS-\d+|R-\d+|S-\d+|EP-\d+)'
 errores = []
 
@@ -186,6 +190,28 @@ en_componentes = set(re.findall(r'RF-\d+', seccion(comp, '## 5. Componentes de l
     | set(re.findall(r'RF-\d+', seccion(comp, '## 9. Trazabilidad', '## 10.')))
 for rf in sorted(definidos['RF'] - en_componentes, key=orden):
     error('Componentes', f'{rf} no aparece en ningún componente')
+
+# 8. Términos de diseños anteriores que ya no deben aparecer (señal de un documento desactualizado)
+OBSOLETOS = ['DispositivoHash', 'Dapper', 'SendGrid', 'ASP.NET Core 8', '.NET 8)', 'IColaEventos', 'ColaEventosChannel',
+             'IValidacionService', 'IClasificacionService', 'ValidarAnomaliaUseCase', 'ClasificarPersistenciaUseCase',
+             'status.killauru.pe', 'UltimoReporteUtc', 'RadioMetros', 'ViaLibre', 'Leaflet', 'JWT 8 h']
+PERMITIDAS = ('Se descarta .NET 8', 'SendGrid **retiró', 'el plan gratuito de SendGrid', 'ya no existe `status.killauru.pe`')
+for nombre, texto in DOCS.items():
+    if nombre.endswith('07-decisiones-arquitectonicas.md'):   # los ADR registran alternativas descartadas
+        continue
+    for termino in OBSOLETOS:
+        if any(termino in l and not any(p in l for p in PERMITIDAS) for l in texto.splitlines()):
+            error('Términos obsoletos', f'{nombre} usa «{termino}»')
+
+# 9. Cada parámetro de una regla de negocio tiene dónde configurarse (02 · enfoque arquitectónico)
+rn_doc = doc('09-reglas-de-negocio.md')
+enfoque = DOCS['02-arquitectura-de-software/enfoque-arquitectonico.md']
+parametros = set(re.findall(r'`([A-Z][a-z]+(?:[A-Z][a-z]+)+)`', seccion(rn_doc, '## 2. Reglas en el dispositivo', '## 7. Trazabilidad')))
+parametros = {p for p in parametros if re.search(r'(Horas|Dias|Minutos|Segundos|Metros|Kmh|Minimo|Maxima|Maximo|Requeridos'
+                                                 r'|Desde|Porcentaje|Detectan|Minimos|Maximos|Descartada|Revision)$', p)}
+for p in sorted(parametros):
+    if p not in enfoque:
+        error('Parámetros', f'{p} (09) no tiene dónde configurarse en enfoque-arquitectonico.md')
 
 # ---------------------------------------------------------------- reporte
 print(f'Documentos revisados: {len(DOCS)}')

@@ -42,15 +42,15 @@ flowchart LR
 ## 4. Plantilla de un módulo
 
 ```text
-src/KillaUru.Api/
-├── Api/                          → Componente «API REST» (Program.cs, middleware, composición)
-├── Shared/
-│   ├── Domain/                   → Kernel mínimo: Coordenada, Severidad, Confidence, SeudonimoInstalacion
+src/
+├── KillaUru.Api/                 → Componente «API REST» (Program.cs, middleware, composición)
+├── KillaUru.Shared/
+│   ├── Domain/                   → Kernel mínimo: Coordenada, Severidad, Confidence, SeudonimoInstalacion, Celda
 │   ├── Eventos/                  → IPublicadorEventos + PublicadorEnMemoria (patrón Observer)
 │   └── Metricas/                 → IMetricas (puerto técnico)
 └── Modules/
-    └── <Modulo>/
-        ├── Contracts/            → Interfaces y DTOs públicos: lo único que otros módulos pueden usar
+    └── KillaUru.<Modulo>/        → UN proyecto (.csproj) por módulo: todo es internal salvo Contracts/ y el registro
+        ├── Contracts/            → public: interfaces y DTOs, lo único que otros módulos pueden usar
         │                           (p. ej. Anomalias/Contracts: IAnomaliasService, EventoReportado, TipoAnomalia, AnomaliaCambiada)
         ├── Domain/               → Entidades, value objects y reglas. Sin using de ASP.NET ni EF
         ├── Application/          → Casos de uso y puertos
@@ -58,6 +58,8 @@ src/KillaUru.Api/
         ├── Infrastructure/       → EF Core, PostGIS, Channels, adaptadores: implementan los puertos
         └── <Modulo>Module.cs     → Raíz de composición (registro en el contenedor DI)
 ```
+
+> **Un proyecto por módulo:** si otro módulo intenta usar una clase interna (por ejemplo `Anomalia` o `AnomaliasDbContext`), **no compila**. Así la regla 2 de `estilo-arquitectonico.md` la garantiza el compilador, no solo las pruebas. Estructura completa de la solución en `diseño-interno-de-modulos.md`, sección 2.
 
 **Convención de nombres (ADR-012):** términos de negocio en español (`Anomalia`, `ReporteAnomalia`, `Severidad`, `TipoAnomalia`); términos técnicos de capa en inglés (`Domain`, `Application`, `Adapters`, `Infrastructure`).
 
@@ -68,9 +70,9 @@ No todos los módulos necesitan las cuatro capas con el mismo peso (DA-12):
 | Módulo | Domain | Application | Adapters (HTTP) | Infrastructure |
 |---|---|---|---|---|
 | **Ingesta** | Mínimo (lote y resultado) | `RecibirLoteEventosUseCase` | `SyncController` | `ColaLotesChannel`, `RecepcionEventosRepository`, `ProcesadorEventosBackgroundService` |
-| **Anomalías** | **Rico**: `ReglasCalidad`, `PoliticaConfirmacion`, `Anomalia` (agregado con ciclo de vida), `ReporteAnomalia`, `ReglaPersistencia` | `ProcesarReporteUseCase` (validar → confirmar → clasificar), `ModerarAnomaliaUseCase`, `CaducarAnomaliasUseCase`, `PurgarSeudonimosUseCase`, `ExportarDatasetUseCase` | `ModeracionController`, `ExportacionController` | `AnomaliaRepositoryPostGIS`, escritores CSV y GeoJSON, jobs de mantenimiento |
-| **Consulta de Mapa** | Recorte por rol (polígono demo) | `ConsultarMapaUseCase` | `AnomaliasController` (GET) | Caché por celdas |
-| **Identidad y Accesos** | `Usuario`, `Rol`, política de bloqueo | Registro, login, refresh, gestión de usuarios | `AuthController`, `UsuariosController` | Repositorio EF, emisor de JWT, adaptador de correo `IEnviadorCorreo` |
+| **Anomalías** | **Rico**: `ReglasCalidad`, `CorredorVia` (polilínea en memoria), `PoliticaPlausibilidad`, `PoliticaConfirmacion`, `Anomalia` (agregado con ciclo de vida, posición fija y severidad mostrada), `ReporteAnomalia`, `ReglaPersistencia` | `ProcesarReporteUseCase` (validar → agrupar → confirmar → clasificar), `ModerarAnomaliaUseCase`, `CaducarAnomaliasUseCase`, `PurgarSeudonimosUseCase`, `PurgarHistoricoUseCase`, `ExportarDatasetUseCase` | `ModeracionController`, `ExportacionController` | `AnomaliaRepositoryPostGIS`, escritores CSV y GeoJSON, jobs de mantenimiento |
+| **Consulta de Mapa** | Recorte por rol (polígono demo) | `ConsultarMapaUseCase` (incluye las bajas de `updatedSince`) | `AnomaliasController` (GET, con cabeceras de caché por rol) | Caché por celdas y rol |
+| **Identidad y Accesos** | `Usuario`, `Rol`, política de bloqueo (RN-19) | Registro con aceptación de política y términos, login, refresh con 60 s de gracia, cierre de sesión, gestión de usuarios y revisión mensual de privilegios | `AuthController`, `UsuariosController` | Repositorio EF, emisor de JWT, adaptador de correo `IEnviadorCorreo` |
 | **Dashboard** | Indicadores de negocio | Consulta y cálculo diario de indicadores | `DashboardController` | Job diario de indicadores |
 | **Auditoría** | Registro inmutable | `RegistrarAuditoriaUseCase`, consulta | `AuditoriaController` (solo lectura) | Repositorio *append-only* |
 
@@ -85,12 +87,14 @@ No todos los módulos necesitan las cuatro capas con el mismo peso (DA-12):
 | Timestamp en rango | `ReglasCalidad` | `AntiguedadMaximaDias = 7`, `ToleranciaFuturoMinutos = 5` |
 | Confirmación de severidad alta | `PoliticaConfirmacion` | `SeveridadAltaDesde = 4` (RN-06), `DispositivosRequeridos = 2`, `VentanaConfirmacionHoras = 72` (radio: `RadioAgrupacionMetros`), `SeparacionMinimaMinutos = 3` |
 | Fuera del corredor (RN-13) | `ReglasCalidad` (intrínseca: compara con la polilínea del corredor en memoria) | `DistanciaMaximaViaMetros = 50` |
-| Plausibilidad del dispositivo (RN-15) | `PoliticaPlausibilidad` (necesita los eventos previos del seudónimo, por eso se evalúa al procesar y no al recibir) | `MaxEventosPorHoraDeteccion = 120`, `VelocidadMaximaPlausibleKmh = 150` |
+| Plausibilidad del dispositivo (RN-15) | `PoliticaPlausibilidad` (necesita los eventos previos del seudónimo, por eso se evalúa al procesar y no al recibir) | `MaxEventosPorHoraDeteccion = 120`, `VelocidadMaximaPlausibleKmh = 150`, `SeparacionMinimaPlausibilidadSegundos = 10` |
 | Sesión para confirmar (RN-14) | `PoliticaConfirmacion` | `ReportesConSesionRequeridos = 1` |
 | Agrupación y severidad mostrada (RN-05) | `Anomalia` (agregado): mediana de los últimos 15 días, redondeada hacia arriba | `RadioAgrupacionMetros = 100`, `VentanaSeveridadDias = 15` |
 | Persistente / episódica (RN-12) | `ReglaPersistencia` (Anomalías · Domain) | `DiasDistintosMinimos = 3`, `VentanaDias = 15`, `DesfaseHorarioHoras = -5` |
-| Ciclo de vida de la anomalía (RN-07) | `Anomalia` (agregado) | `CaducidadEpisodicaHoras = 72`, `CaducidadPersistenteDias = 7`, `CaducidadPendienteHoras = 72` |
+| Ciclo de vida de la anomalía (RN-07) | `Anomalia` (agregado): transiciones permitidas, «vuelve a nacer» desde `Expirada` o `Reparada`, caducidad revisada cada hora con la hora de detección | `CaducidadEpisodicaHoras = 72`, `CaducidadPersistenteDias = 7`, `CaducidadPendienteHoras = 72` |
 | Purga del seudónimo | Caso de uso de mantenimiento | `PurgaSeudonimoHoras = 72` |
+| Revisión de anomalías descartadas (RN-07) | `Anomalia` (agregado) y consulta del panel | `VehiculosRevisionDescartada = 3`, `VentanaRevisionDescartadaDias = 7` |
+| Retención histórica (RN-10) | Caso de uso de mantenimiento | `RetencionHistoricaDias = 730` |
 | Lote máximo | `RecibirLoteEventosUseCase` | `IngestaOptions.MaxEventosPorLote = 50` |
 | Seudónimo con formato válido | `SeudonimoInstalacion.Crear` | — |
 | Severidad 1–5 y confidence 0.0–1.0 | Fábricas de `Severidad` y `Confidence` | — |
@@ -123,6 +127,7 @@ public sealed class AnomaliasOptions
     public double DistanciaMaximaViaMetros { get; init; } = 50;
     public int MaxEventosPorHoraDeteccion { get; init; } = 120;   // al superarlo se exige confirmación (no se descarta)
     public int VelocidadMaximaPlausibleKmh { get; init; } = 150;
+    public int SeparacionMinimaPlausibilidadSegundos { get; init; } = 10;  // descuenta el error GPS
 
     // RN-12 · Persistencia
     public int DiasDistintosMinimos { get; init; } = 3;
@@ -134,24 +139,33 @@ public sealed class AnomaliasOptions
     public int CaducidadPersistenteDias { get; init; } = 7;     // un bache reparado sin aviso sale del mapa en ≤ 1 semana
     public int CaducidadPendienteHoras { get; init; } = 72;
     public int PurgaSeudonimoHoras { get; init; } = 72;
+    public int RetencionHistoricaDias { get; init; } = 730;      // RN-10: 2 años
+    public int VehiculosRevisionDescartada { get; init; } = 3;   // RN-07: «Por revisar»
+    public int VentanaRevisionDescartadaDias { get; init; } = 7;
 }
 ```
 
 | Clase de configuración | Sección de `appsettings.json` | Qué contiene | Dónde vive |
 |---|---|---|---|
-| `IngestaOptions` | `Ingesta` | `MaxEventosPorLote = 50`, capacidad de la cola, retención de `evento_recibido` (30 días) | `Modules/Ingesta/Application/` |
+| `IngestaOptions` | `Ingesta` | `MaxEventosPorLote = 50`, capacidad de la cola, retención de `evento_recibido` (`RetencionRecepcionDias = 30`) | `Modules/Ingesta/Application/` |
 | `AnomaliasOptions` | `Anomalias` | RN-05 a RN-15 (arriba) | `Modules/Anomalias/Domain/` |
-| `IdentidadOptions` | `Identidad` | Duración de los tokens, intentos antes del bloqueo, versión vigente de la política de privacidad | `Modules/Identidad/Application/` |
+| `IdentidadOptions` | `Identidad` | Duración de los tokens y periodo de gracia de la rotación (60 s), `IntentosMaximos`, `VentanaIntentosMinutos` y `DuracionesBloqueoMinutos` (RN-19), versiones vigentes de la política de privacidad y de los términos de uso (RF-29, RF-37) | `Modules/Identidad/Application/` |
+| `DashboardOptions` | `Dashboard` | `DiasConductorActivo = 7` (RN-17) | `Modules/Dashboard/Application/` |
 | `MapaOptions` | `Mapa` | Polígono del tramo demo, tamaño de celda, tiempo de caché | `Modules/Mapa/Application/` |
+| Configuración de la app | (en el APK; no es del backend) | RN-03 (`VelocidadMinimaKmh`, `DuracionSostenidaSegundos`), RN-16 (`TiempoAvisoSegundos`, `DistanciaAvisoMinimaMetros`, `TiempoAvisoPesadoSegundos`, `DistanciaAvisoMinimaPesadoMetros`, `DistanciaFinPasadaMetros`), RN-18 (`CategoriasQueDetectan`), RN-21 (`DuracionPermisoLocalDias`, `ParadaFinViajeMinutos`), RN-22 (`BateriaMinimaPorcentaje`) y RN-09 (`RotacionSeudonimoDias`) | App Android · capa de dominio |
 
 > Cada módulo registra **su** clase en su `<Modulo>Module.cs`. Un módulo nunca lee la sección de configuración de otro (principio de segregación de interfaces).
 
 ```csharp
 // Modules/Anomalias/Domain/ReglasCalidad.cs (esqueleto) · sin using de ASP.NET ni EF
-public sealed class ReglasCalidad(AnomaliasOptions o)
+public sealed class ReglasCalidad(AnomaliasOptions o, CorredorVia corredor)   // CorredorVia: polilínea en memoria (RN-13)
 {
+    // Reglas de RECEPCIÓN (RN-11): puras, sin BD; se evalúan evento por evento antes del 200.
+    // El esquema inválido (campos faltantes o mal formados) ya lo rechazó el mapeo a ReporteEntrante.
     public MotivoDescarte? EvaluarIntrinseca(ReporteEntrante e, DateTimeOffset ahora)   // value object del dominio; Application lo mapea desde EventoReportado (Contracts)
     {
+        if (!Enum.IsDefined(e.Tipo))
+            return MotivoDescarte.TipoDesconocido;
         if (e.Confidence.Valor < o.ConfidenceMinimo)
             return MotivoDescarte.ConfidenceBajo;
         if (e.Ubicacion.PrecisionMetros > o.PrecisionGpsMaximaMetros)
@@ -159,6 +173,8 @@ public sealed class ReglasCalidad(AnomaliasOptions o)
         if (e.TimestampUtc > ahora.AddMinutes(o.ToleranciaFuturoMinutos) ||
             e.TimestampUtc < ahora.AddDays(-o.AntiguedadMaximaDias))
             return MotivoDescarte.TimestampFueraDeRango;
+        if (corredor.DistanciaMetros(e.Ubicacion) > o.DistanciaMaximaViaMetros)
+            return MotivoDescarte.FueraDelCorredor;
         return null;
     }
 }
@@ -243,21 +259,21 @@ public sealed class RecibirLoteEventosUseCase(
 
 1. Al **arrancar**, y luego cada ~60 s, busca filas `RECIBIDO` pendientes (barredor de recuperación, EQ-09).
 2. Con cada aviso de lote, carga sus eventos desde `evento_recibido`.
-3. Para cada evento llama a `IAnomaliasService.ProcesarReporteAsync`, que devuelve `Descartado` (con motivo) o `Procesado`. **Ingesta no abre transacciones ni toma bloqueos sobre tablas de Anomalías.**
+3. Para cada evento arma el **contexto** con datos propios de Ingesta (`conSesion`, guardado al recibir según el token del lote, y el número de eventos ya recibidos de ese seudónimo en esa hora de detección, para RN-15a) y llama a `IAnomaliasService.ProcesarReporteAsync(evento, contexto)`, que devuelve `Descartado` (con motivo) o `Procesado`. **Ingesta no abre transacciones ni toma bloqueos sobre tablas de Anomalías.**
 4. **Solo después** de una respuesta correcta marca la fila como `PROCESADO` o `DESCARTADO` (transacción propia de Ingesta, solo sobre `evento_recibido`). Los descartes incrementan **métricas**, no auditoría.
 5. Si el proceso se cae entre el paso 3 y el 4, la fila sigue `RECIBIDO`; el barredor la reenvía y Anomalías la reconoce como ya procesada (idempotencia por `eventoId`). Entrega **al menos una vez** + receptor idempotente = **efecto exactamente una vez**.
 
 **Algoritmo de `ProcesarReporteUseCase`** (módulo Anomalías). Anomalías es **dueño de su transacción y de su bloqueo**:
 
 0. **Idempotencia y bloqueo** — abre **su propia** transacción. Si ya existe un reporte con ese `eventoId` (restricción única en `reporte_anomalia.evento_id`), devuelve el resultado anterior sin hacer nada más. Si no, toma un **bloqueo consultivo por celda geográfica** (la celda es ≥ 5× el radio de 100 m; si el punto está cerca del borde, toma los dos bloqueos en orden fijo). Así dos reportes simultáneos del mismo bache no crean dos anomalías.
-1. **Validar** — `ReglasCalidad.EvaluarIntrinseca` otra vez, por seguridad ante filas antiguas (RN-11, RN-13), y `PoliticaPlausibilidad` con los eventos previos del mismo seudónimo: velocidad plausible (RN-15b). Si hay motivo → `IMetricas.RegistrarDescarte(motivo)` y `Descartado`. Si el seudónimo supera el tope por hora de **detección** (RN-15a), el evento **sigue** pero marcado `RequiereConfirmacion`.
-2. **Agrupar** — busca una anomalía del mismo tipo a ≤ 100 m de su **posición fija** (la del reporte que la creó; si hay dos, la más cercana) (RN-05). Si no existe, `Anomalia.Crear`; si existe, `Anomalia.RegistrarReporte` (actualiza `UltimaDeteccionUtc` con la hora de detección y la **severidad mostrada**: mediana de los reportes de los últimos 15 días, redondeada hacia arriba). Si la anomalía está `Descartada`, el reporte se guarda pero no la reactiva (RN-07).
-3. **Confirmar** — si la anomalía aún no está publicada y `PoliticaConfirmacion.Requiere(severidad)` es verdadero para alguno de sus reportes (severidad 4–5, RN-06), cuenta los reportes de cualquier severidad de la misma anomalía: los dispositivos distintos en el radio y la ventana cuyas detecciones están separadas al menos `SeparacionMinimaMinutos` (celulares del mismo vehículo cuentan como uno), y los reportes con `con_sesion = true`, con una consulta **interna** del repositorio. Con ≥ 2 dispositivos y ≥ 1 con sesión (RN-14) → `Activa`; lo mismo aplica a cualquier severidad si el evento viene marcado `RequiereConfirmacion` (RN-15a); si no → `PendienteConfirmacion`. Severidad 1–3 → `Activa`.
+1. **Validar** — `ReglasCalidad.EvaluarIntrinseca` otra vez, por seguridad ante filas antiguas (RN-11, RN-13), y `PoliticaPlausibilidad` con el evento anterior del mismo seudónimo: velocidad plausible descontando las precisiones GPS y solo si están separados ≥ 10 s; se descarta solo el evento posterior (RN-15b). Si hay motivo → `IMetricas.RegistrarDescarte(motivo)` y `Descartado`. Si el conteo del contexto supera el tope por hora de **detección** (RN-15a), el evento **sigue** pero marcado `RequiereConfirmacion`.
+2. **Agrupar** — busca una anomalía del mismo tipo a ≤ 100 m de su **posición fija** (la del reporte que la creó; si hay dos, la más cercana) (RN-05). Si no existe, `Anomalia.Crear`; si existe, `Anomalia.RegistrarReporte` (actualiza `UltimaDeteccionUtc` con la hora de detección y la **severidad mostrada**: mediana de los reportes de los últimos 15 días, redondeada hacia arriba). Si la anomalía está `Descartada`, el reporte se guarda pero no la reactiva; si ya suma reportes de ≥ 3 vehículos en 7 días, la anomalía queda marcada «Por revisar» para el panel (RN-07). Si está `Expirada` o `Reparada` y la hora de detección es posterior a su vencimiento, **vuelve a nacer** y pasa al paso 3 como si fuera nueva (RN-06).
+3. **Confirmar** — solo para una anomalía que aún no está publicada (nueva, pendiente o que vuelve a nacer). Exige confirmación si alguno de sus reportes de las últimas 72 h es de severidad 4–5 o si su severidad mostrada es 4–5 (RN-06), o si la creó un evento marcado `RequiereConfirmacion` (RN-15a). Para confirmar cuenta los reportes **de cualquier severidad** de la misma anomalía: dispositivos distintos dentro de la ventana cuyas detecciones están separadas al menos `SeparacionMinimaMinutos` (celulares del mismo vehículo cuentan como uno), con una consulta **interna** del repositorio. Caso grave: ≥ 2 vehículos y ≥ 1 reporte con `con_sesion = true` (RN-14) → `Activa`. Caso del tope (RN-15a) sin gravedad: ≥ 2 vehículos, sin exigir sesión → `Activa`. Si no se cumple → `PendienteConfirmacion`. Sin ninguna de esas condiciones → `Activa`. Una anomalía que ya está `Activa` no vuelve a pendiente.
 4. **Clasificar** — la entidad recalcula `Persistencia` con `ReglaPersistencia` (RN-12) y su estado de ciclo de vida (RN-07).
 5. Guarda el reporte (con su `eventoId`) y la anomalía, confirma (*commit*) y libera el bloqueo.
 6. **Después del *commit***, publica `AnomaliaCambiada(anomaliaId, celdas)` con `IPublicadorEventos`. Anomalías no sabe quién escucha; Consulta de Mapa invalida sus celdas (patrón Observer, ADR-006). Si se publicara antes del *commit* y la transacción fallara, el mapa se limpiaría por un cambio que nunca existió.
 
-**Procesos de mantenimiento** (ver `componentes-arquitectonicos.md`): caducidad diaria de anomalías (ADR-008), purga del seudónimo a 72 h y purga de `evento_recibido` a 30 días (RNF-25).
+**Procesos de mantenimiento** (ver `componentes-arquitectonicos.md`): caducidad de anomalías cada hora (ADR-008), purga del seudónimo a 72 h de recibido en reportes y en `evento_recibido` (RN-09), purga de `evento_recibido` a 30 días (RNF-25) y purga histórica a 2 años (RN-10).
 
 ## 7. Composición e inyección de dependencias
 
@@ -287,12 +303,12 @@ builder.Services.AddIdentidadModule(cfg).AddIngestaModule(cfg).AddAnomaliasModul
 
 | Capa | Tipo de prueba | Herramientas *(propuestas)* | Qué se aísla |
 |---|---|---|---|
-| Domain | Unitarias puras (valores límite: 0.74/0.75/0.76, 19/20/21 m, 2 días vs 3 días locales, reporte nocturno en UTC−5) | xUnit | Nada: sin BD, sin red, sin reloj real |
+| Domain | Unitarias puras (valores límite: 0.74/0.75/0.76, 19/20/21 m, 49/50/51 m de la vía, 2 días vs 3 días locales, reporte nocturno en UTC−5, detecciones a 2:59 y 3:00 min, mediana par e impar, 9 y 10 s en RN-15b, reactivación de una `Expirada` con un 5) | xUnit | Nada: sin BD, sin red, sin reloj real |
 | Application | Unitarias con dobles de los puertos | xUnit + NSubstitute + `FakeTimeProvider` | `IRecepcionEventos`, `IColaLotes`, `IAnomaliaRepository`, `IPublicadorEventos`, contratos de otros módulos |
 | Infrastructure | Integración con BD real | Testcontainers (PostgreSQL + PostGIS) | Consultas espaciales, `ON CONFLICT`, bloqueos por celda, mapeos EF |
 | Adapters | Pruebas de API | `WebApplicationFactory` | Contratos HTTP: 200 (con aceptados/duplicados/rechazados por evento), 400 (solo lote ilegible), 401, 429, 503; recorte por rol, también a través de la caché |
 | Arquitectura | Reglas de dependencia | NetArchTest | Domain sin dependencias externas; un módulo solo usa `Contracts/` de otro; sin ciclos (RNF-28) |
-| Sistema | Carga, caos y campo | Herramienta de carga; prueba de reinicio; recorrido en modo avión | EQ-01, EQ-02, EQ-06, EQ-09 |
+| Sistema | Carga, caos, seguridad y campo | Herramienta de carga con el perfil de RNF-03; prueba de reinicio; recorrido en modo avión y reproductor de sensores de 5 h; mismo `bbox` con y sin token a través de Cloudflare; script de ataque. Los simulacros van en el entorno de pruebas (R-11) | EQ-01, EQ-02, EQ-06, EQ-09, EQ-11, EQ-12 |
 
 ## 9. Enfoque en la app Android
 
@@ -306,16 +322,17 @@ flowchart LR
 
 | Capa | Contiene | Reglas que viven aquí |
 |---|---|---|
-| **Dominio** | `Evento` y su estado (`PENDING`, `ENVIANDO`, `SYNCED`, `REJECTED_LOCAL`, `EXPIRADO_LOCAL`), política de guardado, política de reintento, rotación de seudónimo, filtro de proximidad | confidence ≥ 0.75 (RF-03); backoff 30 s → 2 h con *jitter* ±25 % y reinicio al recuperar red (RF-07); rotación mensual del seudónimo (RF-27); alerta solo para anomalías `Activa` por delante en el sentido de marcha (RF-10) |
-| **Datos** | Buffer en **Room** (SQLite), envoltorio de **LiteRT**, cliente **Retrofit**, trabajos de **WorkManager** (sincronización y actualización del modelo), almacén del mapa base y de anomalías locales (índice espacial), token y derecho de acceso en **DataStore** cifrado con **Android Keystore** | Retención de eventos `SYNCED`; descarga incremental con `updatedSince` |
-| **Presentación** | Pantallas en **Jetpack Compose** (mapa, historial, sesión, perfil y alertas) con ViewModels; servicio en primer plano para los sensores | Máximo 3 toques por acción principal (RNF-12); tiempos relativos (RNF-14) |
+| **Dominio** | `Evento` y su estado (`PENDING`, `ENVIANDO`, `SYNCED`, `REJECTED_LOCAL`, `EXPIRADO_LOCAL`), política de guardado, política de reintento, rotación de seudónimo, filtro de proximidad | confidence ≥ 0.75 (RF-03); detecta solo con categoría Liviano y sin «Solo ver el mapa» (RN-18, RF-29); velocidad sostenida (RN-03); ahorro con batería baja (RN-22); estados locales del evento y su purga (RF-06); backoff 30 s → 2 h con *jitter* ±25 % y reinicio al recuperar red (RF-07); rotación mensual del seudónimo (RF-27); alerta solo para el conductor registrado y anomalías `Activa` por delante en el sentido de marcha, medida a lo largo de la vía, una por pasada (RN-08, RN-16, RN-20); vigencia del permiso local y cierre de sesión (RN-21) |
+| **Datos** | Buffer en **Room** (SQLite), envoltorio de **LiteRT**, cliente **Retrofit**, trabajos de **WorkManager** (sincronización y actualización del modelo), almacén del mapa base y de anomalías locales (índice espacial), token y derecho de acceso en **DataStore** cifrado con **Android Keystore** | Hora de detección tomada del GPS; purga de estados finales a los 7 días; descarga incremental con `updatedSince` aplicando las bajas; descarga del mapa base y la polilínea con manifiesto, SHA-256 y reanudación |
+| **Presentación** | Pantallas en **Jetpack Compose** (primer uso con términos, aviso de privacidad, categoría de vehículo y permisos; mapa, historial, sesión, perfil y alertas) con ViewModels; servicio en primer plano para los sensores con el indicador de estado en su notificación | Máximo 3 toques por acción principal (RNF-12); tiempos relativos y «Actualizado hace…» (RNF-14, RF-26); zona fuera del tramo demo sombreada para el anónimo (RN-08); indicador de estado (RF-36) |
 
 Principios de la app:
 
 1. **Offline-first:** nada en el flujo de detección, guardado, mapa descargado o alertas necesita red.
 2. El **historial** se calcula y se guarda solo en el dispositivo (RF-25).
-3. El **acceso al corredor completo** depende de un derecho de acceso (*entitlement*) guardado localmente, no de que el JWT siga vigente. El servidor sigue decidiendo qué datos entrega (RF-14).
+3. El **acceso al corredor completo** depende de un derecho de acceso (*entitlement*) guardado localmente, no de que el JWT siga vigente: dura lo mismo que la sesión, no se corta durante un viaje y se borra al cerrar sesión o al saberse que la cuenta fue desactivada (RN-21). El servidor sigue decidiendo qué datos entrega (RF-14).
 4. El **modelo** declara su `modeloVersion` y cada evento lo lleva (ADR-004).
+5. **Las alertas protegen primero:** la pausa por batería baja (RN-22) o por categoría de vehículo apaga la detección, nunca las alertas del conductor registrado.
 
 ## 10. Beneficios
 
@@ -327,18 +344,6 @@ Principios de la app:
 | **Evolutivo** | Cambiar de motor de datos solo afecta a Infrastructure; extraer un módulo solo exige mover su carpeta |
 | **Legible** | Los casos de uso cuentan qué hace el sistema sin leer la infraestructura |
 
-## 11. Alineación pendiente con Nivel4
+## 11. Alineación con Nivel4
 
-Estos puntos de este documento aún no aparecen en `Nivel4-diagrama-de-codigo.md` y deben incorporarse:
-
-| Cambio | En Nivel4 hoy | Debe quedar |
-|---|---|---|
-| Seudónimo | `DispositivoHash` (SHA-256, 64 hex) | `SeudonimoInstalacion` (UUID aleatorio rotativo, ADR-007) |
-| Identificador del evento | No existe | `EventoReportado.EventoId` y `ModeloVersion` |
-| Cola | `IColaEventos` / `ColaEventosChannel` (por evento) | `IColaLotes` / `ColaLotesChannel` (por lote) y puerto `IRecepcionEventos` |
-| Reglas | Clases estáticas con constantes | Clases con la configuración **de su módulo** inyectada (`AnomaliasOptions`, etc.) |
-| Auditoría de descartes | `IAuditoriaService` | `IMetricas` en `Shared/Metricas` (descartes = métricas) |
-| Módulos Validación y Clasificación | Dos módulos con `IValidacionService` e `IClasificacionService` | Un módulo **Anomalías** con `IAnomaliasService` (`EvaluarIntrinseca` síncrona y pura + `ProcesarReporteAsync`) |
-| Agregado `Anomalia` | `Persistencia` y `Confirmada` | Estado de ciclo de vida y `UltimaDeteccionUtc` (ADR-008) |
-| Día de RN-12 | UTC | Desfase fijo UTC−5 |
-| Lecturas cruzadas | `IAnomaliaConsultas` | `IAnomaliaLectura` para Mapa y Dashboard (Exportación es un caso de uso de Anomalías); el conteo de dispositivos pasa a ser interno |
+**Resuelta (2026-10-14):** `Nivel4-diagrama-de-codigo.md` se rediseñó desde cero (versión 3.0) a partir de este documento, y `workspace.dsl` contiene las vistas de Structurizr. Ya no quedan diferencias pendientes.

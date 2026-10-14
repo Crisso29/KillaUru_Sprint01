@@ -1,285 +1,182 @@
-# Nivel 3 · Diagrama de componentes
+# Nivel 3 · Diagrama de Componentes
 
-> **Proyecto:** KillaUru (ViaLibre) · **Contenedor detallado:** API KillaUru
-> **Modelo:** C4 · Nivel 3 de 4 · **Versión:** 1.0
-> **Herramienta:** Structurizr (DSL) · vista `C3_Componentes`
-
----
+> **Proyecto:** KillaUru · **Modelo:** C4 · Nivel 3 de 4 · **Versión:** 3.0 · **Revisión:** 2026-10-14 · **Estado:** Vigente (alineado con `componentes-arquitectonicos.md`)
+> **Contenedores detallados:** API KillaUru y App KillaUru
+> **Herramienta:** Structurizr DSL (`workspace.dsl`, vistas `C3_API` y `C3_App`) · copia en Mermaid en este documento
 
 ## 1. Objetivo
 
-Abrir el contenedor **API KillaUru** del nivel 2 y mostrar sus **componentes**: los módulos del monolito modular, la responsabilidad de cada uno, las reglas de negocio que implementan y cómo se relacionan entre sí, con la base de datos, con la caché y con los sistemas externos.
+Abrir los dos contenedores con lógica propia, la **API** y la **App**, y mostrar sus componentes: qué hace cada uno, qué contrato expone y de quién depende. El catálogo completo, con la propiedad de datos y los procesos en segundo plano, está en `componentes-arquitectonicos.md`. Este documento es su vista C4.
 
 | Aspecto | Descripción |
 |---|---|
-| Pregunta que responde | ¿Cómo se divide el backend por dentro y qué hace cada parte? |
-| Audiencia | Arquitectos, desarrolladores, docente del curso IS488 |
-| Qué es un componente | Un grupo de funcionalidades con una responsabilidad clara, accesible mediante una interfaz. Aquí cada **módulo** del monolito (bounded context) es un componente |
-| Qué **no** muestra | Clases, entidades ni casos de uso individuales (eso es el nivel 4) |
+| Pregunta que responde | ¿Qué partes tiene cada contenedor y cómo colaboran sin acoplarse? |
+| Audiencia | Desarrolladores, QA, docente |
 | Nivel anterior | [`Nivel2-diagrama-de-contenedores.md`](Nivel2-diagrama-de-contenedores.md) |
 | Siguiente nivel | [`Nivel4-diagrama-de-codigo.md`](Nivel4-diagrama-de-codigo.md) |
 
----
-
-## 2. Diagrama
-
-![Diagrama de componentes de la API KillaUru](../../img/fuentes-svg/C3_Componentes.svg)
-
-> Exportado en SVG desde Structurizr Lite. Fuente editable: `workspace.dsl` (vista `C3_Componentes`). Vista de respaldo en Mermaid:
+## 2. API KillaUru: componentes
 
 ```mermaid
 flowchart TD
-    classDef persona fill:#0F766E,color:#fff,stroke:#0a4f4a
-    classDef interno fill:#6D28D9,color:#fff,stroke:#4c1d95
-    classDef contenedor fill:#1565C0,color:#fff,stroke:#0d47a1
+    classDef host fill:#0D47A1,color:#fff,stroke:#082a66
+    classDef modulo fill:#A9C9F5,color:#0F2744,stroke:#1565C0
+    classDef shared fill:#E3F2FD,color:#0F2744,stroke:#1565C0,stroke-dasharray: 4 3
     classDef datos fill:#1E88E5,color:#fff,stroke:#0d47a1
-    classDef componente fill:#A9C9F5,color:#0F2744,stroke:#1565C0
     classDef externo fill:#475569,color:#fff,stroke:#334155
 
-    CNR["Conductor No Registrado"]:::persona
-    CR["Conductor Registrado"]:::persona
-    ADM["Administrador"]:::interno
+    APP["App KillaUru"]:::externo
+    PANEL["Panel Admin"]:::externo
+    UR["UptimeRobot"]:::externo
+    MAIL["Proveedor de correo"]:::externo
+    GRAF["Grafana Cloud"]:::externo
+    DB[("PostgreSQL + PostGIS")]:::datos
 
-    APP["App KillaUru<br/>[Android · Kotlin + TFLite]"]:::contenedor
-    PANEL["Panel Admin<br/>[SPA · React + Leaflet]"]:::contenedor
-    CF["Cloudflare<br/>[Sistema externo]"]:::externo
-    UR["UptimeRobot<br/>[Sistema externo]"]:::externo
-    SG["SendGrid<br/>[Sistema externo · roadmap]"]:::externo
-    DB[("PostgreSQL + PostGIS<br/>[Contenedor]")]:::datos
-
-    CNR --> APP
-    CR --> APP
-    ADM --> PANEL
-    APP -- "HTTPS/JSON" --> CF
-    PANEL -- "HTTPS/JSON + JWT" --> CF
-
-    subgraph API["API KillaUru [ASP.NET Core 8 · monolito modular]"]
-        REST["API REST<br/>Controllers + Middleware<br/>/api/v1 · JWT · rate limiting · /health"]:::componente
-
-        subgraph MOD["Módulos de negocio (bounded contexts)"]
-            AUTH["Autenticación<br/>Login · JWT 8 h · bloqueo 3 intentos"]:::componente
-            USR["Usuarios y Roles<br/>RBAC"]:::componente
-            ING["Ingesta de Anomalías<br/>POST /anomalies/batch · .NET Channels"]:::componente
-            VAL["Validación de Calidad<br/>RN-11"]:::componente
-            CLA["Clasificación<br/>Persistente / Episódica · RN-12"]:::componente
-            MAPA["Consulta de Mapa<br/>GET /anomalies?bbox= · GeoJSON"]:::componente
-            DASH["Dashboard / Estadísticas"]:::componente
-            EXP["Exportación<br/>CSV / GeoJSON"]:::componente
-            AUD["Auditoría<br/>Log append-only"]:::componente
-        end
-
-        CACHE["Caché en memoria<br/>IMemoryCache"]:::componente
+    subgraph API["API KillaUru · un proceso"]
+        REST["API REST (host)<br/>sesión · RBAC · límite de tasa · caché de borde por rol · /health"]:::host
+        ID["Identidad y Accesos<br/>cuentas · tokens · bloqueo · consentimientos"]:::modulo
+        ING["Ingesta<br/>recepción durable · cola · trabajadores"]:::modulo
+        ANO["Anomalías<br/>reglas RN-05…RN-15 · ciclo de vida · exportación"]:::modulo
+        MAPA["Consulta de Mapa<br/>recorte por rol · caché por celda · ETag"]:::modulo
+        DASH["Dashboard<br/>indicadores de negocio"]:::modulo
+        AUD["Auditoría<br/>registro append-only"]:::modulo
+        EVT["Eventos de dominio<br/>(Observer)"]:::shared
+        MET["Métricas<br/>(OpenTelemetry)"]:::shared
     end
 
-    CF -- "Enruta HTTPS" --> REST
-    UR -- "GET /health cada 5 min" --> REST
+    APP -- "HTTPS/JSON" --> REST
+    PANEL -- "HTTPS/JSON" --> REST
+    UR -- "/health/ready" --> REST
+    REST --> ID & ING & ANO & MAPA & DASH & AUD
 
-    REST --> AUTH
-    REST --> USR
-    REST --> ING
-    REST --> MAPA
-    REST --> DASH
-    REST --> EXP
+    ING -- "IAnomaliasService<br/>EvaluarIntrinseca · ProcesarReporteAsync(evento, contexto)" --> ANO
+    MAPA -- "IAnomaliaLectura" --> ANO
+    DASH -- "IAnomaliaLectura" --> ANO
+    DASH -- "IIdentidadConsultas" --> ID
+    ANO -- "IAuditoriaService" --> AUD
+    ID -- "IAuditoriaService" --> AUD
+    ANO -. "AnomaliaCambiada (tras el commit)" .-> EVT
+    EVT -. "invalida celdas" .-> MAPA
+    ING & ANO & REST -. "registra" .-> MET
+    MET -. "OTLP" .-> GRAF
+    ID -- "IEnviadorCorreo" --> MAIL
 
-    ING -- "Encola lote y envía a validar" --> VAL
-    VAL -- "Evento válido" --> CLA
-    VAL -- "Registra descartes" --> AUD
-    VAL -. "Lee confirmaciones previas" .-> DB
-    CLA -- "Persiste anomalía" --> DB
-    CLA -. "Invalida caché del tramo" .-> CACHE
-
-    USR -- "Valida sesión" --> AUTH
-    USR -- "Registra cambios" --> AUD
-    AUTH -- "Registra login fallido / bloqueo" --> AUD
-    AUTH -- "Lee credenciales" --> DB
-    USR -- "CRUD usuarios" --> DB
-    AUD -- "Inserta registros" --> DB
-    USR -. "Correo de verificación (Could, HU-11b)" .-> SG
-
-    MAPA -- "Lee / escribe" --> CACHE
-    MAPA -- "Consulta por bbox" --> DB
-    DASH -- "Consulta métricas" --> DB
-    EXP -- "Consulta dataset" --> DB
+    ID & ING & ANO & AUD & DASH --> DB
 ```
 
----
+> Solo los **dueños** de datos tienen flecha a la BD. Consulta de Mapa no tiene tablas: lee por el contrato de Anomalías. Las dependencias forman un grafo **sin ciclos**: Ingesta → Anomalías → Auditoría; Mapa y Dashboard → Anomalías; Dashboard → Identidad; Identidad → Auditoría.
 
-## 3. Componentes
+### 2.1 Componentes
 
-| Componente | Responsabilidad | Funcionalidades principales | Carpeta en el código *(propuesta)* |
+| Componente | Responsabilidad | Funcionalidad clave | Requisitos |
 |---|---|---|---|
-| **API REST** | Punto de entrada HTTP único del contenedor | Rutas `/api/v1`; middleware transversal (autenticación JWT, rate limiting, logger, manejo de errores); validación del esquema de entrada; endpoint `/health` y métricas | `Api/` |
-| **Autenticación** | Identidad del administrador | Login, emisión y validación de JWT (8 h), bloqueo tras 3 intentos fallidos | `Modules/Autenticacion/` |
-| **Usuarios y Roles** | Gestión de cuentas y permisos | Crear usuarios, cambiar rol (Administrador / Conductor registrado), desactivar cuentas (RBAC); correo de verificación (roadmap) | `Modules/Usuarios/` |
-| **Ingesta de Anomalías** | Recepción de eventos desde la app | Recibe lotes de hasta 50 eventos (`POST /api/v1/anomalies/batch`), los encola con .NET Channels para absorber hasta 300 dispositivos sincronizando a la vez | `Modules/Ingesta/` |
-| **Validación de Calidad** | Filtro de calidad del dato (RN-11) | Descarta eventos con `confidence < 0.75`, precisión GPS > 20 m o timestamp fuera de rango; exige confirmación de ≥ 2 dispositivos en 100 m / 72 h para severidad alta | `Modules/Validacion/` |
-| **Clasificación Persistente/Episódica** | Tipificación temporal de la anomalía (RN-12) | Marca PERSISTENTE si aparece en ≥ 3 días distintos dentro de 15 días; en caso contrario EPISÓDICA; persiste la anomalía en PostGIS e invalida la caché del tramo | `Modules/Clasificacion/` |
-| **Consulta de Mapa** | Lectura pública del mapa | `GET /api/v1/anomalies?bbox=` en GeoJSON con soporte de delta sync, respaldado por caché (objetivo < 250 ms) | `Modules/Mapa/` |
-| **Dashboard / Estadísticas** | Indicadores de operación | Eventos por día, usuarios activos, cobertura del corredor y latencia p95 del backend | `Modules/Dashboard/` |
-| **Exportación** | Entrega del dataset | Genera CSV y GeoJSON del dataset filtrado | `Modules/Exportacion/` |
-| **Auditoría** | Trazabilidad de acciones sensibles | Log append-only (timestamp UTC, actor, acción, contexto); solo lectura; registra también los eventos descartados | `Modules/Auditoria/` |
-| **Caché en memoria** | Componente técnico de rendimiento | `IMemoryCache` con resultados frecuentes del mapa; se invalida cuando entra una anomalía nueva en un tramo | `Shared/Cache/` |
+| **API REST (host)** | Punto de entrada y composición | Rutas `/api/v1`; middleware de sesión y RBAC; límite de tasa con IP real y cuota de lotes; cabeceras de caché por rol; `/health/live` y `/health/ready`; manejo global de errores | RF-28, RNF-08, RNF-11 |
+| **Identidad y Accesos** | Quién es quién | Registro con política y términos; login con bloqueo (RN-19); JWT de 5 min y *refresh* rotativo con 60 s de gracia; cierre de sesión; usuarios, roles y revisión mensual; «mis datos» y baja; correo de verificación y recuperación | RF-16, RF-19, RF-21, RF-22, RF-29…RF-32, RF-37 |
+| **Ingesta** | Recepción durable | Reglas de recepción por evento; `con_sesion` por el token; un `INSERT` por lote; cola acotada con trabajadores; barredor; contexto para Anomalías (conteo de RN-15a) | RF-11, RF-27, RNF-02, RNF-06 |
+| **Anomalías** | Corazón del negocio | Plausibilidad (RN-15b); agrupación por posición fija y mediana (RN-05); confirmación (RN-06, RN-14, RN-15a); persistencia (RN-12); ciclo de vida y moderación con «Por revisar» (RN-07); purgas (RN-09, RN-10); exportación sin seudónimos | RF-12, RF-13, RF-20, RF-23, RF-24 |
+| **Consulta de Mapa** | Lectura rápida por rol | Recorte por rol con `ZonaDemo`; caché por celda y alcance; ETag en memoria; `updatedSince` con bajas | RF-14, RF-17, RF-26, RNF-01, RNF-27 |
+| **Dashboard** | Indicadores de negocio | Conteos diarios sin vincular identidad; cobertura, confirmación y reaparición | RF-18, RN-17 |
+| **Auditoría** | Rastro inmutable | Registro en la misma transacción de la acción; consulta de solo lectura | RF-15, RNF-31 |
+| **Eventos de dominio** | Comunicación sin acoplamiento | `IPublicadorEventos` en memoria; publica después del *commit* | ADR-006 |
+| **Métricas** | Observabilidad | `IMetricas` → OpenTelemetry | RNF-21, RNF-22 |
 
-### Trazabilidad con requisitos
+### 2.2 Contratos públicos (`Contracts/`)
 
-| Componente | Requisitos / historias / épica |
-|---|---|
-| API REST | RF-11, RF-16 |
-| Autenticación | RF-16, HU-11, EP-05 |
-| Usuarios y Roles | RF-19, HU-14, EP-05 |
-| Ingesta de Anomalías | RF-11, HU-04, EP-03 |
-| Validación de Calidad | RF-12, HU-05, EP-03 |
-| Clasificación Persistente/Episódica | RF-13, HU-06, EP-03 |
-| Consulta de Mapa | RF-14, HU-08, EP-04 |
-| Dashboard / Estadísticas | RF-18, HU-13, EP-05 |
-| Exportación | RF-20, HU-12, EP-05 |
-| Auditoría | RF-15, HU-15, EP-05 |
-| Caché en memoria | RNF-01, DA-06 |
-
----
-
-## 4. Relaciones entre componentes
-
-| Origen | Destino | Descripción | Tipo de comunicación |
+| Dueño | Contrato | Operaciones | Consumidores |
 |---|---|---|---|
-| Cloudflare | API REST | Entrega el tráfico HTTPS de `api.killauru.pe` | HTTPS |
-| UptimeRobot | API REST | `GET /health` cada 5 minutos | HTTPS |
-| API REST | Autenticación, Usuarios, Ingesta, Mapa, Dashboard, Exportación | Invoca los casos de uso de cada módulo | Llamada en memoria |
-| Ingesta | Validación | Entrega cada evento del lote (vía .NET Channels) | Cola en memoria |
-| Validación | Clasificación | Pasa los eventos válidos | Llamada en memoria |
-| Validación | Auditoría | Registra los eventos descartados y el motivo | Llamada en memoria (API pública del módulo) |
-| Clasificación | Caché | Invalida el tramo afectado tras persistir | Llamada en memoria |
-| Usuarios | Autenticación | Valida la sesión del administrador que opera | Llamada en memoria (API pública del módulo) |
-| Usuarios | Auditoría | Registra altas, cambios de rol y desactivaciones | Llamada en memoria |
-| Autenticación | Auditoría | Registra logins fallidos y bloqueos de cuenta | Llamada en memoria |
-| Mapa | Caché | Lee y escribe resultados de consultas por bbox | Llamada en memoria |
+| Anomalías | `IAnomaliasService` | `EvaluarIntrinseca(evento, ahora)` (pura, al recibir); `ProcesarReporteAsync(evento, contexto)` | Ingesta |
+| Anomalías | `IAnomaliaLectura` | Anomalías `Activa` por celdas; cambios desde una fecha (con bajas); filtros del administrador; agregados de cobertura | Consulta de Mapa, Dashboard |
+| Anomalías | `EventoReportado`, `ContextoReporte`, `AnomaliaCambiada` | DTOs y evento públicos. `ContextoReporte = (ConSesion, EventosEnLaHora)` | Ingesta, Consulta de Mapa |
+| Identidad | `IIdentidadConsultas` | `ContarConductoresActivosAsync(dias)` | Dashboard |
+| Auditoría | `IAuditoriaService` | `RegistrarAsync(acción, actor, objetivo, contexto)` dentro de la transacción del llamador (ADR-013) | Identidad, Anomalías, host |
+| Shared | `IPublicadorEventos`, `IMetricas`, value objects | Publicar y suscribir; contadores; `Coordenada`, `Severidad`, `Confidence`, `SeudonimoInstalacion`, `Celda` | Todos |
 
----
+### 2.3 Procesos en segundo plano
 
-## 5. Relaciones con contenedores y sistemas externos
+| Proceso | Módulo | Frecuencia | Regla |
+|---|---|---|---|
+| Trabajadores del `Channel` + barredor | Ingesta | Continuo · cada 60 s | ADR-005, EQ-09 |
+| Caducidad | Anomalías | Cada hora | RN-07 |
+| Purga de seudónimos (reportes y recepción) | Anomalías e Ingesta | Cada hora | RN-09 |
+| Purga de recepción (30 días) e histórica (2 años) | Ingesta · Anomalías | Diaria | RN-10 |
+| Indicadores diarios | Dashboard | Diaria (antes de la purga) | RN-17 |
 
-| Componente | Destino | Descripción | Protocolo | Patrón aplicado |
-|---|---|---|---|---|
-| Clasificación | PostgreSQL + PostGIS | Persiste las anomalías con geometría | SQL sobre TCP | Repository |
-| Validación | PostgreSQL + PostGIS | Lee eventos cercanos recientes para contar confirmaciones (solo lectura) | SQL sobre TCP | Repository |
-| Autenticación | PostgreSQL + PostGIS | Lee credenciales y estado de bloqueo | SQL sobre TCP | Repository |
-| Usuarios y Roles | PostgreSQL + PostGIS | CRUD de usuarios y roles | SQL sobre TCP | Repository |
-| Auditoría | PostgreSQL + PostGIS | Inserta registros (sin UPDATE ni DELETE) | SQL sobre TCP | Repository (append-only) |
-| Consulta de Mapa | PostgreSQL + PostGIS | Consulta por `bbox` con índices GiST | SQL sobre TCP | Repository + Cache-Aside |
-| Dashboard / Estadísticas | PostgreSQL + PostGIS | Agregaciones de operación | SQL sobre TCP | Repository (solo lectura) |
-| Exportación | PostgreSQL + PostGIS | Lectura del dataset filtrado | SQL sobre TCP | Repository (solo lectura) |
-| Usuarios y Roles | SendGrid *(roadmap)* | Correo de verificación de registro (HU-11b, Could) | HTTPS/REST | Adapter |
-
----
-
-## 6. Propiedad de los datos por módulo
-
-Cada tabla tiene **un solo módulo dueño** que escribe en ella. Los módulos de lectura acceden por la interfaz del repositorio del dueño, nunca con SQL propio sobre tablas ajenas.
-
-| Datos *(nombres propuestos)* | Módulo dueño (escribe) | Módulos que leen |
-|---|---|---|
-| `usuarios`, `roles` | Usuarios y Roles | Autenticación (credenciales) |
-| `anomalias` | Clasificación | Validación (confirmaciones), Consulta de Mapa, Dashboard, Exportación |
-| `auditoria` | Auditoría | Panel Admin, a través de la API |
-
----
-
-## 7. Reglas del monolito modular
-
-| # | Regla | Motivo |
-|---|---|---|
-| 1 | Todos los componentes se despliegan juntos en el contenedor API KillaUru | Monolito: un solo proceso, un solo `docker compose up -d` |
-| 2 | Un módulo usa a otro solo a través de su interfaz pública (por ejemplo `IAuditoriaService`), nunca de sus clases internas ni de su repositorio | Un cambio interno no rompe a los demás y el módulo puede extraerse como servicio (DA-09) |
-| 3 | Un módulo no escribe en las tablas de otro; la lectura cruzada solo ocurre por la interfaz del repositorio del dueño (sección 6) | Mantiene la independencia de los datos |
-| 4 | Cada sistema externo se integra en un único módulo (SendGrid solo desde Usuarios) | La integración queda en un solo lugar y es fácil de reemplazar |
-| 5 | Cada módulo se organiza por dentro con Clean Architecture: Dominio → Aplicación → Adaptadores → Infraestructura, con dependencias solo hacia adentro | Las reglas de negocio (RN-11, RN-12) no dependen de ASP.NET ni de PostgreSQL (ver nivel 4) |
-| 6 | Cada capa solo invoca a la inmediatamente inferior: controlador → caso de uso → repositorio | Orden de invocación predecible y testeable |
-| 7 | Las dependencias entre módulos no forman ciclos | Si Usuarios depende de Autenticación, Autenticación no puede depender de Usuarios |
-
----
-
-## 8. Flujo clave: ingesta de un lote
+## 3. App KillaUru: componentes
 
 ```mermaid
-sequenceDiagram
-    participant APP as App KillaUru
-    participant REST as API REST
-    participant ING as Ingesta
-    participant VAL as Validación
-    participant CLA as Clasificación
-    participant AUD as Auditoría
-    participant DB as PostgreSQL + PostGIS
-    participant C as Caché
+flowchart LR
+    classDef comp fill:#A9C9F5,color:#0F2744,stroke:#1565C0
+    classDef datos fill:#1E88E5,color:#fff,stroke:#0d47a1
+    classDef ext fill:#475569,color:#fff,stroke:#334155
 
-    APP->>REST: POST /api/v1/anomalies/batch (≤ 50 eventos)
-    REST->>REST: Valida esquema y rate limiting
-    REST->>ING: Procesa el lote
-    ING->>VAL: Envía cada evento (Channel)
-    alt Evento inválido (RN-11)
-        VAL->>AUD: Registra descarte y motivo
-    else Evento válido
-        VAL->>DB: Lee confirmaciones (100 m / 72 h)
-        VAL->>CLA: Entrega evento válido
-        CLA->>DB: Persiste anomalía (PERSISTENTE / EPISÓDICA, RN-12)
-        CLA->>C: Invalida el tramo afectado
-    end
-    REST-->>APP: HTTP 200 (la app marca SYNCED)
+    SES["Sesión y primer uso<br/>términos · privacidad · categoría · permisos · permiso local"]:::comp
+    SEN["Sensores<br/>servicio en primer plano · indicador de estado"]:::comp
+    DET["Detector<br/>prefiltro + LiteRT"]:::comp
+    PRIV["Seudónimo<br/>UUID rotativo"]:::comp
+    BUF[("Buffer<br/>Room · evento")]:::datos
+    SYN["Sincronizador<br/>WorkManager · backoff · estados locales"]:::comp
+    MAPA["Mapa<br/>MapLibre · zona demo sombreada"]:::comp
+    LOC[("Anomalías locales<br/>Room · índice por km")]:::datos
+    COR["Corredor<br/>polilínea + km acumulado"]:::comp
+    PRX["Proximidad y Alertas<br/>rango por km · una por pasada · sonido RN-20"]:::comp
+    HIS["Historial<br/>Room · recorrido"]:::comp
+    ACT["Actualizador<br/>manifiestos + SHA-256"]:::comp
+    API["API KillaUru"]:::ext
+    CDN["cdn.killauru.pe"]:::ext
+
+    SES --> SEN
+    SEN --> DET --> BUF
+    PRIV --> BUF
+    BUF --> SYN -- "lotes ≤ 50" --> API
+    SES -- "token" --> SYN
+    SYN -- "updatedSince (altas y bajas)" --> LOC
+    COR -- "km de cada anomalía" --> LOC
+    LOC --> MAPA
+    LOC --> PRX
+    COR --> PRX
+    BUF --> HIS
+    ACT -- "modelo" --> DET
+    ACT -- "PMTiles y polilínea" --> COR
+    CDN --> ACT
 ```
 
----
-
-## 9. Atributos de calidad por componente
-
-| Atributo | Meta | Componente responsable |
+| Componente | Responsabilidad | Requisitos |
 |---|---|---|
-| Rendimiento de lectura | Mapa < 250 ms | Consulta de Mapa + Caché + índices GiST |
-| Concurrencia | 300 dispositivos sincronizando a la vez | Ingesta (.NET Channels) |
-| Calidad del dato | Solo eventos confiables llegan al mapa | Validación de Calidad (RN-11) |
-| Seguridad | JWT 8 h, bloqueo a los 3 intentos, RBAC | Autenticación, Usuarios y Roles, API REST |
-| Integridad y trazabilidad | Auditoría inmutable | Auditoría (append-only) |
-| Observabilidad | `/health` cada 5 min, latencia p95 | API REST + Dashboard |
-| Evolutividad | Extraer un módulo sin reescribir | Reglas 2, 3 y 5 del monolito modular |
+| **Sesión y primer uso** | Términos de uso y aviso de privacidad aceptados; categoría de vehículo; permisos de Android; «Solo ver el mapa»; login, renovación, cierre de sesión y permiso local | RF-21, RF-29, RF-34, RF-35, RF-37, RF-38, RN-21 |
+| **Sensores** | 50 Hz en lote solo si corresponde (RN-03, RN-18, RN-22); indicador de estado | RF-01, RF-36 |
+| **Detector** | Prefiltro de energía y clasificación local en < 50 ms | RF-02, RNF-04 |
+| **Seudónimo** | UUID aleatorio de instalación con rotación mensual | RF-27 |
+| **Buffer** | Eventos con hora del GPS y estados locales; purga a 7 días | RF-03, RF-06 |
+| **Sincronizador** | Lotes de los más antiguos primero; contrato 200/400/401/429/503; backoff con *jitter*; reanudación ≤ 60 s | RF-04, RF-06, RF-07 |
+| **Mapa** | Mapa base y anomalías locales; «Actualizado hace…»; zona fuera del demo sombreada para el anónimo | RF-08, RF-09, RF-26 |
+| **Corredor** | Polilínea con km acumulado; proyección del GPS con búsqueda incremental | RN-16 |
+| **Proximidad y Alertas** | Rango por km en el sentido de marcha; una alerta por pasada; sonido que no exige mirar la pantalla | RF-10, RN-16, RN-20 |
+| **Historial** | Resúmenes de recorridos de 6 meses, solo locales, borrados al cerrar sesión | RF-25, RN-21 |
+| **Actualizador** | Modelo (prioridad *Should*) y mapa base con manifiesto, SHA-256 y versión mínima de app | RF-26, RF-33 |
 
----
+## 4. Reglas de composición
 
-## 10. Decisiones y supuestos
-
-| # | Decisión o supuesto | Motivo |
+| # | Regla | Cómo se hace cumplir |
 |---|---|---|
-| 1 | La caché es un componente interno (`IMemoryCache`), no Redis | Costo cercano a cero (R-04) y operación por una sola persona (DA-06) |
-| 2 | Ingesta, Validación y Clasificación son módulos separados | Cada uno nace de una regla de negocio distinta (RN-11, RN-12) y puede evolucionar o extraerse por separado |
-| 3 | Clasificación invalida la caché del tramo al persistir | Evita servir un mapa desactualizado tras una anomalía nueva |
-| 4 | Autenticación registra login fallido y bloqueo en Auditoría | Son acciones sensibles (RF-15) |
-| 5 | Las lecturas de Mapa, Dashboard y Exportación pasan por la interfaz del repositorio de `anomalias` | Respeta la regla 3 sin duplicar datos |
-| 6 | La carpeta `Modules/` y los nombres de interfaces son una propuesta | Se confirman al arrancar la implementación |
+| 1 | Un módulo usa a otro **solo** por su `Contracts/` | Un proyecto por módulo con todo `internal` salvo `Contracts/`: el compilador lo impide |
+| 2 | Un esquema y un `DbContext` por módulo; solo el dueño escribe | NetArchTest (RNF-28) |
+| 3 | Sin ciclos entre módulos | NetArchTest |
+| 4 | Cada sistema externo se integra desde un único módulo | Revisión |
+| 5 | Cada módulo maneja su transacción; la auditoría se une a ella (ADR-013) | Pruebas de integración |
+| 6 | Los eventos de dominio se publican **después** del *commit* | Revisión + prueba de integración |
 
-### Pendientes por definir
+## 5. Trazabilidad
 
-| Tema | Detalle |
-|---|---|
-| Momento del HTTP 200 | Si responde al encolar el lote en el Channel, un reinicio del proceso puede perder eventos que la app ya marcó como `SYNCED`. Definir si el 200 se envía tras persistir o si se acepta ese riesgo en v1.0 |
-| Nombre del módulo de entrada | `estilo-arquitectonico.md` lo llama «Sincronización» (`SyncController`); aquí «Ingesta de Anomalías». Unificar el nombre |
-| Caché | `estilo-arquitectonico.md` y `enfoque-arquitectonico.md` mencionan Redis; este nivel usa `IMemoryCache`. Alinear los tres documentos |
-| Métricas del Dashboard | Definir cómo obtiene la latencia p95 (middleware con `/metrics`, tabla propia o contador en memoria) |
-| Auditoría de exportaciones | Evaluar si cada exportación del dataset debe registrarse en Auditoría |
-
----
-
-## 11. Leyenda de estilos (del workspace DSL)
-
-| Elemento | Color | Hex | Tipo de nodo |
+| Componente | RF | HU | Épica |
 |---|---|---|---|
-| 🟢 Usuario Externo | Verde azulado | `#0F766E` | Conductores |
-| 🟣 Personal Interno | Violeta | `#6D28D9` | Administrador |
-| 🟦 Contenedor | Azul | `#1565C0` | App KillaUru, Panel Admin |
-| 🔷 Almacén de datos | Azul claro (cilindro) | `#1E88E5` | Base de datos |
-| 🩵 Componente | Celeste | `#A9C9F5` | Módulos y API REST |
-| ⬜ Infraestructura Externa | Gris pizarra | `#475569` | Cloudflare, UptimeRobot, SendGrid |
-
----
-
-## 12. Trazabilidad
+| API REST (host) | RF-28 | HU-17 | EP-06 |
+| Identidad y Accesos | RF-16, RF-19, RF-21, RF-22, RF-29…RF-32, RF-37 | HU-11, HU-14, HU-18, HU-18b, HU-22…HU-25, HU-27 | EP-05, EP-07 |
+| Ingesta | RF-11, RF-27 | HU-04, HU-05, HU-21 | EP-02, EP-03 |
+| Anomalías | RF-12, RF-13, RF-20, RF-23, RF-24 | HU-05, HU-06, HU-19, HU-20 | EP-03, EP-05 |
+| Consulta de Mapa | RF-14, RF-17, RF-26 | HU-07, HU-08, HU-12 | EP-04, EP-05 |
+| Dashboard | RF-18 | HU-13 | EP-05 |
+| Auditoría | RF-15 | HU-15 | EP-05 |
+| App (todos sus componentes) | RF-01…RF-10, RF-25, RF-26, RF-33…RF-38 | HU-01…HU-04, HU-07…HU-10, HU-26, HU-27 | EP-01, EP-02, EP-04, EP-07 |
 
 - **Jira:** `KU-xx` — Diagrama y documentación C3 (Componentes) *(completar con el ID real)*
 - **Épica:** `[EPIC-04] Documentación: Modelo C4`
-- **Documentos relacionados:** `Nivel2-diagrama-de-contenedores.md`, `componentes-arquitectonicos.md`, `estilo-arquitectonico.md`, `enfoque-arquitectonico.md`, `07-decisiones-arquitectonicas.md`
