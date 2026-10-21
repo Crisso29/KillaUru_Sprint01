@@ -1,0 +1,126 @@
+openapi: 3.1.0
+info:
+  title: KillaUru API — Ingesta
+  version: 1.0.0
+  description: |
+    Recepción durable e idempotente de lotes de eventos (RF-11, ADR-005).
+    El 200 se envía solo después de guardar los aceptados. Contrato del lote en `03-requisitos-funcionales.md`.
+servers:
+  - url: https://api.killauru.pe
+tags:
+  - { name: Ingesta, description: Lotes de eventos desde la app }
+
+paths:
+  /api/v1/anomalies/batch:
+    post:
+      tags: [Ingesta]
+      operationId: recibirLote
+      summary: Enviar un lote de hasta 50 eventos
+      description: |
+        Rol: anónimo o conductor registrado (el administrador recibe 403). Límite: política `lotes` (RNF-11).
+        Cada evento se evalúa por separado con las reglas de recepción de RN-11. `con_sesion` se marca según el token (RN-14).
+        `aceptados` = «recibido y guardado para procesar», no «publicado en el mapa».
+      security: [ {}, { tokenAcceso: [] } ]
+      parameters:
+        - $ref: '#/components/parameters/Seudonimo'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Lote' }
+            example:
+              loteId: 0192f1b6-6f1e-7c3a-9a51-2b7d0e4c8a11
+              eventos:
+                - eventoId: 0192f1b5-0a44-7d20-8c1e-5e3b9f2d6a70
+                  detectadoUtc: '2026-10-20T14:32:05Z'
+                  latitud: -13.2105
+                  longitud: -74.2581
+                  precisionMetros: 6.5
+                  tipo: Bache
+                  severidad: 4
+                  confidence: 0.91
+                  modeloVersion: 1.2.0
+                  seudonimo: 6b1c9d3e-2f4a-4b8e-9c7d-1a2b3c4d5e6f
+      responses:
+        '200':
+          description: Lote procesado en la recepción. Cada `eventoId` aparece en una sola lista.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RespuestaLote' }
+              example:
+                loteId: 0192f1b6-6f1e-7c3a-9a51-2b7d0e4c8a11
+                aceptados: [0192f1b5-0a44-7d20-8c1e-5e3b9f2d6a70]
+                duplicados: []
+                rechazados: [ { id: 0192f1b5-0b10-7f00-9e2a-7c1d2e3f4a5b, motivo: FueraDelCorredor } ]
+        '400':
+          description: Lote ilegible, vacío, con más de 50 eventos o con un evento sin `eventoId` UUID (`codigo = lote_invalido`). La app parte el lote y reintenta.
+          content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problema' } } }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '413':
+          description: Cuerpo de más de 256 KB (`codigo = lote_demasiado_grande`).
+          content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problema' } } }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+        '503':
+          description: Cola saturada (`codigo = saturado`); no se guardó nada. Reintentar tras `Retry-After`.
+          headers:
+            Retry-After: { $ref: '#/components/headers/RetryAfter' }
+          content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problema' } } }
+
+components:
+  securitySchemes:
+    tokenAcceso: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/securitySchemes/tokenAcceso' }
+  parameters:
+    Seudonimo: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/parameters/Seudonimo' }
+  headers:
+    RetryAfter: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/headers/RetryAfter' }
+  responses:
+    NoAutenticado: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/responses/NoAutenticado' }
+    Prohibido: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/responses/Prohibido' }
+    LimiteExcedido: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/responses/LimiteExcedido' }
+  schemas:
+    Problema: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/schemas/Problema' }
+    Lote:
+      type: object
+      required: [eventos]
+      properties:
+        loteId: { type: [string, 'null'], format: uuid, description: Si falta, el servidor genera uno }
+        eventos:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items: { $ref: '#/components/schemas/Evento' }
+    Evento:
+      type: object
+      description: |
+        Solo `eventoId` es obligatorio para leer el lote. Un campo faltante o de otro tipo hace que **ese** evento
+        salga en `rechazados` con `EsquemaInvalido`; nunca falla el lote (RF-11).
+      required: [eventoId]
+      properties:
+        eventoId: { type: string, format: uuid }
+        detectadoUtc: { type: string, format: date-time, description: Hora GPS de la detección (RF-03) }
+        latitud: { type: number, minimum: -90, maximum: 90 }
+        longitud: { type: number, minimum: -180, maximum: 180 }
+        precisionMetros: { type: number, minimum: 0 }
+        tipo: { type: string, enum: [Bache, Hundimiento] }
+        severidad: { type: integer, minimum: 1, maximum: 5 }
+        confidence: { type: number, minimum: 0, maximum: 1 }
+        modeloVersion: { type: string }
+        seudonimo: { type: string, format: uuid, description: Seudónimo rotativo de la instalación (RF-27) }
+    RespuestaLote:
+      type: object
+      required: [loteId, aceptados, duplicados, rechazados]
+      properties:
+        loteId: { type: string, format: uuid }
+        aceptados: { type: array, items: { type: string, format: uuid } }
+        duplicados: { type: array, items: { type: string, format: uuid } }
+        rechazados:
+          type: array
+          items:
+            type: object
+            required: [id, motivo]
+            properties:
+              id: { type: string, format: uuid }
+              motivo:
+                type: string
+                enum: [EsquemaInvalido, ConfidenceBajo, PrecisionGpsInsuficiente, TimestampFueraDeRango, TipoDesconocido, FueraDelCorredor]
