@@ -17,14 +17,15 @@ paths:
       operationId: consultarIndicadores
       summary: Resumen de indicadores de negocio
       description: |
-        Rol: administrador. Valores del último día cerrado (hora de Lima) comparados con los 7 días previos,
+        Rol: administrador (sin token → 401; token de otro rol → 403, T-SEG20). Valores del último día cerrado (hora de Lima) comparados con los 7 días previos,
         serie de 7 días por indicador y eventos por día del periodo elegido junto al periodo anterior.
-        Un día sin calcular llega como `null`, nunca como 0.
+        Un día sin calcular llega como `null`, nunca como 0. `eventosDia` son los eventos válidos (reportes procesados) del último
+        día cerrado: el panel lo rotula «Eventos válidos (ayer)» (D13, D14). Reaparición = vuelven a nacer después de expirar.
       security: [ { tokenAcceso: [] }, { cookieAcceso: [] } ]
       parameters:
         - name: dias
           in: query
-          description: Largo del periodo del gráfico de eventos.
+          description: Largo del periodo del gráfico de eventos válidos.
           schema: { type: integer, enum: [7, 14, 30], default: 14 }
       responses:
         '200':

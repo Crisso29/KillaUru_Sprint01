@@ -1,0 +1,125 @@
+openapi: 3.1.0
+info:
+  title: KillaUru API — Plataforma (salud y componentes comunes)
+  version: 1.0.0
+  description: |
+    Endpoints de salud (RF-28) y componentes comunes que reutilizan los contratos de las features 002–007
+    mediante `$ref` a este archivo. Convenciones en `convenciones-api.md`.
+servers:
+  - url: https://api.killauru.pe
+    description: Producción (la documentación no se publica aquí)
+  - url: http://localhost:8080
+    description: Desarrollo
+tags:
+  - name: Salud
+    description: Comprobaciones para Docker y UptimeRobot (RF-28)
+paths:
+  /health/live:
+    get:
+      tags: [Salud]
+      operationId: saludViva
+      summary: El proceso responde
+      description: Lo usa Docker para reiniciar el contenedor. No consulta la base de datos ni devuelve datos internos.
+      security: []
+      responses:
+        '200':
+          description: Proceso vivo
+          content:
+            text/plain:
+              schema: { type: string, example: Healthy }
+  /health/ready:
+    get:
+      tags: [Salud]
+      operationId: saludLista
+      summary: La API puede atender
+      description: |
+        200 solo si: la base de datos responde (001), no hay migraciones pendientes (001), el evento pendiente
+        más antiguo de la cola de ingesta tiene menos de 5 min (005) y el corredor está cargado (004) (RF-28, T-OPS19).
+        Lo usa UptimeRobot cada 5 min. No devuelve datos internos (RF-28) y no se registra en los logs (RNF-32).
+      security: []
+      responses:
+        '200':
+          description: Lista para atender
+          content:
+            text/plain:
+              schema: { type: string, example: Healthy }
+        '503':
+          description: Base de datos caída, migraciones pendientes, cola atrasada o corredor sin cargar
+          content:
+            text/plain:
+              schema: { type: string, example: Unhealthy }
+components:
+  securitySchemes:
+    tokenAcceso:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token de acceso de 5 min (app). ADR-009.
+    cookieAcceso:
+      type: apiKey
+      in: cookie
+      name: ku_acceso
+      description: Mismo token en cookie HttpOnly; Secure; SameSite=Strict (panel). ADR-009 punto 5.
+  parameters:
+    Seudonimo:
+      name: X-KillaUru-Seudonimo
+      in: header
+      required: false
+      description: Seudónimo rotativo de la instalación; solo en peticiones sin token, para el límite de tasa (RF-27, RNF-11).
+      schema: { type: string, format: uuid }
+  headers:
+    RetryAfter:
+      description: Segundos que el cliente debe esperar antes de reintentar.
+      schema: { type: integer, minimum: 1, example: 120 }
+    CorrelacionId:
+      description: Id de correlación de la petición (también va en los logs).
+      schema: { type: string }
+  schemas:
+    Problema:
+      type: object
+      description: Error según RFC 9457 con un código estable en español.
+      required: [type, title, status, codigo, correlacionId]
+      properties:
+        type: { type: string, format: uri, example: 'https://api.killauru.pe/errores/token_invalido' }
+        title: { type: string, example: El token de acceso no es válido o venció }
+        status: { type: integer, example: 401 }
+        detail: { type: string }
+        codigo: { type: string, example: token_invalido }
+        correlacionId: { type: string, example: 0HN7B1Q3C2K8L }
+        errores:
+          type: object
+          description: Solo en 400 de validación. Campo → lista de mensajes.
+          additionalProperties: { type: array, items: { type: string } }
+  responses:
+    NoAutenticado:
+      description: Sin token en un endpoint que exige sesión, o token inválido, vencido o con rol desconocido (`codigo = token_invalido`). Regla 401/403 en `convenciones-api.md`.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problema' }
+    Prohibido:
+      description: Con token y rol insuficiente, o parámetro reservado usado por otro rol con o sin token (`codigo = sin_permiso`).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problema' }
+    LimiteExcedido:
+      description: Límite de tasa superado (`codigo = limite_excedido`): cuota por rol, techo por IP de los anónimos o tope de registros (RNF-11; D2, D8).
+      headers:
+        Retry-After: { $ref: '#/components/headers/RetryAfter' }
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problema' }
+    Validacion:
+      description: Datos de entrada inválidos (`codigo = datos_invalidos`).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problema' }
+    NoEncontrado:
+      description: El recurso no existe (`codigo = no_encontrado`).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problema' }
+    ErrorInterno:
+      description: Error inesperado (`codigo = error_interno`), sin detalles internos.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problema' }

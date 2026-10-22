@@ -8,9 +8,10 @@ Nada. `Contracts/` queda vacío: ningún módulo depende de Dashboard (regla 4).
 
 | Contrato | De | Para qué |
 |---|---|---|
-| `IAnomaliaLectura.ResumenDelDiaAsync(DateOnly diaLocal, ct)` → `ResumenDia` | Anomalías (004, R-011) | 8 de los 9 números del día |
+| `IAnomaliaLectura.ResumenDelDiaAsync(DateOnly diaLocal, ct)` → `ResumenDia` | Anomalías (004, R-011) | 8 de los 9 números del día; solo lo usa Application (`MapeoResumenDia`), nunca el dominio (D4) |
 | `IIdentidadConsultas.ContarConductoresActivosAsync(int dias, ct)` → `int` | Identidad (003) | «Conductores registrados activos» (RN-17) |
 | `IMetricas.RegistrarTareaCorrecta("indicadores")` | Shared (001) | RNF-22 (alerta a las 26 h) |
+| `ProgramaReloj` (`Shared/Tareas`) | Shared (001) | Próximo instante de la tarea diaria de las 00:30 (T-OPS05) |
 | `Roles` | Shared (001) | `[Authorize]` solo administrador |
 | `TimeProvider` | Host (001) | Día local, hora del cálculo |
 

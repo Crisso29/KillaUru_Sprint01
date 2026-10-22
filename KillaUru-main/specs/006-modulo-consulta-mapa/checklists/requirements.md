@@ -25,4 +25,4 @@
 
 ## Notes
 
-- **5 decisiones requieren confirmación del autor** (lista al final de `research.md`). Dos cambian otras specs: `CeldasDelCorredor` (004, R-012) y `Celda.Limites` (001).
+- Las 5 decisiones pendientes fueron **confirmadas por el autor el 2026-10-21** (D1, D6, D17; lista al final de `research.md`). Se agregaron `kmVia` (D13), bajas anónimas solo del demo (T-SEG16), `venceUtc` nulo (T-PO08), la regla 401/403 (T-SEG20) y la métrica de caché (T-OPS15). La carga la mide 001 (D11).

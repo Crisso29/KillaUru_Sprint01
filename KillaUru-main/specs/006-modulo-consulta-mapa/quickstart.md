@@ -21,13 +21,15 @@ dotnet test tests/KillaUru.Integracion.Tests --filter "FullyQualifiedName~Mapa"
 | 3 | Conductor repite con `If-None-Match` | 304, 0 consultas a la BD |
 | 4 | Cambiar una anomalía de la zona y repetir el 3 | 200 con `ETag` nuevo y el cambio visible |
 | 5 | Conductor con `estado=Expirada` | 403 |
-| 6 | Administrador sin filtros | `Activa` + `PendienteConfirmacion`, con `estado` |
+| 6 | Administrador sin filtros | los 5 estados, con `estado`; `venceUtc: null` en los finales (D6) |
 | 7 | Administrador `estado=Descartada&tipo=Bache` | solo descartadas de tipo bache |
 | 8 | Conductor `severidad=4,5` | `Activa` 4–5 del corredor, sin `ETag` |
-| 9 | `updatedSince=T`, luego una anomalía expira | conductor: `{id, eliminada: true}`; anónimo: la baja solo si estaba en el demo |
+| 9 | `updatedSince=T`, luego una anomalía expira | conductor: `{id, eliminada: true}`; anónimo: la baja solo si su posición está dentro del polígono demo (T-SEG16) |
 | 10 | `updatedSince` + `tipo` / en el futuro / `bbox=1,2,3` | 400 |
 | 11 | 300 peticiones a la vez a una celda fría | 1 llamada a `ActivasPorCeldasAsync` |
 | 12 | Reiniciar la API y repetir con el `ETag` viejo | 200 (nunca un 304 falso) |
+| 13 | `estado=Activa` sin token / con token de conductor / con token vencido | 403 / 403 / 401 (T-SEG20) |
+| 14 | Cualquier *feature* de cualquier rol | trae `kmVia` (D13) |
 
 ## 3. A mano
 
@@ -41,4 +43,5 @@ curl -s  "http://localhost:8080/api/v1/anomalies?estado=PendienteConfirmacion" -
 ## 4. Borde y carga
 
 - Cloudflare: `curl -sI https://api.killauru.pe/api/v1/anomalies` dos veces → la segunda con `cf-cache-status: HIT`; con `Authorization` → siempre `BYPASS` o `DYNAMIC`.
-- `k6 run tests/carga/mapa.k6.js` → 300 VU, p95 < 250 ms en la API (EQ-14).
+- Carga: las pruebas de 001 (`tests/carga/carga-combinada.k6.js`, 300 consultando + 300 sincronizando) → p95 del mapa < 250 ms en la API (EQ-14, D11). 006 no tiene script propio.
+- Métrica `killauru.mapa.cache{resultado}` visible en Grafana con solo `acierto`, `fallo` y `no_modificado` (R-013).

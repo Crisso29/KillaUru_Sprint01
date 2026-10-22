@@ -1,0 +1,250 @@
+# Escenarios de atributos de calidad de KillaUru
+
+> **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-21 · **Estado:** Vigente
+> Traduce los atributos de `04-atributos-de-calidad.md` en escenarios verificables, con el formato de **seis partes** del método ATAM: **fuente, estímulo, artefacto, entorno, respuesta y medida de respuesta**. Se añaden *verificación*, *trazabilidad* y *estado* para el seguimiento del proyecto.
+> Las metas numéricas viven en `04`; aquí se referencian por ID.
+
+## EQ-01. Disponibilidad offline: operación sin cobertura celular
+
+| Elemento | Descripción |
+|---|---|
+| **Atributo** | Disponibilidad offline (AC-01) |
+| **Fuente** | Conductor en tránsito por la Vía Los Libertadores |
+| **Estímulo** | Circula por un tramo sin señal (más del 50 % del corredor, al menos 5 h continuas). |
+| **Artefacto** | App Android: Sensores, Detector, Buffer, Mapa y Proximidad |
+| **Entorno** | App en ejecución, GPS activo, sin datos móviles ni WiFi; mapa base y anomalías descargados previamente. |
+| **Respuesta** | La app sigue detectando con el modelo embebido, guarda los eventos en SQLite como `PENDING`, muestra el mapa y emite alertas con datos locales (si el rol las recibe, RN-08). Al recuperar señal **reinicia el backoff** y sincroniza sin intervención. |
+| **Medida** | Durante ≥ 5 h sin conexión, 100 % de los eventos con confidence ≥ 0.75 quedan almacenados; se conservan sin pérdida 7 días de eventos pendientes; la sincronización se inicia en ≤ 60 s tras recuperar señal (RNF-33, RF-04, RF-05, RF-26). |
+| **Verificación** | Prueba de campo en modo avión en Ayacucho–Vinchos durante un recorrido completo; prueba de 5 h con un reproductor de lecturas de sensores grabadas; prueba de 7 días adelantando el reloj del emulador; comparar el conteo de SQLite antes y después de reactivar datos. |
+| **Trazabilidad** | R-08, DA-01, DA-14, HU-03, ADR-003, ADR-011 |
+| **Estado** | Definido |
+
+## EQ-02. Confiabilidad del dato: entrega garantizada y sin duplicados
+
+| Elemento | Descripción |
+|---|---|
+| **Atributo** | Confiabilidad del dato (AC-02) |
+| **Fuente** | Sincronizador de la app Android |
+| **Estímulo** | La sincronización falla a mitad de camino (corte de señal, timeout después de que el servidor ya persistió el lote, error HTTP). |
+| **Artefacto** | Sincronizador (app) y endpoint `POST /api/v1/anomalies/batch` (Ingesta) |
+| **Entorno** | Existen eventos `PENDING` en SQLite esperando confirmación. |
+| **Respuesta** | La app reintenta con backoff, *jitter* y **los mismos `eventoId`**. El servidor devuelve los ya recibidos como `duplicados` y no los reinserta. |
+| **Medida** | 0 % de eventos válidos perdidos y 0 duplicados en anomalías y reportes (RNF-06). El conteo enviado por la app coincide con el de la tabla de recepción. |
+| **Verificación** | Interrupción simulada de red a mitad del envío, incluida la pérdida de la respuesta 200; reenviar y conciliar app ↔ PostgreSQL. |
+| **Trazabilidad** | DA-02, RF-06, RF-07, RF-11, HU-04, ADR-003, ADR-005 |
+| **Estado** | Definido — alineado con ADR-005 (Aceptado) |
+
+## EQ-03. Rendimiento en móvil: clasificación del modelo ML
+
+| Elemento | Descripción |
+|---|---|
+| **Atributo** | Rendimiento en móvil (AC-03) |
+| **Fuente** | Sensores del celular (acelerómetro y giroscopio) |
+| **Estímulo** | Se completa una ventana de 500 ms a 50 Hz con el vehículo a más de 5 km/h de forma sostenida. |
+| **Artefacto** | Detector (TFLite) de la app |
+| **Entorno** | Celular Android de gama media en un soporte fijo, dentro de un vehículo liviano (RN-18), app en primer o segundo plano, modelo ya cargado en memoria. |
+| **Respuesta** | El modelo clasifica localmente (tipo, severidad 1–5, confidence), sin enviar la señal cruda. |
+| **Medida** | Latencia < 50 ms (p95) (RNF-04); *precision* y *recall* ≥ 0,90 por clase y severidad con ± 1 nivel en ≥ 80 % de los casos (RNF-35); consumo ≤ 5 % de batería por hora (RNF-15). |
+| **Verificación** | Benchmark en ≥ 3 modelos de celular; matriz de confusión contra el dataset etiquetado del tramo demo, grabado con vehículos livianos y el celular en soporte (S-06). |
+| **Trazabilidad** | DA-03, DA-04, DA-18, RF-02, RF-33, RNF-35, HU-02, ADR-004 |
+| **Estado** | Definido |
+
+## EQ-04. Seguridad y privacidad: protección de la identidad y de los accesos
+
+| Elemento | Descripción |
+|---|---|
+| **Atributo** | Seguridad y privacidad (AC-04) |
+| **Fuente** | Usuario sin sesión válida o actor malicioso |
+| **Estímulo** | Intenta acceder al panel sin JWT, con token expirado o por fuerza bruta; o intenta reconstruir la identidad de un conductor a partir de los datos almacenados. |
+| **Artefacto** | API REST, Identidad y Accesos, base de datos |
+| **Entorno** | `api.killauru.pe` y `panel.killauru.pe` bajo HTTPS; seudónimos rotativos purgados a 72 h. |
+| **Respuesta** | El sistema rechaza el acceso sin exponer información, bloquea temporalmente tras 3 intentos fallidos (RN-19) y ningún dato almacenado permite reconstruir la identidad. |
+| **Medida** | 100 % de intentos no autorizados rechazados; 0 reidentificación posible en la auditoría del esquema (sin vínculo cuenta ↔ eventos y sin seudónimos con más de 72 h, ni en los reportes ni en `evento_recibido`); A+ en SSL Labs; cuenta desactivada sin acceso en ≤ 5 min (RNF-08…11, RNF-25, RNF-26). |
+| **Verificación** | Pruebas de acceso al panel (sin token, expirado, fuerza bruta); auditoría del esquema; consulta de verificación de purga; escaneo SSL Labs de todos los subdominios; verificar que `/health/live` y `/health/ready` no devuelven datos internos. |
+| **Trazabilidad** | R-06, DA-07, DA-17, HU-11, HU-21, RNF-26, ADR-007, ADR-009 |
+| **Estado** | Definido |
+
+## EQ-05. Mantenibilidad: cambios aislados por módulo
+
+| Elemento | Descripción |
+|---|---|
+| **Atributo** | Mantenibilidad (AC-05) |
+| **Fuente** | Equipo de desarrollo (una persona: Crisólogo Aguilar Flores) |
+| **Estímulo** | Se cambia una regla de negocio (p. ej. el umbral de confidence) o se sustituye un componente interno. |
+| **Artefacto** | Módulos del monolito (Domain, Application, Adapters, Infrastructure) |
+| **Entorno** | Backend como monolito modular, con pruebas de arquitectura en el pipeline de CI (GitHub Actions, en cada PR; RNF-28). |
+| **Respuesta** | El cambio se concentra en un solo módulo; los umbrales se modifican **por configuración**, sin tocar código; el sistema completo se despliega con un único comando. |
+| **Medida** | El cambio de umbral toca 0 líneas de código; el cambio de componente toca solo 1 módulo; las pruebas del módulo y de regresión pasan; las pruebas de arquitectura pasan (RNF-28); despliegue con `docker compose up -d` y rollback en < 5 min (RNF-17, RNF-18). |
+| **Verificación** | Revisión de dependencias entre módulos; ejecución de la suite completa en el CI de cada PR (si falla, no se une a `main`); medición del tiempo de rollback (desplegar la etiqueta anterior) en el entorno de pruebas (R-11). |
+| **Trazabilidad** | R-09, DA-06, DA-09, HU-16, RNF-17, RNF-18, RNF-19, RNF-28, ADR-001, ADR-002, ADR-012 |
+| **Estado** | Definido |
+
+## EQ-06. Escalabilidad: sincronización concurrente de la flota
+
+| Elemento | Descripción |
+|---|---|
+| **Atributo** | Escalabilidad y rendimiento del servidor (AC-06) |
+| **Fuente** | Flota de dispositivos Android |
+| **Estímulo** | 300 dispositivos intentan sincronizar lotes de hasta 50 eventos en una ventana corta (p. ej. al recuperar señal juntos). |
+| **Artefacto** | Ingesta (tabla de recepción, Channel y `BackgroundService`) |
+| **Entorno** | Un único servidor Oracle Cloud ARM, una sola instancia. |
+| **Respuesta** | El servidor persiste y confirma cada lote, aplica contrapresión (503 con `Retry-After`) si se satura, y procesa de forma asíncrona. Los reintentos de las apps llevan *jitter*. |
+| **Medida** | Confirmación del lote < 300 ms p95 (RNF-02); error < 1 % (RNF-03), contando como error todo 5xx (el 503 con `Retry-After` solo se acepta en la prueba de estrés) y sin ningún 429; evento procesado en ≤ 100 ms y retraso de cola ≤ 30 s p95, leído del histograma de retraso de cola (RNF-23). |
+| **Verificación** | Cinco pruebas con k6 **fuera de la VM** contra el entorno de pruebas (R-11), con sus límites de CPU y memoria, límites de tasa relajados por configuración y en horario de poco tráfico; se corren **antes de cada versión y cada mes**, fuera del CI: (1) **carga combinada**: 300 clientes sincronizando + 300 consultando el mapa durante 10 min (RNF-03, EQ-14); (2) **picos**: una ráfaga de 600 clientes a la vez; (3) **estrés**: escalera de 100 en 100 clientes hasta que el p95 pase 2 veces su meta o los errores pasen el 1 %, y se registra el punto de quiebre; (4) **resistencia**: 4 h al 50 % de la carga; (5) **caos**: matar el proceso bajo carga (EQ-09). En cada una se miden latencia p95, tasa de error, tamaño y retraso de la cola, y CPU/memoria. |
+| **Trazabilidad** | DA-05, R-11, RNF-02, RNF-03, RNF-23, HU-04, ADR-005 |
+| **Estado** | Definido |
+
+## EQ-07. Observabilidad: detección temprana de fallas
+
+| Elemento | Descripción |
+|---|---|
+| **Atributo** | Observabilidad (AC-07) |
+| **Fuente** | Componente de infraestructura (backend, base de datos, proxy) |
+| **Estímulo** | Un subdominio deja de responder, `/health/ready` retorna un código distinto de 200, se llena el disco o una tarea programada deja de ejecutarse. |
+| **Artefacto** | UptimeRobot, `/health/ready` de la API, Grafana Alloy (disco, CPU, memoria de la VM y última ejecución del backup), paneles y alertas de Grafana |
+| **Entorno** | UptimeRobot cada 5 minutos; OpenTelemetry y logs en Grafana Cloud con alertas de degradación. |
+| **Respuesta** | El sistema notifica al equipo antes de que los usuarios lo reporten y el estado queda visible en la página de estado pública gratuita de UptimeRobot (enlazada desde la app y el panel). |
+| **Medida** | Alerta de caída por correo en ≤ 10 min (RNF-20); disponibilidad mensual registrada con historial de 30 días (RNF-05); los paneles de Grafana muestran p95, descartes por motivo, disco y última ejecución de cada tarea (RNF-22), y el panel administrativo muestra la tasa de confirmación (RF-18). |
+| **Verificación** | Simular la caída de `/health/ready` y medir el tiempo hasta la alerta; detener una tarea programada y comprobar su alerta; revisar logs con correlación. |
+| **Trazabilidad** | DA-11, HU-17, RF-28, ADR-010 |
+| **Estado** | Definido |
+
+## EQ-08. Usabilidad: operación pasiva sin distracción
+
+| Elemento | Descripción |
+|---|---|
+| **Atributo** | Usabilidad (AC-08) |
+| **Fuente** | Conductor en tránsito |
+| **Estímulo** | Circula por un tramo mientras la app está en ejecución. |
+| **Artefacto** | App Android (Detector, Alertas, Mapa) |
+| **Entorno** | App en primer o segundo plano; el conductor no interactúa con la pantalla durante el trayecto. |
+| **Respuesta** | La detección es automática y pasiva. Cuando interactúa (ver el mapa), las acciones principales son accesibles en pocos toques. |
+| **Medida** | 0 interacciones manuales para la detección; acciones principales en ≤ 3 toques; interfaz en español; tiempos relativos legibles (RNF-12, RNF-14). |
+| **Verificación** | Prueba con un conductor real completando un recorrido sin tocar el celular; conteo de toques por acción principal. |
+| **Trazabilidad** | DA-03, HU-01, ADR-004 |
+| **Estado** | Definido |
+
+## EQ-09. Reinicio del servidor sin pérdida de eventos aceptados
+
+| Elemento | Descripción |
+|---|---|
+| **Atributo** | Confiabilidad del dato (AC-02) |
+| **Fuente** | Falla del proceso o despliegue de una nueva versión |
+| **Estímulo** | El proceso de la API se reinicia o se cae mientras hay eventos aceptados (HTTP 200) sin procesar. |
+| **Artefacto** | Tabla de recepción y `BackgroundService` de Ingesta |
+| **Entorno** | Carga normal con lotes en curso. |
+| **Respuesta** | Al arrancar, el servicio reprocesa los eventos pendientes de la tabla de recepción. |
+| **Medida** | 0 eventos aceptados perdidos; tras recuperarse se cumple aceptados = procesados + descartados en procesamiento + pendientes; el procesamiento se reanuda en ≤ 2 min (RNF-06). |
+| **Verificación** | Prueba de **caos** (la quinta prueba de EQ-06): con k6 generando carga en el entorno de pruebas (R-11), matar el contenedor de la API con `kill -9` a mitad de un lote y conciliar los conteos de forma exacta: 0 eventos perdidos, 0 duplicados y ningún lote con 200 sin confirmar. |
+| **Trazabilidad** | DA-02, R-11, RNF-06, ADR-005 |
+| **Estado** | Definido — alineado con ADR-005 (Aceptado) |
+
+## EQ-10. Restauración desde backup
+
+| Elemento | Descripción |
+|---|---|
+| **Atributo** | Confiabilidad del dato y continuidad (AC-02) |
+| **Fuente** | Falla de disco, corrupción de datos o eliminación accidental |
+| **Estímulo** | Se pierde o corrompe la base de datos. |
+| **Artefacto** | Job de backup y almacenamiento de objetos |
+| **Entorno** | Existe backup diario cifrado con retención de 30 días. |
+| **Respuesta** | El equipo restaura el último backup válido y el sistema vuelve a operar. |
+| **Medida** | **RTO ≤ 2 h** y **RPO ≤ 24 h** (RNF-24); backup restaurable verificado mensualmente (RNF-07). |
+| **Verificación** | Simulacro mensual de restauración en el entorno de pruebas (R-11), nunca sobre producción, con cronómetro. |
+| **Trazabilidad** | RNF-07, RNF-24, HU-16, ADR-010 |
+| **Estado** | Definido |
+
+## EQ-11. Control de acceso al corredor completo
+
+| Elemento | Descripción |
+|---|---|
+| **Atributo** | Seguridad (AC-04) |
+| **Fuente** | Cliente anónimo o script que llama la API directamente |
+| **Estímulo** | Solicita `GET /api/v1/anomalies?bbox=` fuera del tramo demo, o excede el límite de tasa. |
+| **Artefacto** | Consulta de Mapa y middleware de límite de tasa de la API REST |
+| **Entorno** | Sin JWT (Anónimo) o con JWT de Conductor Registrado. |
+| **Respuesta** | La respuesta se recorta al polígono del tramo demo para el Anónimo; al exceder 60 req/h se responde 429, y también al superar el techo por IP aunque cambie de seudónimo en cada petición. El conductor registrado recibe el corredor completo, y su respuesta nunca queda en la caché de borde para otros (ADR-006). |
+| **Medida** | 100 % de las respuestas a Anónimos sin anomalías fuera del tramo demo, también cuando la respuesta sale de la caché de borde (RNF-27); límites de 60, 1 000 y 3 000 req/h y techo por IP de 300 consultas/h para anónimos aplicados con la IP real (RNF-11). |
+| **Verificación** | Pruebas de API con y sin token, con `bbox` mayor al tramo demo y ráfaga de peticiones; ráfaga desde una sola IP con un seudónimo distinto en cada petición (debe recibir 429 al pasar el techo por IP); pedir el mismo `bbox` primero con token y luego sin token a través de Cloudflare y comprobar que el anónimo recibe solo el tramo demo. |
+| **Trazabilidad** | R-07, DA-10, RF-08, RF-14, HU-07, ADR-009 |
+| **Estado** | Definido |
+
+## EQ-12. Integridad del dato: envenenamiento con eventos falsos
+
+| Elemento | Descripción |
+|---|---|
+| **Atributo** | Seguridad (AC-04) y confiabilidad del dato (AC-02) |
+| **Fuente** | Atacante que analizó el APK y llama la API con un script, sin cuenta o con seudónimos inventados |
+| **Estímulo** | Envía cientos de eventos falsos (severidad 5), fabricados sin conexión y subidos de golpe al tener señal, para crear baches inexistentes. |
+| **Artefacto** | Ingesta y módulo Anomalías |
+| **Entorno** | Operación normal; conviven con subidas legítimas de conductores que acumularon horas de eventos sin señal. |
+| **Respuesta** | El servidor juzga cada evento por su contenido y no por el momento de la subida: descarta los que están fuera de la vía y los que implican velocidades imposibles; retiene sin publicar (hasta confirmación) los de un dispositivo que supera el tope por hora de detección; no confirma severidad 4–5 sin al menos un reporte con sesión de una cuenta verificada; rechaza los eventos de un lote con un seudónimo distinto al del lote (`SeudonimoInconsistente`) y aplica el techo por IP a las peticiones anónimas, así inventar seudónimos no da cuota ni tope nuevos. Los descartes se ven por motivo en los paneles técnicos (RNF-22). |
+| **Medida** | 0 anomalías de severidad 4–5 confirmadas solo con seudónimos anónimos; 0 eventos aceptados a más de 50 m de la vía; 0 anomalías publicadas solo por un dispositivo que supera el tope; 100 % de los eventos legítimos de una subida acumulada de 5 h aceptados y 0 eventos reales perdidos en un tramo de lluvia con ~600 eventos por hora (RN-13, RN-14, RN-15). |
+| **Verificación** | Prueba por HTTP con un script que envía eventos fuera de la vía, en ráfaga, con saltos de posición y con seudónimos rotados (dentro de un lote y entre lotes); prueba paralela con un recorrido real de 5 h en modo avión. Conciliar aceptados y descartados por motivo. |
+| **Trazabilidad** | DA-15, RN-13, RN-14, RN-15, RF-12, HU-05, ADR-015 |
+| **Estado** | Definido |
+
+## EQ-13. Respuesta a un incidente con datos personales
+
+| Elemento | Descripción |
+|---|---|
+| **Atributo** | Seguridad y privacidad (AC-04) |
+| **Fuente** | Cuenta de administrador comprometida o uso indebido por personal interno |
+| **Estímulo** | Se detecta una exportación o un acceso a datos de usuarios que nadie autorizó. |
+| **Artefacto** | Auditoría, Identidad y Accesos, procedimiento de incidentes |
+| **Entorno** | Operación normal; la auditoría registra cada acción sensible en la misma transacción (ADR-013). |
+| **Respuesta** | Con la auditoría se reconstruye quién, qué, cuándo y qué datos; se desactiva la cuenta (≤ 5 min, RNF-26); se documenta el incidente y se notifica a la Autoridad y a los titulares afectados. |
+| **Medida** | Reconstrucción completa del incidente desde la auditoría; notificación en ≤ 48 h (RNF-29); 0 acciones sensibles sin registro (RNF-31). |
+| **Verificación** | Simulacro semestral: una exportación «no autorizada» en el entorno de pruebas (R-11), cronometrando desde la detección hasta el borrador de notificación. |
+| **Trazabilidad** | R-06, DA-16, RF-15, RNF-29, RNF-30, RNF-31, ADR-013 |
+| **Estado** | Definido |
+
+## EQ-14. Rendimiento del servidor: consulta del mapa en hora punta
+
+| Elemento | Descripción |
+|---|---|
+| **Atributo** | Escalabilidad y rendimiento del servidor (AC-06) |
+| **Fuente** | Conductores registrados y el panel del administrador |
+| **Estímulo** | 300 clientes consultan `GET /api/v1/anomalies?bbox=` en la misma ventana (p. ej. a la salida de los buses de la madrugada), mientras la flota sincroniza. |
+| **Artefacto** | Consulta de Mapa, su caché por celdas, PostgreSQL + PostGIS y la caché de borde de Cloudflare |
+| **Entorno** | Un único servidor Oracle ARM en Santiago (Chile); caché caliente para el tramo más consultado. |
+| **Respuesta** | La mayoría de las consultas se resuelven desde la caché de borde o la caché por celdas; las demás usan el índice GiST. Las respuestas sin cambios devuelven 304 por `ETag`. |
+| **Medida** | p95 < 250 ms medido en la API y < 300 ms de extremo a extremo desde Lima (RNF-01); tasa de error < 1 %; aciertos de caché ≥ 80 % en el tramo demo. |
+| **Verificación** | Prueba de **carga combinada** con k6 (300 usuarios virtuales consultando y 300 sincronizando **a la vez**, 10 min), una de las cinco pruebas de EQ-06, fuera de la VM contra el entorno de pruebas (R-11); el error se cuenta como en EQ-06 (todo 5xx, sin 429). Como el entorno de pruebas no pasa por Cloudflare, los 300 ms desde Lima y los aciertos de la caché de borde se miden aparte, con la prueba sintética desde Lima contra producción y las estadísticas de Cloudflare; panel de Grafana con p95 y aciertos de caché. |
+| **Trazabilidad** | DA-05, R-11, RNF-01, RF-14, HU-08, ADR-006 |
+| **Estado** | Definido |
+
+## EQ-15. Costo operativo: el gasto se acerca al tope
+
+| Elemento | Descripción |
+|---|---|
+| **Atributo** | Costo operativo (AC-09) |
+| **Fuente** | Proveedores de infraestructura (Oracle Cloud, Cloudflare, correo, Grafana Cloud) |
+| **Estímulo** | Un plan gratuito cambia sus condiciones, un uso crece más de lo previsto o la cuenta de Oracle pasa a pago por uso (mitigación de RS-01) y aparece un cobro. |
+| **Artefacto** | Cuentas de los proveedores y configuración de telemetría |
+| **Entorno** | Operación normal del MVP con tope de US$ 10 al mes. |
+| **Respuesta** | Las alertas de presupuesto avisan por correo al llegar a US$ 8; se identifica el servicio que generó el gasto y se aplica la mitigación (bajar el muestreo de telemetría, ajustar la retención, cambiar de proveedor detrás de su adaptador). |
+| **Medida** | 0 meses por encima de US$ 10 (RNF-16); alerta recibida antes de superar el tope; Grafana Cloud siempre sin tarjeta registrada (RNF-32). |
+| **Verificación** | Revisión mensual de la facturación de cada proveedor; prueba de la alerta de presupuesto con un umbral bajo. |
+| **Trazabilidad** | R-04, DA-08, RNF-16, RNF-32, RS-01…RS-04, ADR-010, ADR-014 |
+| **Estado** | Definido |
+
+## Resumen de escenarios
+
+| Código | Atributo | Prioridad | Qué se busca comprobar |
+|---|---|---|---|
+| EQ-01 | Disponibilidad offline | 🔴 Crítica | Detección, mapa y alertas funcionan sin cobertura |
+| EQ-02 | Confiabilidad del dato | 🔴 Crítica | Ningún evento se pierde ni se duplica entre la app y el servidor |
+| EQ-03 | Rendimiento en móvil | 🔴 Crítica | El modelo clasifica en tiempo y precisión, sin agotar la batería |
+| EQ-04 | Seguridad y privacidad | 🔴 Crítica | Identidad y panel protegidos |
+| EQ-05 | Mantenibilidad | 🟠 Alta | Los cambios se aíslan en un módulo o en configuración |
+| EQ-06 | Escalabilidad | 🟠 Alta | El sistema absorbe el pico de 300 dispositivos |
+| EQ-07 | Observabilidad | 🟠 Alta | Una falla se detecta antes que los usuarios |
+| EQ-08 | Usabilidad | 🟡 Media | El conductor no necesita tocar el celular |
+| EQ-09 | Confiabilidad (reinicio) | 🔴 Crítica | Un reinicio del servidor no pierde eventos aceptados |
+| EQ-10 | Continuidad (restauración) | 🔴 Crítica | Se restaura la BD dentro de RPO y RTO |
+| EQ-11 | Seguridad (alcance por rol) | 🔴 Crítica | El servidor impide acceder al corredor completo sin cuenta |
+| EQ-12 | Integridad (datos falsos) | 🔴 Crítica | Un script no puede crear ni confirmar baches falsos, y la subida acumulada legítima sí pasa |
+| EQ-13 | Seguridad (incidente legal) | 🔴 Crítica | Un incidente con datos personales se reconstruye y se notifica en ≤ 48 h |
+| EQ-14 | Rendimiento (mapa) | 🟠 Alta | El mapa responde en p95 < 250 ms con 300 clientes |
+| EQ-15 | Costo operativo | 🟠 Alta | El gasto nunca supera US$ 10 al mes y se avisa antes |

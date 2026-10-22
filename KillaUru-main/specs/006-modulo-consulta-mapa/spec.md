@@ -20,7 +20,7 @@
 | Esquema de BD | Ninguno |
 | Depende de | `Shared`; Anomalías (004) por `IAnomaliaLectura` y el evento `AnomaliaCambiada` |
 | Lo usan | Nadie por contrato. La app (mapa y copia offline) y el panel (mapa con filtros) por HTTP |
-| Pantallas del prototipo | App → Mapa (tramo demo sombreado para el anónimo, «Actualizado hace…»); Panel → Mapa con filtros (tipo, severidad, fechas, estado) y franja «Anomalías activas a lo largo del corredor» del Resumen |
+| Pantallas del prototipo | App → Mapa (tramo demo sombreado para el anónimo, «Actualizado hace…», hito «km …» del detalle); Panel → Mapa con filtros (tipo, severidad, fechas, estado; abre con «Activa» y «PendienteConfirmacion» marcados, D6) y franja «Anomalías activas a lo largo del corredor» del Resumen (usa `kmVia`, D13) |
 | Prioridad | *Must*: HU-07, HU-08, HU-12 |
 
 ## 1. Fuentes en `referencia/docs`
@@ -66,7 +66,7 @@ Como conductor registrado, quiero ver los 333 km con las anomalías activas, su 
 
 **Acceptance Scenarios**:
 
-1. **Given** un token de conductor, **When** pide cualquier `bbox`, **Then** recibe todas las `Activa` del corredor dentro del `bbox`, con `id`, posición, `tipo`, `severidad`, `persistencia`, `ultimaDeteccionUtc` y `venceUtc` (RF-14, RF-26).
+1. **Given** un token de conductor, **When** pide cualquier `bbox`, **Then** recibe todas las `Activa` del corredor dentro del `bbox`, con `id`, posición, `kmVia`, `tipo`, `severidad`, `persistencia`, `ultimaDeteccionUtc` y `venceUtc` (RF-14, RF-26; D13).
 2. **Given** una respuesta con token, **When** sale, **Then** lleva `Cache-Control: private, no-store` (ADR-006).
 3. **Given** el `ETag` de una respuesta anterior, **When** repite la petición con `If-None-Match` y ninguna de sus celdas cambió, **Then** recibe 304 sin cuerpo y sin consultar la BD (`diseño-interno` §4).
 4. **Given** que una anomalía de una de sus celdas cambió (nueva, confirmada, expirada, moderada), **When** repite la petición, **Then** recibe 200 con un `ETag` nuevo y los datos al día (invalidación por `AnomaliaCambiada`).
@@ -85,7 +85,7 @@ Como conductor, quiero descargar solo lo que cambió desde mi última actualizac
 **Acceptance Scenarios**:
 
 1. **Given** `updatedSince = T`, **When** se responde, **Then** trae como *feature* normal cada anomalía modificada desde T que hoy es visible para el rol, y como `{id, eliminada: true}` (sin posición ni estado) cada una modificada desde T que hoy **no** es visible (RF-14).
-2. **Given** una anomalía `Activa` fuera del tramo demo, **When** el anónimo pide `updatedSince`, **Then** no aparece ni como alta ni como baja.
+2. **Given** una anomalía fuera del tramo demo, en cualquier estado, **When** el anónimo pide `updatedSince`, **Then** no aparece ni como alta ni como baja: al anónimo solo le llegan bajas de anomalías cuya posición está dentro del polígono demo (R-07, T-SEG16; R-012).
 3. **Given** cualquier respuesta, **When** sale, **Then** trae `generadoUtc` (hora del servidor) para usarlo como el próximo `updatedSince` (R-006).
 4. **Given** `updatedSince` en el futuro o con formato inválido, **When** se pide, **Then** 400 `datos_invalidos`.
 
@@ -101,10 +101,10 @@ Como administrador, quiero ver todas las anomalías, incluidas las no confirmada
 
 **Acceptance Scenarios**:
 
-1. **Given** una sesión de administrador sin filtro de estado, **When** pide el mapa, **Then** recibe `Activa` y `PendienteConfirmacion` del `bbox`, cada una con su `estado` (R-004).
+1. **Given** una sesión de administrador sin filtro de estado, **When** pide el mapa, **Then** recibe las anomalías del `bbox` en **los 5 estados**, cada una con su `estado`; las de estado final llevan `venceUtc: null` (RN-08; D6, T-PO08; R-004). El panel abre con el filtro «Activa + PendienteConfirmacion» ya marcado (lo pide él con `estado`; nota para 010).
 2. **Given** filtros `tipo`, `severidad`, `desde`, `hasta` y `estado`, **When** el administrador los usa, **Then** recibe solo las que cumplen todos, de cualquier estado pedido (RF-17).
 3. **Given** un conductor o un anónimo, **When** usa `tipo`, `severidad`, `desde` o `hasta`, **Then** se aplican **sobre su alcance** (solo `Activa`; el anónimo, solo dentro del demo) (RF-14).
-4. **Given** un conductor o un anónimo, **When** usa `estado`, **Then** recibe 403 `sin_permiso` (RF-14: `estado` solo para el administrador).
+4. **Given** un conductor (con token) o un anónimo (sin token), **When** usa `estado`, **Then** recibe 403 `sin_permiso`: es un parámetro reservado y da 403 con o sin token (RF-14; T-SEG20).
 5. **Given** una petición con filtros, **When** se responde, **Then** no usa la caché por celdas ni devuelve `ETag` (`diseño-interno` §4).
 
 ### Edge Cases
@@ -116,6 +116,7 @@ Como administrador, quiero ver todas las anomalías, incluidas las no confirmada
 - 300 peticiones simultáneas a una celda vacía en caché: una sola consulta a Anomalías (protección contra estampida de HybridCache).
 - Corredor aún no cargado: `CeldasDelCorredor()` vacío → colección vacía; `/health/ready` ya está en 503 por Anomalías.
 - Token presente pero vencido: 401 (middleware de 001); la app renueva o vuelve a pedir sin token.
+- Regla 401/403 (T-SEG20, `convenciones-api.md` de 001): token inválido o vencido → 401; parámetro reservado `estado` usado por un rol que no es administrador, con o sin token → 403. El endpoint es público, así que la falta de token nunca da 401.
 
 ## Requirements *(mandatory)*
 
@@ -124,10 +125,10 @@ Como administrador, quiero ver todas las anomalías, incluidas las no confirmada
 **A. Endpoint y recorte por rol (RF-14, RN-08, RNF-27)**
 
 - **FR-001**: El sistema MUST exponer `GET /api/v1/anomalies` en GeoJSON (`application/geo+json`) para los tres roles, con la política de límite `consultas` (RNF-11).
-- **FR-002**: El sistema MUST decidir **en el servidor** qué ve cada rol: anónimo → `Activa` dentro del polígono demo; conductor → `Activa` en el corredor; administrador → los estados pedidos (por defecto `Activa` y `PendienteConfirmacion`). *(RN-08; R-004)*
+- **FR-002**: El sistema MUST decidir **en el servidor** qué ve cada rol: anónimo → `Activa` dentro del polígono demo; conductor → `Activa` en el corredor; administrador → los estados pedidos y, sin `estado`, los 5 estados. *(RN-08; D6; R-004)*
 - **FR-003**: El sistema MUST ajustar el `bbox` a las celdas del corredor que toca (`IAnomaliaLectura.CeldasDelCorredor()`), y para el anónimo además a las celdas dentro o en el borde del polígono demo. *(`diseño-interno` §4; R-001, R-002)*
 - **FR-004**: Para el anónimo, las anomalías de las celdas del borde MUST filtrarse punto por punto contra el polígono **antes** de guardarse en la caché con alcance `Anonimo`. *(`diseño-interno` §4)*
-- **FR-005**: Cada *feature* MUST llevar `id`, posición `[longitud, latitud]`, `tipo`, `severidad` (mostrada), `persistencia`, `ultimaDeteccionUtc` y `venceUtc`; para el administrador, además `estado`. *(RF-14, RF-26)*
+- **FR-005**: Cada *feature* MUST llevar `id`, posición `[longitud, latitud]`, `kmVia` (para todos los roles, calculado por Anomalías al nacer), `tipo`, `severidad` (mostrada), `persistencia`, `ultimaDeteccionUtc` y `venceUtc` (`null` en los estados finales `Expirada`, `Reparada` y `Descartada`); para el administrador, además `estado`. *(RF-14, RF-26; D13, T-PO08; R-011)*
 
 **B. Caché, ETag y cabeceras (ADR-006, RNF-01)**
 
@@ -139,17 +140,18 @@ Como administrador, quiero ver todas las anomalías, incluidas las no confirmada
 
 **C. Filtros (RF-14, RF-17)**
 
-- **FR-011**: El sistema MUST aceptar `tipo`, `severidad` (lista de 1–5), `desde` y `hasta` (sobre la última detección) para todos los roles, y `estado` (lista) solo para el administrador; `estado` de otro rol → 403. *(RF-14)*
+- **FR-011**: El sistema MUST aceptar `tipo`, `severidad` (lista de 1–5), `desde` y `hasta` (sobre la última detección) para todos los roles, y `estado` (lista) solo para el administrador; `estado` de otro rol, con o sin token → 403 `sin_permiso`. *(RF-14; T-SEG20)*
 
 **D. `updatedSince` (RF-14, RF-26)**
 
-- **FR-012**: Con `updatedSince`, el sistema MUST devolver las altas visibles para el rol y las bajas como `{id, eliminada: true}` sin revelar su estado, usando `IAnomaliaLectura.CambiosDesdeAsync`, sin caché por celdas. *(RF-14)*
+- **FR-012**: Con `updatedSince`, el sistema MUST devolver las altas visibles para el rol y las bajas como `{id, eliminada: true}` sin revelar su estado, usando `IAnomaliaLectura.CambiosDesdeAsync`, sin caché por celdas. Al anónimo solo le MUST devolver bajas de anomalías cuya posición está dentro del polígono demo. *(RF-14, R-07; T-SEG16; R-012)*
 - **FR-013**: Toda respuesta MUST incluir `generadoUtc` (hora del servidor al armarla). *(R-006)*
 
 **E. Operación**
 
 - **FR-014**: El módulo MUST NOT tener esquema, `DbContext` ni SQL; solo lee por `IAnomaliaLectura`. *(regla 3; `componentes-arquitectonicos.md` §6)*
 - **FR-015**: La caché MUST limitarse a `TamanoCacheMb`. *(`diseño-interno` §4)*
+- **FR-016**: El módulo MUST contar los aciertos de su caché con el contador `killauru.mapa.cache{resultado}`, de baja cardinalidad: `resultado` ∈ {`acierto`, `fallo`, `no_modificado`} (sin celda, rol ni ruta como etiqueta). *(RNF-01, `diseño-interno` §8; T-OPS15; R-013)*
 
 ### Reglas y parámetros (`MapaOptions`, sección `Mapa`)
 
@@ -159,7 +161,6 @@ Como administrador, quiero ver todas las anomalías, incluidas las no confirmada
 | ADR-006 | `VigenciaCacheMinutos` | 10 | `diseño-interno` §4 |
 | ADR-006 | `MaxAgeBordeSegundos` | 60 | `diseño-interno` §4 |
 | ADR-006 | `TamanoCacheMb` | 64 | `diseño-interno` §4 |
-| RN-08 | `EstadosAdministradorPorDefecto` | `Activa`, `PendienteConfirmacion` | SDD (R-004) |
 
 El tamaño de celda **no** es configurable aquí: es la constante de `Celda` en Shared, la misma que usa Anomalías para `anomalia.celda` (R-002).
 
@@ -170,12 +171,13 @@ El tamaño de celda **no** es configurable aquí: es la constante de `Celda` en 
 - **Celda GeoJSON**: *features* de una celda y un alcance, ya serializadas (`byte[]`).
 - **Versiones de celda**: contador en memoria por celda, base del `ETag`.
 - **Consulta de mapa**: rol, `bbox`, filtros, `updatedSince`, `If-None-Match`.
+- **Anomalía del mapa**: lo que entrega Anomalías (`AnomaliaVisible` / `AnomaliaCambio`, 004), incluido `KmVia` (D13).
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
-- **SC-001**: p95 < 250 ms medido en la API con 300 clientes consultando el mapa (RNF-01, EQ-14).
+- **SC-001**: p95 < 250 ms medido en la API con 300 clientes consultando el mapa mientras otros 300 sincronizan (RNF-01, RNF-03, EQ-14); se mide con las pruebas de carga de 001 (D11).
 - **SC-002**: ≥ 80 % de las consultas anónimas del tramo demo resueltas en la caché de borde (RNF-01).
 - **SC-003**: 100 % de las respuestas a anónimos recortadas al tramo demo, también a través de la caché y con `bbox` del corredor completo (RNF-27, EQ-11).
 - **SC-004**: Un cambio en una anomalía se ve en la siguiente petición sin filtros (0 respuestas viejas tras `AnomaliaCambiada`).
@@ -189,5 +191,6 @@ El tamaño de celda **no** es configurable aquí: es la constante de `Celda` en 
 
 ## Assumptions
 
-- La app anónima pide el demo completo (sin `bbox` ni `updatedSince`) para que las URL se repitan y Cloudflare acierte; el conductor registrado usa `updatedSince` (R-007).
+- La app anónima pide el demo completo (sin `bbox` ni `updatedSince`) para que las URL se repitan y Cloudflare acierte; el conductor registrado usa `updatedSince` (R-007). Es una regla de la app: la fija la spec 008-app-android.
 - La regla de caché de Cloudflare excluye las peticiones con `Authorization` o con la cookie `ku_acceso` (ADR-006); se documenta en el *runbook* de monitoreo (T030).
+- El host exporta el medidor `KillaUru.Mapa` con OpenTelemetry junto con los de `IMetricas` (001).

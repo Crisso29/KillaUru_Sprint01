@@ -16,7 +16,8 @@ dotnet test tests/KillaUru.Integracion.Tests --filter "FullyQualifiedName~Dashbo
 
 | # | Escenario | Esperado |
 |---|---|---|
-| 1 | Reloj 2026-10-21 05:29:59Z → 05:30:00Z | antes no corre; a las 05:30 guarda el día 2026-10-20 (9 filas) |
+| 0 | Arrancar la API a las 2026-10-21 03:00Z | la tarea corre al arrancar y guarda los días faltantes (T-OPS05) |
+| 1 | Reloj 2026-10-21 05:29:59Z → 05:30:00Z | antes no corre; a las 05:30 (próximo instante de `ProgramaReloj`) guarda el día 2026-10-20 (9 filas) |
 | 2 | La tarea corre dos veces el mismo día | sigue habiendo 9 filas, mismos valores |
 | 3 | API apagada el 21 y el 22; arranca el 23 a las 10:00 Lima | calcula 21 y 22; no intenta el 20 si ya estaba |
 | 4 | Anomalías lanza error en el cálculo | 0 filas de ese día; al arrancar otra vez, se calcula |
@@ -26,7 +27,8 @@ dotnet test tests/KillaUru.Integracion.Tests --filter "FullyQualifiedName~Dashbo
 | 8 | Tramos 237 de 333 | `coberturaPct` 71,2 |
 | 9 | Día faltante dentro de la serie | `null` en su posición; los promedios lo ignoran |
 | 10 | Filas de hace 731 días | borradas en la siguiente corrida |
-| 11 | `dias=10` / token de conductor / sin token | 400 / 403 / 401 |
+| 11 | `dias=10` / token de conductor / sin token | 400 / 403 / 401 (T-SEG20) |
+| 12 | `DesfaseHorarioHoras` de Dashboard y de Anomalías | iguales (R-008) |
 
 ## 3. A mano
 

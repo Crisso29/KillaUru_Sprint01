@@ -1,0 +1,545 @@
+openapi: 3.1.0
+info:
+  title: KillaUru API — Identidad y Accesos
+  version: 1.0.0
+  description: |
+    Cuentas, sesiones, correo, derechos del titular y gestión de usuarios (ADR-009).
+    Todas las operaciones declaran 429 (T-SEG19). Sin token en una operación con sesión → 401; con token y rol insuficiente → 403 (T-SEG20).
+    Convenciones comunes: `specs/001-plataforma-backend/contracts/convenciones-api.md`.
+servers:
+  - url: https://api.killauru.pe
+tags:
+  - { name: Legal, description: Versiones vigentes de la política y los términos (RF-29, RF-37) }
+  - { name: Sesión, description: Inicio, renovación y cierre de sesión (RF-16, RF-21, RF-38, RN-19) }
+  - { name: Cuenta, description: Registro, verificación y recuperación (RF-21, RF-22, RF-32) }
+  - { name: Mis datos, description: Derechos del titular (RF-30, RF-31, RF-37) }
+  - { name: Usuarios, description: Gestión de usuarios y revisión mensual (RF-19, RNF-30) }
+
+paths:
+  /api/v1/legal/versiones:
+    get:
+      tags: [Legal]
+      operationId: obtenerVersionesLegales
+      summary: Versiones vigentes de la política de privacidad y de los términos de uso
+      description: "Rol: público. La app las muestra antes de detectar (también al anónimo) y vuelve a pedirlas si cambian (RF-29, RF-37)."
+      security: []
+      responses:
+        '200':
+          description: Versiones vigentes
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VersionesLegales' }
+              example: { politicaPrivacidad: { version: '1.2', url: 'https://killauru.pe/privacidad' }, terminosUso: { version: '1.2', url: 'https://killauru.pe/terminos' } }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+
+  /api/v1/auth/registro:
+    post:
+      tags: [Cuenta]
+      operationId: registrarConductor
+      summary: Crear cuenta de conductor
+      description: "Rol: público. Exige aceptar las versiones vigentes de la política y los términos (HU-22, HU-27). Envía el correo de verificación (RF-22) y devuelve una sesión (RF-21) cuyo token lleva `verificado = false` hasta verificar el correo (D8). Máximo `LimiteTasa:RegistrosPorHoraPorIp` (5) registros por hora por IP: el 6.º → 429 (D8)."
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegistroSolicitud' }
+            example: { correo: conductor@ejemplo.pe, contrasena: 'una-clave-larga', versionPoliticaAceptada: '1.2', versionTerminosAceptada: '1.2' }
+      responses:
+        '201':
+          description: Cuenta creada con sesión iniciada
+          content: { application/json: { schema: { $ref: '#/components/schemas/SesionApp' } } }
+        '400': { $ref: '#/components/responses/AceptacionOValidacion' }
+        '409':
+          description: El correo ya tiene cuenta (`codigo = correo_en_uso`). Riesgo de enumeración aceptado, mitigado por el límite por IP (D8)
+          content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problema' } } }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+
+  /api/v1/auth/inicio-sesion:
+    post:
+      tags: [Sesión]
+      operationId: iniciarSesion
+      summary: Iniciar sesión (app o panel)
+      description: |
+        Rol: público.
+        - `canal = app`: tokens en el cuerpo (conductor; RF-21).
+        - `canal = panel`: tokens en cookies `ku_acceso` y `ku_renovacion` (solo administradores; RF-16); exige `turnstileToken`.
+        Correo inexistente, contraseña incorrecta y cuenta desactivada responden igual (RN-19).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/InicioSesionSolicitud' }
+      responses:
+        '200':
+          description: Sesión iniciada. En `canal = panel` además vienen las cookies `Set-Cookie`.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - { $ref: '#/components/schemas/SesionApp' }
+                  - { $ref: '#/components/schemas/SesionPanel' }
+        '401':
+          description: Credenciales inválidas (`codigo = credenciales_invalidas`), igual exista o no la cuenta
+          content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problema' } } }
+        '403':
+          description: Un conductor intentó entrar al panel (`codigo = solo_administradores`) o falló la verificación anti-bot (`codigo = antibot_fallido`)
+          content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problema' } } }
+        '423':
+          description: Solo `canal = panel`. Cuenta bloqueada (`codigo = cuenta_bloqueada`) con la hora de desbloqueo (RN-19; prototipo)
+          headers: { Retry-After: { $ref: '#/components/headers/RetryAfter' } }
+          content: { application/problem+json: { schema: { $ref: '#/components/schemas/ProblemaBloqueo' } } }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+
+  /api/v1/auth/renovar:
+    post:
+      tags: [Sesión]
+      operationId: renovarSesion
+      summary: Renovar el token de acceso
+      description: |
+        Rol: público (se autentica con el token de actualización).
+        App: token en el cuerpo. Panel: cookie `ku_renovacion` (sin cuerpo).
+        Reuso del mismo token dentro de 60 s → mismo par; después → se revoca la sesión (ADR-009).
+        `cuenta_desactivada` y `sesion_invalida` indican a la app que borre su permiso local (RN-21 c).
+      security: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RenovarSolicitud' }
+      responses:
+        '200':
+          description: Par nuevo (o el mismo, dentro de la gracia)
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - { $ref: '#/components/schemas/SesionApp' }
+                  - { $ref: '#/components/schemas/SesionPanel' }
+        '401':
+          description: "`codigo = sesion_invalida` (no existe, vencida, revocada, reutilizada o cuenta eliminada) o `cuenta_desactivada`"
+          content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problema' } } }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+
+  /api/v1/auth/cerrar-sesion:
+    post:
+      tags: [Sesión]
+      operationId: cerrarSesion
+      summary: Cerrar sesión
+      description: "Rol: conductor o administrador. Revoca la familia de la sesión (RF-38). En el panel borra las cookies. El resto de RN-21 d lo hace la app."
+      security: [ { tokenAcceso: [] }, { cookieAcceso: [] } ]
+      requestBody:
+        required: false
+        content: { application/json: { schema: { $ref: '#/components/schemas/RenovarSolicitud' } } }
+      responses:
+        '204': { description: Sesión cerrada }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+
+  /api/v1/auth/verificar-correo:
+    post:
+      tags: [Cuenta]
+      operationId: verificarCorreo
+      summary: Verificar el correo con el enlace recibido
+      description: "Rol: público. Token del fragmento del enlace, un solo uso, 24 h (HU-18b)."
+      security: []
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/TokenEnlace' } } }
+      responses:
+        '204': { description: Correo verificado }
+        '400':
+          description: Enlace inválido, vencido o ya usado (`codigo = enlace_invalido`)
+          content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problema' } } }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+
+  /api/v1/auth/recuperar:
+    post:
+      tags: [Cuenta]
+      operationId: solicitarRecuperacion
+      summary: Pedir un enlace para recuperar la contraseña
+      description: "Rol: público. Responde 202 SIEMPRE, exista o no la cuenta (HU-25). Solo envía si el correo existe, está verificado y no se superó el límite por correo e IP (RF-32)."
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [correo], properties: { correo: { type: string, format: email } } }
+      responses:
+        '202': { description: Si el correo está registrado y verificado, recibirás un enlace }
+        '400': { $ref: '#/components/responses/Validacion' }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+
+  /api/v1/auth/fijar-contrasena:
+    post:
+      tags: [Cuenta]
+      operationId: fijarContrasenaConEnlace
+      summary: Fijar una contraseña con un enlace de recuperación o de invitación
+      description: "Rol: público. Cierra todas las sesiones, desbloquea la cuenta y se audita (HU-25). Con una invitación, además verifica el correo."
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, nuevaContrasena]
+              properties:
+                token: { type: string }
+                nuevaContrasena: { type: string, minLength: 10, maxLength: 128 }
+      responses:
+        '204': { description: Contraseña fijada }
+        '400':
+          description: Enlace inválido, vencido o usado (`enlace_invalido`) o contraseña fuera de la política (`datos_invalidos`)
+          content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problema' } } }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+
+  /api/v1/me:
+    get:
+      tags: [Mis datos]
+      operationId: obtenerMisDatos
+      summary: Ver todos mis datos personales
+      description: "Rol: conductor o administrador (HU-24, RF-31)."
+      security: [ { tokenAcceso: [] }, { cookieAcceso: [] } ]
+      responses:
+        '200':
+          description: Datos personales guardados
+          content: { application/json: { schema: { $ref: '#/components/schemas/MisDatos' } } }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+    delete:
+      tags: [Mis datos]
+      operationId: eliminarMiCuenta
+      summary: Eliminar mi cuenta
+      description: "Rol: conductor. Confirma con la contraseña. Borra correo, credenciales, consentimientos y tokens; revoca sesiones; audita sin correo (HU-23, RF-30)."
+      security: [ { tokenAcceso: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [contrasena], properties: { contrasena: { type: string } } }
+      responses:
+        '204': { description: Cuenta eliminada }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403':
+          description: Contraseña incorrecta (`codigo = confirmacion_invalida`) o rol no permitido
+          content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problema' } } }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+
+  /api/v1/me/aceptaciones:
+    post:
+      tags: [Mis datos]
+      operationId: aceptarVersion
+      summary: Aceptar una versión nueva de la política o de los términos
+      description: "Rol: conductor. Solo acepta la versión vigente (RF-37)."
+      security: [ { tokenAcceso: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [documento, version]
+              properties:
+                documento: { $ref: '#/components/schemas/DocumentoLegal' }
+                version: { type: string, example: '1.3' }
+      responses:
+        '204': { description: Aceptación guardada }
+        '400': { $ref: '#/components/responses/AceptacionOValidacion' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+
+  /api/v1/me/reenviar-verificacion:
+    post:
+      tags: [Mis datos]
+      operationId: reenviarMiVerificacion
+      summary: Reenviar el correo de verificación
+      description: "Rol: conductor o administrador. Invalida el enlace anterior. Derivado del prototipo («Revisa tu correo»)."
+      security: [ { tokenAcceso: [] }, { cookieAcceso: [] } ]
+      responses:
+        '202': { description: Enviado (si el correo aún no estaba verificado) }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+
+  /api/v1/usuarios:
+    get:
+      tags: [Usuarios]
+      operationId: listarUsuarios
+      summary: Listar usuarios
+      description: |
+        Rol: administrador. Búsqueda por correo y filtros por rol y estado (prototipo «Usuarios»).
+        Con `ids` devuelve solo esas cuentas (para mostrar actores de la auditoría; máx. 200).
+        Se audita como `AccesoAdministrativoDatos` con `RegistrarLecturaAsync`, también con `ids` (RF-15, D15).
+      security: [ { tokenAcceso: [] }, { cookieAcceso: [] } ]
+      parameters:
+        - { name: busqueda, in: query, schema: { type: string, maxLength: 100 } }
+        - { name: rol, in: query, schema: { $ref: '#/components/schemas/Rol' } }
+        - { name: estado, in: query, schema: { $ref: '#/components/schemas/EstadoUsuario' } }
+        - { name: ids, in: query, style: form, explode: false, schema: { type: array, maxItems: 200, items: { type: string, format: uuid } } }
+        - { name: pagina, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: tamano, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+      responses:
+        '200':
+          description: Página de usuarios
+          content: { application/json: { schema: { $ref: '#/components/schemas/PaginaUsuarios' } } }
+        '400': { $ref: '#/components/responses/Validacion' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+    post:
+      tags: [Usuarios]
+      operationId: crearUsuario
+      summary: Crear (invitar) un usuario
+      description: "Rol: administrador. Crea la cuenta sin contraseña y envía una invitación de 24 h (RF-19; invitación derivada del prototipo). Audita `UsuarioCreado`."
+      security: [ { tokenAcceso: [] }, { cookieAcceso: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [correo, rol], properties: { correo: { type: string, format: email }, rol: { $ref: '#/components/schemas/Rol' } } }
+      responses:
+        '201':
+          description: Usuario creado e invitación enviada
+          content: { application/json: { schema: { $ref: '#/components/schemas/Usuario' } } }
+        '400': { $ref: '#/components/responses/Validacion' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '409':
+          description: "`correo_en_uso`"
+          content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problema' } } }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+
+  /api/v1/usuarios/{id}/rol:
+    put:
+      tags: [Usuarios]
+      operationId: cambiarRol
+      summary: Cambiar el rol de un usuario
+      description: "Rol: administrador. Revoca las sesiones del usuario. Audita `RolCambiado` (acción de riesgo, RNF-29)."
+      security: [ { tokenAcceso: [] }, { cookieAcceso: [] } ]
+      parameters: [ { $ref: '#/components/parameters/IdUsuario' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [rol], properties: { rol: { $ref: '#/components/schemas/Rol' } } } } }
+      responses:
+        '204': { description: Rol cambiado }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '409': { $ref: '#/components/responses/ConflictoAdministrador' }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+
+  /api/v1/usuarios/{id}/desactivar:
+    post:
+      tags: [Usuarios]
+      operationId: desactivarUsuario
+      summary: Desactivar una cuenta
+      description: "Rol: administrador. Revoca sesiones; pierde el acceso en ≤ 5 min (HU-14, RNF-26). Audita `CuentaDesactivada`."
+      security: [ { tokenAcceso: [] }, { cookieAcceso: [] } ]
+      parameters: [ { $ref: '#/components/parameters/IdUsuario' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [motivo], properties: { motivo: { type: string, maxLength: 200 } } } } }
+      responses:
+        '204': { description: Cuenta desactivada }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '409': { $ref: '#/components/responses/ConflictoAdministrador' }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+
+  /api/v1/usuarios/{id}/activar:
+    post:
+      tags: [Usuarios]
+      operationId: activarUsuario
+      summary: Activar una cuenta desactivada
+      description: "Rol: administrador. Derivado del prototipo («Activar cuenta»). Audita `CuentaActivada`."
+      security: [ { tokenAcceso: [] }, { cookieAcceso: [] } ]
+      parameters: [ { $ref: '#/components/parameters/IdUsuario' } ]
+      responses:
+        '204': { description: Cuenta activada }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+
+  /api/v1/usuarios/{id}/reenviar-correo:
+    post:
+      tags: [Usuarios]
+      operationId: reenviarCorreoUsuario
+      summary: Reenviar la verificación o la invitación
+      description: "Rol: administrador. Si la invitación está pendiente, reenvía la invitación; si no, la verificación. Derivado del prototipo («Reenviar verificación»)."
+      security: [ { tokenAcceso: [] }, { cookieAcceso: [] } ]
+      parameters: [ { $ref: '#/components/parameters/IdUsuario' } ]
+      responses:
+        '202': { description: Correo enviado }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+
+  /api/v1/usuarios/revision-privilegios:
+    get:
+      tags: [Usuarios]
+      operationId: consultarRevisionPrivilegios
+      summary: Estado de la revisión mensual de privilegios
+      description: "Rol: administrador. Última revisión, fecha de vencimiento y administradores actuales (RNF-30). Se audita como `AccesoAdministrativoDatos` con `RegistrarLecturaAsync` (D15)."
+      security: [ { tokenAcceso: [] }, { cookieAcceso: [] } ]
+      responses:
+        '200':
+          description: Estado de la revisión
+          content: { application/json: { schema: { $ref: '#/components/schemas/EstadoRevision' } } }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+    post:
+      tags: [Usuarios]
+      operationId: registrarRevisionPrivilegios
+      summary: Registrar la revisión mensual
+      description: "Rol: administrador. Confirma o retira (desactiva) a cada administrador. Audita `RevisionPrivilegios` (RF-19, RNF-30)."
+      security: [ { tokenAcceso: [] }, { cookieAcceso: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [confirmados, retirados]
+              properties:
+                confirmados: { type: array, items: { type: string, format: uuid } }
+                retirados: { type: array, items: { type: string, format: uuid } }
+      responses:
+        '201':
+          description: Revisión registrada
+          content: { application/json: { schema: { $ref: '#/components/schemas/EstadoRevision' } } }
+        '400':
+          description: La lista no coincide con los administradores actuales (`codigo = revision_incompleta`)
+          content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problema' } } }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '409': { $ref: '#/components/responses/ConflictoAdministrador' }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+
+components:
+  securitySchemes:
+    tokenAcceso: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/securitySchemes/tokenAcceso' }
+    cookieAcceso: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/securitySchemes/cookieAcceso' }
+  headers:
+    RetryAfter: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/headers/RetryAfter' }
+  parameters:
+    IdUsuario: { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+  responses:
+    NoAutenticado: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/responses/NoAutenticado' }
+    Prohibido: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/responses/Prohibido' }
+    NoEncontrado: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/responses/NoEncontrado' }
+    Validacion: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/responses/Validacion' }
+    LimiteExcedido: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/responses/LimiteExcedido' }
+    AceptacionOValidacion:
+      description: Falta aceptar o la versión no es la vigente (`aceptacion_requerida`), o datos inválidos (`datos_invalidos`)
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problema' } } }
+    ConflictoAdministrador:
+      description: "`accion_sobre_si_mismo` o `ultimo_administrador`"
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problema' } } }
+  schemas:
+    Problema: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/schemas/Problema' }
+    ProblemaBloqueo:
+      allOf:
+        - { $ref: '#/components/schemas/Problema' }
+        - { type: object, required: [bloqueadoHastaUtc], properties: { bloqueadoHastaUtc: { type: string, format: date-time } } }
+    Rol: { type: string, enum: [ConductorRegistrado, Administrador] }
+    EstadoUsuario: { type: string, enum: [Activa, Desactivada, InvitacionPendiente] }
+    DocumentoLegal: { type: string, enum: [PoliticaPrivacidad, TerminosUso] }
+    VersionDocumento:
+      type: object
+      required: [version, url]
+      properties: { version: { type: string }, url: { type: string, format: uri } }
+    VersionesLegales:
+      type: object
+      required: [politicaPrivacidad, terminosUso]
+      properties:
+        politicaPrivacidad: { $ref: '#/components/schemas/VersionDocumento' }
+        terminosUso: { $ref: '#/components/schemas/VersionDocumento' }
+    RegistroSolicitud:
+      type: object
+      required: [correo, contrasena, versionPoliticaAceptada, versionTerminosAceptada]
+      properties:
+        correo: { type: string, format: email, maxLength: 254 }
+        contrasena: { type: string, minLength: 10, maxLength: 128, description: Mínimo 10 (D13) }
+        versionPoliticaAceptada: { type: string }
+        versionTerminosAceptada: { type: string }
+    InicioSesionSolicitud:
+      type: object
+      required: [correo, contrasena, canal]
+      properties:
+        correo: { type: string, format: email }
+        contrasena: { type: string }
+        canal: { type: string, enum: [app, panel] }
+        turnstileToken: { type: string, description: Obligatorio con canal = panel (R-008) }
+    RenovarSolicitud:
+      type: object
+      properties:
+        tokenRenovacion: { type: string, description: Solo la app; el panel usa la cookie ku_renovacion }
+    SesionApp:
+      type: object
+      required: [tokenAcceso, expiraAccesoUtc, tokenRenovacion, sesionVenceUtc, rol]
+      properties:
+        tokenAcceso: { type: string, description: "JWT de 5 min con sub, rol y verificado (D8)" }
+        expiraAccesoUtc: { type: string, format: date-time }
+        tokenRenovacion: { type: string }
+        sesionVenceUtc: { type: string, format: date-time, description: La app usa esta fecha para el permiso local (RN-21 a) }
+        rol: { $ref: '#/components/schemas/Rol' }
+    SesionPanel:
+      type: object
+      required: [expiraAccesoUtc, sesionVenceUtc, rol]
+      properties:
+        expiraAccesoUtc: { type: string, format: date-time }
+        sesionVenceUtc: { type: string, format: date-time, description: Prototipo «Sesión hasta 17:12» }
+        rol: { $ref: '#/components/schemas/Rol' }
+    TokenEnlace:
+      type: object
+      required: [token]
+      properties: { token: { type: string } }
+    MisDatos:
+      type: object
+      required: [correo, rol, fechaAltaUtc, correoVerificado, aceptaciones]
+      properties:
+        correo: { type: string, format: email }
+        rol: { $ref: '#/components/schemas/Rol' }
+        fechaAltaUtc: { type: string, format: date-time }
+        correoVerificado: { type: boolean }
+        aceptaciones:
+          type: array
+          items:
+            type: object
+            required: [documento, version, aceptadoUtc]
+            properties:
+              documento: { $ref: '#/components/schemas/DocumentoLegal' }
+              version: { type: string }
+              aceptadoUtc: { type: string, format: date-time }
+    Usuario:
+      type: object
+      required: [id, correo, rol, estado, correoVerificado, fechaAltaUtc]
+      properties:
+        id: { type: string, format: uuid }
+        correo: { type: string, format: email }
+        rol: { $ref: '#/components/schemas/Rol' }
+        estado: { $ref: '#/components/schemas/EstadoUsuario' }
+        correoVerificado: { type: boolean }
+        fechaAltaUtc: { type: string, format: date-time }
+        ultimaSesionUtc: { type: [string, 'null'], format: date-time }
+    PaginaUsuarios:
+      type: object
+      required: [elementos, pagina, tamano, total]
+      properties:
+        elementos: { type: array, items: { $ref: '#/components/schemas/Usuario' } }
+        pagina: { type: integer }
+        tamano: { type: integer }
+        total: { type: integer }
+    EstadoRevision:
+      type: object
+      required: [venceUtc, administradores]
+      properties:
+        ultimaRevisionUtc: { type: [string, 'null'], format: date-time }
+        venceUtc: { type: string, format: date-time }
+        administradores: { type: array, items: { $ref: '#/components/schemas/Usuario' } }

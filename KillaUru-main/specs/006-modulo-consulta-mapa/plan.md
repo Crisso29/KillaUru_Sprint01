@@ -16,7 +16,7 @@ Módulo de **solo lectura y sin tablas**. El dominio decide el alcance por rol (
 
 **Storage**: ninguno (lee por `IAnomaliaLectura`, 004)
 
-**Testing**: xUnit para `ZonaDemo`, `Bbox`, `PoliticaAlcance` y `ETag`; NSubstitute para los casos de uso; `WebApplicationFactory` + Testcontainers para recorte por rol a través de la caché, 304 e invalidación; k6 para EQ-14
+**Testing**: xUnit para `ZonaDemo`, `Bbox`, `PoliticaAlcance` y `ETag`; NSubstitute para los casos de uso; `WebApplicationFactory` + Testcontainers para recorte por rol a través de la caché, 304 e invalidación; la carga (EQ-14) la corren los scripts k6 de 001 en `backend/tests/carga/` (D11)
 
 **Performance Goals**: acierto ~1 ms, 304 < 1 ms, fallo de caché 1 consulta B-tree (~5–20 ms) (`diseño-interno` §8); p95 < 250 ms (RNF-01)
 
@@ -28,12 +28,12 @@ Módulo de **solo lectura y sin tablas**. El dominio decide el alcance por rol (
 
 | Principio | Cómo lo cumple | Estado |
 |---|---|---|
-| I. Docs manda | Caché, `ZonaDemo`, `ETag` y filtros como `diseño-interno` §4; 2 agregados a otras specs justificados (R-001, R-002) | ✅ |
+| I. Docs manda | Caché, `ZonaDemo`, `ETag` y filtros como `diseño-interno` §4; los agregados (R-001, R-002, R-010, R-011) confirmados por el autor y llevados a docs (D1, D13); estados del administrador como RN-08 (D6) | ✅ |
 | II. Monolito modular | Sin esquema; solo `Anomalias/Contracts` y `Shared` | ✅ |
-| III. Calibrable | 5 parámetros en `MapaOptions` | ✅ |
+| III. Calibrable | 4 parámetros en `MapaOptions` | ✅ |
 | IV. Datos confiables | Invalidación tras el *commit* de Anomalías; `ETag` con instante de arranque | ✅ |
 | V. Privacidad | Las bajas no revelan el estado; ninguna respuesta lleva datos de reportes ni seudónimos | ✅ |
-| VI. Acceso en el servidor | Recorte por rol en el dominio del servidor; `estado` solo para el administrador; borde público solo sin token | ✅ |
+| VI. Acceso en el servidor | Recorte por rol en el dominio del servidor; `estado` solo para el administrador (403 con o sin token, T-SEG20); bajas anónimas solo del demo (T-SEG16); borde público solo sin token | ✅ |
 | VII. Pruebas primero | Recorte anónimo a través de la caché probado antes del código (EQ-11) | ✅ |
 | VIII. Código pequeño | Un archivo por política y por camino de consulta | ✅ |
 | IX. API documentada | `mapa.openapi.yaml` | ✅ |
@@ -85,12 +85,12 @@ backend/src/Modules/KillaUru.Mapa/
     ├── FuenteCeldasAnomalias.cs                  # ActivasPorCeldasAsync([celda]) → filtra borde → serializa
     ├── FuenteCeldasCacheada.cs                   # Decorator con HybridCache (etiqueta celda:{id})
     ├── VersionesCelda.cs                         # ConcurrentDictionary<long, long> + InstanteArranque
+    ├── MetricasMapa.cs                           # Meter "KillaUru.Mapa": killauru.mapa.cache{resultado} (R-013)
     └── InvalidarCeldasMapa.cs                    # IManejador<AnomaliaCambiada>
 
-backend/src/KillaUru.Shared/Domain/Celda.cs      # + Limites() (cambio en 001, R-002)
+backend/src/KillaUru.Shared/Domain/Celda.cs      # Limites() (definido en 001, R-002)
 backend/tests/KillaUru.Mapa.Tests/               Domain/ · Application/
 backend/tests/KillaUru.Integracion.Tests/Mapa/   RecorteRolApi · CacheEtagApi · CambiosApi · FiltrosApi
-backend/tests/carga/mapa.k6.js                    # EQ-14
 ```
 
 **Structure Decision**: plantilla de `enfoque-arquitectonico.md` §4.1 («Consulta de Mapa: recorte por rol»). El `ConsultarMapaUseCase` de docs se divide en un despachador y tres caminos para respetar las 100 líneas; el controlador conserva el nombre `AnomaliasController` de docs. `MapaOptions` va en `Application/` como dice `enfoque` §5.
@@ -99,6 +99,6 @@ backend/tests/carga/mapa.k6.js                    # EQ-14
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |---|---|---|
-| Operación nueva `IAnomaliaLectura.CeldasDelCorredor()` (cambio en 004, su R-012) | El `bbox` del corredor abarca ~150 000 celdas de rejilla; solo ~1 000 tocan la vía, y la polilínea es interna de Anomalías | Recorrer todas las celdas del `bbox` multiplica por 150 las búsquedas en caché; copiar la polilínea en Mapa duplica un dato con dos dueños |
-| `Celda.Limites()` en Shared (cambio en 001) | `Bbox` y `ZonaDemo` necesitan el rectángulo de una celda | Decodificar el id de la celda dentro de Mapa duplica la fórmula de `Celda.De` |
-| `MapaOptions` sin «tamaño de celda» (docs lo lista) | La celda la fija Shared y la guarda Anomalías en `anomalia.celda`; si Mapa usara otra, `AnomaliaCambiada` invalidaría la celda equivocada | — |
+| Operación nueva `IAnomaliaLectura.CeldasDelCorredor()` (cambio en 004, su R-012; confirmada, D1) | El `bbox` del corredor abarca ~150 000 celdas de rejilla; solo ~1 000 tocan la vía, y la polilínea es interna de Anomalías | Recorrer todas las celdas del `bbox` multiplica por 150 las búsquedas en caché; copiar la polilínea en Mapa duplica un dato con dos dueños |
+| `Celda.Limites()` en Shared (de 001; confirmada, D1) | `Bbox` y `ZonaDemo` necesitan el rectángulo de una celda | Decodificar el id de la celda dentro de Mapa duplica la fórmula de `Celda.De` |
+| `MapaOptions` sin «tamaño de celda» (docs lo quita, D1) | La celda la fija Shared y la guarda Anomalías en `anomalia.celda`; si Mapa usara otra, `AnomaliaCambiada` invalidaría la celda equivocada | — |

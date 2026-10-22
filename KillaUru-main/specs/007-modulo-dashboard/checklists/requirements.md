@@ -8,7 +8,7 @@
 
 - [x] CHK001 Enfocada en el valor (decidir sobre la plataforma sin vincular identidades)
 - [x] CHK002 Todas las secciones obligatorias completas
-- [x] CHK003 El cómo (`Task.Delay` sobre `TimeProvider`, `ON CONFLICT`) está en plan y research
+- [x] CHK003 El cómo (`ProgramaReloj` + `Task.Delay` sobre `TimeProvider`, `ON CONFLICT`) está en plan y research
 
 ## Requirement Completeness
 
@@ -25,4 +25,4 @@
 
 ## Notes
 
-- **3 decisiones requieren confirmación del autor** (lista al final de `research.md`); una choca con el prototipo («Eventos hoy», R-005).
+- Las 3 decisiones pendientes fueron **confirmadas por el autor el 2026-10-21** (D1, D13, D14; lista al final de `research.md`). El prototipo pasa a «Eventos ayer». Se aplicaron también T-OPS05 (`ProgramaReloj`), T-SEG20 (401/403), D4 (capas) y la prueba del desfase duplicado (R-008).

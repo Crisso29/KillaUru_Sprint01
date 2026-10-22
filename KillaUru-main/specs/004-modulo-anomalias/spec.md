@@ -35,6 +35,8 @@
 | Escenarios | EQ-02, EQ-09, EQ-12 | `08-escenarios-y-atributos-de-calidad.md` |
 | Diseño | Algoritmo de `ProcesarReporteUseCase`, `AnomaliasOptions`, `ReglasCalidad`, `ReglaPersistencia` | `enfoque-arquitectonico.md` §5, §6 |
 | Diseño | Tablas, índices, caducidad masiva, agregado, `PoliticaConfirmacion`, caso de uso, indicadores | `diseño-interno-de-modulos.md` §3.3, §3.5, §3.8, §5, §6.2, §6.3, §10 |
+| Decisiones del autor (2026-10-21) | D1, D2, D3, D4, D7, D13, D14, D15 | `specs/revision/decisiones.md` |
+| Correcciones técnicas (2026-10-21) | T-ARQ06, T-ARQ07/08, T-BD02, T-BD-CHK, T-OPS05, T-OPS14, T-OPS19, T-PO08, T-PO11, T-PO19, T-QA18, T-SEG19 | `specs/revision/plan-de-cambios.md` §B |
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -48,7 +50,7 @@ Como sistema, necesito evaluar cada evento con las reglas de calidad y antifraud
 
 **Acceptance Scenarios**:
 
-1. **Given** un evento, **When** se evalúan las reglas de **recepción** (sin BD), **Then** se rechaza con su motivo si: falta un campo o tiene formato inválido (`EsquemaInvalido`), confidence < 0,75 (`ConfidenceBajo`), precisión GPS > 20 m (`PrecisionGpsInsuficiente`), detectado hace más de 168 h o más de 5 min en el futuro respecto de la **hora de recepción** (`TimestampFueraDeRango`), tipo fuera de RN-01 (`TipoDesconocido`), o a más de 50 m del eje de la PE-28A (`FueraDelCorredor`) (RN-11, RN-13).
+1. **Given** un evento, **When** se evalúan las reglas de **recepción** (sin BD), **Then** se rechaza con su motivo si: falta un campo o tiene formato inválido (`EsquemaInvalido`), confidence < 0,75 (`ConfidenceBajo`), precisión GPS > 20 m (`PrecisionGpsInsuficiente`), detectado hace más de 168 h o más de 5 min en el futuro respecto de la **hora de recepción** (`TimestampFueraDeRango`), tipo fuera de RN-01 (`TipoDesconocido`), o a más de 50 m del eje de la PE-28A (`FueraDelCorredor`) (RN-11, RN-13). La regla de lote `SeudonimoInconsistente` (un lote = un seudónimo) la evalúa Ingesta en la recepción; Anomalías solo aporta el valor del enum (D2).
 2. **Given** un evento ya aceptado, **When** se procesa, **Then** se vuelven a aplicar las reglas de recepción (por seguridad) y se descarta como `VelocidadImposible` si, respecto del evento anterior del mismo seudónimo separado ≥ 10 s, la velocidad descontando las dos precisiones GPS supera 150 km/h; se descarta **solo el posterior** (RN-15b).
 3. **Given** un descarte en el procesamiento, **When** ocurre, **Then** se cuenta como métrica por motivo y **no** se audita (RF-15).
 
@@ -89,8 +91,8 @@ Como administrador, quiero que el sistema distinga baches permanentes de obstác
 
 1. **Given** reportes en ≥ 3 **días locales** distintos (UTC−5) dentro de 15 días, **When** se registra un reporte, **Then** la anomalía es `Persistente`; si no, `Episodica`. Un reporte a las 22:00 de Ayacucho cuenta para ese día, no para el siguiente en UTC (RN-12).
 2. **Given** una `Activa` episódica sin reportes durante 72 h, una persistente sin reportes durante 7 días o una `PendienteConfirmacion` sin segundo dispositivo durante 72 h, **When** corre la tarea horaria, **Then** pasa a `Expirada` (como máximo 1 h después de su plazo) y se publica `AnomaliaCambiada` (RN-07, RF-23).
-3. **Given** una `Expirada` o `Reparada`, **When** llega un reporte **detectado después** de su vencimiento, **Then** vuelve a nacer y pasa otra vez por la confirmación usando solo los reportes de las últimas 72 h; con un 5 queda `PendienteConfirmacion`, no `Activa` (RN-06, RN-07).
-4. **Given** una `Expirada`, **When** llega un reporte detectado **antes** de su vencimiento, **Then** no la reactiva (RN-07).
+3. **Given** una `Expirada` y un reporte **detectado después** de su vencimiento, o una `Reparada` y un reporte **detectado después** de la reparación (`estado_desde_utc`), **When** se procesa, **Then** vuelve a nacer y pasa otra vez por la confirmación usando solo los reportes de las últimas 72 h; con un 5 queda `PendienteConfirmacion`, no `Activa` (RN-06, RN-07, D14).
+4. **Given** una `Expirada`, **When** llega un reporte detectado **antes** de su vencimiento, **Then** no la reactiva (RN-07). Una `Reparada` ayer que alguien reporta hoy renace aunque su vencimiento anterior no haya pasado (D14).
 5. **Given** cualquier ventana de tiempo de estas reglas, **When** se evalúa, **Then** usa la **hora de detección**, nunca la de llegada (RN-05).
 
 ---
@@ -105,8 +107,8 @@ Como conductor, quiero que mi seudónimo se borre a las 72 h y que nada vincule 
 
 **Acceptance Scenarios**:
 
-1. **Given** reportes recibidos hace más de 72 h, **When** corre la purga horaria, **Then** su seudónimo queda vacío; los recibidos hace menos, lo conservan (aunque se hayan detectado hace días) (RN-09).
-2. **Given** reportes con más de 2 años desde su detección y anomalías que llevan 2 años en estado final, **When** corre la purga diaria, **Then** se borran (RN-10).
+1. **Given** reportes recibidos hace más de 72 h, **When** corre la purga horaria, **Then** en la misma sentencia su seudónimo queda vacío y su `recibido_utc` se redondea hacia abajo a la hora; los recibidos hace menos lo conservan todo (aunque se hayan detectado hace días) (RN-09, D3).
+2. **Given** reportes con más de 2 años desde su detección, anomalías `Expirada` o `Reparada` con 2 años en ese estado y anomalías `Descartada` con 2 años en ese estado **y** 2 años sin ningún reporte nuevo, **When** corre la purga diaria, **Then** se borran; una `Descartada` que siguió recibiendo reportes se conserva (RN-10, D7).
 3. **Given** el esquema del módulo, **When** se audita, **Then** ninguna tabla guarda una cuenta, correo ni token: solo `con_sesion` sí/no (RNF-10, RN-14).
 
 ---
@@ -125,8 +127,9 @@ Como administrador, quiero marcar una anomalía como reparada, descartarla como 
 2. **Given** una moderación válida, **When** se confirma, **Then** deja de mostrarse a los conductores (o vuelve, si se reabrió), queda auditada en la misma transacción y el mapa se invalida (HU-19).
 3. **Given** una `Descartada`, **When** siguen llegando reportes, **Then** los absorbe para siempre; si llegan de ≥ 3 vehículos distintos en 7 días (contados como en RN-06), aparece en «Por revisar» (RN-07).
 4. **Given** una anomalía en «Por revisar», **When** el administrador la reabre o la mantiene descartada, **Then** el contador de vehículos se reinicia (RN-07).
-5. **Given** el panel, **When** pido las listas, **Then** obtengo «Por revisar» (vehículos en 7 días, reportes, último reporte) y «Esperan confirmación» (reportes, primer reporte, vence) (prototipo).
-6. **Given** el panel, **When** abro una anomalía, **Then** veo tipo, severidad mostrada, estado, persistencia, km sobre la vía, días distintos en 15 días, número de reportes, último reporte, vencimiento, si es visible para conductores, reportes por día de los últimos 15 días y su historial de estados (prototipo).
+5. **Given** el panel, **When** pido las listas, **Then** obtengo «Por revisar» (severidad mostrada, vehículos en 7 días, reportes, último reporte) y «Esperan confirmación» (reportes, primer reporte, vence) (prototipo).
+6. **Given** el panel, **When** abro una anomalía, **Then** veo tipo, severidad mostrada, estado, persistencia, km sobre la vía (el de la anomalía, fijado al nacer), días distintos en 15 días, número de reportes, último reporte, vencimiento (vacío en `Expirada`, `Reparada` y `Descartada`), si es visible para conductores, reportes por día de los últimos 15 días y su historial de estados (prototipo, D13).
+7. **Given** una moderación y la tarea de caducidad sobre la misma anomalía al mismo tiempo, **When** las dos terminan, **Then** no se pierde ninguna actualización: la moderación lee la anomalía bloqueada (`FOR UPDATE`) y revalida su estado; si ya cambió, responde según el estado nuevo (T-BD02).
 
 ---
 
@@ -140,8 +143,8 @@ Como administrador, quiero exportar las anomalías en CSV y GeoJSON con filtros,
 
 **Acceptance Scenarios**:
 
-1. **Given** filtros de fechas, tipo y estado, **When** exporto en CSV o GeoJSON, **Then** recibo un archivo con las anomalías que cumplen los filtros y **ninguna** columna o propiedad con seudónimos (RF-20).
-2. **Given** una exportación, **When** termina, **Then** queda auditada con formato, filtros y número de filas (`DatasetExportado`, acción de riesgo, RNF-29).
+1. **Given** filtros de fechas, tipo y estado, **When** exporto en CSV o GeoJSON, **Then** recibo un archivo con las anomalías que cumplen los filtros, con las columnas `id, tipo, severidad, estado, persistencia, km, latitud, longitud, reportes, primer_reporte, ultimo_reporte` y **ninguna** columna o propiedad con seudónimos (RF-20, T-PO11).
+2. **Given** una exportación, **When** se pide, **Then** primero se cuentan las filas con los mismos filtros, luego se audita `DatasetExportado` con formato, filtros y `filas` (lectura sensible, acción de riesgo, RNF-29) y solo después se escribe el archivo; si la auditoría falla, no se exporta (D15).
 
 ---
 
@@ -155,10 +158,10 @@ Como módulos Consulta de Mapa y Dashboard, queremos leer anomalías y conteos p
 
 **Acceptance Scenarios**:
 
-1. **Given** una lista de celdas, **When** se piden las anomalías activas, **Then** se devuelven solo las `Activa` de esas celdas (`ix_anomalia_mapa`).
+1. **Given** una lista de celdas, **When** se piden las anomalías activas, **Then** se devuelven solo las `Activa` de esas celdas (`ix_anomalia_mapa`), cada una con su `KmVia` (D13).
 2. **Given** un rectángulo y filtros, **When** se filtra, **Then** se devuelven las que cumplen todos los filtros, de cualquier estado pedido.
 3. **Given** una fecha, **When** se piden los cambios desde ella, **Then** se devuelven todas las anomalías modificadas desde entonces, con su estado actual (Mapa decide si son altas o bajas para cada rol).
-4. **Given** un día local, **When** se pide su resumen, **Then** se devuelven: eventos (reportes) recibidos, dispositivos distintos, tramos de 1 km con reportes en 7 días y el total, confirmaciones, pendientes que expiraron, expiraciones y renacimientos desde `Expirada` (RF-18).
+4. **Given** un día local, **When** se pide su resumen, **Then** se devuelven: eventos válidos (reportes procesados de ese día), dispositivos distintos, tramos de 1 km con reportes en 7 días y el total, confirmaciones, pendientes que expiraron, expiraciones y reapariciones (renacimientos desde `Expirada` hacia `Activa` o `PendienteConfirmacion`) (RF-18, D14).
 5. **Given** el corredor cargado, **When** se piden sus celdas, **Then** se devuelven todas las celdas que toca la franja de 50 m alrededor de la polilínea, y ninguna anomalía tiene una celda fuera de ese conjunto (006).
 
 ### Edge Cases
@@ -170,7 +173,10 @@ Como módulos Consulta de Mapa y Dashboard, queremos leer anomalías y conteos p
 - Reporte con hora de detección **anterior** a la última detección de la anomalía (llegó tarde): se guarda, cuenta para la mediana y los días, pero `ultima_deteccion_utc` no retrocede.
 - Reloj del servidor adelantado o atrasado: no afecta las reglas, porque todas usan la hora de detección y la hora de recepción que entrega Ingesta.
 - Se reabre una anomalía vieja: vence contando desde el momento de la reapertura (ver `research.md` R-007).
-- El corredor no está cargado al arrancar: el módulo no está listo y `/health/ready` responde 503.
+- El corredor no está cargado al arrancar: la comprobación `corredor` de `/health/ready` falla y responde 503 (001 FR-018, T-OPS19).
+- La tarea de caducidad y un trabajador tocan la misma anomalía: el trabajador la tiene bloqueada (`FOR UPDATE`), la caducidad la salta (`SKIP LOCKED`) y la revisa en la siguiente hora; ninguna escritura pisa a la otra (T-BD02).
+- La API se reinicia antes de la hora de una tarea: todas corren también al arrancar, así ninguna queda sin correr por despliegues seguidos (T-OPS05).
+- Purga de 72 h y resumen del día: `recibido_utc` redondeado a la hora no cambia el día local de ningún reporte (el día UTC−5 empieza a una hora en punto) (D3).
 
 ## Requirements *(mandatory)*
 
@@ -193,7 +199,7 @@ Como módulos Consulta de Mapa y Dashboard, queremos leer anomalías y conteos p
 - **FR-010**: Una anomalía no publicada MUST exigir confirmación si algún reporte de las últimas 72 h es de severidad 4–5, si su severidad mostrada es 4–5, o si la creó un dispositivo sobre el tope. *(RN-06, RN-15a)*
 - **FR-011**: La confirmación MUST requerir ≥ 2 vehículos distintos (seudónimos distintos con detecciones separadas ≥ 3 min) con reportes de cualquier severidad en 72 h; si es por gravedad, además ≥ 1 reporte con sesión. *(RN-06, RN-14)*
 - **FR-012**: Una anomalía `Activa` MUST NOT volver a `PendienteConfirmacion` por un reporte grave. *(RN-06)*
-- **FR-013**: El tope por hora de detección MUST considerarse superado cuando el conteo de eventos recibidos de ese seudónimo en ese bloque de reloj (que entrega Ingesta) supera 120; solo afecta a las anomalías **nuevas** que cree ese evento. *(RN-15a)*
+- **FR-013**: El tope por hora de detección MUST considerarse superado cuando el conteo de eventos recibidos de ese seudónimo en ese bloque de reloj (que entrega Ingesta) supera 120; solo afecta a las anomalías **nuevas** que cree ese evento, y cada una que nace retenida por el tope MUST contarse con `IMetricas.RegistrarRetenidoPorTope()`. *(RN-15a, RNF-22, T-OPS14)*
 - **FR-014**: `AnomaliaCambiada(anomaliaId, celda)` MUST publicarse solo después del commit. *(ADR-006)*
 - **FR-015**: Cada cambio de estado MUST registrarse como **una** transición (desde, hacia, momento y, si fue el administrador, su id). *(RF-18; `diseño-interno` §3.3)*
 
@@ -201,30 +207,38 @@ Como módulos Consulta de Mapa y Dashboard, queremos leer anomalías y conteos p
 
 - **FR-016**: La persistencia MUST calcularse con días locales UTC−5 distintos (≥ 3 en 15 días). *(RN-12)*
 - **FR-017**: El dominio MUST calcular el vencimiento (`vence_utc`) con cada reporte: episódica +72 h, persistente +7 días, pendiente +72 h desde la última detección. *(RN-07, RF-23)*
-- **FR-018**: Una tarea cada hora MUST pasar a `Expirada` las `Activa` y `PendienteConfirmacion` vencidas, registrar sus transiciones y publicar `AnomaliaCambiada` tras el commit. *(RN-07, RF-23)*
-- **FR-019**: Una `Expirada` o `Reparada` que recibe un reporte detectado después de su vencimiento MUST volver a nacer y pasar por la confirmación con los reportes de las últimas 72 h. *(RN-06, RN-07)*
-- **FR-020**: Una `Descartada` MUST absorber sus reportes sin reactivarse y marcarse «Por revisar» al sumar ≥ 3 vehículos en 7 días, guardando solo la hora de cada vehículo nuevo. *(RN-07)*
+- **FR-018**: Una tarea cada hora (en el minuto `:05`) MUST pasar a `Expirada` las `Activa` y `PendienteConfirmacion` vencidas, saltando las filas bloqueadas (`FOR UPDATE SKIP LOCKED`), registrar sus transiciones y publicar `AnomaliaCambiada` tras el commit. *(RN-07, RF-23, T-OPS05, T-BD02)*
+- **FR-019**: Una `Expirada` que recibe un reporte detectado después de su vencimiento, o una `Reparada` que recibe un reporte detectado después de `estado_desde_utc` (la reparación), MUST volver a nacer y pasar por la confirmación con los reportes de las últimas 72 h. *(RN-06, RN-07, D14)*
+- **FR-020**: Una `Descartada` MUST absorber sus reportes sin reactivarse (su `ultima_deteccion_utc` avanza) y marcarse «Por revisar» al sumar ≥ 3 vehículos en 7 días, guardando solo la hora de cada vehículo nuevo. *(RN-07, D7)*
 
 **D. Privacidad y retención (RN-09, RN-10)**
 
-- **FR-021**: Una tarea cada hora MUST poner en `NULL` el seudónimo de los reportes recibidos hace > 72 h. *(RN-09, RF-27, RNF-25)*
-- **FR-022**: Una tarea diaria MUST borrar los reportes con más de 2 años desde su detección y las anomalías con 2 años en estado final. *(RN-10)*
+- **FR-021**: Una tarea cada hora (en el minuto `:10`) MUST, en la misma sentencia, poner en `NULL` el seudónimo y redondear `recibido_utc` a la hora (`date_trunc('hour', recibido_utc)`) de los reportes recibidos hace > 72 h. *(RN-09, RF-27, RNF-25, D3)*
+- **FR-022**: Una tarea diaria (03:30 hora local) MUST borrar los reportes con más de 2 años desde su detección, las anomalías `Expirada` y `Reparada` con más de 2 años en ese estado y las `Descartada` cuyo `ultima_deteccion_utc` **y** `estado_desde_utc` tengan más de 2 años. *(RN-10, D7, T-OPS05)*
 - **FR-023**: Ninguna tabla del módulo MUST guardar cuentas, correos o tokens; solo `con_sesion`. *(RNF-10, RN-14)*
-- **FR-024**: Cada tarea programada MUST registrar su última ejecución correcta como métrica. *(RNF-22)*
+- **FR-024**: Cada tarea programada MUST correr al arrancar la API y luego a su hora de reloj (`Shared/Tareas/ProgramaReloj`, con `TimeProvider`), y registrar su última ejecución correcta con `RegistrarTareaCorrecta("caducidad" | "purga-seudonimos" | "purga-historica")`. *(RNF-22, T-OPS05)*
 
 **E. Moderación (RF-24, RN-07)**
 
-- **FR-025**: El administrador MUST poder ejecutar `MarcarReparada`, `Descartar`, `Reabrir` y `MantenerDescartada` solo desde los estados permitidos; cada una se audita en la misma transacción, registra su transición (si cambia el estado) y publica `AnomaliaCambiada`. *(RF-24, RN-07, ADR-013)*
+- **FR-025**: El administrador MUST poder ejecutar `MarcarReparada`, `Descartar`, `Reabrir` y `MantenerDescartada` solo desde los estados permitidos; cada una se audita con `IAuditoriaService.RegistrarAsync` dentro de la transacción de la moderación, registra su transición (si cambia el estado) y publica `AnomaliaCambiada`. El controlador solo usa tipos de Application (`ComandoModeracion`, `ResultadoModeracion`); `AccionAdmin` queda en el dominio y Application la mapea. *(RF-24, RN-07, ADR-013, D4, D15)*
 - **FR-026**: `Reabrir` y `MantenerDescartada` MUST reiniciar el contador de «Por revisar». *(RN-07)*
-- **FR-027**: El administrador MUST poder listar «Por revisar» y «Esperan confirmación», ver el detalle de una anomalía y los últimos cambios de estado. *(RF-24; prototipo)*
+- **FR-027**: El administrador MUST poder listar «Por revisar» (con severidad mostrada) y «Esperan confirmación», ver el detalle de una anomalía (`venceUtc` nulo en estados finales) y los últimos cambios de estado; el km de cada elemento sale de `anomalia.km_via`. *(RF-24; prototipo; D13, T-PO08, T-PO19)*
 
 **F. Exportación (RF-20)**
 
-- **FR-028**: El administrador MUST poder exportar anomalías en CSV y GeoJSON filtradas por fechas, tipo y estado, sin seudónimos, con auditoría `DatasetExportado`. *(RF-20, HU-20)*
+- **FR-028**: El administrador MUST poder exportar anomalías en CSV y GeoJSON filtradas por fechas, tipo y estado, sin seudónimos, con las columnas `id, tipo, severidad, estado, persistencia, km, latitud, longitud, reportes, primer_reporte, ultimo_reporte`; el módulo MUST contar las filas, auditar con `IAuditoriaService.RegistrarLecturaAsync` (`DatasetExportado`, con `filas`) y solo después escribir. *(RF-20, HU-20, D15, T-PO11)*
 
 **G. Lecturas para otros módulos**
 
-- **FR-029**: El módulo MUST ofrecer `IAnomaliaLectura` con: activas por celdas, filtrado, cambios desde una fecha, resumen de un día y las celdas del corredor. *(`componentes-arquitectonicos.md` §3.1; celdas del corredor: 006 R-001)*
+- **FR-029**: El módulo MUST ofrecer `IAnomaliaLectura` con: activas por celdas, filtrado, cambios desde una fecha, resumen de un día y las celdas del corredor. En el resumen, `EventosRecibidos` = reportes válidos (procesados) del día y `Renacimientos` = transiciones `Expirada → Activa | PendienteConfirmacion` (reaparición). *(`componentes-arquitectonicos.md` §3.1; celdas del corredor: 006 R-001; D1, D14)*
+
+**H. Concurrencia, métricas, salud y contratos (revisión 2026-10-21)**
+
+- **FR-030**: El procesamiento y la moderación MUST leer la anomalía con `SELECT … FOR UPDATE` dentro de su bloqueo de celda y revalidar su estado antes de cambiarla; la caducidad conserva `FOR UPDATE SKIP LOCKED`. *(ADR-005, RN-07, T-BD02)*
+- **FR-031**: El procesamiento MUST registrar la duración de cada evento con `IMetricas.RegistrarDuracionProceso(d)`; el módulo MUST NOT llamar `RegistrarAccionRiesgo` (la emite solo Auditoría). *(RNF-23, RNF-29, T-OPS14, D15)*
+- **FR-032**: Toda anomalía MUST guardar `km_via` (`real NOT NULL`), calculado **al nacer** con `CorredorVia.KmSobreVia` sobre su posición fija; `AnomaliaVisible` y `AnomaliaCambio` lo exponen como `KmVia`. *(RF-18; prototipo; D13)*
+- **FR-033**: El módulo MUST sumar a `/health/ready` la comprobación `corredor` (503 mientras la polilínea no esté cargada), por el punto de extensión de 001. *(RF-28, ADR-010, 001 FR-018/FR-019, T-OPS19)*
+- **FR-034**: `MotivoDescarte` MUST incluir `SeudonimoInconsistente = 8`, que evalúa Ingesta en la recepción (un lote = un seudónimo); Anomalías nunca lo devuelve. *(RN-11, D2)*
 
 ### Reglas y parámetros (`AnomaliasOptions`, sección `Anomalias`)
 
@@ -246,8 +260,8 @@ Valores de `enfoque-arquitectonico.md` §5 (sin cambios):
 
 ### Key Entities
 
-- **Anomalía** (agregado): tipo, posición fija, celda, estado, severidad mostrada, persistencia, última detección, vencimiento, desde cuándo está en su estado, creada por tope, marcas de revisión, por revisar.
-- **Reporte**: evento aceptado y asociado a una anomalía; único por `eventoId`; con seudónimo (hasta 72 h), `con_sesion`, severidad, confidence, precisión, posición, horas de detección y recepción, versión del modelo.
+- **Anomalía** (agregado): tipo, posición fija, celda, km sobre la vía (fijo al nacer, D13), estado, severidad mostrada, persistencia, última detección, vencimiento, desde cuándo está en su estado, creada por tope, marcas de revisión, por revisar.
+- **Reporte**: evento aceptado y asociado a una anomalía; único por `eventoId`; con seudónimo (hasta 72 h), `con_sesion`, severidad, confidence, precisión, posición, km sobre la vía, hora de detección, hora de recepción (redondeada a la hora a las 72 h, D3) y versión del modelo.
 - **Transición**: cambio de estado de una anomalía (desde, hacia, cuándo, administrador o sistema).
 - **Corredor vía**: polilínea de la PE-28A (333 km).
 - **Evento reportado / contexto del reporte** (contratos): lo que entrega Ingesta para cada evento.
@@ -273,4 +287,5 @@ Valores de `enfoque-arquitectonico.md` §5 (sin cambios):
 ## Assumptions
 
 - La polilínea de la PE-28A se obtiene de OpenStreetMap (ref `PE-28A`, Pisco–Ayacucho) y se revisa a mano antes de cargarla.
-- Ingesta entrega en el contexto la hora de recepción, `con_sesion` y el conteo de la hora de detección (ver `research.md` R-001).
+- Ingesta entrega en el contexto la hora de recepción, `con_sesion` y el conteo de la hora de detección (ver `research.md` R-001, confirmado por el autor el 2026-10-21, D1).
+- Las horas de las tareas siguen el calendario único de 001 (T-OPS05): caducidad `:05`, purga de seudónimos `:10`, purga histórica 03:30 hora local.

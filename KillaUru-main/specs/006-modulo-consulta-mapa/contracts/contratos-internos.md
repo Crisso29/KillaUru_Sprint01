@@ -12,7 +12,7 @@ Nada. `Contracts/` queda vacío: ningún módulo depende de Mapa (regla 4). Su �
 | `IAnomaliaLectura.FiltrarAsync(filtro, ct)` | Anomalías (004) | Peticiones con filtros y todas las del administrador |
 | `IAnomaliaLectura.CambiosDesdeAsync(desde, ct)` | Anomalías (004) | `updatedSince` |
 | `IAnomaliaLectura.CeldasDelCorredor()` | Anomalías (004, R-012) | Ajustar el `bbox` a las celdas de la vía (R-001) |
-| `AnomaliaVisible`, `AnomaliaCambio`, `FiltroAnomalias`, `TipoAnomalia`, `EstadoAnomalia` | Anomalías (004) | Tipos de lectura |
+| `AnomaliaVisible`, `AnomaliaCambio` (con `KmVia`, D13), `FiltroAnomalias`, `TipoAnomalia`, `EstadoAnomalia` | Anomalías (004) | Tipos de lectura |
 | `AnomaliaCambiada(AnomaliaId, Celda)` + `IManejador<T>` | Anomalías (004) + Shared (001) | Invalidar la celda (Observer, ADR-006) |
 | `Celda` (con `Limites()`), `Roles` | Shared (001) | Rejilla y nombres de rol |
 | `TimeProvider` | Host (001) | `generadoUtc` y validación de `updatedSince` |
@@ -46,4 +46,6 @@ services.AddSingleton<IManejador<AnomaliaCambiada>, InvalidarCeldasMapa>();
 
 - `AnomaliaCambiada` se publica **después** del *commit* (004 FR-014): al invalidar, la siguiente lectura ya ve el cambio.
 - La celda de una anomalía no cambia nunca (RN-05) y siempre pertenece a `CeldasDelCorredor()` (004 R-012).
-- `VenceUtc` viene calculado por el dominio (004 FR-017); Mapa solo lo copia.
+- `VenceUtc` viene calculado por el dominio (004 FR-017) y es `null` en los estados finales; Mapa solo lo copia.
+- `KmVia` viene calculado al nacer y no cambia (D13); Mapa solo lo copia.
+- `AnomaliaCambio` trae la posición también de las que dejaron de ser visibles, para que Mapa decida si la baja va al anónimo (T-SEG16).

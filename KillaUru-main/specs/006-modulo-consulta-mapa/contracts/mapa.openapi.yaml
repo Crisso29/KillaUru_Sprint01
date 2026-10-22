@@ -19,9 +19,10 @@ paths:
       description: |
         Rol: público (anónimo, conductor registrado o administrador). Límite: política `consultas` (RNF-11).
         Anónimo → solo `Activa` dentro del tramo demo Ayacucho–Vinchos, aunque pida un `bbox` mayor.
-        Conductor → solo `Activa` en el corredor. Administrador → los estados pedidos (por defecto `Activa` y `PendienteConfirmacion`).
+        Conductor → solo `Activa` en el corredor. Administrador → los estados pedidos; sin `estado`, los 5 estados (RN-08, D6).
+        `estado` es un parámetro reservado: otro rol, con o sin token → 403 `sin_permiso`; token inválido o vencido → 401 (T-SEG20).
         Sin filtros, anónimos y conductores reciben `ETag` y pueden revalidar con `If-None-Match` (304).
-        Con `updatedSince`, las anomalías que dejaron de ser visibles llegan como `{id, eliminada: true}`.
+        Con `updatedSince`, las anomalías que dejaron de ser visibles llegan como `{id, eliminada: true}`; al anónimo solo las de dentro del tramo demo.
         Solo las respuestas sin token son `public, max-age=60`; con token, `private, no-store` (ADR-006).
       security: [ {}, { tokenAcceso: [] }, { cookieAcceso: [] } ]
       parameters:
@@ -39,7 +40,7 @@ paths:
         - { name: hasta, in: query, schema: { type: string, format: date-time } }
         - name: estado
           in: query
-          description: Solo administrador (otro rol → 403). Lista separada por comas.
+          description: Solo administrador (otro rol, con o sin token → 403). Lista separada por comas. Sin `estado`, el administrador recibe los 5 estados.
           schema: { type: string, example: 'Activa,PendienteConfirmacion' }
         - name: updatedSince
           in: query
@@ -103,14 +104,15 @@ components:
             coordinates: { type: array, minItems: 2, maxItems: 2, items: { type: number }, description: '[longitud, latitud]' }
         properties:
           type: object
-          required: [id, tipo, severidad, persistencia, ultimaDeteccionUtc, venceUtc]
+          required: [id, kmVia, tipo, severidad, persistencia, ultimaDeteccionUtc, venceUtc]
           properties:
             id: { type: string, format: uuid }
+            kmVia: { type: number, minimum: 0, description: 'Km sobre la vía, calculado al nacer (D13)', example: 287.4 }
             tipo: { $ref: '#/components/schemas/TipoAnomalia' }
             severidad: { type: integer, minimum: 1, maximum: 5 }
             persistencia: { type: string, enum: [Episodica, Persistente] }
             ultimaDeteccionUtc: { type: string, format: date-time }
-            venceUtc: { type: string, format: date-time }
+            venceUtc: { type: [string, 'null'], format: date-time, description: '`null` en los estados finales (`Expirada`, `Reparada`, `Descartada`)' }
             estado: { $ref: '#/components/schemas/EstadoAnomalia', description: Solo para el administrador }
     BajaFeature:
       type: object

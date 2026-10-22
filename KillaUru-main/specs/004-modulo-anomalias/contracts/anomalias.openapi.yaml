@@ -1,0 +1,265 @@
+openapi: 3.1.0
+info:
+  title: KillaUru API — Anomalías (administración)
+  version: 1.0.0
+  description: |
+    Moderación, listas de decisión, detalle y exportación (HU-19, HU-20, RF-20, RF-24).
+    Todas las operaciones son solo para el administrador. El mapa (`GET /api/v1/anomalies`) está en la feature 006.
+servers:
+  - url: https://api.killauru.pe
+tags:
+  - { name: Moderación, description: Decisiones del administrador sobre anomalías (RN-07) }
+  - { name: Exportación, description: Dataset sin seudónimos (RF-20) }
+
+paths:
+  /api/v1/anomalies/{id}:
+    get:
+      tags: [Moderación]
+      operationId: obtenerDetalleAnomalia
+      summary: Detalle de una anomalía
+      description: "Rol: administrador. Datos del panel lateral del prototipo: clasificación, días distintos, reportes por día (15 d) e historial de estados."
+      security: [ { tokenAcceso: [] }, { cookieAcceso: [] } ]
+      parameters: [ { $ref: '#/components/parameters/IdAnomalia' } ]
+      responses:
+        '200':
+          description: Detalle
+          content: { application/json: { schema: { $ref: '#/components/schemas/DetalleAnomalia' } } }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+
+  /api/v1/anomalies/{id}/moderacion:
+    post:
+      tags: [Moderación]
+      operationId: moderarAnomalia
+      summary: Marcar reparada, descartar, reabrir o mantener descartada
+      description: |
+        Rol: administrador. Solo desde los estados de la tabla de RN-07 (RF-24).
+        Se audita como `AnomaliaModerada` en la misma transacción (`RegistrarAsync`) y se invalida el mapa.
+        La anomalía se lee bloqueada (`FOR UPDATE`) y su estado se revalida antes de cambiarla (T-BD02).
+      security: [ { tokenAcceso: [] }, { cookieAcceso: [] } ]
+      parameters: [ { $ref: '#/components/parameters/IdAnomalia' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [accion]
+              properties: { accion: { $ref: '#/components/schemas/AccionModeracion' } }
+            example: { accion: MarcarReparada }
+      responses:
+        '200':
+          description: Moderación aplicada; devuelve el detalle actualizado
+          content: { application/json: { schema: { $ref: '#/components/schemas/DetalleAnomalia' } } }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '409':
+          description: La acción no está permitida desde el estado actual (`codigo = transicion_no_permitida`)
+          content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problema' } } }
+
+  /api/v1/anomalies/transiciones:
+    get:
+      tags: [Moderación]
+      operationId: listarTransicionesRecientes
+      summary: Últimos cambios de estado
+      description: "Rol: administrador. Tarjeta «Últimos cambios de estado» del Resumen del prototipo (sistema y administradores)."
+      security: [ { tokenAcceso: [] }, { cookieAcceso: [] } ]
+      parameters:
+        - { name: limite, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 10 } }
+      responses:
+        '200':
+          description: Transiciones, la más reciente primero
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/TransicionReciente' } } } }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+
+  /api/v1/moderacion/por-revisar:
+    get:
+      tags: [Moderación]
+      operationId: listarPorRevisar
+      summary: Anomalías descartadas que siguen recibiendo reportes
+      description: "Rol: administrador. ≥ 3 vehículos en 7 días (RN-07)."
+      security: [ { tokenAcceso: [] }, { cookieAcceso: [] } ]
+      responses:
+        '200':
+          description: Lista «Por revisar»
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ElementoPorRevisar' } } } }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+
+  /api/v1/moderacion/pendientes:
+    get:
+      tags: [Moderación]
+      operationId: listarPendientes
+      summary: Anomalías que esperan confirmación
+      description: "Rol: administrador. Solo lectura; se publican solas con el 2.º vehículo o expiran en 72 h (RN-06, RN-07). Orden: vencen primero."
+      security: [ { tokenAcceso: [] }, { cookieAcceso: [] } ]
+      responses:
+        '200':
+          description: Lista «Esperan confirmación»
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ElementoPendiente' } } } }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+
+  /api/v1/exportaciones:
+    post:
+      tags: [Exportación]
+      operationId: exportarDataset
+      summary: Exportar anomalías en CSV o GeoJSON
+      description: |
+        Rol: administrador. Nunca incluye seudónimos (RF-20). Primero cuenta las filas con los mismos filtros, luego audita
+        `DatasetExportado` con formato, filtros y `filas` (lectura sensible, acción de riesgo, RNF-29) y solo después escribe (D15).
+        Columnas del CSV (en este orden) y `properties` de cada *feature* GeoJSON: ver `FilaExportacion` (T-PO11).
+        Las exportaciones recientes se consultan en `GET /api/v1/auditoria?accion=DatasetExportado` (feature 002).
+      security: [ { tokenAcceso: [] }, { cookieAcceso: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SolicitudExportacion' }
+            example: { formato: CSV, desdeUtc: '2026-10-13T00:00:00Z', hastaUtc: '2026-10-20T23:59:59Z', tipo: null, estados: [Activa] }
+      responses:
+        '200':
+          description: 'Archivo (con `Content-Disposition: attachment`)'
+          content:
+            text/csv:
+              schema: { type: string, description: 'Cabecera: id,tipo,severidad,estado,persistencia,km,latitud,longitud,reportes,primer_reporte,ultimo_reporte' }
+            application/geo+json:
+              schema:
+                type: object
+                required: [type, features]
+                properties:
+                  type: { const: FeatureCollection }
+                  features:
+                    type: array
+                    items:
+                      type: object
+                      required: [type, geometry, properties]
+                      properties:
+                        type: { const: Feature }
+                        geometry: { type: object, description: 'Point [longitud, latitud]' }
+                        properties: { $ref: '#/components/schemas/FilaExportacion' }
+        '400': { $ref: '#/components/responses/Validacion' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+
+components:
+  securitySchemes:
+    tokenAcceso: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/securitySchemes/tokenAcceso' }
+    cookieAcceso: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/securitySchemes/cookieAcceso' }
+  parameters:
+    IdAnomalia: { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+  responses:
+    NoAutenticado: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/responses/NoAutenticado' }
+    Prohibido: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/responses/Prohibido' }
+    NoEncontrado: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/responses/NoEncontrado' }
+    Validacion: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/responses/Validacion' }
+    LimiteExcedido: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/responses/LimiteExcedido' }
+  schemas:
+    Problema: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/schemas/Problema' }
+    TipoAnomalia: { type: string, enum: [Bache, Hundimiento] }
+    EstadoAnomalia: { type: string, enum: [Activa, PendienteConfirmacion, Expirada, Reparada, Descartada] }
+    Persistencia: { type: string, enum: [Episodica, Persistente] }
+    AccionModeracion:
+      type: string
+      enum: [MarcarReparada, Descartar, Reabrir, MantenerDescartada]
+      description: Acción de Application (`AccionModeracion`); se mapea a `AccionAdmin` del dominio (D4).
+    DetalleAnomalia:
+      type: object
+      required: [id, tipo, severidadMostrada, estado, persistencia, latitud, longitud, kmVia, diasDistintos15d, reportes, ultimaDeteccionUtc, venceUtc, visibleConductores, porRevisar, vehiculosRevision, reportesPorDia, historial]
+      properties:
+        id: { type: string, format: uuid }
+        tipo: { $ref: '#/components/schemas/TipoAnomalia' }
+        severidadMostrada: { type: integer, minimum: 1, maximum: 5 }
+        estado: { $ref: '#/components/schemas/EstadoAnomalia' }
+        persistencia: { $ref: '#/components/schemas/Persistencia' }
+        latitud: { type: number }
+        longitud: { type: number }
+        kmVia: { type: number, description: 'Km sobre la vía desde Pisco (km 0); anomalia.km_via, fijo al nacer (D13)' }
+        diasDistintos15d: { type: integer }
+        reportes: { type: integer }
+        ultimaDeteccionUtc: { type: string, format: date-time }
+        venceUtc: { type: [string, 'null'], format: date-time, description: 'null en Expirada, Reparada y Descartada (T-PO08)' }
+        visibleConductores: { type: boolean }
+        porRevisar: { type: boolean }
+        vehiculosRevision: { type: integer }
+        reportesPorDia:
+          type: array
+          items: { type: object, required: [dia, cantidad], properties: { dia: { type: string, format: date }, cantidad: { type: integer } } }
+        historial:
+          type: array
+          items:
+            type: object
+            required: [hacia, ocurridaUtc]
+            properties:
+              desde: { oneOf: [ { $ref: '#/components/schemas/EstadoAnomalia' }, { type: 'null' } ] }
+              hacia: { $ref: '#/components/schemas/EstadoAnomalia' }
+              ocurridaUtc: { type: string, format: date-time }
+              actorId: { type: [string, 'null'], format: uuid, description: 'null = sistema' }
+    ElementoPorRevisar:
+      type: object
+      required: [id, tipo, kmVia, severidadMostrada, vehiculos7d, reportes, ultimaDeteccionUtc]
+      properties:
+        id: { type: string, format: uuid }
+        tipo: { $ref: '#/components/schemas/TipoAnomalia' }
+        kmVia: { type: number }
+        severidadMostrada: { type: integer, minimum: 1, maximum: 5, description: T-PO19 }
+        vehiculos7d: { type: integer }
+        reportes: { type: integer }
+        ultimaDeteccionUtc: { type: string, format: date-time }
+    ElementoPendiente:
+      type: object
+      required: [id, tipo, kmVia, severidadMostrada, reportes, primerReporteUtc, venceUtc]
+      properties:
+        id: { type: string, format: uuid }
+        tipo: { $ref: '#/components/schemas/TipoAnomalia' }
+        kmVia: { type: number }
+        severidadMostrada: { type: integer }
+        reportes: { type: integer }
+        primerReporteUtc: { type: string, format: date-time }
+        venceUtc: { type: string, format: date-time }
+    TransicionReciente:
+      type: object
+      required: [anomaliaId, tipo, kmVia, hacia, ocurridaUtc]
+      properties:
+        anomaliaId: { type: string, format: uuid }
+        tipo: { $ref: '#/components/schemas/TipoAnomalia' }
+        kmVia: { type: number }
+        desde: { oneOf: [ { $ref: '#/components/schemas/EstadoAnomalia' }, { type: 'null' } ] }
+        hacia: { $ref: '#/components/schemas/EstadoAnomalia' }
+        ocurridaUtc: { type: string, format: date-time }
+        actorId: { type: [string, 'null'], format: uuid }
+    SolicitudExportacion:
+      type: object
+      required: [formato]
+      properties:
+        formato: { type: string, enum: [CSV, GeoJSON] }
+        desdeUtc: { type: [string, 'null'], format: date-time, description: Sobre la última detección }
+        hastaUtc: { type: [string, 'null'], format: date-time }
+        tipo: { oneOf: [ { $ref: '#/components/schemas/TipoAnomalia' }, { type: 'null' } ] }
+        estados: { type: array, items: { $ref: '#/components/schemas/EstadoAnomalia' }, description: Vacío = todos }
+    FilaExportacion:
+      type: object
+      description: Una anomalía exportada; sin seudónimos (RF-20). Mismas columnas que el prototipo (T-PO11).
+      additionalProperties: false
+      required: [id, tipo, severidad, estado, persistencia, km, latitud, longitud, reportes, primer_reporte, ultimo_reporte]
+      properties:
+        id: { type: string, format: uuid }
+        tipo: { $ref: '#/components/schemas/TipoAnomalia' }
+        severidad: { type: integer, minimum: 1, maximum: 5, description: Severidad mostrada }
+        estado: { $ref: '#/components/schemas/EstadoAnomalia' }
+        persistencia: { $ref: '#/components/schemas/Persistencia' }
+        km: { type: number, description: anomalia.km_via }
+        latitud: { type: number }
+        longitud: { type: number }
+        reportes: { type: integer }
+        primer_reporte: { type: string, format: date-time }
+        ultimo_reporte: { type: string, format: date-time }
