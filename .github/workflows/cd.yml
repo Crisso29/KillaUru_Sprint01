@@ -1,0 +1,56 @@
+# Despliegue continuo (T071, D10): cada unión a main publica la imagen arm64 y la despliega en la VM.
+# La VM no tiene puertos abiertos: GitHub entra por SSH a través de Cloudflare Access con un token de servicio.
+name: cd
+
+on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  imagen:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Construir y publicar killauru-api:<sha> (etiqueta inmutable)
+        working-directory: KillaUru-main/backend
+        run: |
+          imagen="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/killauru-api:${{ github.event.workflow_run.head_sha }}"
+          docker build --platform linux/arm64 -f deploy/Dockerfile -t "$imagen" .
+          docker push "$imagen"
+
+  desplegar:
+    needs: imagen
+    runs-on: ubuntu-24.04
+    environment: produccion
+    timeout-minutes: 15
+    steps:
+      - name: Instalar cloudflared
+        run: |
+          curl -fsSL -o cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared.deb
+      - name: Desplegar por SSH a través de Cloudflare Access
+        env:
+          CLAVE: ${{ secrets.KU_DEPLOY_SSH_KEY }}
+          TOKEN_ID: ${{ secrets.KU_CF_ACCESS_CLIENT_ID }}
+          TOKEN_SECRETO: ${{ secrets.KU_CF_ACCESS_CLIENT_SECRET }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          install -m 600 /dev/null clave && printf '%s\n' "$CLAVE" > clave
+          ssh -i clave -o StrictHostKeyChecking=accept-new \
+            -o ProxyCommand="cloudflared access ssh --hostname %h --service-token-id $TOKEN_ID --service-token-secret $TOKEN_SECRETO" \
+            killauru@ssh.killauru.pe "cd /opt/killauru/KillaUru-main/backend/deploy && ./desplegar.sh $SHA"

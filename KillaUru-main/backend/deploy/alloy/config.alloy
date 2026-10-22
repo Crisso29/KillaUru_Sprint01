@@ -1,0 +1,49 @@
+// Grafana Alloy (D12, FR-040): solo ENVÍA a Grafana Cloud; no guarda nada ni abre puertos (ADR-010).
+// Métricas del host (disco, CPU, memoria), la marca del respaldo y los logs de Docker.
+// Las credenciales llegan por variables de entorno desde el .env (RNF-34).
+
+prometheus.exporter.unix "host" {
+  procfs_path = "/host/proc"
+  sysfs_path  = "/host/sys"
+  rootfs_path = "/host/root"
+  enable_collectors = ["cpu", "meminfo", "filesystem", "loadavg", "textfile"]
+  textfile {
+    directory = "/metricas"   // backup.prom: killauru_tarea_ultima_ok{tarea="backup"}
+  }
+}
+
+prometheus.scrape "host" {
+  targets         = prometheus.exporter.unix.host.targets
+  forward_to      = [prometheus.remote_write.grafana.receiver]
+  scrape_interval = "60s"   // dentro del plan gratuito (RNF-32)
+}
+
+prometheus.remote_write "grafana" {
+  endpoint {
+    url = sys.env("KU_GRAFANA_PROM_URL")
+    basic_auth {
+      username = sys.env("KU_GRAFANA_PROM_USUARIO")
+      password = sys.env("KU_GRAFANA_API_KEY")
+    }
+  }
+}
+
+discovery.docker "contenedores" {
+  host = "unix:///var/run/docker.sock"
+}
+
+loki.source.docker "contenedores" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.docker.contenedores.targets
+  forward_to = [loki.write.grafana.receiver]
+}
+
+loki.write "grafana" {
+  endpoint {
+    url = sys.env("KU_GRAFANA_LOKI_URL")
+    basic_auth {
+      username = sys.env("KU_GRAFANA_LOKI_USUARIO")
+      password = sys.env("KU_GRAFANA_API_KEY")
+    }
+  }
+}

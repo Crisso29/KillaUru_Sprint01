@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <!-- Host: solo composición y asuntos transversales. Los controladores viven en Adapters/ de cada módulo. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="KillaUru.Integracion.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Scalar.AspNetCore" />
+    <PackageReference Include="Npgsql" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Serilog.Formatting.Compact" />
+    <PackageReference Include="Serilog.Sinks.OpenTelemetry" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
+  </ItemGroup>
+  <!-- Las migraciones viajan como recursos: ChequeoMigraciones sabe qué versión espera esta API (T-OPS19). -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\db\migraciones\V*.sql" LogicalName="migraciones.%(Filename).sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\KillaUru.Shared\KillaUru.Shared.csproj" />
+    <ProjectReference Include="..\Modules\KillaUru.Auditoria\KillaUru.Auditoria.csproj" />
+    <ProjectReference Include="..\Modules\KillaUru.Identidad\KillaUru.Identidad.csproj" />
+    <ProjectReference Include="..\Modules\KillaUru.Anomalias\KillaUru.Anomalias.csproj" />
+    <ProjectReference Include="..\Modules\KillaUru.Ingesta\KillaUru.Ingesta.csproj" />
+    <ProjectReference Include="..\Modules\KillaUru.Mapa\KillaUru.Mapa.csproj" />
+    <ProjectReference Include="..\Modules\KillaUru.Dashboard\KillaUru.Dashboard.csproj" />
+  </ItemGroup>
+</Project>

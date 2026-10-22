@@ -102,7 +102,7 @@ components:
         application/problem+json:
           schema: { $ref: '#/components/schemas/Problema' }
     LimiteExcedido:
-      description: Límite de tasa superado (`codigo = limite_excedido`): cuota por rol, techo por IP de los anónimos o tope de registros (RNF-11; D2, D8).
+      description: 'Límite de tasa superado (`codigo = limite_excedido`): cuota por rol, techo por IP de los anónimos o tope de registros (RNF-11; D2, D8).'
       headers:
         Retry-After: { $ref: '#/components/headers/RetryAfter' }
       content:

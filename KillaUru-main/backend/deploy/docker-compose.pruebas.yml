@@ -1,0 +1,51 @@
+# Entorno de pruebas «killauru-pruebas» en la misma VM (R-11, D11): simulacros y pruebas de carga.
+#   docker compose -f docker-compose.pruebas.yml up -d
+# Otra base en otro volumen, otro puerto, sin túnel ni Alloy, y con límites para no quitarle CPU a producción.
+# k6 corre FUERA de la VM (PC del autor o carga.yml) y llega por el puerto 18080.
+name: killauru-pruebas
+
+x-comun: &comun
+  restart: unless-stopped
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "3" }
+
+services:
+  api:
+    <<: *comun
+    image: ghcr.io/${KU_GHCR_CUENTA:?}/killauru-api:${KU_VERSION:?}
+    depends_on:
+      postgres: { condition: service_healthy }
+    environment:
+      ASPNETCORE_ENVIRONMENT: Pruebas   # appsettings.Pruebas.json: límites de tasa altos (D11)
+      ConnectionStrings__KillaUru: "Host=postgres;Database=killauru;Username=killauru_app;Password=${KU_DB_APP_PASSWORD:?}"
+      Api__Jwt__ClaveFirma: ${KU_JWT_CLAVE_FIRMA:?}
+    ports: ["18080:8080"]
+    cpus: "1.25"
+    mem_limit: 3g
+
+  postgres:
+    <<: *comun
+    image: killauru-postgres:17-postgis
+    environment:
+      POSTGRES_DB: killauru
+      POSTGRES_PASSWORD: ${KU_PG_SUPERUSUARIO:?}
+    volumes: [pgdata-pruebas:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d killauru"]
+      interval: 10s
+      retries: 6
+    cpus: "0.75"   # API + BD = 2 CPU y 6 GB en total (data-model §6)
+    mem_limit: 3g
+
+  migrador:
+    image: killauru-backup:local
+    profiles: [herramientas]
+    env_file: .env.pruebas
+    entrypoint: ["/killauru/deploy/migrar.sh"]
+    volumes:
+      - ./:/killauru/deploy:ro
+      - ../db:/killauru/db:ro
+
+volumes:
+  pgdata-pruebas: {}

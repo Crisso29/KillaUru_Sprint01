@@ -1,0 +1,34 @@
+# Pruebas de sistema a pedido (T078, D11): corre UN script de tests/carga contra «killauru-pruebas»,
+# fuera de la VM. No va en cada PR: se usa antes de cada versión y una vez al mes.
+name: carga
+
+on:
+  workflow_dispatch:
+    inputs:
+      prueba:
+        description: Script a correr
+        type: choice
+        options: [carga-combinada, picos, estres, resistencia]
+
+permissions:
+  contents: read
+
+jobs:
+  k6:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300   # la resistencia dura 4 h
+    defaults:
+      run:
+        working-directory: KillaUru-main/backend/tests/carga
+    steps:
+      - uses: actions/checkout@v4
+      - uses: grafana/setup-k6-action@v1
+      - name: Correr ${{ inputs.prueba }}
+        env:
+          KU_URL_PRUEBAS: ${{ secrets.KU_URL_PRUEBAS }}
+        run: k6 run --summary-export resumen.json "${{ inputs.prueba }}.k6.js"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: resumen-${{ inputs.prueba }}
+          path: KillaUru-main/backend/tests/carga/resumen.json

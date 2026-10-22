@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Todo es internal salvo Contracts/ y DashboardModule (constitución II). -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="KillaUru.Dashboard.Tests" />
+    <InternalsVisibleTo Include="KillaUru.Integracion.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\KillaUru.Shared\KillaUru.Shared.csproj" />
+    <ProjectReference Include="..\KillaUru.Anomalias\KillaUru.Anomalias.csproj" />
+    <ProjectReference Include="..\KillaUru.Identidad\KillaUru.Identidad.csproj" />
+  </ItemGroup>
+</Project>

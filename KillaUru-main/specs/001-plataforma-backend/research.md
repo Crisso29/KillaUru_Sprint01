@@ -108,3 +108,17 @@ Cada decisión indica de qué documento sale. Las marcadas **«Decisión de dise
 ## Confirmados por el autor el 2026-10-21
 
 001 no tenía pendientes abiertos. Quedan confirmadas por el autor las decisiones que esta feature aplica: techo por IP y tope de registros (R-004, D2 y D8), `AlConfirmar` y liberación del contexto (R-005, D15), restauración (R-017, D9), CI/CD (R-013, D10), pruebas de sistema y entorno de pruebas (R-012, R-014, D11) y Grafana Alloy (R-011, R-015, D12).
+
+## Notas de implementación (2026-10-22)
+
+Diferencias con el plan, todas por una razón técnica comprobada al programar:
+
+1. **Cobertura con Microsoft.Testing.Platform**: .NET 10 ya no corre `dotnet test` con VSTest, y `coverlet.collector` solo funciona con VSTest. Se usa `Microsoft.Testing.Extensions.CodeCoverage` (oficial y gratuito), que genera el mismo informe Cobertura; la puerta ≥ 90 % del dominio la calcula `deploy/ci/cobertura_dominio.py`.
+2. **Sin `PoliticasExtensions`**: los módulos protegen sus endpoints con `[Authorize(Roles = Roles.X)]` (los nombres viven en Shared). Políticas con nombre no tendrían ningún uso real (YAGNI). El 401/403 en ProblemDetails lo dan los eventos de JwtBearer en `AutenticacionExtensions`.
+3. **`RechazoTokenInvalido` y `CorsPanelExtensions`** (archivos nuevos, una responsabilidad cada uno). El primero es necesario porque ASP.NET trata como anónimo, en silencio, un token inválido en un endpoint público; FR-008 exige 401.
+4. **Shared usa las abstracciones de DI y de logging** de Microsoft.Extensions: el publicador de eventos resuelve los manejadores en un scope propio (pueden necesitar un DbContext) y registra sus fallas sin frenar a los demás. No son ASP.NET ni EF.
+5. **PostgreSQL arm64**: `postgis/postgis:17-3.5` solo existe para amd64 (comprobado); `deploy/postgres/Dockerfile` arma la imagen sobre `postgres:17` + `postgresql-17-postgis-3` (R-008).
+
+Defectos que encontraron las pruebas y se corrigieron: `CF-Connecting-IP` se aceptaba de cualquiera sin red del túnel; un token inválido en un endpoint público pasaba como anónimo; las respuestas de error salían con `no-cache` en vez de `private, no-store`; el contrato `plataforma.openapi.yaml` tenía YAML inválido en la línea 105.
+
+Quedan para el autor (acciones fuera del código): configurar Grafana y UptimeRobot (T050), simulacro de restauración y vuelta atrás (T054), proteger `main` en GitHub (T070), Cloudflare Access para el SSH (T072), correr las pruebas de carga cuando existan 005 y 006 (T079), quickstart completo (T056), alertas de costo (T057) y la prueba de punta a punta cuando existan 004–007 (T080).

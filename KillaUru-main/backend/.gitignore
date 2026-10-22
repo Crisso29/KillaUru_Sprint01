@@ -1,0 +1,14 @@
+# Compilación y pruebas
+bin/
+obj/
+TestResults/
+*.user
+.vs/
+
+# Secretos: el .env real vive solo en la VM (RNF-34). Solo se sube .env.example
+deploy/.env
+deploy/.env.*
+!deploy/.env.example
+
+# Resultados locales de las pruebas de carga
+tests/carga/resumen*.json
