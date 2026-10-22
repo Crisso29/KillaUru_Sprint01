@@ -1,0 +1,9 @@
+# Estos archivos se ejecutan en Linux (VM, contenedores, GitHub Actions): siempre con finales LF.
+# Un .sh con CRLF falla en bash con «$'\r': command not found».
+*.sh        text eol=lf
+*.sql       text eol=lf
+*.alloy     text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+Dockerfile  text eol=lf
+.env.example text eol=lf
