@@ -1,6 +1,6 @@
 # Specs de KillaUru (SDD con Spec Kit) — Backend, módulo por módulo
 
-> **Alcance de esta tanda:** el **backend** (API KillaUru, 001–007). La app Android, el dataset y modelo, y el panel tienen features planificadas (008–010, §1), que se escriben después de aplicar las decisiones del autor (D17).
+> **Alcance de esta tanda:** backend (001–007), app Android (008), dataset y modelo (009) y panel (010). Fuente de verdad: `referencia/docs/`.
 > **Revisión por roles y decisiones del autor (2026-10-21):** [`revision/`](revision/README.md) — [`decisiones.md`](revision/decisiones.md) (D1…D17) y [`plan-de-cambios.md`](revision/plan-de-cambios.md) (nombres y valores canónicos).
 > **Fuente de verdad:** `referencia/docs/` · **Reglas del proyecto:** `.specify/memory/constitution.md` · **Interfaz de referencia:** `referencia/prototipo/killauru-diseno.html`
 
@@ -17,7 +17,7 @@ El backend es un monolito con **6 módulos** (ADR-001). Cada módulo tiene **su 
  ├── 006 Consulta de Mapa ────► Anomalías
  └── 007 Dashboard ───────────► Anomalías, Identidad
 
-Planificadas (por escribir, D17): 008 App Android · 009 Dataset y modelo · 010 Panel de administración
+Escritas el 2026-10-22 (D17): 008 App Android · 009 Dataset y modelo · 010 Panel de administración
 ```
 
 | # | Feature | Qué construye | Historias (HU) | MoSCoW | Recortable |
@@ -29,9 +29,9 @@ Planificadas (por escribir, D17): 008 App Android · 009 Dataset y modelo · 010
 | 005 | [`005-modulo-ingesta`](005-modulo-ingesta/spec.md) | Recepción durable e idempotente de lotes, cola, trabajadores y barredor | HU-04, HU-05, HU-21 | Must | No |
 | 006 | [`006-modulo-consulta-mapa`](006-modulo-consulta-mapa/spec.md) | Mapa por rol, caché por celdas, ETag, `updatedSince` con bajas | HU-07, HU-08, HU-12 | Must | No |
 | 007 | [`007-modulo-dashboard`](007-modulo-dashboard/spec.md) | Indicadores de negocio diarios sin vincular identidad | HU-13 | Should | Todo el módulo (HU-13, la 4.ª) |
-| 008 | `008-app-android` · *por escribir* | App Android: captura y detección, base local (SQLite/Room), sincronización, mapa offline, alertas, cuenta; publicación en R2 de la polilínea, el mapa base y los manifiestos (D16) | HU-01, HU-02, HU-03, HU-09, HU-10, HU-26 y la parte app de las demás | Must (HU-10 Could) | HU-10 (la 2.ª) y RF-33 (la 3.ª) |
-| 009 | `009-dataset-y-modelo` · *por escribir* | Grabación y etiquetado de recorridos, entrenamiento y versión del modelo TFLite con su manifiesto | HU-28 | Must | No |
-| 010 | `010-panel-admin` · *por escribir* | Panel web «KillaUru Ops»: resumen, mapa con filtros (abre con «Activa + PendienteConfirmacion», D6), moderación, usuarios, auditoría, exportación | Parte panel de HU-11…HU-15, HU-19, HU-20 | Must / Should | Lo que recorten 004 y 007 |
+| 008 | [`008-app-android`](008-app-android/spec.md) | App Android: captura y detección, base local (SQLite/Room), sincronización, mapa offline, alertas, cuenta; publicación en R2 de la polilínea, el mapa base y los manifiestos (D16) | HU-01, HU-02, HU-03, HU-09, HU-10, HU-26 y la parte app de las demás | Must (HU-10 Could) | HU-10 (la 2.ª) y RF-33 (la 3.ª) |
+| 009 | [`009-dataset-y-modelo`](009-dataset-y-modelo/spec.md) | Grabación y etiquetado de recorridos, entrenamiento y versión del modelo TFLite con su manifiesto | HU-28 | Must | No |
+| 010 | [`010-panel-admin`](010-panel-admin/spec.md) | Panel web «KillaUru Ops»: resumen, mapa con filtros (abre con «Activa + PendienteConfirmacion», D6), moderación, usuarios, auditoría, exportación | Parte panel de HU-11…HU-15, HU-19, HU-20 | Must / Should | Lo que recorten 004 y 007 |
 
 **Recorte si falta tiempo** (`02-historias-de-usuario.md`): HU-20 (004) → HU-10 (008) → RF-33 (008) → HU-13 (007) → HU-19 (004) → HU-17 (001). **No se recortan:** HU-15, HU-22, HU-23, HU-24, HU-25, HU-27. La columna «Recortable» de la tabla marca dónde vive cada una.
 

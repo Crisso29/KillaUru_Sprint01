@@ -1,0 +1,157 @@
+openapi: 3.1.0
+info:
+  title: KillaUru CDN — archivos estáticos del corredor y del modelo
+  version: 1.0.0
+  description: |
+    Archivos públicos en Cloudflare R2 bajo `cdn.killauru.pe` (ADR-004, ADR-011, RF-26, RF-33; D16).
+    No pasan por la API. Los publica el workflow `app-datos-r2.yml` (mapa, feature 008) y el de 009 (modelo).
+    Los archivos con versión en el nombre son inmutables (`Cache-Control: public, max-age=31536000, immutable`);
+    los manifiestos cambian (`Cache-Control: public, max-age=300`). Se suben primero los archivos y al final el manifiesto.
+servers:
+  - url: https://cdn.killauru.pe
+tags:
+  - { name: Mapa, description: Mapa base, polilínea con km, polígono demo y estilo (008, D16) }
+  - { name: Modelo, description: Modelo LiteRT y su manifiesto (009 lo produce; 008 lo consume) }
+
+paths:
+  /mapa/manifiesto.json:
+    get:
+      tags: [Mapa]
+      operationId: obtenerManifiestoMapa
+      summary: Manifiesto de los datos del corredor
+      responses:
+        '200':
+          description: Versión vigente de cada archivo del mapa
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ManifiestoMapa' }
+              example:
+                esquema: 1
+                version: '3'
+                publicadoUtc: '2026-11-02T15:00:00Z'
+                atribucion: '© Colaboradores de OpenStreetMap (ODbL)'
+                archivos:
+                  - { tipo: pmtiles, version: '3', url: 'https://cdn.killauru.pe/mapa/corredor-pe28a.v3.pmtiles', bytes: 39845120, sha256: 'b1946ac92492d2347c6235b4d2611184b1946ac92492d2347c6235b4d2611184' }
+                  - { tipo: corredor, version: '3', url: 'https://cdn.killauru.pe/mapa/corredor_pe28a.v3.json', bytes: 412000, sha256: '9c56cc51b374c3ba189210d5b6d4bf579c56cc51b374c3ba189210d5b6d4bf57' }
+                  - { tipo: tramoDemo, version: '3', url: 'https://cdn.killauru.pe/mapa/tramo_demo.v3.geojson', bytes: 3100, sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' }
+                  - { tipo: estilo, version: '3', url: 'https://cdn.killauru.pe/mapa/estilo.v3.json', bytes: 18200, sha256: '2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae' }
+        '304': { description: Sin cambios (`If-None-Match`) }
+
+  /mapa/{archivo}:
+    get:
+      tags: [Mapa]
+      operationId: descargarArchivoMapa
+      summary: Descargar un archivo versionado del mapa (reanudable)
+      description: 'La app descarga en un `.parcial` y reanuda con `Range: bytes=<recibidos>-` (RF-26). Verifica tamaño y SHA-256 al terminar.'
+      parameters:
+        - { name: archivo, in: path, required: true, schema: { type: string, pattern: '^[a-z0-9_.-]+\.v[0-9]+\.(pmtiles|json|geojson)$' } }
+        - { name: Range, in: header, required: false, schema: { type: string, example: 'bytes=24117248-' } }
+        - { name: If-Range, in: header, required: false, schema: { type: string } }
+      responses:
+        '200': { description: Archivo completo, content: { application/octet-stream: { schema: { type: string, contentMediaType: application/octet-stream } } } }
+        '206':
+          description: Parte pedida con `Range`
+          headers:
+            Content-Range: { schema: { type: string, example: 'bytes 24117248-39845119/39845120' } }
+        '404': { description: No existe esa versión }
+        '416': { description: Rango imposible (la app borra el parcial y empieza de cero) }
+
+  /modelo/manifiesto.json:
+    get:
+      tags: [Modelo]
+      operationId: obtenerManifiestoModelo
+      summary: Manifiesto del modelo vigente (contrato compartido con 009)
+      responses:
+        '200':
+          description: Modelo vigente
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ManifiestoModelo' }
+              example:
+                esquema: 1
+                version: '1.2.0'
+                url: 'https://cdn.killauru.pe/modelo/killauru-1.2.0.tflite'
+                bytes: 412340
+                sha256: '5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef'
+                versionMinimaApp: 3
+                etiquetas: [Normal, Bache, Hundimiento]
+                entrada: { frecuenciaHz: 50, muestrasPorVentana: 25, pasoMuestras: 25, ejes: [ax, ay, az, gx, gy, gz], media: [0, 0, 9.81, 0, 0, 0], desviacion: [1.2, 1.2, 2.4, 0.3, 0.3, 0.3], umbralPrefiltro: 0.35 }
+                salidas: { clase: 0, severidad: 1 }
+                matrizConfusionUrl: 'https://cdn.killauru.pe/modelo/killauru-1.2.0.matriz.json'
+                publicadoUtc: '2026-11-10T12:00:00Z'
+
+  /modelo/{archivo}:
+    get:
+      tags: [Modelo]
+      operationId: descargarModelo
+      summary: Descargar un modelo versionado
+      parameters:
+        - { name: archivo, in: path, required: true, schema: { type: string, pattern: '^killauru-[0-9]+\.[0-9]+\.[0-9]+\.tflite$' } }
+      responses:
+        '200': { description: Modelo, content: { application/octet-stream: { schema: { type: string, contentMediaType: application/octet-stream } } } }
+        '404': { description: No existe esa versión }
+
+components:
+  schemas:
+    Sha256: { type: string, pattern: '^[0-9a-f]{64}$' }
+    ArchivoMapa:
+      type: object
+      required: [tipo, version, url, bytes, sha256]
+      properties:
+        tipo: { type: string, enum: [pmtiles, corredor, tramoDemo, estilo] }
+        version: { type: string }
+        url: { type: string, format: uri }
+        bytes: { type: integer, minimum: 1, description: 'pmtiles ≤ 83 886 080 (80 MB, RNF-15)' }
+        sha256: { $ref: '#/components/schemas/Sha256' }
+    ManifiestoMapa:
+      type: object
+      required: [esquema, version, publicadoUtc, atribucion, archivos]
+      properties:
+        esquema: { const: 1 }
+        version: { type: string }
+        publicadoUtc: { type: string, format: date-time }
+        atribucion: { type: string, description: Se muestra siempre en el mapa (ADR-011) }
+        archivos: { type: array, minItems: 3, items: { $ref: '#/components/schemas/ArchivoMapa' } }
+    Corredor:
+      type: object
+      description: Polilínea con km acumulado (haversine, km 0 en Pisco; R-016). Mismo algoritmo que `CorredorVia` de 004.
+      required: [version, fuenteSha256, radioTierraM, vertices]
+      properties:
+        version: { type: string }
+        fuenteSha256: { $ref: '#/components/schemas/Sha256' }
+        radioTierraM: { const: 6371008.8 }
+        vertices:
+          type: array
+          minItems: 2
+          items: { type: array, prefixItems: [ { type: number }, { type: number }, { type: number, minimum: 0 } ], minItems: 3, maxItems: 3, description: '[longitud, latitud, kmAcumulado]' }
+    ManifiestoModelo:
+      type: object
+      description: Lo produce y publica 009; 008 lo consume (R-017). El APK incluye el mismo formato para su modelo inicial.
+      required: [esquema, version, url, bytes, sha256, versionMinimaApp, etiquetas, entrada, salidas, publicadoUtc]
+      properties:
+        esquema: { const: 1 }
+        version: { type: string, pattern: '^[0-9]+\.[0-9]+\.[0-9]+$', description: Semver; la mayor cambia si cambia el catálogo (ADR-004 punto 4) }
+        url: { type: string, format: uri }
+        bytes: { type: integer, minimum: 1, maximum: 5242880, description: '< 5 MB (ADR-004)' }
+        sha256: { $ref: '#/components/schemas/Sha256' }
+        versionMinimaApp: { type: integer, minimum: 1, description: versionCode mínimo del APK (RF-33) }
+        etiquetas: { type: array, items: { type: string }, description: 'Orden del tensor de clase; v1: [Normal, Bache, Hundimiento] (RN-01)' }
+        entrada:
+          type: object
+          required: [frecuenciaHz, muestrasPorVentana, pasoMuestras, ejes, media, desviacion, umbralPrefiltro]
+          properties:
+            frecuenciaHz: { type: integer, const: 50 }
+            muestrasPorVentana: { type: integer, minimum: 1, description: '25 = 500 ms (RF-02)' }
+            pasoMuestras: { type: integer, minimum: 1 }
+            ejes: { type: array, items: { type: string, enum: [ax, ay, az, gx, gy, gz] }, minItems: 6, maxItems: 6 }
+            media: { type: array, items: { type: number }, minItems: 6, maxItems: 6 }
+            desviacion: { type: array, items: { type: number, exclusiveMinimum: 0 }, minItems: 6, maxItems: 6 }
+            umbralPrefiltro: { type: number, minimum: 0, description: Varianza vertical mínima para invocar el modelo (diseño-interno §7.4) }
+        salidas:
+          type: object
+          required: [clase, severidad]
+          properties:
+            clase: { type: integer, minimum: 0, description: Índice del tensor de probabilidades por etiqueta; confidence = la mayor }
+            severidad: { type: integer, minimum: 0, description: 'Índice del tensor de 5 probabilidades (severidad 1…5)' }
+        matrizConfusionUrl: { type: string, format: uri, description: Matriz de confusión de esta versión (ADR-004, RNF-35) }
+        publicadoUtc: { type: string, format: date-time }
