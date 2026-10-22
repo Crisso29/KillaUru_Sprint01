@@ -11,7 +11,7 @@ cd app
 ./gradlew assembleDebug lint detekt               # build con advertencias como errores
 ./gradlew testDebugUnitTest                       # dominio, Robolectric, contrato (MockWebServer + YAML), Konsist
 ./gradlew koverVerify                             # ≥ 90 % de los paquetes dominio
-python -I herramientas/verificar_lineas.py        # ningún .kt/.kts/.py/.sh > 100 líneas
+python -I herramientas/verificar_lineas.py        # ningún .kt/.kts/.py/.sh > 199 líneas
 ./gradlew connectedDebugAndroidTest               # migraciones (MigrationTestHelper), benchmark, Compose en dispositivo
 ```
 

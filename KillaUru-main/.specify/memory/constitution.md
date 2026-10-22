@@ -4,7 +4,7 @@ Sync Impact Report
 - Principios modificados: II (regla Adapters → solo Application; Domain sin Contracts de otro módulo; pruebas de arquitectura con la tabla de capas completa),
   VI (RegistrarAsync exige la transacción del que actúa; RegistrarLecturaAsync solo para lecturas sensibles),
   VII (CI en cada PR con cobertura coverlet ≥ 90 % del dominio; carga, picos, estrés, resistencia y caos con k6 fuera de la VM),
-  VIII (la prueba de 100 líneas cubre .cs, .sql de consultas, .sh y .js, excepto migraciones V*.sql, generados y OpenAPI; BannedApiAnalyzers),
+  VIII (la prueba de 200 líneas cubre .cs, .sql de consultas, .sh y .js, excepto migraciones V*.sql, generados y OpenAPI; BannedApiAnalyzers),
   X (Grafana Alloy como agente que solo envía)
 - Restricciones: Despliegue (CI/CD con GitHub Actions + GHCR y despliegue automático al unir a main); Entorno de pruebas (admite carga y estrés con límites de CPU/RAM)
 - Origen: specs/revision/decisiones.md D4, D10, D11, D12, D15 y plan-de-cambios.md T-QA16, T-QA17; docs 02–04 revisados el 2026-10-21
@@ -19,6 +19,7 @@ Sync Impact Report
 - Pendientes: ninguno
 -->
 
+<!-- 1.3.0 (2026-10-22, D19): límite de archivo < 200 líneas; SRP por archivo; sin clases partial. -->
 # Constitución de KillaUru
 
 > **Fuente de verdad del dominio y de la arquitectura:** `referencia/docs/` (copia de `docs/` del repositorio del curso, revisión 2026-10-21).
@@ -66,7 +67,8 @@ Sync Impact Report
 - **CI en cada PR (GitHub Actions):** build con advertencias como errores, unitarias, arquitectura, integración, contrato OpenAPI y cobertura **coverlet ≥ 90 %** en los proyectos `Domain`; sin CI en verde no se une a `main`. Carga y estrés corren fuera del CI y fuera de la VM, contra el entorno de pruebas.
 
 ### VIII. Código pequeño y legible (pedido del autor + `principios-de-diseño.md`)
-- **Ningún archivo de código fuente supera 100 líneas** (C#, SQL de consultas, scripts). Si crece, se divide por responsabilidad (otra clase, otra política o un `partial` con nombre de negocio). Excepciones: migraciones SQL versionadas (`V*.sql`), archivos generados y contratos OpenAPI. Se verifica con una prueba en `KillaUru.Arquitectura.Tests` que recorre `.cs`, `.sql` de consultas, `.sh` y `.js`.
+- **Ningún archivo de código fuente llega a 200 líneas** (C#, Kotlin, TypeScript, Python, SQL de consultas, scripts). Excepciones: migraciones SQL versionadas, archivos generados y contratos OpenAPI. Se verifica con una prueba de cada parte.
+- **Un archivo = una clase = una responsabilidad (SRP)**, con SOLID y *clean code*. **Prohibidas las clases `partial`** para repartir una clase: si crece, se extrae otra clase con nombre de negocio (otra política, colaborador, puerto o caso de uso) y las interfaces se separan por cliente (ISP).
 - `DateTime.Now/UtcNow` y `DateTimeOffset.Now/UtcNow` están prohibidos en el build (`Microsoft.CodeAnalysis.BannedApiAnalyzers`).
 - Métodos ≤ 20 líneas; controladores ≤ 15 líneas por acción; un caso de uso = una clase = un archivo con un único `EjecutarAsync`.
 - Sin excepciones para el flujo de negocio (se usa *Result*); todo I/O es `async` con `CancellationToken`; `Nullable` activo y advertencias como errores; sin *Mediator* ni mapeo automático; sin repositorio genérico.
@@ -108,7 +110,7 @@ Sync Impact Report
 | App Android (008) | Un módulo Gradle con 3 capas (Presentación ← Dominio → Datos); umbrales en `assets/parametros.json`; reloj por el puerto `Reloj`; cobertura del dominio ≥ 90 %; la app consume contratos, no publica endpoints | Konsist, Kover, detekt (`ForbiddenMethodCall` en lugar de BannedApiAnalyzers), CI `app-ci.yml` |
 | Panel (010) | Capas `ui → api → modelo` por funcionalidad; tipos generados desde los OpenAPI; nada de datos personales en el navegador | dependency-cruiser, ESLint, Vitest, Playwright, axe |
 | Dataset y modelo (009) | Pipeline reproducible con versiones fijadas; no se publica un modelo que no pase RNF-35 y RNF-04 | pytest |
-| Todas | El límite de 100 líneas del principio VIII cubre también `.kt`, `.kts`, `.ts`, `.tsx` y `.py`; métodos ≤ 20 líneas | prueba de líneas de cada parte |
+| Todas | El límite de 200 líneas del principio VIII cubre también `.kt`, `.kts`, `.ts`, `.tsx` y `.py`; métodos ≤ 20 líneas | prueba de líneas de cada parte |
 
 ## Gobierno
 
@@ -116,4 +118,4 @@ Sync Impact Report
 - Enmiendas: se documentan en el *Sync Impact Report* de este archivo con versión semántica (MAYOR: se quita o redefine un principio; MENOR: se agrega uno; PARCHE: redacción).
 - Toda revisión de código verifica los principios II, III, V, VI y VIII de forma explícita.
 
-**Version**: 1.2.0 | **Ratified**: 2026-10-20 | **Last Amended**: 2026-10-22
+**Version**: 1.3.0 | **Ratified**: 2026-10-20 | **Last Amended**: 2026-10-22

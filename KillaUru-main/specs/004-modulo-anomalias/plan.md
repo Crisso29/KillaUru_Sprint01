@@ -20,7 +20,7 @@ Módulo de **dominio rico**: políticas puras (`ReglasCalidad`, `PoliticaPlausib
 
 **Performance Goals**: ≤ 100 ms p95 por evento (RNF-23); ~5 consultas indexadas por evento (`diseño-interno` §5)
 
-**Constraints**: idempotencia por `eventoId`; sin interbloqueos; ninguna regla usa el reloj real ni la hora de llegada; archivos ≤ 100 líneas; las transacciones se confirman con `IContextoTransaccion.ConfirmarAsync` (no con `CommitAsync` directo) para que corran los `AlConfirmar` (001, D15)
+**Constraints**: idempotencia por `eventoId`; sin interbloqueos; ninguna regla usa el reloj real ni la hora de llegada; archivos < 200 líneas; las transacciones se confirman con `IContextoTransaccion.ConfirmarAsync` (no con `CommitAsync` directo) para que corran los `AlConfirmar` (001, D15)
 
 **Scale/Scope**: ~48 000 eventos/día; ~35 millones de reportes en 2 años (`diseño-interno` §3.6)
 
@@ -35,7 +35,7 @@ Módulo de **dominio rico**: políticas puras (`ReglasCalidad`, `PoliticaPlausib
 | V. Privacidad | Seudónimo en columna con purga a 72 h; exportación sin seudónimos; `con_sesion` sí/no | ✅ |
 | VI. Acceso en el servidor | Moderación y exportación solo para administrador; moderación auditada en su transacción (`RegistrarAsync`), exportación como lectura sensible (`RegistrarLecturaAsync`, D15) | ✅ |
 | VII. Pruebas primero | Todas las reglas con valores límite antes del código (`enfoque` §8, `diseño-interno` §10) | ✅ |
-| VIII. Código pequeño | Agregado y repositorios grandes divididos en `partial` o por responsabilidad (T-ARQ08); una política por regla | ✅ |
+| VIII. Código pequeño | Agregado y repositorios grandes divididos en clases con una sola responsabilidad (sin `partial`) (T-ARQ08); una política por regla | ✅ |
 | IX. API documentada | `anomalias.openapi.yaml` (moderación, listas, detalle, exportación; 429 en todas, T-SEG19) | ✅ |
 | X. Costo cero | Nada nuevo | ✅ |
 
@@ -79,10 +79,10 @@ backend/src/Modules/KillaUru.Anomalias/
 │   ├── ReglaPersistencia.cs                      # RN-12
 │   ├── ReglasAnomalia.cs                         # record que agrupa políticas y ventanas (TimeSpan)
 │   ├── EstadoPersistencia.cs · AccionAdmin.cs · Transicion.cs   # AccionAdmin = tabla de RN-07 (se queda en Domain, D4)
-│   ├── Anomalia.cs                               # campos (con KmVia fijo), Crear, CambiarEstado
-│   ├── Anomalia.Reportes.cs                      # partial: RegistrarReporte (RN-05, RN-06, RN-07, RN-12; renacer de Reparada, D14)
-│   ├── Anomalia.Moderacion.cs                    # partial: PermitidoDesde, Moderar(accion, ahora, actorId) → bool, AnotarParaRevision
-│   └── Anomalia.Transiciones.cs                  # partial: AnotarTransicion (una por operación)
+│   ├── Anomalia.cs                               # agregado: campos (KmVia fijo), Crear, RegistrarReporte, Moderar; delega en las clases de abajo
+│   ├── ReglaRenacimiento.cs                        # RegistrarReporte delega aquí (RN-05, RN-06, RN-07, RN-12; renacer de Reparada, D14)
+│   ├── TablaModeracion.cs                        # RN-07: PermitidoDesde(accion); MarcasRevision («Por revisar»)
+│   └── RegistroTransiciones.cs                  # AnotarTransicion (una por operación)
 ├── Application/
 │   ├── Puertos/ IAnomaliaRepository.cs · ITransaccionAnomalias.cs              # escritura del agregado (T-ARQ06)
 │   ├── Puertos/ ICaducidadRepository.cs · IPurgasRepository.cs                 # tareas masivas (SQL)
@@ -104,14 +104,14 @@ backend/src/Modules/KillaUru.Anomalias/
     ├── AnomaliasDbContext.cs
     ├── Configuraciones/ AnomaliaConfig.cs · ReporteConfig.cs · TransicionConfig.cs · CorredorConfig.cs
     ├── AnomaliaRepositoryPostgis.cs              # MasCercanaAsync (FOR UPDATE), ObtenerParaActualizarAsync (FOR UPDATE), GuardarAsync
-    ├── AnomaliaRepositoryPostgis.Reportes.cs     # partial: ReportesDesdeAsync, AnteriorDelSeudonimoAsync, ExisteReporteAsync
+    ├── ReporteRepositoryPostgis.cs        # IReporteRepository (ISP): ReportesDesdeAsync, AnteriorDelSeudonimoAsync, ExisteReporteAsync
     ├── TransaccionAnomalias.cs                   # transacción + pg_advisory_xact_lock por celda + IContextoTransaccion.Unir
     ├── CaducidadRepository.cs                    # CTE de caducidad con FOR UPDATE SKIP LOCKED + transiciones
     ├── PurgasRepository.cs                       # purga de seudónimos (D3) y purga histórica (D7) por lotes
     ├── LecturaAnomaliasRepository.cs             # proyecciones AsNoTracking: activas, filtrado, cambios
     ├── ResumenDiaRepository.cs                   # conteos del día (RF-18, D14)
     ├── LecturaAdministracionRepository.cs        # «Por revisar», «Esperan confirmación», transiciones recientes
-    ├── LecturaAdministracionRepository.Detalle.cs # partial: detalle con reportes por día e historial
+    ├── DetalleAnomaliaRepository.cs  # IDetalleAnomaliaRepository (ISP): detalle con reportes por día e historial
     ├── ExportacionRepository.cs                  # ContarAsync y LeerAsync (IAsyncEnumerable) con los mismos filtros
     ├── CargadorCorredor.cs                       # IHostedService: carga corredor_via al arrancar
     ├── CorredorHealthCheck.cs                    # IHealthCheck «corredor» de /health/ready (T-OPS19)
@@ -124,7 +124,7 @@ backend/tests/KillaUru.Anomalias.Tests/          Domain/ · Application/
 backend/tests/KillaUru.Integracion.Tests/Anomalias/   Repositorio · Concurrencia · Tareas · Lecturas · ModeracionApi · ExportacionApi · Esquema
 ```
 
-**Structure Decision**: plantilla de `enfoque-arquitectonico.md` §4.1 («Anomalías: dominio rico…»). Los nombres de clases del dominio, del algoritmo y del repositorio son los de docs (`IAnomaliaRepository`, `AnomaliaRepositoryPostgis`, T-ARQ06); los demás repositorios usan el mismo sufijo `Repository` (término técnico en inglés). Cada lectura o escritura tiene su puerto en `Application/Puertos/` (T-ARQ07) y los repositorios se dividen por responsabilidad o en `partial` para respetar el límite de 100 líneas (T-ARQ08). Los tipos que cruzan al controlador viven en Application (D4).
+**Structure Decision**: plantilla de `enfoque-arquitectonico.md` §4.1 («Anomalías: dominio rico…»). Los nombres de clases del dominio, del algoritmo y del repositorio son los de docs (`IAnomaliaRepository`, `AnomaliaRepositoryPostgis`, T-ARQ06); los demás repositorios usan el mismo sufijo `Repository` (término técnico en inglés). Cada lectura o escritura tiene su puerto en `Application/Puertos/` (T-ARQ07) y los repositorios se dividen en clases con una sola responsabilidad y puertos separados (ISP, sin `partial`) para respetar el límite de 200 líneas (T-ARQ08). Los tipos que cruzan al controlador viven en Application (D4).
 
 ## Complexity Tracking
 

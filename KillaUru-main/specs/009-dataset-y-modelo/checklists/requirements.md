@@ -27,7 +27,7 @@
 - [x] CHK013 Cada FR tiene al menos una tarea (FR-001…FR-034; comprobado con script)
 - [x] CHK014 Riesgo principal y plan B documentados (R-020, R-021; docs no traía plan B)
 - [x] CHK015 Coherente con 008 (ruta `modelo/manifiesto.json`, firma del modelo, ventana y normalización en el manifiesto, fusión de ventanas en 008 FR-014)
-- [x] CHK016 Límite de 100 líneas aplicado a `.py` y `.kt`; la enmienda de la constitución se propone, no se aplica
+- [x] CHK016 Límite de 200 líneas aplicado a `.py` y `.kt`; la enmienda de la constitución se propone, no se aplica
 
 ## Notes
 

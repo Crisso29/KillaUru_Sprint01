@@ -22,7 +22,7 @@ Módulo pequeño con un dominio liviano (`componentes-arquitectonicos.md`: «los
 
 **Performance Goals**: insertar un registro ≤ 5 ms dentro de la transacción del llamador; consulta de un mes < 500 ms p95 (SC-004)
 
-**Constraints**: inmutable a nivel de BD; sin correos ni seudónimos; ningún archivo > 100 líneas
+**Constraints**: inmutable a nivel de BD; sin correos ni seudónimos; ningún archivo > 199 líneas
 
 **Scale/Scope**: miles de registros por mes, retención permanente
 

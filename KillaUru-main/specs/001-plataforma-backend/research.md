@@ -63,9 +63,9 @@ Cada decisión indica de qué documento sale. Las marcadas **«Decisión de dise
 - **Rationale**: `CREATE ROLE` y `CREATE EXTENSION postgis` exigen superusuario: el rol migrador no puede crearse a sí mismo (BD-01, OPS-10).
 - **Alternatives considered**: `dotnet ef database update` al arrancar (prohibido por RNF-18); herramientas como Flyway (otro componente); migrar todo como superusuario (los privilegios por defecto no se aplicarían a `killauru_app`).
 
-## R-010 · Límite de 100 líneas por archivo y API prohibidas (pedido del autor, T-QA16, T-QA17)
+## R-010 · Límite de 200 líneas por archivo y API prohibidas (pedido del autor, T-QA16, T-QA17)
 
-- **Decision**: prueba en `KillaUru.Arquitectura.Tests` que recorre `backend/src/**/*.cs`, `backend/tests/**/*.cs`, los `.sql` de consultas (`db/**/*.sql` salvo `db/migraciones/V*.sql`), `deploy/**/*.sh` y `tests/carga/**/*.js`, y falla si un archivo supera 100 líneas; excluye migraciones, generados y OpenAPI (constitución VIII). Además `Microsoft.CodeAnalysis.BannedApiAnalyzers` (RS0030) con `BannedSymbols.txt` (`DateTime.Now/UtcNow`, `DateTimeOffset.Now/UtcNow`) en `Directory.Build.props`: con advertencias como errores, rompe el build. NetArchTest queda para las capas.
+- **Decision**: prueba en `KillaUru.Arquitectura.Tests` que recorre `backend/src/**/*.cs`, `backend/tests/**/*.cs`, los `.sql` de consultas (`db/**/*.sql` salvo `db/migraciones/V*.sql`), `deploy/**/*.sh` y `tests/carga/**/*.js`, y falla si un archivo supera 199 líneas; excluye migraciones, generados y OpenAPI (constitución VIII). Además `Microsoft.CodeAnalysis.BannedApiAnalyzers` (RS0030) con `BannedSymbols.txt` (`DateTime.Now/UtcNow`, `DateTimeOffset.Now/UtcNow`) en `Directory.Build.props`: con advertencias como errores, rompe el build. NetArchTest queda para las capas.
 - **Rationale**: NetArchTest revisa dependencias entre tipos y no distingue la llamada a `UtcNow` (QA-16); la constitución cuenta también SQL y scripts (QA-17, ARQ-04).
 
 ## R-011 · Respaldo (RNF-07, RNF-34, T-BD01, D12)

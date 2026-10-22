@@ -372,8 +372,8 @@ Como conductor registrado, quiero ver los tramos que recorrí y cuántos baches 
 **L. Arquitectura, calidad y CI**
 
 - **FR-075**: El código MUST seguir las tres capas de `enfoque` §9 en un solo módulo Gradle por funcionalidad (`dominio`, `datos`, `ui`), verificado con Konsist en cada build. *(`enfoque-arquitectonico.md` §9, `diseño-interno` §7.1; R-001, R-002)*
-- **FR-076**: Ningún archivo `.kt`, `.kts`, `.py` ni `.sh` de `app/` MUST pasar de 100 líneas (excepto generados y esquemas de Room), y las llamadas directas al reloj del sistema MUST estar prohibidas fuera de `RelojSistema`. *(Constitución VIII; propuesta de enmienda en `research.md`)*
-- **FR-077**: Un workflow de CI MUST correr en cada PR que toque `app/`: build con advertencias como errores, lint, detekt, Konsist, unitarias, Robolectric, cobertura Kover ≥ 90 % de los paquetes `dominio` y el límite de 100 líneas. *(Constitución VII; propuesta de enmienda)*
+- **FR-076**: Ningún archivo `.kt`, `.kts`, `.py` ni `.sh` de `app/` MUST pasar de 200 líneas (excepto generados y esquemas de Room), y las llamadas directas al reloj del sistema MUST estar prohibidas fuera de `RelojSistema`. *(Constitución VIII; propuesta de enmienda en `research.md`)*
+- **FR-077**: Un workflow de CI MUST correr en cada PR que toque `app/`: build con advertencias como errores, lint, detekt, Konsist, unitarias, Robolectric, cobertura Kover ≥ 90 % de los paquetes `dominio` y el límite de 200 líneas. *(Constitución VII; propuesta de enmienda)*
 - **FR-078**: Las pruebas de contrato MUST validar cada petición y cada respuesta simulada contra `ingesta.openapi.yaml`, `mapa.openapi.yaml`, `identidad.openapi.yaml` y `contracts/cdn.openapi.yaml`. *(Constitución IX; 001 convenciones)*
 
 ### Reglas y parámetros (`ParametrosApp`, archivo `assets/parametros.json`)
@@ -429,7 +429,7 @@ La ventana (500 ms), la frecuencia del modelo y la normalización vienen del **m
 - **SC-007**: 0 toques para detectar; cada acción principal en ≤ 3 toques; 100 % de los textos en español (RNF-12, EQ-08).
 - **SC-008**: El 100 % de las migraciones probadas conserva los eventos `PENDING` y los recorridos (BD-A1).
 - **SC-009**: El 100 % de las peticiones del mapa del anónimo van sin `bbox` ni `updatedSince` (006 R-007; condición del 80 % de aciertos de RNF-01).
-- **SC-010**: Cobertura ≥ 90 % de los paquetes `dominio`; 0 archivos de `app/` de más de 100 líneas; 0 dependencias prohibidas entre capas.
+- **SC-010**: Cobertura ≥ 90 % de los paquetes `dominio`; 0 archivos de `app/` de más de 199 líneas; 0 dependencias prohibidas entre capas.
 - **SC-011**: Una descarga cortada se reanuda, y un archivo con huella incorrecta nunca se activa (RF-26).
 - **SC-012**: El km de la app difiere ≤ 1 m del `km_via` del servidor en el 100 % de los puntos de referencia (D13, BD-19).
 

@@ -9,7 +9,7 @@ description: "Tareas del módulo Auditoría"
 
 **Tests**: obligatorias; primero la prueba (debe fallar), luego el código.
 
-**Formato**: `- [ ] T### [P?] [US?] Descripción — ruta · (requisito)`. Rutas relativas a `backend/`. Módulo: `src/Modules/KillaUru.Auditoria/` (abreviado `Aud/`). **Ningún `.cs` > 100 líneas.**
+**Formato**: `- [ ] T### [P?] [US?] Descripción — ruta · (requisito)`. Rutas relativas a `backend/`. Módulo: `src/Modules/KillaUru.Auditoria/` (abreviado `Aud/`). **Ningún `.cs` > 199 líneas.**
 
 ## Phase 1: Setup
 

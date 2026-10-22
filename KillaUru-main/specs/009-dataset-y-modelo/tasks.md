@@ -9,14 +9,14 @@ description: "Tareas del dataset y el modelo de detección (HU-28)"
 
 **Tests**: obligatorias y **primero** (constitución VII): cada tarea de prueba debe fallar antes de su implementación. Valores límite en todas las reglas con número (0,899/0,900; 199/200; 49,9/50,0 ms; 0.74/0.75/0.76; 44,9/45 Hz; 249/250 ms).
 
-**Formato**: `- [ ] T### [P?] [US?] Descripción — ruta · (requisito)`. Rutas relativas a la raíz del repositorio. Paquete: `ml/killauru_ml/` (`KM/`). Pruebas: `ml/tests/` (`MT/`). Grabador: `ml/grabador/app/src/` (`GR/`, paquete `pe/killauru/grabador/`). **Ningún `.py` ni `.kt` > 100 líneas.**
+**Formato**: `- [ ] T### [P?] [US?] Descripción — ruta · (requisito)`. Rutas relativas a la raíz del repositorio. Paquete: `ml/killauru_ml/` (`KM/`). Pruebas: `ml/tests/` (`MT/`). Grabador: `ml/grabador/app/src/` (`GR/`, paquete `pe/killauru/grabador/`). **Ningún `.py` ni `.kt` > 199 líneas.**
 
 ## Phase 1: Setup
 
 - [ ] T001 `pyproject.toml` (paquete `killauru_ml`, ruff, pytest), `requirements.in` (Python 3.11, TensorFlow 2.18 CPU, `ai-edge-litert`, NumPy, pandas, scikit-learn, PyYAML, matplotlib, jsonschema, pytest, ruff) y `requirements.lock` con `pip-compile --generate-hashes`; `.gitignore` (`.cache/`, `crudos/`, `*.mp4`) — `ml/pyproject.toml`, `ml/requirements.in`, `ml/requirements.lock`, `ml/.gitignore` · (FR-016; R-019)
 - [ ] T002 [P] Configuración con la fuente de cada valor en comentario: `captura.yaml` (RF-01, RF-02, RN-03, `diseño-interno` §7.4), `etiquetado.yaml`, `entrenamiento.yaml` (semilla 2828), `puerta.yaml` (`data-model.md` §9) — `ml/config/` · (FR-012, FR-017, FR-028; constitución III)
-- [ ] T003 [P] `test_limite_lineas.py`: recorre `ml/**/*.py`, `ml/**/*.kt` y `ml/**/*.kts`; falla con ruta y conteo si alguno pasa de 100 líneas — `ml/tests/test_limite_lineas.py` · (FR-033)
-- [ ] T004 [P] `ml-ci.yml` (PR que toca `ml/**`): instala el *lock*, `ruff check`, `pytest`, límite de 100 líneas y corrida de humo `todo` con el dataset sintético dos veces comparando la huella de pesos — `.github/workflows/ml-ci.yml` · (FR-016, FR-033; D10)
+- [ ] T003 [P] `test_limite_lineas.py`: recorre `ml/**/*.py`, `ml/**/*.kt` y `ml/**/*.kts`; falla con ruta y conteo si alguno pasa de 199 líneas — `ml/tests/test_limite_lineas.py` · (FR-033)
+- [ ] T004 [P] `ml-ci.yml` (PR que toca `ml/**`): instala el *lock*, `ruff check`, `pytest`, límite de 200 líneas y corrida de humo `todo` con el dataset sintético dos veces comparando la huella de pesos — `.github/workflows/ml-ci.yml` · (FR-016, FR-033; D10)
 - [ ] T005 [P] `test_comun.py`: lee YAML y falla si falta una clave; misma semilla → mismos números; SHA-256 de un archivo conocido; `entorno` devuelve versiones de Python y TensorFlow — `MT/test_comun.py` · (FR-016)
 - [ ] T006 `comun/config.py`, `semillas.py` (Python, NumPy, `keras.utils.set_random_seed`, `enable_op_determinism`), `huella.py`, `entorno.py` — `KM/comun/` · (FR-016; R-019)
 - [ ] T007 `sinteticos.py`: generador con semilla de grabaciones falsas (bache con rebote, hundimiento sin rebote, rompemuelles, pista lisa, celular inclinado, huecos y GPS) en el formato de `contracts/formato-grabacion.md` — `MT/sinteticos.py` · (FR-003, FR-016)

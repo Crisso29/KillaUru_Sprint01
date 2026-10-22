@@ -9,7 +9,7 @@ description: "Tareas de la app Android KillaUru"
 
 **Tests**: obligatorias y **primero** (constitución VII): cada regla del dominio con valores límite y cada respuesta del contrato del lote antes del código.
 
-**Formato**: `- [ ] T### [P?] [US?] Descripción — ruta · (requisito)`. Rutas relativas a `app/`, salvo `.github/` (raíz del repositorio). `K/` = `src/main/java/pe/killauru/app/` · `KT/` = `src/test/java/pe/killauru/app/` · `KA/` = `src/androidTest/java/pe/killauru/app/`. **Ningún `.kt`, `.kts`, `.py` ni `.sh` > 100 líneas.**
+**Formato**: `- [ ] T### [P?] [US?] Descripción — ruta · (requisito)`. Rutas relativas a `app/`, salvo `.github/` (raíz del repositorio). `K/` = `src/main/java/pe/killauru/app/` · `KT/` = `src/test/java/pe/killauru/app/` · `KA/` = `src/androidTest/java/pe/killauru/app/`. **Ningún `.kt`, `.kts`, `.py` ni `.sh` > 199 líneas.**
 
 ## Phase 1: Setup
 
@@ -17,9 +17,9 @@ description: "Tareas de la app Android KillaUru"
 - [ ] T002 [P] Catálogo de versiones fijas (Compose, Room, WorkManager, Hilt, Retrofit, OkHttp, kotlinx.serialization, LiteRT, MapLibre, DataStore, Robolectric, MockWebServer, Konsist, Kover, swagger-parser, json-schema-validator) — `gradle/libs.versions.toml` · (FR-075; R-029)
 - [ ] T003 [P] detekt: `ForbiddenMethodCall` (`System.currentTimeMillis`, `Instant.now`, `Clock.systemUTC`, `Date()`, `LocalDateTime.now`, `fallbackToDestructiveMigration*`), `LongMethod` 20, `LargeClass` — `config/detekt/detekt.yml` · (FR-024, FR-026, FR-076)
 - [ ] T004 [P] `AndroidManifest.xml`: permisos de RF-35 (`ACCESS_FINE_LOCATION`, `ACCESS_BACKGROUND_LOCATION`, `POST_NOTIFICATIONS`, `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_LOCATION`, `INTERNET`, `ACCESS_NETWORK_STATE`), servicio `location`, `allowBackup="false"`, `fullBackupContent="false"`, `dataExtractionRules` — `src/main/AndroidManifest.xml`, `src/main/res/xml/reglas_extraccion.xml` · (FR-006, FR-009, FR-027; R-027)
-- [ ] T005 [P] Script del límite de 100 líneas (`.kt`, `.kts`, `.py`, `.sh`; excluye `build/`, `schemas/`, generados) que falla con la lista — `herramientas/verificar_lineas.py` · (FR-076)
+- [ ] T005 [P] Script del límite de 200 líneas (`.kt`, `.kts`, `.py`, `.sh`; excluye `build/`, `schemas/`, generados) que falla con la lista — `herramientas/verificar_lineas.py` · (FR-076)
 - [ ] T006 [P] Workflow de CI de la app (`pull_request` con `paths: app/**`): `assembleDebug` → `lint` → `detekt` → `testDebugUnitTest` (dominio, Robolectric, contrato, Konsist) → `koverVerify` (≥ 90 % de `*.dominio.*`) → `verificar_lineas.py`; si falla no se une a `main` — `../.github/workflows/app-ci.yml` · (FR-077)
-- [ ] T007 [P] Pruebas de arquitectura con Konsist: `CapasTest` (dominio sin `android.*`/`androidx.*`/Room/Retrofit/LiteRT; `ui` ↛ `datos`; `datos` ↛ `ui`), `TamanoArchivosTest` (≤ 100 líneas), `RelojProhibidoTest`, `SinMigracionDestructivaTest` — `KT/arquitectura/` · (FR-075, FR-076, FR-024; R-002)
+- [ ] T007 [P] Pruebas de arquitectura con Konsist: `CapasTest` (dominio sin `android.*`/`androidx.*`/Room/Retrofit/LiteRT; `ui` ↛ `datos`; `datos` ↛ `ui`), `TamanoArchivosTest` (< 200 líneas), `RelojProhibidoTest`, `SinMigracionDestructivaTest` — `KT/arquitectura/` · (FR-075, FR-076, FR-024; R-002)
 
 ## Phase 2: Foundational — dominio común, Room, DataStore y red
 

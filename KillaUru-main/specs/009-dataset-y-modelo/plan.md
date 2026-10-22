@@ -22,7 +22,7 @@ Tres piezas pequeñas y separadas. (1) Un **grabador** Android aparte (`ml/graba
 
 **Performance Goals**: inferencia p95 < 50 ms (RNF-04; un MLP de ~1 500 parámetros tarda < 1 ms); entrenamiento < 10 min en CPU
 
-**Constraints**: archivos `.py` y `.kt` ≤ 100 líneas; sin notebooks en el pipeline; costo cero (R2 gratis, Actions gratis); ningún dato personal en el dataset derivado; el conjunto de prueba se usa una vez por candidata
+**Constraints**: archivos `.py` y `.kt` < 200 líneas; sin notebooks en el pipeline; costo cero (R2 gratis, Actions gratis); ningún dato personal en el dataset derivado; el conjunto de prueba se usa una vez por candidata
 
 **Scale/Scope**: ~10 recorridos × 3 celulares ≈ 30 grabaciones; ~30 h-celular; ~200 000 ventanas, de ellas ~2 000–4 000 de anomalía (R-020)
 
@@ -37,7 +37,7 @@ Tres piezas pequeñas y separadas. (1) Un **grabador** Android aparte (`ml/graba
 | V. Privacidad | Grabador sin internet; sin identificadores; km en lugar de coordenadas en el derivado; video privado con retención de 90 días (R-004) | ✅ |
 | VI. Acceso y rastro | Publicación solo por workflow manual con secretos de GitHub; cada publicación queda en el historial de Actions | ✅ |
 | VII. Pruebas primero | pytest antes del código, con valores límite (0,899/0,900; 199/200; 49,9/50 ms; 0.74/0.75) | ✅ (ver propuesta de enmienda) |
-| VIII. Código pequeño | `.py` y `.kt` ≤ 100 líneas con prueba propia; funciones ≤ 20 líneas; nombres de negocio en español | ✅ (la prueba de 001 no cubre `ml/`: ver Complexity Tracking) |
+| VIII. Código pequeño | `.py` y `.kt` < 200 líneas con prueba propia; funciones ≤ 20 líneas; nombres de negocio en español | ✅ (la prueba de 001 no cubre `ml/`: ver Complexity Tracking) |
 | IX. API documentada | No hay API; el contrato es el esquema del manifiesto y la firma del modelo (`contracts/`) | N/A |
 | X. Costo cero | CPU local, R2 dentro del plan gratis (< 10 GB), Actions gratis; sin servicios de ML pagados | ✅ |
 
@@ -52,11 +52,11 @@ specs/009-dataset-y-modelo/
 └── checklists/requirements.md · checklists/trazabilidad.md
 ```
 
-### Source Code — árbol exacto (cada `.py` y `.kt` ≤ 100 líneas)
+### Source Code — árbol exacto (cada `.py` y `.kt` < 200 líneas)
 
 ```text
 .github/workflows/
-├── ml-ci.yml                                  # PR que toca ml/: ruff, pytest, límite de 100 líneas, humo determinista
+├── ml-ci.yml                                  # PR que toca ml/: ruff, pytest, límite de 200 líneas, humo determinista
 └── publicar-modelo.yml                        # manual (workflow_dispatch: version): puerta → R2 → verificación → manifiesto
 
 ml/
@@ -94,7 +94,7 @@ ml/
 │   └── seguimiento/ estado.py
 ├── tests/
 │   ├── sinteticos.py                          # señales de bache, hundimiento, normal y rompemuelles con semilla
-│   ├── test_limite_lineas.py                  # .py y .kt de ml/ ≤ 100 líneas
+│   ├── test_limite_lineas.py                  # .py y .kt de ml/ < 200 líneas
 │   └── test_<módulo>.py                       # una prueba por módulo (lista en tasks.md)
 ├── scripts/
 │   ├── subir_grabacion.sh                     # rclone → R2 privado
@@ -123,7 +123,7 @@ ml/
 
 El paso GPS → km vive en `killauru_ml/senal/kilometraje.py` y lee `backend/db/datos/corredor_pe28a.geojson` (D16).
 
-**Structure Decision**: `ml/` en la raíz, al lado de `backend/` y de la futura `android/` de 008, porque no es código del backend ni de la app. El grabador es un proyecto Gradle **aparte** dentro de `ml/` (R-001): HU-28 empieza en la semana 1, antes que la app, y así el APK de producción nunca lleva código para grabar señal cruda. El pipeline es un paquete con una carpeta por etapa para que cada archivo quede bajo 100 líneas y cada etapa se pruebe sola.
+**Structure Decision**: `ml/` en la raíz, al lado de `backend/` y de la futura `android/` de 008, porque no es código del backend ni de la app. El grabador es un proyecto Gradle **aparte** dentro de `ml/` (R-001): HU-28 empieza en la semana 1, antes que la app, y así el APK de producción nunca lleva código para grabar señal cruda. El pipeline es un paquete con una carpeta por etapa para que cada archivo quede bajo 200 líneas y cada etapa se pruebe sola.
 
 ## Dependencias con otras features
 
@@ -139,5 +139,5 @@ El paso GPS → km vive en `killauru_ml/senal/kilometraje.py` y lee `backend/db/
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |---|---|---|
 | Un segundo proyecto Android (grabador) | HU-28 empieza en la semana 1, antes de la app; el APK de producción no debe grabar señal cruda ni video (R-06) | Un modo «grabación» en 008 obliga a esperar la app y a meter código sensible en el APK de los conductores (R-001) |
-| Prueba de 100 líneas propia en `ml/` | La prueba de 001 solo recorre `backend/` (`.cs`, `.sql`, `.sh`, `.js`) | Ampliar la prueba de 001 toca otra feature; se propone la enmienda en `research.md` |
+| Prueba de 200 líneas propia en `ml/` | La prueba de 001 solo recorre `backend/` (`.cs`, `.sql`, `.sh`, `.js`) | Ampliar la prueba de 001 toca otra feature; se propone la enmienda en `research.md` |
 | Preprocesamiento implementado dos veces (Python y Kotlin) | El modelo recibe características, no señal cruda (R-010) | Meter el cálculo en el grafo TFLite complica la cuantización int8 de curtosis y razones; los vectores de prueba (FR-025) cierran la brecha |

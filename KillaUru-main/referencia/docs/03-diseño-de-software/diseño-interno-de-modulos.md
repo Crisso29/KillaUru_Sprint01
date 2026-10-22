@@ -28,7 +28,7 @@ KillaUru.sln
 ├── tests/
 │   ├── KillaUru.<Modulo>.Tests/          dominio y aplicación (sin BD)
 │   ├── KillaUru.Integracion.Tests/       Testcontainers (PostgreSQL + PostGIS) y WebApplicationFactory
-│   ├── KillaUru.Arquitectura.Tests/      NetArchTest y límite de 100 líneas (RNF-28)
+│   ├── KillaUru.Arquitectura.Tests/      NetArchTest y límite de 200 líneas (RNF-28)
 │   └── carga/                            scripts k6 (carga, picos, estrés, resistencia) y caos; corren fuera de la VM
 └── db/migraciones/                       V0000__arranque.sql (superusuario) y migraciones SQL versionadas, ejecutadas como paso explícito (RNF-18)
 ```
@@ -753,7 +753,7 @@ Si la lista trae más de una anomalía, `Alertas` emite **una sola** alerta que 
 | Matar el proceso a mitad de un lote → conciliación exacta | Caos | RNF-06, EQ-09 |
 | Purga horaria → ningún seudónimo ni `lote_id` con más de 72 h en ninguna tabla y `recibido_utc` redondeado a la hora; purga de Identidad → ninguna sesión vencida o revocada de más de 30 días | Integración | RN-09, EQ-04 |
 | Calendario de tareas: con `FakeTimeProvider`, cada tarea corre al arrancar y en su minuto u hora fija | Unitaria | RNF-22 |
-| Ninguna clase de `Domain` usa EF Core, ASP.NET, `Contracts/` de otro módulo ni `DateTime.UtcNow`; Adapters no usa Domain; Application no usa Adapters ni Infrastructure; ningún archivo `.cs`, `.sql` de consultas, `.sh` ni `.js` supera 100 líneas (excepto migraciones) | Arquitectura | RNF-28 |
+| Ninguna clase de `Domain` usa EF Core, ASP.NET, `Contracts/` de otro módulo ni `DateTime.UtcNow`; Adapters no usa Domain; Application no usa Adapters ni Infrastructure; ningún archivo `.cs`, `.sql` de consultas, `.sh` ni `.js` supera 199 líneas (excepto migraciones) | Arquitectura | RNF-28 |
 | Cobertura con coverlet ≥ 90 % en los proyectos `Domain`, en cada PR (GitHub Actions) | CI | RNF-28 |
 | Carga combinada, picos, estrés, resistencia y caos con k6, fuera de la VM | Sistema | RNF-03, RNF-06, EQ-06 |
 

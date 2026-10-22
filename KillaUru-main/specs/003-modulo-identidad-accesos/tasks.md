@@ -9,7 +9,7 @@ description: "Tareas del módulo Identidad y Accesos"
 
 **Tests**: obligatorias; primero la prueba (debe fallar), luego el código.
 
-**Formato**: `- [ ] T### [P?] [US?] Descripción — ruta · (requisito)`. Rutas relativas a `backend/`. Módulo: `src/Modules/KillaUru.Identidad/` (abreviado `Id/`). Pruebas unitarias en `tests/KillaUru.Identidad.Tests/` (`IdT/`); de integración en `tests/KillaUru.Integracion.Tests/Identidad/` (`IntId/`). **Ningún `.cs` > 100 líneas.**
+**Formato**: `- [ ] T### [P?] [US?] Descripción — ruta · (requisito)`. Rutas relativas a `backend/`. Módulo: `src/Modules/KillaUru.Identidad/` (abreviado `Id/`). Pruebas unitarias en `tests/KillaUru.Identidad.Tests/` (`IdT/`); de integración en `tests/KillaUru.Integracion.Tests/Identidad/` (`IntId/`). **Ningún `.cs` > 199 líneas.**
 
 ## Phase 1: Setup
 
@@ -30,7 +30,7 @@ description: "Tareas del módulo Identidad y Accesos"
 ### Implementación
 
 - [ ] T009 [P] `Correo`, `RolUsuario`, `DocumentoLegal`, `PropositoToken`, `ParametrosBloqueo`, `HorasGuardadas` — `Id/Domain/`; resultados (`ResultadoLogin`, `ResultadoRenovacion`, `ResultadoEnlace`, `ResultadoGestion`, `UsuarioVista`), un archivo cada uno — `Id/Application/Resultados/` · (D4, FR-039)
-- [ ] T010 `Usuario` y `Usuario.Bloqueo` (partial) — `Id/Domain/Usuario.cs`, `Id/Domain/Usuario.Bloqueo.cs` · (FR-005, FR-009)
+- [ ] T010 `Usuario` y `PoliticaBloqueo` (clase propia, SRP) — `Id/Domain/Usuario.cs`, `Id/Domain/PoliticaBloqueo.cs` · (FR-005, FR-009)
 - [ ] T011 [P] `SesionRenovacion` y `PoliticaSesion` — `Id/Domain/` · (FR-015, FR-016)
 - [ ] T012 [P] `TokenCorreo`, `Consentimiento`, `RevisionPrivilegios` — `Id/Domain/` · (FR-002, FR-021, FR-034)
 - [ ] T013 [P] Puertos (11 interfaces de `plan.md`, incluidos `ITransaccionIdentidad` e `IPurgaIdentidadRepositorio`) — `Id/Application/Puertos/`

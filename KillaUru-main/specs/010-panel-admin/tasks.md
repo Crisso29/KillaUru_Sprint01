@@ -9,7 +9,7 @@ description: "Tareas del panel de administración «KillaUru Ops»"
 
 **Tests**: obligatorias y **primero** (constitución VII adaptada): cada fase empieza por sus pruebas, que deben fallar.
 
-**Formato**: `- [ ] T### [P?] [US?] Descripción — ruta · (requisito)`. Rutas relativas a `panel/`. Abreviaturas: `F/` = `src/funcionalidades/`, `C/` = `src/compartido/`, `E2E/` = `pruebas/e2e/`. Las pruebas unitarias y de componentes van junto a su archivo (`x.ts` → `x.test.ts`). **Ningún `.ts`/`.tsx` > 100 líneas** (salvo `src/api/generado/`).
+**Formato**: `- [ ] T### [P?] [US?] Descripción — ruta · (requisito)`. Rutas relativas a `panel/`. Abreviaturas: `F/` = `src/funcionalidades/`, `C/` = `src/compartido/`, `E2E/` = `pruebas/e2e/`. Las pruebas unitarias y de componentes van junto a su archivo (`x.ts` → `x.test.ts`). **Ningún `.ts`/`.tsx` > 199 líneas** (salvo `src/api/generado/`).
 
 > **Recortables** (`specs/README.md` §1): Fase 10 (HU-20, la 1.ª), Fase 8 (HU-13, la 4.ª, si se recorta 007) y Fase 7 (HU-19, la 5.ª, si se recorta la moderación de 004). **No se recortan**: Fase 9 (HU-15) ni Fase 6 (HU-25 / enlaces de 003).
 

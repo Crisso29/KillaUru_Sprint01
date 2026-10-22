@@ -38,7 +38,7 @@
   src/compartido, src/sesion, src/api, src/config           (nunca usan funcionalidades)
   ```
 
-  Una funcionalidad usa a otra **solo** por su `index.ts` (igual que `Contracts/` en el backend). Sin ciclos. Lo verifica `dependency-cruiser` en el CI (`.dependency-cruiser.cjs`). Ningún `.ts`/`.tsx` supera **100 líneas** (prueba `pruebas/arquitectura/lineas.test.ts`; excluye `src/api/generado/`). En `modelo/` y `sesion/` está prohibido `Date.now()`/`new Date()` sin argumento (regla de ESLint `no-restricted-syntax`): el reloj se inyecta (`compartido/reloj.ts`), como `TimeProvider` en el backend.
+  Una funcionalidad usa a otra **solo** por su `index.ts` (igual que `Contracts/` en el backend). Sin ciclos. Lo verifica `dependency-cruiser` en el CI (`.dependency-cruiser.cjs`). Ningún `.ts`/`.tsx` supera **200 líneas** (prueba `pruebas/arquitectura/lineas.test.ts`; excluye `src/api/generado/`). En `modelo/` y `sesion/` está prohibido `Date.now()`/`new Date()` sin argumento (regla de ESLint `no-restricted-syntax`): el reloj se inyecta (`compartido/reloj.ts`), como `TimeProvider` en el backend.
 - **Rationale**: cada pantalla de §5.1 es una carpeta con todo lo suyo; la lógica derivada (filtros por defecto, franja, textos de transición, acciones permitidas) queda en funciones puras fáciles de probar con valores límite (constitución VII).
 - **Alternatives**: por capas globales (`components/`, `hooks/`, `services/`: una pantalla queda repartida en 4 carpetas); *Feature-Sliced Design* completo (6 capas: demasiado para 8 pantallas).
 
@@ -225,7 +225,7 @@ La constitución 1.1.0 está escrita para el backend .NET. **No se edita aquí**
 1. **II** — agregar: «El panel (`panel/`) se organiza por funcionalidades con capas `ui → api → modelo`; una funcionalidad usa a otra solo por su `index.ts`; sin ciclos; se verifica con `dependency-cruiser` en el CI del panel.»
 2. **III** — agregar: «El panel no tiene reglas de negocio; los pocos valores de docs que usa para mostrar (8 h, km 268–333, estados iniciales de RN-08) viven en `panel/src/config/` citando su fuente.»
 3. **VII** — agregar: «En el panel: Vitest para `modelo/` con cobertura ≥ 90 %, componentes con Testing Library + MSW, contrato con tipos generados y Ajv, E2E con Playwright y axe; CI en cada PR que toque `panel/`.»
-4. **VIII** — ampliar la regla de 100 líneas a `.ts`/`.tsx` (excepto `panel/src/api/generado/`) y prohibir `Date.now()`/`new Date()` sin argumento en `modelo/` y `sesion/` (ESLint), equivalente a `BannedApiAnalyzers`.
+4. **VIII** — ampliar la regla de 200 líneas a `.ts`/`.tsx` (excepto `panel/src/api/generado/`) y prohibir `Date.now()`/`new Date()` sin argumento en `modelo/` y `sesion/` (ESLint), equivalente a `BannedApiAnalyzers`.
 5. **IX** — agregar: «Los clientes (app y panel) generan sus tipos desde los mismos YAML y el CI falla si están desalineados.»
 6. **Restricciones** — nueva fila «Panel web: React + TypeScript + Vite, MapLibre GL JS con PMTiles por rangos, TanStack Query, Cloudflare Pages; despliegue con `wrangler` al unir a `main`» (fuente: `estilo-arquitectonico.md`, ADR-010, ADR-011).
 7. **Flujo SDD** — punto 1: el orden incluye 008–010 después de 001–007 (D17).

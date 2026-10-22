@@ -69,7 +69,7 @@ HU-28 (dataset y modelo propio, *Must*) no tiene RF de servidor: es la feature 0
 | Archivo | Qué contiene, siempre en este orden |
 |---|---|
 | `spec.md` | 0) Ficha del módulo · 1) Fuentes en docs · historias con escenarios · casos borde · requisitos FR agrupados · reglas y parámetros · entidades · criterios de éxito · fuera de alcance · supuestos |
-| `plan.md` | Resumen · contexto técnico · puertas de la constitución · **árbol de archivos exacto** del módulo (cada archivo ≤ 100 líneas) · dependencias · complejidad |
+| `plan.md` | Resumen · contexto técnico · puertas de la constitución · **árbol de archivos exacto** del módulo (cada archivo < 200 líneas) · dependencias · complejidad |
 | `research.md` | Decisiones `R-xxx`: decisión, por qué, alternativas, fuente |
 | `data-model.md` | Tablas SQL, entidades, value objects, estados y transiciones, validaciones, clase `Options` |
 | `contracts/` | `<modulo>.openapi.yaml` (API REST) y `contratos-internos.md` (interfaces de `Contracts/` que usan otros módulos) |

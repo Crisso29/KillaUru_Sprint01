@@ -132,7 +132,7 @@
 > La constitución 1.1.0 está escrita para el backend .NET. No se edita aquí. Propuesta **MENOR → 1.2.0** (se amplían reglas, no se quita ninguna):
 
 1. **VII. Pruebas primero**: agregar «En `ml/`, la pirámide es pytest: funciones puras del pipeline (ventaneo, etiquetas, partición, métricas, puerta) con valores límite → integración con datos sintéticos → determinismo y equivalencia. `ml-ci.yml` corre en cada PR que toca `ml/`; sin verde no se une a `main`. Las métricas del modelo se prueban con la puerta, no con cobertura».
-2. **VIII. Código pequeño**: incluir `.py` y `.kt` (y `.kts` de Gradle) en el límite de 100 líneas, con la prueba `ml/tests/test_limite_lineas.py` (y la de 008 para `android/`); prohibir notebooks en el pipeline; equivalente a `BannedApiAnalyzers`: en `ml/`, prohibido `datetime.now()` en lógica (se pasa la fecha como argumento) y `random` sin semilla (regla de ruff + prueba).
+2. **VIII. Código pequeño**: incluir `.py` y `.kt` (y `.kts` de Gradle) en el límite de 200 líneas, con la prueba `ml/tests/test_limite_lineas.py` (y la de 008 para `android/`); prohibir notebooks en el pipeline; equivalente a `BannedApiAnalyzers`: en `ml/`, prohibido `datetime.now()` en lógica (se pasa la fecha como argumento) y `random` sin semilla (regla de ruff + prueba).
 3. **I. Docs manda**: «Un modelo solo se publica si su informe demuestra RNF-35 y RNF-04 (puerta); sus umbrales viven en `ml/config/puerta.yaml` citando la fuente».
 4. **Restricciones**: fila nueva «ML: Python 3.11 + TensorFlow 2.18 → LiteRT int8; dataset crudo en R2 privado; publicación manual con GitHub Actions (R-018)».
 5. **III**: aclarar que `TimeProvider` aplica al backend; en `ml/` y en la app rige el equivalente (fecha inyectada).

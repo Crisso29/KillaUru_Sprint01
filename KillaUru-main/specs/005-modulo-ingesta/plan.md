@@ -20,7 +20,7 @@ Módulo de **dominio mínimo** (estado de recepción y hora de detección) con e
 
 **Performance Goals**: lote de 50 en < 300 ms p95 (RNF-02): reglas en memoria (< 1 ms) + 1 `INSERT` (~5–15 ms); retraso de cola ≤ 30 s p95 (RNF-23, histograma `killauru.ingesta.retraso_cola_s`)
 
-**Constraints**: 200 solo tras el *commit*; la cola es solo un aviso; ningún acceso a tablas de Anomalías; Adapters solo usa Application (D4); archivos ≤ 100 líneas; las transacciones se confirman con `IContextoTransaccion.ConfirmarAsync` (no con `CommitAsync` directo) para que corran los `AlConfirmar` (001, D15)
+**Constraints**: 200 solo tras el *commit*; la cola es solo un aviso; ningún acceso a tablas de Anomalías; Adapters solo usa Application (D4); archivos < 200 líneas; las transacciones se confirman con `IContextoTransaccion.ConfirmarAsync` (no con `CommitAsync` directo) para que corran los `AlConfirmar` (001, D15)
 
 **Scale/Scope**: ~48 000 eventos/día; pico de ~250 eventos/s (RNF-03); ~1,5 millones de filas a 30 días (`diseño-interno` §3.6)
 
@@ -96,7 +96,7 @@ backend/tests/KillaUru.Integracion.Tests/Ingesta/   RecepcionApi · Procesamient
 # Carga, picos, estrés, resistencia y caos: backend/tests/carga/ de 001 (D11); Ingesta no tiene script propio
 ```
 
-**Structure Decision**: plantilla de `enfoque-arquitectonico.md` §4.1 («Ingesta: Domain mínimo (estado de recepción, hora de detección)»); el lote y su resultado son de Application (D4). El procesador de docs se divide en **trabajadores** y **barredor** (dos `BackgroundService`) para respetar las 100 líneas; la lógica de ambos vive en casos de uso probables sin hilos. `IngestaOptions` va en `Application/` como dice `enfoque` §5.
+**Structure Decision**: plantilla de `enfoque-arquitectonico.md` §4.1 («Ingesta: Domain mínimo (estado de recepción, hora de detección)»); el lote y su resultado son de Application (D4). El procesador de docs se divide en **trabajadores** y **barredor** (dos `BackgroundService`) para respetar las 200 líneas; la lógica de ambos vive en casos de uso probables sin hilos. `IngestaOptions` va en `Application/` como dice `enfoque` §5.
 
 ## Complexity Tracking
 

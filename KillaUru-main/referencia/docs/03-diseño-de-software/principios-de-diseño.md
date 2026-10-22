@@ -60,7 +60,7 @@ flowchart LR
 
 **Cómo se comprueba, no solo se declara:**
 1. **Compilador:** cada módulo es un proyecto propio y todo es `internal` salvo `Contracts/` (ver `diseño-interno-de-modulos.md`, sección 2). Usar el interior de otro módulo **no compila**.
-2. **Pruebas de arquitectura (RNF-28):** NetArchTest verifica la tabla de capas de `enfoque-arquitectonico.md` (sección 3) regla por regla: `Domain` no referencia EF Core, ASP.NET, otras capas ni `Contracts/` de otro módulo; `Application` no referencia Adapters ni Infrastructure; `Adapters` solo usa Application; no hay ciclos entre módulos; y ningún archivo de código supera 100 líneas.
+2. **Pruebas de arquitectura (RNF-28):** NetArchTest verifica la tabla de capas de `enfoque-arquitectonico.md` (sección 3) regla por regla: `Domain` no referencia EF Core, ASP.NET, otras capas ni `Contracts/` de otro módulo; `Application` no referencia Adapters ni Infrastructure; `Adapters` solo usa Application; no hay ciclos entre módulos; y ningún archivo de código supera 199 líneas.
 3. **Pruebas unitarias:** si una clase necesita más de 3 dobles de prueba para probarse, tiene demasiadas responsabilidades.
 
 ## 4. Reglas de código del equipo

@@ -6,7 +6,7 @@
 
 ## Summary
 
-Crear la solución .NET 10 con sus 8 proyectos de producción y sus proyectos de prueba; el host de la API (sesión, roles, límite de tasa con techo por IP, errores, cabeceras, CORS, logs sin datos personales); el kernel `Shared` (value objects, eventos de dominio, métricas, contexto de transacción con `AlConfirmar`, programa de tareas por reloj); la documentación viva de la API (OpenAPI + Scalar); la observabilidad (OpenTelemetry + Serilog → Grafana Cloud, y Grafana Alloy para la VM); `/health/live` y `/health/ready`; el despliegue con Docker Compose (API, PostGIS, `cloudflared`, respaldo, Alloy); CI/CD con GitHub Actions; el entorno de pruebas con límites; las pruebas de arquitectura (incluido el límite de 100 líneas por archivo) y las pruebas de sistema (carga, picos, estrés, resistencia y caos).
+Crear la solución .NET 10 con sus 8 proyectos de producción y sus proyectos de prueba; el host de la API (sesión, roles, límite de tasa con techo por IP, errores, cabeceras, CORS, logs sin datos personales); el kernel `Shared` (value objects, eventos de dominio, métricas, contexto de transacción con `AlConfirmar`, programa de tareas por reloj); la documentación viva de la API (OpenAPI + Scalar); la observabilidad (OpenTelemetry + Serilog → Grafana Cloud, y Grafana Alloy para la VM); `/health/live` y `/health/ready`; el despliegue con Docker Compose (API, PostGIS, `cloudflared`, respaldo, Alloy); CI/CD con GitHub Actions; el entorno de pruebas con límites; las pruebas de arquitectura (incluido el límite de 200 líneas por archivo) y las pruebas de sistema (carga, picos, estrés, resistencia y caos).
 
 ## Technical Context
 
@@ -26,7 +26,7 @@ Crear la solución .NET 10 con sus 8 proyectos de producción y sus proyectos de
 
 **Performance Goals**: el middleware común agrega ≤ 2 ms por petición; las metas de negocio (RNF-01, RNF-02, RNF-03, RNF-23) se miden con las pruebas de sistema de esta feature
 
-**Constraints**: costo ≤ US$ 10/mes (RNF-16); telemetría dentro del plan gratuito (RNF-32); archivos de código (`.cs`, `.sql` de consultas, `.sh`, `.js`) ≤ 100 líneas; sin puertos abiertos (ADR-010); límites de CPU y memoria por contenedor
+**Constraints**: costo ≤ US$ 10/mes (RNF-16); telemetría dentro del plan gratuito (RNF-32); archivos de código (`.cs`, `.sql` de consultas, `.sh`, `.js`) < 200 líneas; sin puertos abiertos (ADR-010); límites de CPU y memoria por contenedor
 
 **Scale/Scope**: 300 dispositivos simultáneos (S-01), una sola instancia (S-03)
 
@@ -43,7 +43,7 @@ Crear la solución .NET 10 con sus 8 proyectos de producción y sus proyectos de
 | V. Privacidad | Logs, trazas y métricas sin seudónimo, IP, tokens, correos ni `sub` + `loteId` (FR-034) | ✅ |
 | VI. Acceso en el servidor | Middleware de sesión sin tolerancia de reloj + políticas por rol; regla 401/403 única; `private, no-store` por defecto | ✅ |
 | VII. Pruebas primero | Pruebas de value objects, de arquitectura y de límites antes del código; cobertura ≥ 90 % como puerta de CI | ✅ |
-| VIII. Código pequeño | Prueba de 100 líneas (`.cs`, `.sql`, `.sh`, `.js`); analizadores; advertencias como errores | ✅ |
+| VIII. Código pequeño | Prueba de 200 líneas (`.cs`, `.sql`, `.sh`, `.js`); analizadores; advertencias como errores | ✅ |
 | IX. API documentada | OpenAPI + Scalar; prueba de contrato en CI; `ProblemDetails` con `codigo` | ✅ |
 | X. Costo cero | GitHub Actions, GHCR, Cloudflare Access y Grafana Alloy en planes gratuitos | ✅ |
 
@@ -64,7 +64,7 @@ specs/001-plataforma-backend/
     └── trazabilidad.md
 ```
 
-### Source Code — árbol exacto (cada archivo de código ≤ 100 líneas)
+### Source Code — árbol exacto (cada archivo de código < 200 líneas)
 
 ```text
 .github/workflows/                           # en la raíz del repositorio (D10)

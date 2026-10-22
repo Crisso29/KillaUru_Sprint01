@@ -226,7 +226,7 @@ Como única persona del equipo, quiero saber al día 7 y al día 11 si voy a lle
 
 **G. Código y riesgo**
 
-- **FR-033**: Ningún `.py` ni `.kt` de `ml/` MUST pasar de 100 líneas (lo comprueba `ml/tests/test_limite_lineas.py` en `ml-ci.yml`); las pruebas se escriben antes del código. *(Constitución VII, VIII; ver propuesta de enmienda en `research.md`)*
+- **FR-033**: Ningún `.py` ni `.kt` de `ml/` MUST pasar de 200 líneas (lo comprueba `ml/tests/test_limite_lineas.py` en `ml-ci.yml`); las pruebas se escriben antes del código. *(Constitución VII, VIII; ver propuesta de enmienda en `research.md`)*
 - **FR-034**: `estado` MUST mostrar horas grabadas, ventanas por clase y conjunto frente a las metas, y las últimas métricas de validación, para los puntos de control de los días 7 y 11. *(HU-28, R-10; R-020, R-021)*
 
 ### Reglas y parámetros (`ml/config/*.yaml`)

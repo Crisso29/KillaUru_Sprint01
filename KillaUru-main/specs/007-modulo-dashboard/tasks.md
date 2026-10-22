@@ -9,7 +9,7 @@ description: "Tareas del módulo Dashboard"
 
 **Tests**: obligatorias y **primero** (constitución VII; las fórmulas se prueban con valores calculados a mano).
 
-**Formato**: `- [ ] T### [P?] [US?] Descripción — ruta · (requisito)`. Rutas relativas a `backend/`. Módulo: `src/Modules/KillaUru.Dashboard/` (`Da/`). Pruebas: `tests/KillaUru.Dashboard.Tests/` (`DaT/`) y `tests/KillaUru.Integracion.Tests/Dashboard/` (`IntDa/`). **Ningún `.cs` > 100 líneas.**
+**Formato**: `- [ ] T### [P?] [US?] Descripción — ruta · (requisito)`. Rutas relativas a `backend/`. Módulo: `src/Modules/KillaUru.Dashboard/` (`Da/`). Pruebas: `tests/KillaUru.Dashboard.Tests/` (`DaT/`) y `tests/KillaUru.Integracion.Tests/Dashboard/` (`IntDa/`). **Ningún `.cs` > 199 líneas.**
 
 > **Recortable**: HU-13 es *Should* y es la 4.ª en el orden de recorte. Si se recorta, no se crea el módulo (el esquema `dashboard` queda vacío).
 

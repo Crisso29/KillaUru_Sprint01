@@ -9,7 +9,7 @@ description: "Tareas del módulo Consulta de Mapa"
 
 **Tests**: obligatorias y **primero** (constitución VII; el recorte anónimo es un escenario crítico: EQ-11).
 
-**Formato**: `- [ ] T### [P?] [US?] Descripción — ruta · (requisito)`. Rutas relativas a `backend/`. Módulo: `src/Modules/KillaUru.Mapa/` (`Ma/`). Pruebas: `tests/KillaUru.Mapa.Tests/` (`MaT/`) y `tests/KillaUru.Integracion.Tests/Mapa/` (`IntMa/`). **Ningún `.cs` > 100 líneas.**
+**Formato**: `- [ ] T### [P?] [US?] Descripción — ruta · (requisito)`. Rutas relativas a `backend/`. Módulo: `src/Modules/KillaUru.Mapa/` (`Ma/`). Pruebas: `tests/KillaUru.Mapa.Tests/` (`MaT/`) y `tests/KillaUru.Integracion.Tests/Mapa/` (`IntMa/`). **Ningún `.cs` > 199 líneas.**
 
 ## Phase 1: Setup
 

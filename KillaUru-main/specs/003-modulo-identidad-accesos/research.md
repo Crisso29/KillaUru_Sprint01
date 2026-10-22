@@ -92,7 +92,7 @@ Las decisiones marcadas **«Derivado del prototipo»** o **«Decisión de diseñ
 
 ## R-016 · Resultados en Application (D4)
 
-- **Decision**: `ResultadoLogin`, `ResultadoRenovacion`, `ResultadoEnlace` y `ResultadoGestion` pasan de `Domain/Resultados.cs` a `Application/Resultados/`, un archivo cada uno (≤ 100 líneas). Los controladores y DTOs no referencian `Domain/` (`enfoque` §3); rol, estado y documento viajan como texto y Application los convierte. `UsuariosController` se parte en `UsuariosController` (listar, crear) y `EstadoUsuarioController` (rol, desactivar, activar, reenviar) (ARQ-08).
+- **Decision**: `ResultadoLogin`, `ResultadoRenovacion`, `ResultadoEnlace` y `ResultadoGestion` pasan de `Domain/Resultados.cs` a `Application/Resultados/`, un archivo cada uno (< 200 líneas). Los controladores y DTOs no referencian `Domain/` (`enfoque` §3); rol, estado y documento viajan como texto y Application los convierte. `UsuariosController` se parte en `UsuariosController` (listar, crear) y `EstadoUsuarioController` (rol, desactivar, activar, reenviar) (ARQ-08).
 
 ## R-017 · Primer administrador sin pasar por los logs (T-SEG14)
 

@@ -22,7 +22,7 @@ App Kotlin *offline-first* con las tres capas de `enfoque-arquitectonico.md` §9
 
 **Performance Goals**: inferencia < 50 ms p95 (RNF-04); ≤ 5 %/h de batería con pantalla apagada, < 1 MB/h de datos, < 100 MB (RNF-15); reanudar la sincronización ≤ 60 s (RNF-33); proyección del GPS de costo casi constante a 1 Hz (`diseño-interno` §7.3)
 
-**Constraints**: nada del flujo de detección, guardado, mapa o alertas necesita red; ningún `.kt`/`.kts`/`.py`/`.sh` > 100 líneas; reloj del sistema prohibido fuera de `RelojSistema`; sin migración destructiva; sin copia de seguridad de Android
+**Constraints**: nada del flujo de detección, guardado, mapa o alertas necesita red; ningún `.kt`/`.kts`/`.py`/`.sh` > 199 líneas; reloj del sistema prohibido fuera de `RelojSistema`; sin migración destructiva; sin copia de seguridad de Android
 
 **Scale/Scope**: ~24 pantallas; ≤ 85 000 eventos en el peor caso de 14 días; ~ miles de anomalías; 1 PMTiles ≤ 80 MB
 
@@ -39,7 +39,7 @@ La constitución 1.1.0 está escrita para el backend; donde no encaja se aplica 
 | V. Privacidad | Seudónimo aleatorio mensual; historial solo local y borrado al cerrar sesión; sin copia de seguridad; tokens cifrados | ✅ (SQLCipher pendiente del autor, R-028) |
 | VI. El servidor decide | La app no recorta por su cuenta lo que el servidor no recortó; el permiso local solo habilita lo que el servidor ya entregó (`enfoque` §9 principio 3) | ✅ |
 | VII. Pruebas primero | Cada regla del dominio con valores límite antes del código; contrato contra los YAML; CI de la app (FR-077) | ✅ (herramientas adaptadas) |
-| VIII. Código pequeño | Árbol de abajo con archivos ≤ 100 líneas; `verificar_lineas.py` y Konsist; detekt `ForbiddenMethodCall` | ✅ (amplía la regla a `.kt`, `.kts`, `.py`) |
+| VIII. Código pequeño | Árbol de abajo con archivos < 200 líneas; `verificar_lineas.py` y Konsist; detekt `ForbiddenMethodCall` | ✅ (amplía la regla a `.kt`, `.kts`, `.py`) |
 | IX. Contratos | La app no publica endpoints; consume los YAML y publica `cdn.openapi.yaml` para R2 | ✅ |
 | X. Costo cero | R2 público (plan gratuito), GitHub Actions, Protomaps/OSM; sin servicios de Google Play | ✅ |
 
@@ -63,7 +63,7 @@ proguard-rules.pro
 schemas/pe.killauru.app.comun.datos.bd.KillaUruBd/1.json      # generado por Room, en git (R-006)
 mediciones/informe-campo.md                    # RNF-04, RNF-15, EQ-01 (R-030)
 herramientas/
-├── verificar_lineas.py                        # ≤ 100 líneas en .kt/.kts/.py/.sh (FR-076)
+├── verificar_lineas.py                        # < 200 líneas en .kt/.kts/.py/.sh (FR-076)
 ├── corredor/ generar_corredor.py · verificar_datos.py · generar_manifiesto.py · km_referencia.csv · requisitos.txt
 └── mapa/ region_corredor.py · generar_pmtiles.sh
 src/main/AndroidManifest.xml                   # permisos RF-35, servicio location, allowBackup=false (R-027)

@@ -39,4 +39,4 @@
 - [ ] CHK025 `diseño-interno` §7.4 · sensores en lote y prefiltro → FR-001, FR-018 → T018, T044
 - [ ] CHK026 D10 · GitHub Actions (CI de `ml/` y publicación manual) → FR-030, FR-033 → T004, T066
 - [ ] CHK027 D16 · polilínea de 004 para el kilometraje → FR-017 → T012
-- [ ] CHK028 Constitución VII y VIII · pruebas primero; `.py`/`.kt` ≤ 100 líneas → FR-033 → T003, T004
+- [ ] CHK028 Constitución VII y VIII · pruebas primero; `.py`/`.kt` < 200 líneas → FR-033 → T003, T004

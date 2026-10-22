@@ -15,7 +15,7 @@ dotnet build                       # sin advertencias; una llamada a DateTime.Ut
 dotnet test --collect:"XPlat Code Coverage"   # Shared, Arquitectura e Integracion en verde; Domain ≥ 90 %
 ```
 
-**Esperado:** `LimiteDeLineasTests` en verde (ningún `.cs`, `.sql` de consultas, `.sh` o `.js` > 100 líneas); `ReglasDeCapasTests`, `ReglasDeDominioTests` y `ReglasDeModulosTests` en verde.
+**Esperado:** `LimiteDeLineasTests` en verde (ningún `.cs`, `.sql` de consultas, `.sh` o `.js` > 199 líneas); `ReglasDeCapasTests`, `ReglasDeDominioTests` y `ReglasDeModulosTests` en verde.
 
 ## 2. Levantar con un comando (US1) — orden del primer despliegue
 

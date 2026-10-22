@@ -65,6 +65,6 @@
 ## Constitución (adaptada, propuesta en `research.md`)
 
 - [ ] CHK047 VII · pruebas antes del código; cobertura de `modelo/` ≥ 90 %; CI en cada PR → FR-049 → T009, T090
-- [ ] CHK048 VIII · archivos ≤ 100 líneas y reloj inyectado → FR-047 → T003, T005
+- [ ] CHK048 VIII · archivos < 200 líneas y reloj inyectado → FR-047 → T003, T005
 - [ ] CHK049 IX · tipos generados desde los YAML y datos simulados validados → FR-048 → T006, T011, T090
 - [ ] CHK050 X · costo cero (Pages, Actions, Turnstile, librerías libres) → FR-049, FR-050 → T091

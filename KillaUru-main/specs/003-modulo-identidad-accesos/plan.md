@@ -20,7 +20,7 @@ Módulo con dominio propio (usuario, bloqueo RN-19, sesión rotativa con gracia,
 
 **Performance Goals**: login < 500 ms p95 (SC-005); renovación < 50 ms p95
 
-**Constraints**: RNF-26 (≤ 5 min), RN-19 (no revelar cuentas de conductores), RNF-10 (sin vínculo con eventos, ni inferible por la hora: D3), Adapters solo usa Application (D4), archivos ≤ 100 líneas; las transacciones se confirman con `IContextoTransaccion.ConfirmarAsync` (no con `CommitAsync` directo) para que corran los `AlConfirmar` (001, D15)
+**Constraints**: RNF-26 (≤ 5 min), RN-19 (no revelar cuentas de conductores), RNF-10 (sin vínculo con eventos, ni inferible por la hora: D3), Adapters solo usa Application (D4), archivos < 200 líneas; las transacciones se confirman con `IContextoTransaccion.ConfirmarAsync` (no con `CommitAsync` directo) para que corran los `AlConfirmar` (001, D15)
 
 **Scale/Scope**: cientos a pocos miles de cuentas; ~300 conductores activos (S-01)
 
@@ -63,7 +63,7 @@ backend/src/Modules/KillaUru.Identidad/
 │   ├── Correo.cs                             # value object: recorta, minúsculas, formato
 │   ├── RolUsuario.cs                         # enum: ConductorRegistrado = 1, Administrador = 2
 │   ├── Usuario.cs                            # estado, rol, verificación, contraseña
-│   ├── Usuario.Bloqueo.cs                    # partial: RegistrarFallo, RegistrarExito, EstaBloqueado (RN-19)
+│   ├── PoliticaBloqueo.cs                     # RegistrarFallo, RegistrarExito, EstaBloqueado (RN-19)
 │   ├── ParametrosBloqueo.cs                  # record: intentos, ventana, duraciones
 │   ├── SesionRenovacion.cs                   # vigencia, uso, revocación, ¿dentro de la gracia?
 │   ├── PoliticaSesion.cs                     # calcula vencimiento (30 d deslizante / 8 h absolutas)
@@ -99,7 +99,7 @@ backend/src/Modules/KillaUru.Identidad/
 │   ├── Privilegios/ ConsultarRevisionUseCase.cs · RegistrarRevisionUseCase.cs
 │   ├── Tareas/ PurgarIdentidadUseCase.cs     # D3; registra RegistrarTareaCorrecta("purga-identidad")
 │   └── IdentidadConsultas.cs                 # implementa IIdentidadConsultas
-├── Adapters/                                 # (docs: AuthController y UsuariosController, divididos para ≤ 100 líneas; solo usa Application, D4)
+├── Adapters/                                 # (docs: AuthController y UsuariosController, divididos para < 200 líneas; solo usa Application, D4)
 │   ├── SesionController.cs                   # /auth/inicio-sesion, /auth/renovar, /auth/cerrar-sesion
 │   ├── CuentaController.cs                   # /auth/registro, /auth/verificar-correo, /auth/recuperar, /auth/fijar-contrasena
 │   ├── MeController.cs                       # /me (GET, DELETE), /me/aceptaciones, /me/reenviar-verificacion
@@ -126,7 +126,7 @@ backend/tests/KillaUru.Integracion.Tests/Identidad/   Repositorios, AuditoriaEnL
 deploy/runbooks/restaurar.md · simulacros.md   # (de 001) sección «Identidad» y fila de la revisión mensual
 ```
 
-**Structure Decision**: plantilla de `enfoque-arquitectonico.md` §4.1 («Identidad y Accesos: `Usuario`, `Rol`, política de bloqueo; registro, login, refresh con 60 s de gracia, cierre de sesión, gestión de usuarios y revisión mensual; `AuthController`, `UsuariosController`; repositorio EF, emisor de JWT, adaptador de correo»). Los dos controladores de docs se dividen en 7 por el límite de 100 líneas, sin cambiar las responsabilidades. Los resultados de los casos de uso viven en `Application/Resultados/` (D4): ningún controlador ni DTO referencia `Domain/`; los DTOs usan texto para rol, estado y documento y Application lo convierte a los enums del dominio. `ITransaccionIdentidad` (antes `IUnidadTrabajoIdentidad`) se renombra porque `patrones` descarta un *Unit of Work* propio (ARQ-12).
+**Structure Decision**: plantilla de `enfoque-arquitectonico.md` §4.1 («Identidad y Accesos: `Usuario`, `Rol`, política de bloqueo; registro, login, refresh con 60 s de gracia, cierre de sesión, gestión de usuarios y revisión mensual; `AuthController`, `UsuariosController`; repositorio EF, emisor de JWT, adaptador de correo»). Los dos controladores de docs se dividen en 7 por el límite de 200 líneas, sin cambiar las responsabilidades. Los resultados de los casos de uso viven en `Application/Resultados/` (D4): ningún controlador ni DTO referencia `Domain/`; los DTOs usan texto para rol, estado y documento y Application lo convierte a los enums del dominio. `ITransaccionIdentidad` (antes `IUnidadTrabajoIdentidad`) se renombra porque `patrones` descarta un *Unit of Work* propio (ARQ-12).
 
 ## Complexity Tracking
 

@@ -6,7 +6,7 @@
 
 ## Summary
 
-SPA **sin reglas de negocio** en `panel/`: React 19 + TypeScript + Vite, servida por Cloudflare Pages en `panel.killauru.pe` con cabeceras de seguridad en `_headers`. La sesión vive solo en las cookies `HttpOnly` de la API y se renueva en silencio (un solo renovador compartido + reintento tras 401). Los tipos del cliente se **generan desde los YAML** de 001–007 (`openapi-typescript` + `openapi-fetch`) y el estado del servidor lo maneja TanStack Query con una política de refresco que evita multiplicar las lecturas que la API audita (D15). El mapa usa MapLibre GL JS con el PMTiles del corredor leído por rangos desde `cdn.killauru.pe` y se carga solo en «Mapa». El código se organiza por funcionalidades (una por pantalla de `componentes-arquitectonicos.md` §5.1) con capas `ui → api → modelo` y archivos ≤ 100 líneas.
+SPA **sin reglas de negocio** en `panel/`: React 19 + TypeScript + Vite, servida por Cloudflare Pages en `panel.killauru.pe` con cabeceras de seguridad en `_headers`. La sesión vive solo en las cookies `HttpOnly` de la API y se renueva en silencio (un solo renovador compartido + reintento tras 401). Los tipos del cliente se **generan desde los YAML** de 001–007 (`openapi-typescript` + `openapi-fetch`) y el estado del servidor lo maneja TanStack Query con una política de refresco que evita multiplicar las lecturas que la API audita (D15). El mapa usa MapLibre GL JS con el PMTiles del corredor leído por rangos desde `cdn.killauru.pe` y se carga solo en «Mapa». El código se organiza por funcionalidades (una por pantalla de `componentes-arquitectonicos.md` §5.1) con capas `ui → api → modelo` y archivos < 200 líneas.
 
 ## Technical Context
 
@@ -24,7 +24,7 @@ SPA **sin reglas de negocio** en `panel/`: React 19 + TypeScript + Vite, servida
 
 **Performance Goals**: JS inicial ≤ 120 KB gzip; bloque del mapa ≤ 300 KB gzip; mapa listo ≤ 3 s p95; LCP del Resumen ≤ 2,5 s (R-023)
 
-**Constraints**: sin reglas de negocio; sin token ni datos personales en el navegador; CSP sin `unsafe-inline`/`unsafe-eval`; costo cero; archivos ≤ 100 líneas; solo español
+**Constraints**: sin reglas de negocio; sin token ni datos personales en el navegador; CSP sin `unsafe-inline`/`unsafe-eval`; costo cero; archivos < 200 líneas; solo español
 
 **Scale/Scope**: pocos administradores (≤ 5 a la vez); 8 pantallas + 3 páginas de enlaces; pocos miles de anomalías en el mapa con el filtro inicial
 
@@ -41,7 +41,7 @@ La constitución 1.1.0 está pensada para el backend; aquí se aplica su intenci
 | V. Privacidad | Nada en `localStorage`/`sessionStorage`/IndexedDB; sin analítica ni fuentes de terceros; seudónimo tachado en la exportación; correos resueltos solo cuando se muestran (D15) | ✅ |
 | VI. Acceso en el servidor | El panel nunca decide permisos (FR-002); sesión solo en cookie `HttpOnly`; `private, no-store` lo pone la API | ✅ |
 | VII. Pruebas primero | Cada fase empieza por sus pruebas; `modelo/` con cobertura ≥ 90 %; E2E de los flujos críticos; CI en cada PR | ✅ |
-| VIII. Código pequeño | Archivos `.ts`/`.tsx` ≤ 100 líneas (prueba), funciones cortas, nombres de negocio en español | ✅ (ampliado a TS) |
+| VIII. Código pequeño | Archivos `.ts`/`.tsx` < 200 líneas (prueba), funciones cortas, nombres de negocio en español | ✅ (ampliado a TS) |
 | IX. API por contrato | Tipos generados desde los YAML; datos simulados validados con Ajv; el panel no usa ningún endpoint fuera de los contratos | ✅ |
 | X. Costo cero | Pages, GitHub Actions, librerías libres, Turnstile gratis; sin servidor propio | ✅ |
 
@@ -149,7 +149,7 @@ panel/
 .github/workflows/ panel-ci.yml · panel-deploy.yml   # en la raíz del repositorio (../ desde panel/)
 ```
 
-Las pruebas unitarias y de componentes van **junto a su archivo** (`filtros.ts` → `filtros.test.ts`, `PaginaMapa.tsx` → `PaginaMapa.test.tsx`). También cumplen las 100 líneas.
+Las pruebas unitarias y de componentes van **junto a su archivo** (`filtros.ts` → `filtros.test.ts`, `PaginaMapa.tsx` → `PaginaMapa.test.tsx`). También cumplen las 200 líneas.
 
 **Structure Decision**: una funcionalidad por pantalla de §5.1 (más `cuenta/` por 003 R-006). Las dependencias entre funcionalidades permitidas (solo por `index.ts`) son: `mapa → moderacion` (acciones en el detalle), `mapa → usuarios` (correo de los actores del historial), `resumen → mapa, moderacion, usuarios`, `auditoria → usuarios`, `exportacion → auditoria, usuarios`. `app/marco` usa `mapa` (búsqueda) y `moderacion` (contador). No hay ciclos.
 

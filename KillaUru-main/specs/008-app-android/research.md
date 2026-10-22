@@ -168,7 +168,7 @@ Cada decisión dice qué se decidió, por qué, qué se descartó y de dónde sa
 | Datos (red) | OkHttp `MockWebServer` + validación contra los YAML (`swagger-parser` 2.1 para OpenAPI 3.1 + `networknt json-schema-validator` 2020-12) | Contrato HTTP real, sin servidor |
 | WorkManager | `work-testing` (`WorkManagerTestInitHelper`, `TestDriver`, `TestListenableWorkerBuilder`) | Restricciones, esperas, reemplazos |
 | UI | Compose testing (`createComposeRule`) con Robolectric y en dispositivo | Textos, toques, estados |
-| Arquitectura | Konsist | Capas, 100 líneas, reloj prohibido, sin migración destructiva |
+| Arquitectura | Konsist | Capas, 200 líneas, reloj prohibido, sin migración destructiva |
 | Campo | Reproductor de sensores, modo avión, `dumpsys batterystats`, `TrafficStats` | EQ-01, RNF-15 |
 
 - **Rationale**: equivalentes Android de la pirámide de la constitución VII (xUnit, NSubstitute, `FakeTimeProvider`, Testcontainers, `WebApplicationFactory`, NetArchTest). Ver la propuesta de enmienda.
@@ -218,7 +218,7 @@ La constitución 1.1.0 está escrita para el backend. Para la app se propone una
 1. **II.** Agregar un párrafo «App Android»: tres capas de `enfoque` §9 (`dominio` ← `ui`, `dominio` ← `datos`), un solo módulo Gradle por funcionalidad (`diseño-interno` §7.1), verificado con **Konsist** en cada build.
 2. **III.** «Ningún umbral es una constante»: en la app, los umbrales viven en `assets/parametros.json` (`ParametrosApp`) y en el manifiesto del modelo; cambiarlos exige un APK nuevo pero no cambiar código (`enfoque` §5: «en el APK»). El reloj es el puerto `Reloj` (R-003), no `TimeProvider`.
 3. **VII.** Pirámide de la app: JUnit + `kotlinx-coroutines-test` (dominio) → Robolectric + Room en memoria y `MigrationTestHelper` → MockWebServer contra los YAML → `work-testing` → Compose testing → Konsist → campo. Cobertura con **Kover** ≥ 90 % de los paquetes `dominio`. CI de la app en cada PR que toque `app/` (`app-ci.yml`).
-4. **VIII.** La regla de 100 líneas incluye `.kt`, `.kts` y `.py` (excepto generados por Room/KSP y `schemas/*.json`). El equivalente de `BannedApiAnalyzers` es detekt `ForbiddenMethodCall` (`System.currentTimeMillis`, `Instant.now`, `Clock.systemUTC`, `Date()`, `LocalDateTime.now`, `fallbackToDestructiveMigration`). Métodos ≤ 20 líneas (`LongMethod`), `allWarningsAsErrors = true`, resultados con `sealed interface` en lugar de excepciones para el flujo de negocio.
+4. **VIII.** La regla de 200 líneas incluye `.kt`, `.kts` y `.py` (excepto generados por Room/KSP y `schemas/*.json`). El equivalente de `BannedApiAnalyzers` es detekt `ForbiddenMethodCall` (`System.currentTimeMillis`, `Instant.now`, `Clock.systemUTC`, `Date()`, `LocalDateTime.now`, `fallbackToDestructiveMigration`). Métodos ≤ 20 líneas (`LongMethod`), `allWarningsAsErrors = true`, resultados con `sealed interface` en lugar de excepciones para el flujo de negocio.
 5. **IX.** La app no publica endpoints: consume los YAML de `specs/*/contracts/` y los verifica con pruebas de contrato; los archivos de `cdn.killauru.pe` tienen su contrato en `008/contracts/cdn.openapi.yaml`.
 6. **Restricciones.** Fila «App móvil»: el stack de `estilo-arquitectonico.md` (Kotlin, Compose, Room, WorkManager, Hilt, Retrofit + OkHttp, LiteRT, MapLibre Native, DataStore + Keystore, `minSdk` 26) y «APK fuera de Play Store (S-02)».
 

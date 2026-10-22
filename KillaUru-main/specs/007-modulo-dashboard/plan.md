@@ -20,7 +20,7 @@ Módulo de **soporte con dominio liviano** (`enfoque` §4.1): una tarea diaria p
 
 **Performance Goals**: el resumen lee ≤ 540 filas con una consulta; la tarea hace 2 llamadas por día
 
-**Constraints**: ningún dato que identifique; ninguna lectura de tablas ajenas; archivos ≤ 100 líneas
+**Constraints**: ningún dato que identifique; ninguna lectura de tablas ajenas; archivos < 200 líneas
 
 **Scale/Scope**: 9 filas por día; ~6 600 filas en 2 años
 

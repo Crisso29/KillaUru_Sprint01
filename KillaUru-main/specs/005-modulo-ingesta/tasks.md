@@ -9,7 +9,7 @@ description: "Tareas del módulo Ingesta"
 
 **Tests**: obligatorias y **primero** (constitución VII; el contrato del lote y la prueba de reinicio son críticos: EQ-02, EQ-09).
 
-**Formato**: `- [ ] T### [P?] [US?] Descripción — ruta · (requisito)`. Rutas relativas a `backend/`. Módulo: `src/Modules/KillaUru.Ingesta/` (`In/`). Pruebas: `tests/KillaUru.Ingesta.Tests/` (`InT/`) y `tests/KillaUru.Integracion.Tests/Ingesta/` (`IntIn/`). **Ningún `.cs` > 100 líneas.**
+**Formato**: `- [ ] T### [P?] [US?] Descripción — ruta · (requisito)`. Rutas relativas a `backend/`. Módulo: `src/Modules/KillaUru.Ingesta/` (`In/`). Pruebas: `tests/KillaUru.Ingesta.Tests/` (`InT/`) y `tests/KillaUru.Integracion.Tests/Ingesta/` (`IntIn/`). **Ningún `.cs` > 199 líneas.**
 
 ## Phase 1: Setup
 
@@ -67,7 +67,7 @@ description: "Tareas del módulo Ingesta"
 
 ### Implementación
 
-- [ ] T021 [US3] Puertos `IPendientesRepositorio` e `IBarridoPendientes`; `PendientesRepositorio` y `BarridoPendientesPostgres` (partidos para no pasar de 100 líneas) — `In/Application/Puertos/`, `In/Infrastructure/` · (FR-013, FR-016; T-ARQ08)
+- [ ] T021 [US3] Puertos `IPendientesRepositorio` e `IBarridoPendientes`; `PendientesRepositorio` y `BarridoPendientesPostgres` (partidos para no pasar de 200 líneas) — `In/Application/Puertos/`, `In/Infrastructure/` · (FR-013, FR-016; T-ARQ08)
 - [ ] T022 [US3] `ArmadorContexto` y `ProcesarLoteUseCase` (con `RegistrarRetrasoCola`) — `In/Application/Procesamiento/` · (FR-012…FR-015, FR-026; D11)
 - [ ] T023 [US3] `ProcesadorEventosBackgroundService` (N = `Trabajadores` o núcleos; un *scope* por lote) — `In/Infrastructure/ProcesadorEventosBackgroundService.cs` · (FR-012)
 - [ ] T024 [US3] `ProcesamientoTests` de punta a punta con Anomalías real: lote → filas `Procesado`/`Descartado` y anomalías creadas — `IntIn/ProcesamientoTests.cs` · (FR-013, FR-014)

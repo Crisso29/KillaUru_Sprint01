@@ -14,7 +14,7 @@ pip install -e . --no-deps
 ## 1. Pruebas automáticas (sin datos reales)
 
 ```powershell
-pytest                                   # unitarias, no-fuga, límite de 100 líneas, determinismo, equivalencia
+pytest                                   # unitarias, no-fuga, límite de 200 líneas, determinismo, equivalencia
 ruff check .
 python -m killauru_ml todo --version 0.0.1 --sintetico     # pipeline completo con el dataset sintético
 python -m killauru_ml todo --version 0.0.2 --sintetico     # misma semilla → mismas métricas y misma huella de pesos (SC-003)

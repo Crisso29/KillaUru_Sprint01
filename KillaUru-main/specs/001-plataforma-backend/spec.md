@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Input**: User description: "Base común del backend de KillaUru: levantar todo con un comando, seguridad común a todas las peticiones, documentación viva de la API, salud y monitoreo, respaldo y vuelta atrás, y reglas de arquitectura (incluido el límite de 100 líneas por archivo) verificadas en cada compilación."
+**Input**: User description: "Base común del backend de KillaUru: levantar todo con un comando, seguridad común a todas las peticiones, documentación viva de la API, salud y monitoreo, respaldo y vuelta atrás, y reglas de arquitectura (incluido el límite de 200 líneas por archivo) verificadas en cada compilación."
 
 **Revisión 2026-10-21**: aplica las decisiones del autor D2, D4, D8, D9, D10, D11, D12 y D15 y las correcciones técnicas T-BD01, T-OPS05/08/09/17/19, T-QA14/16/17/18/20 y T-SEG03/09/20 de `specs/revision/plan-de-cambios.md`.
 
@@ -136,7 +136,7 @@ Como equipo, quiero respaldo diario cifrado fuera del servidor, vuelta a la vers
 
 ### User Story 6 - Reglas de arquitectura y de tamaño que no se pueden romper (Priority: P1)
 
-Como autor, quiero que la compilación o las pruebas fallen si un módulo usa el interior de otro, si hay ciclos, si una capa usa otra que no le corresponde, si el dominio depende de frameworks o del reloj real, o si un archivo de código pasa de 100 líneas, para que el sistema siga ordenado mientras crece (RNF-28; constitución II y VIII).
+Como autor, quiero que la compilación o las pruebas fallen si un módulo usa el interior de otro, si hay ciclos, si una capa usa otra que no le corresponde, si el dominio depende de frameworks o del reloj real, o si un archivo de código pasa de 199 líneas, para que el sistema siga ordenado mientras crece (RNF-28; constitución II y VIII).
 
 **Why this priority**: Impedir el desorden desde la primera línea es más barato que corregirlo.
 
@@ -146,7 +146,7 @@ Como autor, quiero que la compilación o las pruebas fallen si un módulo usa el
 
 1. **Given** un módulo que usa una clase `internal` de otro, **When** se compila, **Then** no compila.
 2. **Given** un `Domain` que usa EF Core o ASP.NET, un ciclo entre módulos o un `DbContext` ajeno, **When** se ejecutan las pruebas de arquitectura, **Then** fallan.
-3. **Given** un archivo `.cs`, `.sql` de consultas, `.sh` o `.js` de más de 100 líneas (las migraciones `V*.sql`, los generados y los OpenAPI no cuentan), **When** se ejecutan las pruebas de arquitectura, **Then** fallan e indican el archivo y su número de líneas (T-QA17).
+3. **Given** un archivo `.cs`, `.sql` de consultas, `.sh` o `.js` de más de 199 líneas (las migraciones `V*.sql`, los generados y los OpenAPI no cuentan), **When** se ejecutan las pruebas de arquitectura, **Then** fallan e indican el archivo y su número de líneas (T-QA17).
 4. **Given** un controlador o DTO de `Adapters` que usa un tipo de `Domain`, un `Domain` que usa `Contracts/` de otro módulo o un `Application` que usa `Adapters` o `Infrastructure`, **When** se ejecutan las pruebas de arquitectura, **Then** fallan (D4).
 5. **Given** cualquier código que llama `DateTime.Now/UtcNow` o `DateTimeOffset.Now/UtcNow`, **When** se compila, **Then** el analizador de API prohibidas rompe el build (T-QA16).
 
@@ -261,7 +261,7 @@ Como autor, quiero pruebas de carga combinada, picos, estrés, resistencia y cao
 
 **G. Reglas de arquitectura, CI/CD y pruebas de sistema**
 
-- **FR-029**: La compilación o las pruebas MUST fallar ante: uso del interior de otro módulo, ciclos, `Domain` con EF Core o ASP.NET, uso de un `DbContext` ajeno, o un archivo de código de más de 100 líneas (`.cs`, `.sql` de consultas, `.sh` y `.js`; excluye migraciones `V*.sql`, generados y OpenAPI). *(RNF-28; constitución II y VIII; T-QA17)*
+- **FR-029**: La compilación o las pruebas MUST fallar ante: uso del interior de otro módulo, ciclos, `Domain` con EF Core o ASP.NET, uso de un `DbContext` ajeno, o un archivo de código de más de 199 líneas (`.cs`, `.sql` de consultas, `.sh` y `.js`; excluye migraciones `V*.sql`, generados y OpenAPI). *(RNF-28; constitución II y VIII; T-QA17)*
 - **FR-032**: El arranque de la BD MUST hacerse con `V0000__arranque.sql`, que `migrar.sh --arranque` ejecuta una sola vez **como superusuario** (`KU_PG_SUPERUSUARIO`): roles `killauru_migrador`/`killauru_app`, extensiones `postgis` y `citext`, esquemas, tabla `migraciones.aplicada` y permisos. `V0001…V0007` corren con `killauru_migrador` y `psql -v ON_ERROR_STOP=1 --single-transaction`. Testcontainers aplica los mismos scripts con los mismos roles. Orden del primer despliegue: arranque → migraciones → `up`. *(RNF-18, `diseño-interno` §3.7; T-BD01 — Decisión SDD)*
 - **FR-035**: Las pruebas de arquitectura MUST verificar la tabla de capas de `enfoque` §3: Adapters ↛ Domain; Domain ↛ `Contracts/` de otro módulo; Domain ↛ Application/Adapters/Infrastructure; Application ↛ Adapters/Infrastructure; Infrastructure ↛ Adapters. *(RNF-28, `enfoque-arquitectonico.md` §3; D4)*
 - **FR-036**: El build MUST fallar si algún código usa `DateTime.Now`, `DateTime.UtcNow`, `DateTimeOffset.Now` o `DateTimeOffset.UtcNow` (`Microsoft.CodeAnalysis.BannedApiAnalyzers` con `BannedSymbols.txt` en `Directory.Build.props`). *(ADR-012, constitución III; T-QA16)*
@@ -283,7 +283,7 @@ Como autor, quiero pruebas de carga combinada, picos, estrés, resistencia y cao
 | D8 registros por IP | `LimiteTasa:RegistrosPorHoraPorIp` | 5 | `ApiOptions` |
 | RF-28 antigüedad máxima de la cola | `Ingesta:AntiguedadMaximaColaMinutos` | 5 | `IngestaOptions` (feature 005) |
 | RNF-32 muestreo de trazas | `Telemetria:MuestreoTrazas` | 0,10 | `ApiOptions` |
-| Constitución VIII | `LineasMaximasPorArchivo` | 100 | `KillaUru.Arquitectura.Tests` |
+| Constitución VIII | `LineasMaximasPorArchivo` | 199 | `KillaUru.Arquitectura.Tests` |
 | D10 cobertura del dominio | umbral de coverlet en `ci.yml` | 90 % | `.github/workflows/ci.yml` |
 
 ### Key Entities
@@ -302,7 +302,7 @@ Como autor, quiero pruebas de carga combinada, picos, estrés, resistencia y cao
 - **SC-002**: La vuelta a la versión anterior toma < 5 min en el simulacro (RNF-18).
 - **SC-003**: Una caída genera alerta por correo en ≤ 10 min (RNF-20).
 - **SC-004**: El 100 % de los endpoints de `/api/v1` aparecen en `/docs` con todos sus códigos y coinciden con su contrato.
-- **SC-005**: El 100 % de las pruebas de arquitectura pasan y 0 archivos de código superan 100 líneas.
+- **SC-005**: El 100 % de las pruebas de arquitectura pasan y 0 archivos de código superan 199 líneas.
 - **SC-006**: La restauración cumple RPO ≤ 24 h y RTO ≤ 2 h; la recreación de la VM, ≤ 4 h (RNF-24).
 - **SC-007**: Disponibilidad mensual ≥ 99 % (RNF-05).
 - **SC-008**: Costo mensual ≤ US$ 10, con alerta a US$ 8 (RNF-16).

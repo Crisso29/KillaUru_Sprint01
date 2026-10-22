@@ -9,7 +9,7 @@ description: "Tareas del módulo Anomalías"
 
 **Tests**: obligatorias y **primero** (constitución VII: es el módulo con más reglas).
 
-**Formato**: `- [ ] T### [P?] [US?] Descripción — ruta · (requisito)`. Rutas relativas a `backend/`. Módulo: `src/Modules/KillaUru.Anomalias/` (`An/`). Pruebas: `tests/KillaUru.Anomalias.Tests/` (`AnT/`) y `tests/KillaUru.Integracion.Tests/Anomalias/` (`IntAn/`). **Ningún `.cs` > 100 líneas.**
+**Formato**: `- [ ] T### [P?] [US?] Descripción — ruta · (requisito)`. Rutas relativas a `backend/`. Módulo: `src/Modules/KillaUru.Anomalias/` (`An/`). Pruebas: `tests/KillaUru.Anomalias.Tests/` (`AnT/`) y `tests/KillaUru.Integracion.Tests/Anomalias/` (`IntAn/`). **Ningún `.cs` > 199 líneas.**
 
 ## Phase 1: Setup
 
@@ -45,7 +45,7 @@ description: "Tareas del módulo Anomalías"
 - [ ] T019 [P] `PoliticaConfirmacion` (código de referencia de `diseño-interno` §6.2) — `An/Domain/PoliticaConfirmacion.cs` · (FR-010, FR-011)
 - [ ] T020 [P] `ReglaPersistencia` (código de referencia de `enfoque` §5) — `An/Domain/ReglaPersistencia.cs` · (FR-016)
 - [ ] T021 [P] `EstadoPersistencia`, `AccionAdmin` (4 acciones; se queda en Domain, D4), `Transicion`, `ReglasAnomalia` — `An/Domain/`
-- [ ] T022 `Anomalia` en 4 archivos `partial` (`Anomalia.cs`, `.Reportes.cs`, `.Moderacion.cs`, `.Transiciones.cs`) — `An/Domain/` · (FR-008…FR-020, FR-025, FR-032; R-014)
+- [ ] T022 `Anomalia` y sus colaboradores, una clase por archivo (`Anomalia.cs`, `ReglaRenacimiento.cs`, `TablaModeracion.cs`, `RegistroTransiciones.cs`; sin `partial`) — `An/Domain/` · (FR-008…FR-020, FR-025, FR-032; R-014)
 
 **Checkpoint**: `KillaUru.Anomalias.Tests` en verde; cobertura del dominio ≥ 90 % (SC-006). 005 puede empezar.
 
@@ -68,7 +68,7 @@ description: "Tareas del módulo Anomalías"
 
 - [ ] T028 [US2] Puertos `IAnomaliaRepository` e `ITransaccionAnomalias` (`An/Application/Puertos/`), `AnomaliasDbContext` y 4 configuraciones (`geography`, `timestamptz[]`, enums `smallint`) — `An/Infrastructure/` · (T-ARQ06)
 - [ ] T029 [US2] `TransaccionAnomalias` (bloqueos ordenados + `IContextoTransaccion.Unir`) — `An/Infrastructure/TransaccionAnomalias.cs` · (FR-007; R-004)
-- [ ] T030 [US2] `AnomaliaRepositoryPostgis` y su `partial` `.Reportes.cs` (lecturas con `FOR UPDATE`; `km_via` del reporte calculado con `CorredorVia`) — `An/Infrastructure/` · (FR-008, FR-030, FR-032; T-ARQ06, T-ARQ08)
+- [ ] T030 [US2] `AnomaliaRepositoryPostgis` y `ReporteRepositoryPostgis` (puertos `IAnomaliaRepository` e `IReporteRepository`, ISP) (lecturas con `FOR UPDATE`; `km_via` del reporte calculado con `CorredorVia`) — `An/Infrastructure/` · (FR-008, FR-030, FR-032; T-ARQ06, T-ARQ08)
 - [ ] T031 [US2] `ProcesarReporteUseCase` (algoritmo de `enfoque` §6 pasos 0–6, con `RecibidoUtc` del contexto; revalida el estado de la anomalía bloqueada; `km_via` al nacer; métricas de duración y tope) y `AnomaliasService` — `An/Application/Procesamiento/` · (FR-006…FR-015, FR-030…FR-032)
 - [ ] T032 [US2] `AddAnomaliasModule` (todo menos tareas y administración) — `An/AnomaliasModule.cs`
 
@@ -106,7 +106,7 @@ description: "Tareas del módulo Anomalías"
 
 - [ ] T057 [P] [US5] `ComandoModeracion`, `AccionModeracion` y `ResultadoModeracion` (Application) + mapeo `AccionModeracion → AccionAdmin` — `An/Application/Administracion/` · (FR-025; D4, R-016)
 - [ ] T044 [P] [US5] Pruebas de `ModerarAnomaliaUseCase` (bloqueo de celda, lectura `FOR UPDATE` y revalidación, `RegistrarAsync(AnomaliaModerada)` en la misma transacción, transición con `actor_id`, `AnomaliaCambiada`, `NoPermitida` → 409; nunca `RegistrarAccionRiesgo`) y de `ListarPorRevisarUseCase` (con `severidadMostrada`), `ListarPendientesUseCase`, `ObtenerDetalleUseCase` (`venceUtc` nulo en estados finales; `kmVia` de la anomalía), `ListarTransicionesRecientesUseCase` — `AnT/Application/Administracion/` · (FR-025…FR-027, FR-030, FR-031; D15, T-PO08, T-PO19)
-- [ ] T045 [US5] Los 5 casos de uso + puerto `ILecturaAdministracionRepository` y `LecturaAdministracionRepository` (con su `partial` `.Detalle.cs`) — `An/Application/Administracion/`, `An/Application/Puertos/`, `An/Infrastructure/` · (FR-025…FR-027; T-ARQ07, T-ARQ08)
+- [ ] T045 [US5] Los 5 casos de uso + puerto `ILecturaAdministracionRepository` y `LecturaAdministracionRepository` y `DetalleAnomaliaRepository` (puerto `IDetalleAnomaliaRepository`) — `An/Application/Administracion/`, `An/Application/Puertos/`, `An/Infrastructure/` · (FR-025…FR-027; T-ARQ07, T-ARQ08)
 - [ ] T046 [US5] `ModeracionController` y `DetalleAnomaliaController` (rutas con `{id:guid}` para no chocar con `/transiciones`; solo tipos de Application) + DTOs documentados — `An/Adapters/` · (FR-025; Constitución IX, D4)
 - [ ] T047 [US5] `ModeracionApiTests`: 403 a conductores; tabla completa de RN-07 por HTTP; listas y detalle con los campos del contrato; moderación y caducidad simultáneas sin actualización perdida — `IntAn/ModeracionApiTests.cs` · (FR-027, FR-030)
 

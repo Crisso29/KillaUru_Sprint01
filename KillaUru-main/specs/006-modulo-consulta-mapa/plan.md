@@ -20,7 +20,7 @@ Módulo de **solo lectura y sin tablas**. El dominio decide el alcance por rol (
 
 **Performance Goals**: acierto ~1 ms, 304 < 1 ms, fallo de caché 1 consulta B-tree (~5–20 ms) (`diseño-interno` §8); p95 < 250 ms (RNF-01)
 
-**Constraints**: nunca mezclar alcances; respuesta armada concatenando bytes ya serializados; sin SQL; archivos ≤ 100 líneas
+**Constraints**: nunca mezclar alcances; respuesta armada concatenando bytes ya serializados; sin SQL; archivos < 200 líneas
 
 **Scale/Scope**: ~1 000 celdas del corredor × 2 alcances; decenas de miles de anomalías en total, pocos miles `Activa`
 
@@ -93,7 +93,7 @@ backend/tests/KillaUru.Mapa.Tests/               Domain/ · Application/
 backend/tests/KillaUru.Integracion.Tests/Mapa/   RecorteRolApi · CacheEtagApi · CambiosApi · FiltrosApi
 ```
 
-**Structure Decision**: plantilla de `enfoque-arquitectonico.md` §4.1 («Consulta de Mapa: recorte por rol»). El `ConsultarMapaUseCase` de docs se divide en un despachador y tres caminos para respetar las 100 líneas; el controlador conserva el nombre `AnomaliasController` de docs. `MapaOptions` va en `Application/` como dice `enfoque` §5.
+**Structure Decision**: plantilla de `enfoque-arquitectonico.md` §4.1 («Consulta de Mapa: recorte por rol»). El `ConsultarMapaUseCase` de docs se divide en un despachador y tres caminos para respetar las 200 líneas; el controlador conserva el nombre `AnomaliasController` de docs. `MapaOptions` va en `Application/` como dice `enfoque` §5.
 
 ## Complexity Tracking
 

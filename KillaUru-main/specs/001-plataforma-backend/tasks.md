@@ -9,7 +9,7 @@ description: "Tareas de la plataforma base del backend"
 
 **Tests**: obligatorias (constitución VII). En cada historia, las pruebas se escriben primero y deben **fallar** antes de implementar.
 
-**Formato**: `- [ ] T### [P?] [US?] Descripción — ruta · (requisito)`. `[P]` = puede hacerse en paralelo (otro archivo, sin dependencia pendiente). Las rutas son relativas a `backend/`, salvo `.github/` (raíz del repositorio). **Ningún archivo de código (`.cs`, `.sql` de consultas, `.sh`, `.js`) puede pasar de 100 líneas.** Tareas T058+ agregadas en la revisión 2026-10-21.
+**Formato**: `- [ ] T### [P?] [US?] Descripción — ruta · (requisito)`. `[P]` = puede hacerse en paralelo (otro archivo, sin dependencia pendiente). Las rutas son relativas a `backend/`, salvo `.github/` (raíz del repositorio). **Ningún archivo de código (`.cs`, `.sql` de consultas, `.sh`, `.js`) puede pasar de 200 líneas.** Tareas T058+ agregadas en la revisión 2026-10-21.
 
 ## Phase 1: Setup (solución y proyectos)
 
@@ -29,7 +29,7 @@ description: "Tareas de la plataforma base del backend"
 
 ### Pruebas
 
-- [ ] T007 [P] [US6] `LimiteDeLineasTests`: recorre `src/**/*.cs`, `tests/**/*.cs`, `db/**/*.sql` (excepto `db/migraciones/V*.sql`), `deploy/**/*.sh` y `tests/carga/**/*.js`; excluye generados y OpenAPI; falla si algún archivo > 100 líneas, mostrando ruta y conteo — `tests/KillaUru.Arquitectura.Tests/LimiteDeLineasTests.cs` · (FR-029, T-QA17)
+- [ ] T007 [P] [US6] `LimiteDeLineasTests`: recorre `src/**/*.cs`, `tests/**/*.cs`, `db/**/*.sql` (excepto `db/migraciones/V*.sql`), `deploy/**/*.sh` y `tests/carga/**/*.js`; excluye generados y OpenAPI; falla si algún archivo > 199 líneas, mostrando ruta y conteo — `tests/KillaUru.Arquitectura.Tests/LimiteDeLineasTests.cs` · (FR-029, T-QA17)
 - [ ] T008 [P] [US6] `ReglasDeCapasTests`: `Adapters` ↛ `Domain` e `Infrastructure`; `Application` ↛ `Adapters`, `Infrastructure` y EF Core; `Infrastructure` ↛ `Adapters` — `tests/KillaUru.Arquitectura.Tests/ReglasDeCapasTests.cs` · (FR-035, D4)
 - [ ] T059 [P] [US6] `ReglasDeDominioTests`: `Domain` ↛ `Microsoft.EntityFrameworkCore`, `Microsoft.AspNetCore`, `Application`, `Adapters`, `Infrastructure` y `Contracts/` de **otro** módulo — `tests/KillaUru.Arquitectura.Tests/ReglasDeDominioTests.cs` · (FR-029, FR-035, D4)
 - [ ] T009 [P] [US6] `ReglasDeModulosTests`: un módulo solo usa tipos `Contracts` de otro; el grafo permitido es exactamente el de `componentes-arquitectonicos.md` regla 4; ningún módulo referencia el `DbContext` de otro; `Shared` no referencia módulos — `tests/KillaUru.Arquitectura.Tests/ReglasDeModulosTests.cs` · (FR-029, RNF-28)

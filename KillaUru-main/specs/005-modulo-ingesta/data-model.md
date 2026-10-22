@@ -107,7 +107,7 @@ Respuesta 200: `{ loteId, aceptados: [uuid], duplicados: [uuid], rechazados: [{ 
 | `IRecepcionEventos` | `Task<IReadOnlySet<Guid>> InsertarAsync(LoteAceptado lote, CancellationToken ct)` → ids insertados |
 | `IColaLotes` | `bool HayCapacidad()` · `bool TryEscribir(LoteRecibido aviso)` · `IAsyncEnumerable<LoteRecibido> LeerAsync(CancellationToken ct)` |
 | `IPendientesRepositorio` | `RecibidosDelLoteAsync(loteId?)` (orden `detectado_utc, evento_id`) · `ContarEnLaHoraAsync(seudonimo, inicioHora)` · `MarcarAsync(eventoId, estado, motivo?)` — lo usa el trabajador |
-| `IBarridoPendientes` | `LotesPendientesAsync(anteriorA?, maximo)` · `MasAntiguoPendienteAsync()` — lo usan el barredor y la salud (T-ARQ08: separado para que ningún archivo pase de 100 líneas) |
+| `IBarridoPendientes` | `LotesPendientesAsync(anteriorA?, maximo)` · `MasAntiguoPendienteAsync()` — lo usan el barredor y la salud (T-ARQ08: separado para que ningún archivo pase de 200 líneas) |
 | `IPurgasRecepcion` | `PurgarSeudonimosAsync(antesDe)` · `BorrarFinalesAsync(antesDe)`; ambos por lotes de 5 000 (§3), devuelven filas afectadas |
 
 Métricas que emite el módulo (`IMetricas`, 001): `RegistrarLote`, `RegistrarRechazo` (motivo), `ObservarCola`, `RegistrarRetrasoCola(TimeSpan)` → `killauru.ingesta.retraso_cola_s` (D11) y `RegistrarTareaCorrecta` (`purga-seudonimos-recepcion`, `purga-recepcion`).

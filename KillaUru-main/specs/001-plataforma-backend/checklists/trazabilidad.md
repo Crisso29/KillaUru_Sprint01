@@ -49,7 +49,7 @@ Marcar `[x]` cuando la tarea esté hecha **y** su prueba pase.
 
 ## Pedidos del autor (no vienen de docs)
 
-- [ ] CHK030 Archivos de código ≤ 100 líneas → FR-029 → T007
+- [ ] CHK030 Archivos de código < 200 líneas → FR-029 → T007
 - [ ] CHK031 API documentada y alineada con contratos → FR-015, FR-016 → T041…T044
 
 ## Decisiones del autor y correcciones técnicas (revisión 2026-10-21)

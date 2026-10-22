@@ -280,7 +280,7 @@ Como conductor o administrador, quiero que el enlace de verificación, de recupe
 - **FR-044**: El JavaScript inicial MUST ser ≤ 120 KB gzip y el del mapa (MapLibre + PMTiles) se carga solo al entrar a «Mapa» (≤ 300 KB gzip). *(Decisión SDD, R-023)*
 - **FR-045**: Los tiempos MUST mostrarse en forma relativa legible («hace 2 h», «ayer a las 15:30») donde el prototipo lo hace. *(RNF-14)*
 - **FR-046**: Los datos operativos (mapa, listas, transiciones) MUST refrescarse cada 60 s y al volver a la pestaña; las lecturas que la API audita (usuarios, auditoría, revisión) MUST tener caché de 10 min y no refrescarse solas. *(D15; RNF-11; R-027)*
-- **FR-047**: El código MUST organizarse por funcionalidades con capas `ui → api → modelo` y una regla de dependencia verificada en CI; ningún `.ts`/`.tsx` (salvo los generados) supera 100 líneas; `modelo/` es puro (sin React, red ni reloj directo). *(constitución VIII; propuesta de enmienda en `research.md`; R-005)*
+- **FR-047**: El código MUST organizarse por funcionalidades con capas `ui → api → modelo` y una regla de dependencia verificada en CI; ningún `.ts`/`.tsx` (salvo los generados) supera 199 líneas; `modelo/` es puro (sin React, red ni reloj directo). *(constitución VIII; propuesta de enmienda en `research.md`; R-005)*
 - **FR-048**: Los tipos del cliente HTTP MUST generarse desde los YAML de `specs/*/contracts/` y el CI MUST fallar si no están al día o si un dato simulado no cumple su esquema. *(constitución IX; R-002, R-024)*
 - **FR-049**: Cada PR que toque `panel/` MUST pasar el CI del panel; al unir a `main`, se despliega solo a Cloudflare Pages y se comprueban las cabeceras; volver atrás = reactivar el despliegue anterior. *(D10; RNF-17, RNF-18 por analogía; ADR-010; R-025)*
 - **FR-050**: El panel MUST NOT cargar analítica, fuentes ni scripts de terceros, salvo el de Turnstile en la página de inicio de sesión. *(RNF-10, ADR-007; constitución X; R-021)*
@@ -325,7 +325,7 @@ Como conductor o administrador, quiero que el enlace de verificación, de recupe
 - **SC-007**: Con el acceso vencido o la cookie `ku_acceso` borrada, el 100 % de las peticiones se recupera con una sola renovación y sin ver el login; con la renovación rechazada, el 100 % termina en el login con aviso (FR-007).
 - **SC-008**: Cada moderación, acción sobre usuarios, revisión y exportación hecha en E2E aparece en «Auditoría» con la acción correcta (RF-15, RNF-29).
 - **SC-009**: Los E2E pasan en Chromium, Firefox y Edge (RNF-13).
-- **SC-010**: 0 archivos `.ts`/`.tsx` escritos a mano con más de 100 líneas y 0 violaciones de la regla de dependencia (FR-047); cobertura de `modelo/` ≥ 90 % (constitución VII adaptada).
+- **SC-010**: 0 archivos `.ts`/`.tsx` escritos a mano con más de 199 líneas y 0 violaciones de la regla de dependencia (FR-047); cobertura de `modelo/` ≥ 90 % (constitución VII adaptada).
 - **SC-011**: 0 diferencias entre los tipos generados y los YAML, y 100 % de los datos simulados válidos contra sus esquemas (FR-048).
 
 ## Fuera de alcance
