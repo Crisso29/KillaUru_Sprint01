@@ -117,6 +117,7 @@
 |---|---|---|
 | **200** | Lote procesado en la recepción. El cuerpo incluye `loteId` (lo **genera el servidor**; la app no lo envía), `aceptados[]` (recibidos para procesar), `duplicados[]` y `rechazados[{id, indice, motivo}]` con los motivos de recepción de RN-11. `indice` es la posición del evento en el arreglo `eventos` del lote (desde 0) y siempre viene; `id` es `null` si el evento no trae un `eventoId` UUID válido (motivo `EsquemaInvalido`). | Marcar `SYNCED` **todos** los ids devueltos (reintentar un rechazado no lo corrige) y contar los rechazos por motivo en la app; un rechazado con `id: null` se ubica por su `indice` y se marca `REJECTED_LOCAL`; los ids que el 200 no menciona vuelven a `PENDING` |
 | **400** | **Solo** si el lote no se puede leer, no trae el arreglo `eventos`, está vacío o trae más de 50 eventos. Un evento mal formado (incluso sin `eventoId`) nunca produce 400: sale en `rechazados` | Partir el lote y reintentar por partes; marcar `REJECTED_LOCAL` solo el evento que falla solo |
+| **413** | El cuerpo pasa de 256 KB | Igual que el 400: partir el lote y reintentar por partes (D18) |
 | **401** | Token de acceso inválido o vencido | Renovar el token y reenviar el **mismo** lote; si no hay sesión válida, reenviarlo sin token (como anónimo). No marca nada como rechazado |
 | **429 / 503** | Límite de tasa (por seudónimo + IP, o techo por IP, RNF-11) o cola saturada, con `Retry-After` | Reintentar respetando `Retry-After` más *jitter* |
 | **5xx / timeout** | Falla del servidor o de red | Backoff exponencial (RF-07) |

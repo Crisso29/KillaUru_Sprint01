@@ -229,3 +229,7 @@ La constitución 1.1.0 está escrita para el backend. Para la app se propone una
 3. **R-025**: con «Solo ver el mapa», los pendientes ya guardados no se envían (y expiran a las 168 h).
 4. **R-026**: el 413 se trata como el 400 (partir el lote); documentarlo en el contrato del lote de `03`.
 5. **R-028**: Room sin SQLCipher en v1.0, como riesgo aceptado (BD-A7).
+
+## Confirmados por el autor el 2026-10-22 (D18)
+
+Todos los «Pendientes de confirmar por el autor» de este archivo y la «Propuesta de enmienda a la constitución» quedaron aprobados tal como se recomendaron (`specs/revision/decisiones.md`, D18). La enmienda se aplicó en la constitución 1.2.0.

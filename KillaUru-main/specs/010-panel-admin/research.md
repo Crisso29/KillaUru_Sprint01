@@ -238,3 +238,7 @@ La constitución 1.1.0 está escrita para el backend .NET. **No se edita aquí**
 4. **R-020** — quitar el «3» del mensaje de bloqueo del prototipo.
 5. **R-021** — tipografía de texto: Source Sans 3 (prototipo) frente a Atkinson Hyperlegible (mencionada en el encargo).
 6. **H-02** — origen local del panel en la configuración del entorno de pruebas (necesario para el E2E real).
+
+## Confirmados por el autor el 2026-10-22 (D18)
+
+Todos los «Pendientes de confirmar por el autor» de este archivo y la «Propuesta de enmienda a la constitución» quedaron aprobados tal como se recomendaron (`specs/revision/decisiones.md`, D18). La enmienda se aplicó en la constitución 1.2.0.

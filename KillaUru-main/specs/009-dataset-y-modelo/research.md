@@ -149,3 +149,7 @@
 1. **Plan B** (R-021): cuál de B3 (a), (b) o (c) se aplica si al final de la semana 3 la puerta no pasa.
 2. **Distribución del conjunto de prueba** (R-009): natural (propuesta) o balanceada. Cambia qué significa «cumple RNF-35».
 3. **Video de la vía** (R-004): aceptar grabar video con posibles personas y placas, solo para etiquetar, privado y borrado a los 90 días; sin video, el etiquetado depende de un copiloto en cada recorrido.
+
+## Confirmados por el autor el 2026-10-22 (D18)
+
+Todos los «Pendientes de confirmar por el autor» de este archivo y la «Propuesta de enmienda a la constitución» quedaron aprobados tal como se recomendaron (`specs/revision/decisiones.md`, D18). La enmienda se aplicó en la constitución 1.2.0.

@@ -101,10 +101,19 @@ Sync Impact Report
 3. **Puertas** (sección «Constitution Check» de cada `plan.md`): cada principio I–X se marca ✅ o se justifica en «Complexity Tracking».
 4. Definición de Hecho (de `02-historias-de-usuario.md`): código con pruebas, RF/RNF trazados, criterio de aceptación verificado, OpenAPI y README del módulo actualizados, C4 actualizado si cambia un componente.
 
+## App, panel y ML (enmienda 1.2.0, D18)
+
+| Parte | Regla | Herramienta |
+|---|---|---|
+| App Android (008) | Un módulo Gradle con 3 capas (Presentación ← Dominio → Datos); umbrales en `assets/parametros.json`; reloj por el puerto `Reloj`; cobertura del dominio ≥ 90 %; la app consume contratos, no publica endpoints | Konsist, Kover, detekt (`ForbiddenMethodCall` en lugar de BannedApiAnalyzers), CI `app-ci.yml` |
+| Panel (010) | Capas `ui → api → modelo` por funcionalidad; tipos generados desde los OpenAPI; nada de datos personales en el navegador | dependency-cruiser, ESLint, Vitest, Playwright, axe |
+| Dataset y modelo (009) | Pipeline reproducible con versiones fijadas; no se publica un modelo que no pase RNF-35 y RNF-04 | pytest |
+| Todas | El límite de 100 líneas del principio VIII cubre también `.kt`, `.kts`, `.ts`, `.tsx` y `.py`; métodos ≤ 20 líneas | prueba de líneas de cada parte |
+
 ## Gobierno
 
 - Esta constitución está por encima de cualquier otra práctica del repositorio de código. Si una spec la contradice, gana la constitución; si la constitución contradice `referencia/docs/`, gana `docs/` y se enmienda la constitución.
 - Enmiendas: se documentan en el *Sync Impact Report* de este archivo con versión semántica (MAYOR: se quita o redefine un principio; MENOR: se agrega uno; PARCHE: redacción).
 - Toda revisión de código verifica los principios II, III, V, VI y VIII de forma explícita.
 
-**Version**: 1.1.0 | **Ratified**: 2026-10-20 | **Last Amended**: 2026-10-21
+**Version**: 1.2.0 | **Ratified**: 2026-10-20 | **Last Amended**: 2026-10-22
