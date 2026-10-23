@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cdn.killauru.pe/modelo/manifiesto-modelo.schema.json",
+  "title": "Manifiesto del modelo KillaUru",
+  "description": "Puntero a la versión vigente del modelo de una categoría de vehículo (ADR-004, RF-33). Lo genera la puerta (009 FR-028) y lo consume el Actualizador de 008.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["esquema", "modeloVersion", "categoriaVehiculo", "url", "tamanoBytes", "sha256", "fechaPublicacionUtc",
+               "versionMinimaApp", "clases", "preprocesamientoVersion", "ventanaMs", "frecuenciaHz", "normalizacion", "entradas", "salidas", "calibracion", "prefiltro",
+               "datasetVersion", "metricas", "matrizConfusionUrl", "informeUrl"],
+  "properties": {
+    "esquema": { "const": 1 },
+    "modeloVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$", "maxLength": 20 },
+    "categoriaVehiculo": { "enum": ["Liviano"], "description": "RN-18; un modelo para otra categoría tendrá su propio manifiesto en modelo/<categoria>/ (ADR-004 punto 3)" },
+    "url": { "type": "string", "pattern": "^https://cdn\\.killauru\\.pe/modelo/\\d+\\.\\d+\\.\\d+/killauru-\\d+\\.\\d+\\.\\d+\\.tflite$" },
+    "tamanoBytes": { "type": "integer", "minimum": 1, "maximum": 5242880, "description": "< 5 MB (ADR-004)" },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "fechaPublicacionUtc": { "type": "string", "format": "date-time" },
+    "versionMinimaApp": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$", "description": "RF-33" },
+    "clases": { "const": ["Normal", "Bache", "Hundimiento"], "description": "Orden de tipo_logits; = RN-01" },
+    "preprocesamientoVersion": { "const": "p1" },
+    "ventanaMs": { "const": 500, "description": "RF-02" },
+    "frecuenciaHz": { "const": 50, "description": "RF-01" },
+    "normalizacion": { "const": "dentroDelModelo", "description": "La app entrega las 20 entradas crudas; no normaliza (009 R-011)" },
+    "entradas": {
+      "type": "object", "additionalProperties": false, "required": ["nombre", "forma", "tipo"],
+      "properties": { "nombre": { "const": "caracteristicas" }, "forma": { "const": [1, 20] }, "tipo": { "const": "float32" } }
+    },
+    "salidas": {
+      "type": "array", "minItems": 2, "maxItems": 2,
+      "prefixItems": [
+        { "const": { "nombre": "tipo_logits", "forma": [1, 3], "tipo": "float32" } },
+        { "const": { "nombre": "severidad", "forma": [1, 1], "tipo": "float32" } }
+      ]
+    },
+    "calibracion": {
+      "type": "object", "additionalProperties": false, "required": ["temperatura"],
+      "properties": { "temperatura": { "type": "number", "exclusiveMinimum": 0, "maximum": 10 } }
+    },
+    "prefiltro": {
+      "type": "object", "additionalProperties": false, "required": ["umbralPicoAPicoVerticalMs2"],
+      "properties": { "umbralPicoAPicoVerticalMs2": { "type": "number", "minimum": 0 } }
+    },
+    "datasetVersion": { "type": "string", "pattern": "^ds-\\d+$" },
+    "metricas": {
+      "type": "object", "additionalProperties": false,
+      "required": ["precision", "recall", "severidadMasMenos1", "latenciaP95MsPorCelular"],
+      "properties": {
+        "precision": { "$ref": "#/$defs/porClase" },
+        "recall": { "$ref": "#/$defs/porClase" },
+        "severidadMasMenos1": { "type": "number", "minimum": 0.8, "maximum": 1 },
+        "latenciaP95MsPorCelular": {
+          "type": "object", "minProperties": 3,
+          "additionalProperties": { "type": "number", "exclusiveMaximum": 50 }
+        }
+      }
+    },
+    "matrizConfusionUrl": { "type": "string", "pattern": "^https://cdn\\.killauru\\.pe/modelo/" },
+    "informeUrl": { "type": "string", "pattern": "^https://cdn\\.killauru\\.pe/modelo/" }
+  },
+  "$defs": {
+    "porClase": {
+      "type": "object", "additionalProperties": false, "required": ["Normal", "Bache", "Hundimiento"],
+      "properties": {
+        "Normal": { "type": "number", "minimum": 0.9, "maximum": 1 },
+        "Bache": { "type": "number", "minimum": 0.9, "maximum": 1 },
+        "Hundimiento": { "type": "number", "minimum": 0.9, "maximum": 1 }
+      }
+    }
+  },
+  "examples": [{
+    "esquema": 1, "modeloVersion": "1.0.0", "categoriaVehiculo": "Liviano",
+    "url": "https://cdn.killauru.pe/modelo/1.0.0/killauru-1.0.0.tflite",
+    "tamanoBytes": 9216, "sha256": "3f5a0c9e7b1d2f4a6c8e0b1d3f5a7c9e1b3d5f7a9c1e3b5d7f9a1c3e5b7d9f1a",
+    "fechaPublicacionUtc": "2026-11-06T15:00:00Z", "versionMinimaApp": "1.0.0",
+    "clases": ["Normal", "Bache", "Hundimiento"], "preprocesamientoVersion": "p1", "ventanaMs": 500, "frecuenciaHz": 50, "normalizacion": "dentroDelModelo",
+    "entradas": { "nombre": "caracteristicas", "forma": [1, 20], "tipo": "float32" },
+    "salidas": [ { "nombre": "tipo_logits", "forma": [1, 3], "tipo": "float32" }, { "nombre": "severidad", "forma": [1, 1], "tipo": "float32" } ],
+    "calibracion": { "temperatura": 1.35 }, "prefiltro": { "umbralPicoAPicoVerticalMs2": 1.2 },
+    "datasetVersion": "ds-1",
+    "metricas": {
+      "precision": { "Normal": 0.998, "Bache": 0.93, "Hundimiento": 0.91 },
+      "recall": { "Normal": 0.999, "Bache": 0.92, "Hundimiento": 0.90 },
+      "severidadMasMenos1": 0.86,
+      "latenciaP95MsPorCelular": { "C1": 0.41, "C2": 0.38, "C3": 0.62 }
+    },
+    "matrizConfusionUrl": "https://cdn.killauru.pe/modelo/1.0.0/matriz-confusion.json",
+    "informeUrl": "https://cdn.killauru.pe/modelo/1.0.0/informe.json"
+  }]
+}

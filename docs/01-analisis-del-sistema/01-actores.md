@@ -1,6 +1,6 @@
 # Actores del Sistema
 
-> **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-14 · **Estado:** Vigente (alineado con C4 Nivel 1)
+> **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-21 · **Estado:** Vigente (alineado con C4 Nivel 1)
 > **Relacionados:** `Nivel1-diagrama-de-contexto.md`, `02-historias-de-usuario.md`, `03-requisitos-funcionales.md`
 
 El sistema tiene **tres actores humanos** (dos tipos de conductor y el administrador) y **sistemas externos de infraestructura**. Las empresas y las autoridades viales están identificadas solo para versiones futuras, para limitar el alcance del ciclo 2026-II.
@@ -57,10 +57,10 @@ Ambos requerirán nuevos roles RBAC y una API comercial (ver patrón *Facade* en
 | Mapa con filtros, incluidas anomalías sin confirmar | ❌ | ❌ | ✅ |
 | Dashboard de estadísticas | ❌ | ❌ | ✅ |
 | Gestionar usuarios e identidad (Identidad y Accesos) | ❌ | ❌ | ✅ |
-| Moderar anomalías (reparada, descartar) | ❌ | ❌ | ✅ |
+| Moderar anomalías (reparada, descartar, reabrir, mantener descartada) | ❌ | ❌ | ✅ |
 | Exportar dataset (CSV y GeoJSON) | ❌ | ❌ | ✅ |
 | Consultar log de auditoría | ❌ | ❌ | ✅ |
-| Límite de tasa (RNF-11) | 60 req/h | 1 000 req/h | 3 000 req/h |
+| Límite de tasa (RNF-11) | 60 req/h y 120 lotes/h (más techo por IP) | 1 000 req/h | 3 000 req/h |
 
 > **Regla de aplicación:** los permisos se **hacen cumplir en el servidor** (RBAC en la API REST), nunca solo en la app. Un anónimo que consulte fuera del tramo demo recibe la respuesta recortada al polígono demo (RF-14, RNF-27).
 

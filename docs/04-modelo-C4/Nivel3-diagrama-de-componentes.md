@@ -1,8 +1,8 @@
 # Nivel 3 · Diagrama de Componentes
 
-> **Proyecto:** KillaUru · **Modelo:** C4 · Nivel 3 de 4 · **Versión:** 3.0 · **Revisión:** 2026-10-14 · **Estado:** Vigente (alineado con `componentes-arquitectonicos.md`)
+> **Proyecto:** KillaUru · **Modelo:** C4 · Nivel 3 de 4 · **Versión:** 3.1 · **Revisión:** 2026-10-21 · **Estado:** Vigente (alineado con `componentes-arquitectonicos.md`)
 > **Contenedores detallados:** API KillaUru y App KillaUru
-> **Herramienta:** Structurizr DSL (`workspace.dsl`, vistas `C3_API` y `C3_App`) · copia en Mermaid en este documento
+> **Herramienta:** Mermaid en este documento
 
 ## 1. Objetivo
 
@@ -50,7 +50,7 @@ flowchart TD
     UR -- "/health/ready" --> REST
     REST --> ID & ING & ANO & MAPA & DASH & AUD
 
-    ING -- "IAnomaliasService<br/>EvaluarIntrinseca · ProcesarReporteAsync(evento, contexto)" --> ANO
+    ING -- "IAnomaliasService<br/>EvaluarIntrinseca(evento, recibidoUtc) · ProcesarReporteAsync(evento, contexto)" --> ANO
     MAPA -- "IAnomaliaLectura" --> ANO
     DASH -- "IAnomaliaLectura" --> ANO
     DASH -- "IIdentidadConsultas" --> ID
@@ -85,22 +85,23 @@ flowchart TD
 
 | Dueño | Contrato | Operaciones | Consumidores |
 |---|---|---|---|
-| Anomalías | `IAnomaliasService` | `EvaluarIntrinseca(evento, ahora)` (pura, al recibir); `ProcesarReporteAsync(evento, contexto)` | Ingesta |
-| Anomalías | `IAnomaliaLectura` | Anomalías `Activa` por celdas; cambios desde una fecha (con bajas); filtros del administrador; agregados de cobertura | Consulta de Mapa, Dashboard |
-| Anomalías | `EventoReportado`, `ContextoReporte`, `AnomaliaCambiada` | DTOs y evento públicos. `ContextoReporte = (ConSesion, EventosEnLaHora)` | Ingesta, Consulta de Mapa |
+| Anomalías | `IAnomaliasService` | `EvaluarIntrinseca(evento, recibidoUtc)` (pura, al recibir); `ProcesarReporteAsync(evento, contexto)` | Ingesta |
+| Anomalías | `IAnomaliaLectura` | `ActivasPorCeldasAsync(celdas)`; `FiltrarAsync(bbox, filtros)` (sin caché por celdas); `CambiosDesdeAsync(desde)` (con bajas); `ResumenDelDiaAsync(dia)` (eventos válidos, dispositivos, cobertura, confirmaciones y reapariciones, desde el historial `transicion`); `CeldasDelCorredor()` (celdas que toca la vía) | Consulta de Mapa, Dashboard |
+| Anomalías | `EventoReportado`, `ContextoReporte`, `MotivoDescarte`, `AnomaliaCambiada` | DTOs y evento públicos. `ContextoReporte = (ConSesion, EventosEnLaHora, RecibidoUtc)`; `MotivoDescarte` con 8 motivos (`SeudonimoInconsistente = 8`, lo evalúa Ingesta) | Ingesta, Consulta de Mapa |
 | Identidad | `IIdentidadConsultas` | `ContarConductoresActivosAsync(dias)` | Dashboard |
-| Auditoría | `IAuditoriaService` | `RegistrarAsync(acción, actor, objetivo, contexto)` dentro de la transacción del llamador (ADR-013) | Identidad, Anomalías, host |
-| Shared | `IPublicadorEventos`, `IMetricas`, value objects | Publicar y suscribir; contadores; `Coordenada`, `Severidad`, `Confidence`, `SeudonimoInstalacion`, `Celda` | Todos |
+| Auditoría | `IAuditoriaService` | `RegistrarAsync(acción, actor, objetivo, contexto, ct)` exige la transacción del que actúa (ADR-013); `RegistrarLecturaAsync(acción, actor, objetivo, contexto, ct)` solo para lecturas sensibles | Identidad, Anomalías, Auditoría (el host no audita: lo hace el módulo dueño) |
+| Shared | `IPublicadorEventos`, `IMetricas`, value objects | Publicar y suscribir; contadores; `Coordenada`, `Severidad`, `Confidence`, `SeudonimoInstalacion`, `Celda`, `Roles`; `IContextoTransaccion`; `ProgramaReloj` | Todos |
 
 ### 2.3 Procesos en segundo plano
 
 | Proceso | Módulo | Frecuencia | Regla |
 |---|---|---|---|
 | Trabajadores del `Channel` + barredor | Ingesta | Continuo · cada 60 s | ADR-005, EQ-09 |
-| Caducidad | Anomalías | Cada hora | RN-07 |
-| Purga de seudónimos (reportes y recepción) | Anomalías e Ingesta | Cada hora | RN-09 |
-| Purga de recepción (30 días) e histórica (2 años) | Ingesta · Anomalías | Diaria | RN-10 |
-| Indicadores diarios | Dashboard | Diaria (antes de la purga) | RN-17 |
+| Caducidad | Anomalías | Al arrancar y cada hora (:05) | RN-07 |
+| Purga de seudónimos (reportes y recepción) | Anomalías e Ingesta | Al arrancar y cada hora (:10) | RN-09 |
+| Purga de recepción (30 días) e histórica (2 años) | Ingesta · Anomalías | Al arrancar y diaria (03:00 · 03:30) | RN-10 |
+| Purga de Identidad (sesiones y tokens, 30 días) | Identidad | Al arrancar y diaria (03:45) | RN-09 |
+| Indicadores diarios | Dashboard | Al arrancar y diaria (00:30, antes de la purga) | RN-17 |
 
 ## 3. App KillaUru: componentes
 ![C3: Diagrama interno del APP KillaUru](../../img/fuentes-svg/C3_App.svg)

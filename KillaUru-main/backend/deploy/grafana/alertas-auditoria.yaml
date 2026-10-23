@@ -1,0 +1,24 @@
+# Reglas Prometheus para importar/adaptar en Grafana Cloud. No implican que estén activadas.
+# Confirmar en Explore el nombre normalizado por OTLP y filtrar al servicio/entorno correctos.
+groups:
+  - name: killauru-auditoria
+    interval: 1m
+    rules:
+      - alert: KillaUruExportacion
+        expr: sum(increase(killauru_seguridad_acciones_riesgo_total{accion="DatasetExportado"}[5m])) > 0
+        for: 0m
+        labels: { severity: warning }
+        annotations:
+          summary: "Se confirmó una exportación de datos"
+      - alert: KillaUruCambioDeRol
+        expr: sum(increase(killauru_seguridad_acciones_riesgo_total{accion="RolCambiado"}[5m])) > 0
+        for: 0m
+        labels: { severity: warning }
+        annotations:
+          summary: "Se confirmó un cambio de rol"
+      - alert: KillaUruBloqueosDeCuenta
+        expr: sum(increase(killauru_seguridad_acciones_riesgo_total{accion="CuentaBloqueada"}[1h])) >= 5
+        for: 0m
+        labels: { severity: warning }
+        annotations:
+          summary: "Al menos cinco bloqueos de cuenta en una hora"

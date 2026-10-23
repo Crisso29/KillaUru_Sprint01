@@ -1,7 +1,7 @@
 # Nivel 2 · Diagrama de Contenedores
 
-> **Proyecto:** KillaUru · **Modelo:** C4 · Nivel 2 de 4 · **Versión:** 3.0 · **Revisión:** 2026-10-14 · **Estado:** Vigente (alineado con `estilo-arquitectonico.md` y ADR-001…ADR-015)
-> **Herramienta:** Structurizr DSL (`workspace.dsl`, vistas `C2_Contenedores` y `Despliegue`) · copia en Mermaid en este documento
+> **Proyecto:** KillaUru · **Modelo:** C4 · Nivel 2 de 4 · **Versión:** 3.1 · **Revisión:** 2026-10-21 · **Estado:** Vigente (alineado con `estilo-arquitectonico.md` y ADR-001…ADR-015)
+> **Herramienta:** Mermaid en este documento
 
 ## 1. Objetivo
 
@@ -36,7 +36,8 @@ flowchart TB
     subgraph KU["⚙️ KillaUru · Oracle Cloud ARM (Santiago)"]
         API["API KillaUru<br/>[ASP.NET Core 10 · monolito modular]<br/>Recibe lotes, aplica las reglas, sirve el mapa"]:::cont
         DB[("Base de datos<br/>[PostgreSQL + PostGIS]<br/>un esquema por módulo")]:::datos
-        BK["Tarea de backup<br/>[pg_dump cifrado · cron]"]:::cont
+        BK["Tarea de backup<br/>[pg_dumpall --roles-only + pg_dump cifrado · cron 02:00]"]:::cont
+        AL["Grafana Alloy<br/>[agente · solo envía]<br/>VM, logs de Docker y hora del último backup"]:::cont
     end
 
     PANEL["Panel Admin<br/>[React · MapLibre GL JS · Cloudflare Pages]"]:::cont
@@ -46,6 +47,7 @@ flowchart TB
     MAIL["Proveedor de correo"]:::infra
     GRAF["Grafana Cloud"]:::infra
     UR["UptimeRobot"]:::infra
+    GH["GitHub Actions + GHCR"]:::infra
 
     COND -- "Usa" --> APP
     ADM -- "Usa (navegador)" --> PANEL
@@ -61,6 +63,9 @@ flowchart TB
     UR -- "GET /health/ready" --> CF
     BK -- "pg_dump" --> DB
     BK -- "Backup cifrado · API S3" --> R2
+    BK -. "hora del último backup correcto (.prom)" .-> AL
+    AL -- "Métricas y logs · HTTPS" --> GRAF
+    GH -- "Imagen arm64 y despliegue · SSH por Cloudflare Access" --> API
 ```
 
 ## 3. Contenedores
@@ -72,7 +77,7 @@ flowchart TB
 | **Panel Admin** | SPA React + MapLibre GL JS, estáticos en Cloudflare Pages | Interfaz del administrador. **Sin reglas de negocio**: todo se decide en la API | Solo estado de pantalla; sesión en cookie `HttpOnly; Secure; SameSite=Strict` |
 | **API KillaUru** | ASP.NET Core 10 · EF Core + NetTopologySuite · `Channel` · HybridCache (sobre `IMemoryCache`) · OpenTelemetry · Serilog | **Un solo proceso** con 6 módulos (C3): recibe lotes de forma durable e idempotente, aplica las reglas de `09`, sirve el mapa por rol con caché y ETag, gestiona identidad y auditoría | Ninguno propio persistente; caché en memoria por celda y rol |
 | **Base de datos** | PostgreSQL + PostGIS | Persistencia y consultas espaciales. Esquemas `identidad`, `ingesta`, `anomalias`, `auditoria`, `dashboard` | Ver `diseño-interno-de-modulos.md`, sección 3 |
-| **Tarea de backup** | Contenedor con `pg_dump` + cifrado, programado a diario | Backup cifrado fuera de la VM (RNF-07) y `pg_dump` antes de cada migración (RNF-18) | Ninguno propio |
+| **Tarea de backup** | Contenedor con `pg_dumpall --roles-only` + `pg_dump` + cifrado, programado a diario (02:00); al terminar bien escribe la hora en un archivo `.prom` que lee Alloy | Backup cifrado fuera de la VM (RNF-07) y `pg_dump` antes de cada migración (RNF-18) | Ninguno propio |
 
 > **La caché no es un contenedor:** vive dentro del proceso de la API. Si hubiera más de una instancia (S-03), Redis aparecería como contenedor y como nivel 2 de HybridCache, sin cambiar el código.
 
@@ -83,7 +88,8 @@ flowchart TB
 | **Cloudflare** | DNS, TLS (HSTS en todos los subdominios), proxy, caché de borde **solo para respuestas anónimas**, Tunnel, Pages | App y panel → API |
 | **Cloudflare R2** | `cdn.killauru.pe`: PMTiles, polilínea, modelos TFLite y sus manifiestos con SHA-256; *bucket* privado de backups | App, panel y tarea de backup |
 | **Proveedor de correo** | Verificación y recuperación | Solo la API (módulo Identidad y Accesos) |
-| **Grafana Cloud** | Telemetría y alertas (plan gratuito, sin tarjeta) | API |
+| **Grafana Cloud** | Telemetría y alertas (plan gratuito, sin tarjeta): disco > 80 %, tarea > 26 h | API y Grafana Alloy |
+| **GitHub Actions + GHCR** | CI en cada PR; al unir a `main`, imagen arm64 `ghcr.io/<cuenta>/killauru-api:<sha>` y despliegue automático (`desplegar.sh <sha>`) | Repositorio y VM |
 | **UptimeRobot** | Monitoreo y página de estado pública | Hacia la API |
 
 ## 5. Relaciones
@@ -96,6 +102,7 @@ flowchart TB
 | API | Base de datos | Lecturas y escrituras por módulo | TCP 5432 en la red interna de Docker |
 | API | Proveedor de correo | Correos transaccionales | HTTPS |
 | API | Grafana Cloud | Métricas, trazas y logs | OTLP/HTTPS |
+| Grafana Alloy | Grafana Cloud | Métricas de la VM, logs de Docker y métrica del backup | HTTPS |
 | UptimeRobot | API | `GET /health/ready` | HTTPS |
 | Tarea de backup | BD y R2 | `pg_dump` cifrado | Red interna y API S3 |
 
@@ -112,12 +119,12 @@ flowchart TB
 
 | Nodo | Contenido | Notas |
 |---|---|---|
-| **VM Oracle Cloud ARM (Always Free, Santiago)** | `docker compose` de producción: `api`, `postgres` (volumen persistente), `cloudflared`, `backup` | Sin puertos abiertos: todo entra por el Tunnel (ADR-010) |
-| Misma VM, bajo demanda | `docker compose` de pruebas («killauru-pruebas»): BD propia y datos sintéticos | Solo para simulacros; se apaga al terminar (R-11) |
+| **VM Oracle Cloud ARM (Always Free, Santiago)** | `docker compose` de producción: `api`, `postgres` (volumen persistente), `cloudflared`, `backup`, `alloy` (imagen oficial `grafana/alloy`, fija por versión); `restart: unless-stopped`, `healthcheck`, límites por contenedor y rotación de logs (`json-file`, `max-size: 10m`, `max-file: 3`). VM A1 de 4 OCPU / 24 GB | Sin puertos abiertos: todo entra por el Tunnel (ADR-010) |
+| Misma VM, bajo demanda | `docker compose` de pruebas («killauru-pruebas»): BD propia, volumen aparte y datos sintéticos, con límites (`cpus: 2`, `mem_limit: 6g` para API + BD) | Simulacros y pruebas de carga y estrés (k6 corre fuera de la VM, en horario de poco tráfico); se apaga al terminar (R-11) |
 | **Cloudflare** | Pages (panel), R2 (archivos y backups), caché de borde | Plan gratuito |
 | **Celular** | APK de la app | Sin Play Store en el MVP (S-02) |
 
-Pasos de un despliegue: `pg_dump` → migraciones (rol `killauru_migrador`) → `docker compose up -d` con el nuevo *tag*. El rollback vuelve al *tag* anterior, porque las migraciones son en dos fases (RNF-18).
+Pasos de un despliegue (automático desde GitHub Actions al unir a `main`, con `desplegar.sh <sha>`): `pg_dump` → migraciones (rol `killauru_migrador`, `ON_ERROR_STOP`) → `docker compose up -d` con el nuevo *tag* → espera `/health/ready`. El primer despliegue corre antes `V0000__arranque.sql` como superusuario. El rollback es `desplegar.sh <sha-anterior>`, porque las migraciones son en dos fases (RNF-18).
 
 ## 8. Seguridad entre contenedores
 

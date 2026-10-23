@@ -1,0 +1,5 @@
+P:System.DateTime.Now;Usa TimeProvider (constitución III)
+P:System.DateTime.UtcNow;Usa TimeProvider (constitución III)
+P:System.DateTime.Today;Usa TimeProvider (constitución III)
+P:System.DateTimeOffset.Now;Usa TimeProvider (constitución III)
+P:System.DateTimeOffset.UtcNow;Usa TimeProvider (constitución III)

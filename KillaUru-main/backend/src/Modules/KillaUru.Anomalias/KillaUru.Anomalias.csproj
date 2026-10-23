@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Todo es internal salvo Contracts/ y AnomaliasModule (constitución II). -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="KillaUru.Anomalias.Tests" />
+    <InternalsVisibleTo Include="KillaUru.Integracion.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\KillaUru.Shared\KillaUru.Shared.csproj" />
+    <ProjectReference Include="..\KillaUru.Auditoria\KillaUru.Auditoria.csproj" />
+  </ItemGroup>
+</Project>

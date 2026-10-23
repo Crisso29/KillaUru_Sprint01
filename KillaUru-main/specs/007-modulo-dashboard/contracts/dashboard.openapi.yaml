@@ -1,0 +1,101 @@
+openapi: 3.1.0
+info:
+  title: KillaUru API — Dashboard
+  version: 1.0.0
+  description: |
+    Indicadores de negocio del panel (RF-18, HU-13). Solo números agregados por día (RN-17).
+    Los indicadores técnicos están en Grafana Cloud (ADR-010).
+servers:
+  - url: https://api.killauru.pe
+tags:
+  - { name: Dashboard, description: Indicadores de negocio }
+
+paths:
+  /api/v1/dashboard/indicadores:
+    get:
+      tags: [Dashboard]
+      operationId: consultarIndicadores
+      summary: Resumen de indicadores de negocio
+      description: |
+        Rol: administrador (sin token → 401; token de otro rol → 403, T-SEG20). Valores del último día cerrado (hora de Lima) comparados con los 7 días previos,
+        serie de 7 días por indicador y eventos por día del periodo elegido junto al periodo anterior.
+        Un día sin calcular llega como `null`, nunca como 0. `eventosDia` son los eventos válidos (reportes procesados) del último
+        día cerrado: el panel lo rotula «Eventos válidos (ayer)» (D13, D14). Reaparición = vuelven a nacer después de expirar.
+      security: [ { tokenAcceso: [] }, { cookieAcceso: [] } ]
+      parameters:
+        - name: dias
+          in: query
+          description: Largo del periodo del gráfico de eventos válidos.
+          schema: { type: integer, enum: [7, 14, 30], default: 14 }
+      responses:
+        '200':
+          description: Resumen
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResumenDashboard' }
+              example:
+                ultimoDiaCerrado: '2026-10-20'
+                calculadoUtc: '2026-10-21T05:30:04Z'
+                urlPanelesTecnicos: https://killauru.grafana.net/d/api
+                indicadores:
+                  eventosDia: { valor: 321, comparacion: 297.0, variacion: 8.1, unidad: eventos, serie: [250, 270, 260, 290, 276, 302, 321] }
+                  conductoresActivos: { valor: 148, comparacion: 136.0, variacion: 12.0, unidad: cuentas, serie: [120, 124, 129, 133, 138, 141, 148] }
+                  dispositivosDia: { valor: 203, comparacion: 207.0, variacion: -4.0, unidad: dispositivos, serie: [190, 214, 207, 199, 210, 207, 203] }
+                  coberturaPct: { valor: 71.2, comparacion: 67.2, variacion: 4.0, unidad: '%', serie: [62.2, 63.1, 65.2, 66.1, 68.2, 69.1, 71.2] }
+                  confirmacionPct: { valor: 64.0, comparacion: 63.0, variacion: 1.0, unidad: '%', serie: [60.0, 61.5, 63.0, 62.0, 63.4, 63.0, 64.0] }
+                  reaparicionPct: { valor: 9.0, comparacion: 7.0, variacion: 2.0, unidad: '%', serie: [6.0, 7.1, 7.0, 8.3, 8.0, 8.0, 9.0] }
+                eventosPorDia:
+                  - { dia: '2026-10-19', eventos: 298, eventosPeriodoAnterior: 270 }
+                  - { dia: '2026-10-20', eventos: 321, eventosPeriodoAnterior: 281 }
+        '400':
+          description: '`dias` fuera de 7, 14 o 30 (`codigo = datos_invalidos`)'
+          content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problema' } } }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '429': { $ref: '#/components/responses/LimiteExcedido' }
+
+components:
+  securitySchemes:
+    tokenAcceso: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/securitySchemes/tokenAcceso' }
+    cookieAcceso: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/securitySchemes/cookieAcceso' }
+  responses:
+    NoAutenticado: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/responses/NoAutenticado' }
+    Prohibido: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/responses/Prohibido' }
+    LimiteExcedido: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/responses/LimiteExcedido' }
+  schemas:
+    Problema: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/schemas/Problema' }
+    Indicador:
+      type: object
+      required: [valor, comparacion, variacion, unidad, serie]
+      properties:
+        valor: { type: [number, 'null'] }
+        comparacion: { type: [number, 'null'], description: Promedio de los 7 días previos (conteos) o tasa de los 7 días previos (tasas) }
+        variacion: { type: [number, 'null'], description: '% relativo (eventos), diferencia absoluta (cuentas, dispositivos) o puntos (porcentajes)' }
+        unidad: { type: string, enum: [eventos, cuentas, dispositivos, '%'] }
+        serie: { type: array, minItems: 7, maxItems: 7, items: { type: [number, 'null'] } }
+    ResumenDashboard:
+      type: object
+      required: [ultimoDiaCerrado, calculadoUtc, urlPanelesTecnicos, indicadores, eventosPorDia]
+      properties:
+        ultimoDiaCerrado: { type: [string, 'null'], format: date }
+        calculadoUtc: { type: [string, 'null'], format: date-time }
+        urlPanelesTecnicos: { type: string, format: uri }
+        indicadores:
+          type: object
+          required: [eventosDia, conductoresActivos, dispositivosDia, coberturaPct, confirmacionPct, reaparicionPct]
+          properties:
+            eventosDia: { $ref: '#/components/schemas/Indicador' }
+            conductoresActivos: { $ref: '#/components/schemas/Indicador' }
+            dispositivosDia: { $ref: '#/components/schemas/Indicador' }
+            coberturaPct: { $ref: '#/components/schemas/Indicador' }
+            confirmacionPct: { $ref: '#/components/schemas/Indicador' }
+            reaparicionPct: { $ref: '#/components/schemas/Indicador' }
+        eventosPorDia:
+          type: array
+          items:
+            type: object
+            required: [dia, eventos, eventosPeriodoAnterior]
+            properties:
+              dia: { type: string, format: date }
+              eventos: { type: [integer, 'null'] }
+              eventosPeriodoAnterior: { type: [integer, 'null'] }

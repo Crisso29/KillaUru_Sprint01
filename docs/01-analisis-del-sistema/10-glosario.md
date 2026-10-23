@@ -1,6 +1,6 @@
 # Glosario (lenguaje ubicuo)
 
-> **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-14 · **Estado:** Vigente
+> **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-21 · **Estado:** Vigente
 > Cada término tiene **una sola definición** y se usa igual en documentos, código, API y panel (ADR-012). Los términos de negocio van en español; los técnicos de capas, en inglés.
 > **Relacionados:** `09-reglas-de-negocio.md`, `07-decisiones-arquitectonicas.md`, `componentes-arquitectonicos.md`
 
@@ -9,7 +9,8 @@
 | Término | Código | Definición | No confundir con |
 |---|---|---|---|
 | **Corredor** | `corredor_via` | Vía PE-28A (Los Libertadores), 333 km, guardada como polilínea. Solo se aceptan eventos a ≤ 50 m de ella (RN-13). | Tramo demo |
-| **Tramo demo** | `PoligonoDemo` | Polígono Ayacucho–Vinchos (~65 km), única zona visible para el anónimo (RN-08). | Corredor |
+| **Tramo demo** | `PoligonoDemo` | Polígono Ayacucho–Vinchos (~65 km), única zona visible para el anónimo (RN-08): la polilínea de la PE-28A entre el km 268 (Vinchos) y el km 333 (Ayacucho) con un margen de 200 m a cada lado, simplificada a ≤ 60 vértices. | Corredor |
+| **Kilómetro sobre la vía** | `kmVia` | Kilómetro de la PE-28A donde está una anomalía, medido a lo largo de la polilínea del corredor. Se calcula una sola vez, al nacer la anomalía, porque su posición no cambia (RN-05); lo muestran el mapa, el detalle y las listas del panel. | Coordenadas |
 | **Celda** | `Celda` | Cuadro de rejilla geográfica que se usa para la caché del mapa y para el bloqueo de concurrencia (≥ 5 × 100 m). | Bbox |
 | **Bbox** | `bbox` | Rectángulo que pide el cliente al consultar el mapa; el servidor lo recorta por rol y lo ajusta a celdas. | Celda |
 
@@ -20,16 +21,17 @@
 | **Categoría de vehículo** | `CategoriaVehiculo` | Liviano, Pesado o Moto; la elige el conductor y se guarda solo en el celular. En v1.0 solo **Liviano** (auto, camioneta, station wagon o colectivo, con el celular en soporte) detecta y envía eventos (RN-18). | Rol |
 | **Ventana** | — | 500 ms de lecturas del acelerómetro y el giroscopio a 50 Hz que clasifica el modelo. | Evento |
 | **Evento** | `EventoReportado` (contrato) | Detección guardada en el celular y enviada al servidor: `eventoId`, hora UTC, ubicación, precisión, tipo, severidad, confidence, `modeloVersion`, seudónimo. | Reporte, Anomalía |
-| **Lote** | `LoteRecibido` | Grupo de hasta 50 eventos enviado en un solo `POST`. | — |
+| **Lote** | `LoteEntrante` | Grupo de hasta 50 eventos de **un solo seudónimo** enviado en un solo `POST` (RN-11). Su identificador (`loteId`) lo genera el servidor; el aviso que va a la cola de Ingesta (`LoteRecibido`) lleva solo ese `loteId`. | — |
 | **Recepción / Procesamiento** | — | Las dos etapas de la ingesta (RN-11). En la **recepción**, antes de responder 200, se aplican las reglas que no usan la BD y el evento sale como aceptado o rechazado. En el **procesamiento**, después, Anomalías aplica las reglas que necesitan la BD; lo que descarta solo se cuenta como métrica. | — |
-| **Evento recibido** | `ingesta.evento_recibido` | Copia durable del evento aceptado tal como llegó (`JSONB`), antes de procesarlo. El seudónimo se le borra a las 72 h (RN-09) y la fila se borra a los 30 días. | Reporte |
+| **Evento recibido** | `ingesta.evento_recibido` | Copia durable del evento aceptado tal como llegó (`JSONB`), antes de procesarlo. El seudónimo y el `lote_id` se le borran a las 72 h, y su hora de recepción queda redondeada a la hora (RN-09); la fila se borra a los 30 días. | Reporte |
 | **Reporte** | `ReporteAnomalia` | Evento que pasó la validación y quedó asociado a una anomalía. Es único por `eventoId`. | Evento |
 | **Anomalía** | `Anomalia` | Punto de la vía con un problema (Bache o Hundimiento), formado por uno o más reportes del mismo tipo a ≤ 100 m (RN-05). Es lo que se muestra en el mapa, con la mediana de las severidades de sus reportes de los últimos 15 días, redondeada hacia arriba. | Reporte |
 | **Posición de la anomalía** | — | Posición del reporte que creó la anomalía; no cambia. Los 100 m de RN-05 se miden desde ella. | Centroide |
 | **Tipo de anomalía** | `TipoAnomalia` | Bache o Hundimiento (RN-01). *Normal* es una clase interna del modelo que nunca se envía. | — |
 | **Severidad** | `Severidad` | Intensidad del golpe, de 1 a 5. **Alta** = 4 o 5 (RN-02). | Confidence |
 | **Confidence** | `Confidence` | Seguridad del modelo en su clasificación, de 0.0 a 1.0. Mínimo 0.75 (RN-04, RN-11). | Severidad |
-| **Descarte** | `MotivoDescarte` | Evento rechazado por una regla de calidad o antifraude, en la recepción (sale en `rechazados[]` de la respuesta) o en el procesamiento (solo métrica) (RN-11); se cuenta como métrica por motivo, no se audita. | Anomalía `Descartada` |
+| **Descarte** | `MotivoDescarte` | Evento rechazado por una regla de calidad o antifraude, en la recepción (sale en `rechazados[]` de la respuesta) o en el procesamiento (solo métrica) (RN-11); se cuenta como métrica por motivo, no se audita. Son 8 motivos, numerados de 1 (`EsquemaInvalido`) a 8 (`SeudonimoInconsistente`). | Anomalía `Descartada` |
+| **Seudónimo inconsistente** | `MotivoDescarte.SeudonimoInconsistente` (8) | Motivo de rechazo en la recepción: el evento trae un seudónimo distinto al del lote (el de la cabecera `X-KillaUru-Seudonimo` o, si no viene, el del primer evento con seudónimo válido). Un lote = un seudónimo (RN-11). | Seudónimo |
 
 ## 3. Estados y clasificación
 
@@ -40,10 +42,10 @@
 | **Confirmación** | `PoliticaConfirmacion` | Exigencia de ≥ 2 dispositivos distintos, con detecciones separadas ≥ 3 min para que sean vehículos distintos, para mostrar una anomalía de severidad alta (con al menos un reporte con sesión, RN-14) o una anomalía creada por un dispositivo que superó su tope (sin exigir sesión) (RN-06, RN-14, RN-15a). También se aplica cuando una anomalía `Expirada` o `Reparada` vuelve a nacer. |
 | `Activa` | `EstadoAnomalia.Activa` | Visible en el mapa y genera alertas. |
 | `PendienteConfirmacion` | `EstadoAnomalia.PendienteConfirmacion` | Espera un segundo dispositivo; solo la ve el administrador. |
-| `Expirada` | `EstadoAnomalia.Expirada` | Sin reportes durante su plazo (episódica 72 h, persistente 7 días, pendiente 72 h), medido con la hora de detección; con un nuevo reporte vuelve a nacer y pasa otra vez por la confirmación (RN-06). |
-| `Reparada` | `EstadoAnomalia.Reparada` | Marcada por el administrador como arreglada. |
-| `Descartada` | `EstadoAnomalia.Descartada` | Falso positivo confirmado por el administrador; un nuevo reporte no la reactiva, pero si siguen llegando reportes de varios vehículos pasa a la lista «Por revisar» del panel (RN-07). |
-| **Reaparición** | — | Anomalía que vuelve a `Activa` después de expirar; su tasa sirve para calibrar la caducidad. |
+| `Expirada` | `EstadoAnomalia.Expirada` | Sin reportes durante su plazo (episódica 72 h, persistente 7 días, pendiente 72 h), medido con la hora de detección; con un reporte detectado después de su vencimiento vuelve a nacer y pasa otra vez por la confirmación (RN-06). |
+| `Reparada` | `EstadoAnomalia.Reparada` | Marcada por el administrador como arreglada; con un reporte detectado después de la reparación vuelve a nacer (RN-07). |
+| `Descartada` | `EstadoAnomalia.Descartada` | Falso positivo confirmado por el administrador; un nuevo reporte no la reactiva, pero si siguen llegando reportes de varios vehículos pasa a la lista «Por revisar» del panel, donde el administrador la reabre o la mantiene descartada (`MantenerDescartada`) (RN-07). |
+| **Reaparición** | — | Anomalía que **vuelve a nacer** después de expirar (hacia `Activa` o `PendienteConfirmacion`); su tasa sirve para calibrar la caducidad. |
 | **Pasada** | — | Paso del vehículo junto a una anomalía; termina cuando se aleja más de 500 m. Se emite una sola alerta por anomalía en cada pasada (RN-16). |
 
 ## 4. Personas, identidad y privacidad

@@ -1,0 +1,21 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+
+[*.{json,yml,yaml,props,csproj,xml}]
+indent_size = 2
+
+[*.cs]
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_prefer_braces = when_multiline:warning
+dotnet_style_qualification_for_field = false:warning
+dotnet_sort_system_directives_first = true
+# Nombres de negocio en español: el analizador de nombres en inglés no aplica
+dotnet_diagnostic.CA1707.severity = none
+# «Shared» es palabra reservada solo en Visual Basic; el nombre KillaUru.Shared lo fija docs y todo es C#
+dotnet_diagnostic.CA1716.severity = none

@@ -1,7 +1,7 @@
 # Nivel 1 · Diagrama de Contexto del Sistema
 
-> **Proyecto:** KillaUru · **Modelo:** C4 · Nivel 1 de 4 · **Versión:** 3.0 · **Revisión:** 2026-10-14 · **Estado:** Vigente (alineado con `01-actores.md` y ADR-001…ADR-015)
-> **Herramienta:** Structurizr DSL (`workspace.dsl`, vista `C1_Contexto`) · copia en Mermaid en este documento
+> **Proyecto:** KillaUru · **Modelo:** C4 · Nivel 1 de 4 · **Versión:** 3.1 · **Revisión:** 2026-10-21 · **Estado:** Vigente (alineado con `01-actores.md` y ADR-001…ADR-015)
+> **Herramienta:** Mermaid en este documento
 
 ## 1. Objetivo
 
@@ -39,6 +39,7 @@ flowchart TB
     UR["UptimeRobot<br/>[Sistema externo]<br/>Monitoreo de disponibilidad"]:::infra
     MAIL["Proveedor de correo<br/>[Sistema externo]<br/>Correo transaccional"]:::infra
     GRAF["Grafana Cloud<br/>[Sistema externo]<br/>Métricas, trazas, logs y alertas"]:::infra
+    GH["GitHub Actions + GHCR<br/>[Sistema externo]<br/>CI/CD e imágenes de la API"]:::infra
 
     CNR -- "Consulta el tramo demo y aporta eventos anónimos" --> KU
     CR -- "Consulta el corredor, recibe alertas y gestiona su cuenta" --> KU
@@ -49,6 +50,7 @@ flowchart TB
     UR -- "Consulta /health/ready cada 5 min" --> KU
     KU -- "Envía correos de verificación y recuperación" --> MAIL
     KU -- "Envía telemetría (OTLP)" --> GRAF
+    GH -- "Despliega cada cambio de main (SSH por Cloudflare Access)" --> KU
 ```
 
 ## 3. Personas
@@ -68,7 +70,8 @@ flowchart TB
 | **Cloudflare** | DNS, TLS, proxy y caché de borde; Tunnel hacia el origen; Pages (panel); R2 (mapa base, modelos y backups) | Tráfico HTTPS; archivos estáticos y backups cifrados | Red y almacenamiento de terceros (R-05, ADR-010) |
 | **UptimeRobot** | Consulta `GET /health/ready` y publica una página de estado pública gratuita | Solo el código de respuesta | Monitoreo independiente del servidor (RNF-20) |
 | **Proveedor de correo transaccional** | Envía los correos de verificación y de recuperación de contraseña | Correo del destinatario y el enlace | Integrado **solo** desde Identidad y Accesos (regla 11) |
-| **Grafana Cloud** | Recibe métricas, trazas y logs; alerta por degradación | Telemetría sin datos personales de alta cardinalidad (RNF-32) | Observabilidad gratuita sin servidor propio (ADR-010) |
+| **Grafana Cloud** | Recibe métricas, trazas y logs (de la API y del agente Grafana Alloy de la VM); alerta por degradación, disco y tareas atrasadas | Telemetría sin datos personales de alta cardinalidad (RNF-32) | Observabilidad gratuita sin servidor propio (ADR-010) |
+| **GitHub Actions y GitHub Container Registry (GHCR)** | CI en cada PR; al unir a `main`, construye la imagen arm64, la publica en GHCR con etiqueta = commit y despliega a la VM | Código fuente; secretos de despliegue como secretos de GitHub (RNF-34) | Servicio de terceros; la VM no abre puertos (RNF-17, RNF-18) |
 
 > Todos reciben datos fuera del Perú: están declarados como flujo transfronterizo en la política de privacidad (R-06).
 
@@ -83,6 +86,7 @@ flowchart TB
 | UptimeRobot | KillaUru | Comprueba `/health/ready` | HTTPS |
 | KillaUru | Proveedor de correo | Envía correos transaccionales | HTTPS (API) |
 | KillaUru | Grafana Cloud | Envía telemetría | OTLP sobre HTTPS |
+| GitHub Actions | KillaUru | Despliega la imagen de GHCR | SSH a través de Cloudflare Access |
 
 > La flecha del monitoreo va **de UptimeRobot hacia KillaUru**, porque UptimeRobot es quien consulta.
 
@@ -96,7 +100,7 @@ flowchart TB
 | Sistema externo | Gris pizarra | `#475569` |
 | Actor futuro | Borde gris punteado | `#94A3B8` |
 
-La paleta es la misma en los 4 niveles y en `workspace.dsl`.
+La paleta es la misma en los 4 niveles.
 
 ## 7. Decisiones reflejadas
 

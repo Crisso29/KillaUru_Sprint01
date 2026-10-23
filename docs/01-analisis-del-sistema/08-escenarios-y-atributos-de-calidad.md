@@ -1,6 +1,6 @@
 # Escenarios de atributos de calidad de KillaUru
 
-> **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-14 · **Estado:** Vigente
+> **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-21 · **Estado:** Vigente
 > Traduce los atributos de `04-atributos-de-calidad.md` en escenarios verificables, con el formato de **seis partes** del método ATAM: **fuente, estímulo, artefacto, entorno, respuesta y medida de respuesta**. Se añaden *verificación*, *trazabilidad* y *estado* para el seguimiento del proyecto.
 > Las metas numéricas viven en `04`; aquí se referencian por ID.
 
@@ -72,10 +72,10 @@
 | **Fuente** | Equipo de desarrollo (una persona: Crisólogo Aguilar Flores) |
 | **Estímulo** | Se cambia una regla de negocio (p. ej. el umbral de confidence) o se sustituye un componente interno. |
 | **Artefacto** | Módulos del monolito (Domain, Application, Adapters, Infrastructure) |
-| **Entorno** | Backend como monolito modular, con pruebas de arquitectura en el pipeline. |
+| **Entorno** | Backend como monolito modular, con pruebas de arquitectura en el pipeline de CI (GitHub Actions, en cada PR; RNF-28). |
 | **Respuesta** | El cambio se concentra en un solo módulo; los umbrales se modifican **por configuración**, sin tocar código; el sistema completo se despliega con un único comando. |
 | **Medida** | El cambio de umbral toca 0 líneas de código; el cambio de componente toca solo 1 módulo; las pruebas del módulo y de regresión pasan; las pruebas de arquitectura pasan (RNF-28); despliegue con `docker compose up -d` y rollback en < 5 min (RNF-17, RNF-18). |
-| **Verificación** | Revisión de dependencias entre módulos; ejecución de la suite completa; medición del tiempo de rollback en el entorno de pruebas (R-11). |
+| **Verificación** | Revisión de dependencias entre módulos; ejecución de la suite completa en el CI de cada PR (si falla, no se une a `main`); medición del tiempo de rollback (desplegar la etiqueta anterior) en el entorno de pruebas (R-11). |
 | **Trazabilidad** | R-09, DA-06, DA-09, HU-16, RNF-17, RNF-18, RNF-19, RNF-28, ADR-001, ADR-002, ADR-012 |
 | **Estado** | Definido |
 
@@ -89,9 +89,9 @@
 | **Artefacto** | Ingesta (tabla de recepción, Channel y `BackgroundService`) |
 | **Entorno** | Un único servidor Oracle Cloud ARM, una sola instancia. |
 | **Respuesta** | El servidor persiste y confirma cada lote, aplica contrapresión (503 con `Retry-After`) si se satura, y procesa de forma asíncrona. Los reintentos de las apps llevan *jitter*. |
-| **Medida** | Confirmación del lote < 300 ms p95 (RNF-02); error < 1 % (RNF-03); evento procesado en ≤ 100 ms y retraso de cola ≤ 30 s p95 (RNF-23). |
-| **Verificación** | Prueba de carga con 300 clientes concurrentes; medir latencia p95, tasa de error, tamaño de cola y CPU/memoria. |
-| **Trazabilidad** | DA-05, RNF-02, RNF-03, RNF-23, HU-04, ADR-005 |
+| **Medida** | Confirmación del lote < 300 ms p95 (RNF-02); error < 1 % (RNF-03), contando como error todo 5xx (el 503 con `Retry-After` solo se acepta en la prueba de estrés) y sin ningún 429; evento procesado en ≤ 100 ms y retraso de cola ≤ 30 s p95, leído del histograma de retraso de cola (RNF-23). |
+| **Verificación** | Cinco pruebas con k6 **fuera de la VM** contra el entorno de pruebas (R-11), con sus límites de CPU y memoria, límites de tasa relajados por configuración y en horario de poco tráfico; se corren **antes de cada versión y cada mes**, fuera del CI: (1) **carga combinada**: 300 clientes sincronizando + 300 consultando el mapa durante 10 min (RNF-03, EQ-14); (2) **picos**: una ráfaga de 600 clientes a la vez; (3) **estrés**: escalera de 100 en 100 clientes hasta que el p95 pase 2 veces su meta o los errores pasen el 1 %, y se registra el punto de quiebre; (4) **resistencia**: 4 h al 50 % de la carga; (5) **caos**: matar el proceso bajo carga (EQ-09). En cada una se miden latencia p95, tasa de error, tamaño y retraso de la cola, y CPU/memoria. |
+| **Trazabilidad** | DA-05, R-11, RNF-02, RNF-03, RNF-23, HU-04, ADR-005 |
 | **Estado** | Definido |
 
 ## EQ-07. Observabilidad: detección temprana de fallas
@@ -101,7 +101,7 @@
 | **Atributo** | Observabilidad (AC-07) |
 | **Fuente** | Componente de infraestructura (backend, base de datos, proxy) |
 | **Estímulo** | Un subdominio deja de responder, `/health/ready` retorna un código distinto de 200, se llena el disco o una tarea programada deja de ejecutarse. |
-| **Artefacto** | UptimeRobot, `/health/ready` de la API, paneles y alertas de Grafana |
+| **Artefacto** | UptimeRobot, `/health/ready` de la API, Grafana Alloy (disco, CPU, memoria de la VM y última ejecución del backup), paneles y alertas de Grafana |
 | **Entorno** | UptimeRobot cada 5 minutos; OpenTelemetry y logs en Grafana Cloud con alertas de degradación. |
 | **Respuesta** | El sistema notifica al equipo antes de que los usuarios lo reporten y el estado queda visible en la página de estado pública gratuita de UptimeRobot (enlazada desde la app y el panel). |
 | **Medida** | Alerta de caída por correo en ≤ 10 min (RNF-20); disponibilidad mensual registrada con historial de 30 días (RNF-05); los paneles de Grafana muestran p95, descartes por motivo, disco y última ejecución de cada tarea (RNF-22), y el panel administrativo muestra la tasa de confirmación (RF-18). |
@@ -135,8 +135,8 @@
 | **Entorno** | Carga normal con lotes en curso. |
 | **Respuesta** | Al arrancar, el servicio reprocesa los eventos pendientes de la tabla de recepción. |
 | **Medida** | 0 eventos aceptados perdidos; tras recuperarse se cumple aceptados = procesados + descartados en procesamiento + pendientes; el procesamiento se reanuda en ≤ 2 min (RNF-06). |
-| **Verificación** | Prueba de caos: matar el proceso a mitad de un lote y conciliar los conteos. |
-| **Trazabilidad** | DA-02, RNF-06, ADR-005 |
+| **Verificación** | Prueba de **caos** (la quinta prueba de EQ-06): con k6 generando carga en el entorno de pruebas (R-11), matar el contenedor de la API con `kill -9` a mitad de un lote y conciliar los conteos de forma exacta: 0 eventos perdidos, 0 duplicados y ningún lote con 200 sin confirmar. |
+| **Trazabilidad** | DA-02, R-11, RNF-06, ADR-005 |
 | **Estado** | Definido — alineado con ADR-005 (Aceptado) |
 
 ## EQ-10. Restauración desde backup
@@ -163,9 +163,9 @@
 | **Estímulo** | Solicita `GET /api/v1/anomalies?bbox=` fuera del tramo demo, o excede el límite de tasa. |
 | **Artefacto** | Consulta de Mapa y middleware de límite de tasa de la API REST |
 | **Entorno** | Sin JWT (Anónimo) o con JWT de Conductor Registrado. |
-| **Respuesta** | La respuesta se recorta al polígono del tramo demo para el Anónimo; al exceder 60 req/h se responde 429. El conductor registrado recibe el corredor completo, y su respuesta nunca queda en la caché de borde para otros (ADR-006). |
-| **Medida** | 100 % de las respuestas a Anónimos sin anomalías fuera del tramo demo, también cuando la respuesta sale de la caché de borde (RNF-27); límites de 60, 1 000 y 3 000 req/h aplicados con la IP real (RNF-11). |
-| **Verificación** | Pruebas de API con y sin token, con `bbox` mayor al tramo demo y ráfaga de peticiones; pedir el mismo `bbox` primero con token y luego sin token a través de Cloudflare y comprobar que el anónimo recibe solo el tramo demo. |
+| **Respuesta** | La respuesta se recorta al polígono del tramo demo para el Anónimo; al exceder 60 req/h se responde 429, y también al superar el techo por IP aunque cambie de seudónimo en cada petición. El conductor registrado recibe el corredor completo, y su respuesta nunca queda en la caché de borde para otros (ADR-006). |
+| **Medida** | 100 % de las respuestas a Anónimos sin anomalías fuera del tramo demo, también cuando la respuesta sale de la caché de borde (RNF-27); límites de 60, 1 000 y 3 000 req/h y techo por IP de 300 consultas/h para anónimos aplicados con la IP real (RNF-11). |
+| **Verificación** | Pruebas de API con y sin token, con `bbox` mayor al tramo demo y ráfaga de peticiones; ráfaga desde una sola IP con un seudónimo distinto en cada petición (debe recibir 429 al pasar el techo por IP); pedir el mismo `bbox` primero con token y luego sin token a través de Cloudflare y comprobar que el anónimo recibe solo el tramo demo. |
 | **Trazabilidad** | R-07, DA-10, RF-08, RF-14, HU-07, ADR-009 |
 | **Estado** | Definido |
 
@@ -178,9 +178,9 @@
 | **Estímulo** | Envía cientos de eventos falsos (severidad 5), fabricados sin conexión y subidos de golpe al tener señal, para crear baches inexistentes. |
 | **Artefacto** | Ingesta y módulo Anomalías |
 | **Entorno** | Operación normal; conviven con subidas legítimas de conductores que acumularon horas de eventos sin señal. |
-| **Respuesta** | El servidor juzga cada evento por su contenido y no por el momento de la subida: descarta los que están fuera de la vía y los que implican velocidades imposibles; retiene sin publicar (hasta confirmación) los de un dispositivo que supera el tope por hora de detección; no confirma severidad 4–5 sin al menos un reporte con sesión. Los descartes se ven por motivo en los paneles técnicos (RNF-22). |
+| **Respuesta** | El servidor juzga cada evento por su contenido y no por el momento de la subida: descarta los que están fuera de la vía y los que implican velocidades imposibles; retiene sin publicar (hasta confirmación) los de un dispositivo que supera el tope por hora de detección; no confirma severidad 4–5 sin al menos un reporte con sesión de una cuenta verificada; rechaza los eventos de un lote con un seudónimo distinto al del lote (`SeudonimoInconsistente`) y aplica el techo por IP a las peticiones anónimas, así inventar seudónimos no da cuota ni tope nuevos. Los descartes se ven por motivo en los paneles técnicos (RNF-22). |
 | **Medida** | 0 anomalías de severidad 4–5 confirmadas solo con seudónimos anónimos; 0 eventos aceptados a más de 50 m de la vía; 0 anomalías publicadas solo por un dispositivo que supera el tope; 100 % de los eventos legítimos de una subida acumulada de 5 h aceptados y 0 eventos reales perdidos en un tramo de lluvia con ~600 eventos por hora (RN-13, RN-14, RN-15). |
-| **Verificación** | Prueba con un script que envía eventos fuera de la vía, en ráfaga y con saltos de posición; prueba paralela con un recorrido real de 5 h en modo avión. Conciliar aceptados y descartados por motivo. |
+| **Verificación** | Prueba por HTTP con un script que envía eventos fuera de la vía, en ráfaga, con saltos de posición y con seudónimos rotados (dentro de un lote y entre lotes); prueba paralela con un recorrido real de 5 h en modo avión. Conciliar aceptados y descartados por motivo. |
 | **Trazabilidad** | DA-15, RN-13, RN-14, RN-15, RF-12, HU-05, ADR-015 |
 | **Estado** | Definido |
 
@@ -210,8 +210,8 @@
 | **Entorno** | Un único servidor Oracle ARM en Santiago (Chile); caché caliente para el tramo más consultado. |
 | **Respuesta** | La mayoría de las consultas se resuelven desde la caché de borde o la caché por celdas; las demás usan el índice GiST. Las respuestas sin cambios devuelven 304 por `ETag`. |
 | **Medida** | p95 < 250 ms medido en la API y < 300 ms de extremo a extremo desde Lima (RNF-01); tasa de error < 1 %; aciertos de caché ≥ 80 % en el tramo demo. |
-| **Verificación** | Prueba de carga con k6 (300 usuarios virtuales consultando y 300 sincronizando); prueba sintética desde Lima; panel de Grafana con p95 y aciertos de caché. |
-| **Trazabilidad** | DA-05, RNF-01, RF-14, HU-08, ADR-006 |
+| **Verificación** | Prueba de **carga combinada** con k6 (300 usuarios virtuales consultando y 300 sincronizando **a la vez**, 10 min), una de las cinco pruebas de EQ-06, fuera de la VM contra el entorno de pruebas (R-11); el error se cuenta como en EQ-06 (todo 5xx, sin 429). Como el entorno de pruebas no pasa por Cloudflare, los 300 ms desde Lima y los aciertos de la caché de borde se miden aparte, con la prueba sintética desde Lima contra producción y las estadísticas de Cloudflare; panel de Grafana con p95 y aciertos de caché. |
+| **Trazabilidad** | DA-05, R-11, RNF-01, RF-14, HU-08, ADR-006 |
 | **Estado** | Definido |
 
 ## EQ-15. Costo operativo: el gasto se acerca al tope

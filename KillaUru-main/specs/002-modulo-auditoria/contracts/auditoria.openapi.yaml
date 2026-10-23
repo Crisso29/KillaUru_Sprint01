@@ -1,0 +1,89 @@
+openapi: 3.1.0
+info:
+  title: KillaUru API — Auditoría
+  version: 1.0.0
+  description: Consulta de solo lectura del registro de auditoría (HU-15, RF-15). No existe ninguna operación para modificar o borrar registros.
+servers:
+  - url: https://api.killauru.pe
+tags:
+  - name: Auditoría
+    description: Registro inmutable de acciones sensibles
+paths:
+  /api/v1/auditoria:
+    get:
+      tags: [Auditoría]
+      operationId: consultarAuditoria
+      summary: Consultar el registro de auditoría
+      description: |
+        Rol: Administrador.
+        Devuelve los registros del más reciente al más antiguo, filtrados y paginados (HU-15, RF-15).
+        La propia consulta queda auditada como `AccesoAdministrativoDatos` con `RegistrarLecturaAsync` (FR-012, D15).
+        Sin token → 401; con token de otro rol → 403 `sin_permiso`; cuota superada → 429 (convenciones-api, T-SEG19, T-SEG20).
+        El correo del actor no se devuelve: el panel lo resuelve con `GET /api/v1/usuarios?ids=` (feature 003).
+      security:
+        - tokenAcceso: []
+        - cookieAcceso: []
+      parameters:
+        - { name: desde, in: query, required: false, schema: { type: string, format: date-time }, description: Inicio del rango (UTC, inclusive) }
+        - { name: hasta, in: query, required: false, schema: { type: string, format: date-time }, description: Fin del rango (UTC, inclusive) }
+        - { name: categoria, in: query, required: false, schema: { $ref: '#/components/schemas/CategoriaAuditoria' } }
+        - { name: accion, in: query, required: false, schema: { $ref: '#/components/schemas/AccionAuditada' } }
+        - { name: actorId, in: query, required: false, schema: { type: string, format: uuid } }
+        - { name: pagina, in: query, required: false, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: tamano, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+      responses:
+        '200':
+          description: Página de registros
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaginaAuditoria' }
+              example:
+                elementos:
+                  - id: 1042
+                    ocurridoUtc: '2026-10-20T14:32:05Z'
+                    actorId: '7f3a2c1e-0000-4000-8000-000000000001'
+                    actorRol: Administrador
+                    categoria: Moderacion
+                    accion: AnomaliaModerada
+                    objetivo: '0192f1a2-0000-7000-8000-000000000921'
+                    contexto: { accion: MarcarReparada, desde: Activa, hacia: Reparada }
+                pagina: 1
+                tamano: 50
+                total: 1
+        '400': { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/responses/Validacion' }
+        '401': { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/responses/NoAutenticado' }
+        '403': { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/responses/Prohibido' }
+        '429': { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/responses/LimiteExcedido' }
+components:
+  securitySchemes:
+    tokenAcceso: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/securitySchemes/tokenAcceso' }
+    cookieAcceso: { $ref: '../../001-plataforma-backend/contracts/plataforma.openapi.yaml#/components/securitySchemes/cookieAcceso' }
+  schemas:
+    CategoriaAuditoria:
+      type: string
+      enum: [Usuarios, Sesion, CuentaDelTitular, Moderacion, Exportacion, AccesoADatos]
+    AccionAuditada:
+      type: string
+      enum: [UsuarioCreado, RolCambiado, CuentaDesactivada, CuentaActivada, CuentaEliminada, InicioSesionFallido,
+             CuentaBloqueada, InicioSesionAdministrador, RecuperacionSolicitada, ContrasenaCambiada,
+             RevisionPrivilegios, AnomaliaModerada, DatasetExportado, AccesoAdministrativoDatos]
+    RegistroAuditoria:
+      type: object
+      required: [id, ocurridoUtc, actorRol, categoria, accion, contexto]
+      properties:
+        id: { type: integer, format: int64 }
+        ocurridoUtc: { type: string, format: date-time }
+        actorId: { type: [string, 'null'], format: uuid, description: 'null si el actor es el sistema' }
+        actorRol: { type: string, enum: [ConductorRegistrado, Administrador, Sistema] }
+        categoria: { $ref: '#/components/schemas/CategoriaAuditoria' }
+        accion: { $ref: '#/components/schemas/AccionAuditada' }
+        objetivo: { type: [string, 'null'], maxLength: 100 }
+        contexto: { type: object, additionalProperties: true, description: Datos no personales de la acción }
+    PaginaAuditoria:
+      type: object
+      required: [elementos, pagina, tamano, total]
+      properties:
+        elementos: { type: array, items: { $ref: '#/components/schemas/RegistroAuditoria' } }
+        pagina: { type: integer }
+        tamano: { type: integer }
+        total: { type: integer, format: int64 }

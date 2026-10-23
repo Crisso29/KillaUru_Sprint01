@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Npgsql" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="YamlDotNet" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\KillaUru.Shared\KillaUru.Shared.csproj" />
+    <ProjectReference Include="..\..\src\KillaUru.Api\KillaUru.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\KillaUru.Auditoria\KillaUru.Auditoria.csproj" />
+    <ProjectReference Include="..\..\src\Modules\KillaUru.Identidad\KillaUru.Identidad.csproj" />
+    <ProjectReference Include="..\..\src\Modules\KillaUru.Anomalias\KillaUru.Anomalias.csproj" />
+    <ProjectReference Include="..\..\src\Modules\KillaUru.Ingesta\KillaUru.Ingesta.csproj" />
+    <ProjectReference Include="..\..\src\Modules\KillaUru.Mapa\KillaUru.Mapa.csproj" />
+    <ProjectReference Include="..\..\src\Modules\KillaUru.Dashboard\KillaUru.Dashboard.csproj" />
+  </ItemGroup>
+</Project>

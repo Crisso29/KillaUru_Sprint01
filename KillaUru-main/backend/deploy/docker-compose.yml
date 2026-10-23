@@ -1,0 +1,96 @@
+# Producción en la VM Oracle A1 (4 OCPU / 24 GB, arm64). Un comando: `docker compose up -d` (HU-16, RNF-17).
+# Sin puertos publicados: todo el tráfico entra por el túnel de Cloudflare (ADR-010).
+name: killauru
+
+x-comun: &comun
+  restart: unless-stopped
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "3" }   # D12: los logs de Docker no llenan el disco
+  networks: [interna]
+
+services:
+  api:
+    <<: *comun
+    image: ghcr.io/${KU_GHCR_CUENTA:?}/killauru-api:${KU_VERSION:?}
+    depends_on:
+      postgres: { condition: service_healthy }
+    environment:
+      ConnectionStrings__KillaUru: "Host=postgres;Database=killauru;Username=killauru_app;Password=${KU_DB_APP_PASSWORD:?}"
+      Api__Jwt__ClaveFirma: ${KU_JWT_CLAVE_FIRMA:?}
+      Api__Telemetria__OtlpEndpoint: ${KU_GRAFANA_OTLP_ENDPOINT:-}
+      OTEL_EXPORTER_OTLP_HEADERS: "Authorization=Basic ${KU_GRAFANA_OTLP_TOKEN:-}"
+    cpus: "2.0"
+    mem_limit: 4g
+
+  postgres:
+    <<: *comun
+    build: ./postgres
+    image: killauru-postgres:17-postgis
+    environment:
+      POSTGRES_DB: killauru
+      POSTGRES_PASSWORD: ${KU_PG_SUPERUSUARIO:?}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d killauru"]
+      interval: 10s
+      retries: 6
+    cpus: "1.5"
+    mem_limit: 8g
+
+  cloudflared:
+    <<: *comun
+    image: cloudflare/cloudflared:2025.10.0   # versión fija: se actualiza a propósito, no sola
+    command: tunnel --no-autoupdate run --token ${KU_TUNEL_TOKEN:?}
+    networks:
+      interna: { ipv4_address: 172.30.0.10 }   # Api:RedTunel = 172.30.0.0/24 confía solo en esta red
+    cpus: "0.25"
+    mem_limit: 256m
+
+  backup:
+    <<: *comun
+    build: ./backup
+    image: killauru-backup:local
+    env_file: .env
+    volumes:
+      - ./:/killauru/deploy:ro
+      - ../db:/killauru/db:ro
+      - metricas-backup:/metricas
+    cpus: "0.5"
+    mem_limit: 1g
+
+  migrador:   # solo se usa con `docker compose run --rm migrador` desde desplegar.sh
+    <<: *comun
+    image: killauru-backup:local
+    profiles: [herramientas]
+    restart: "no"
+    env_file: .env
+    entrypoint: ["/killauru/deploy/migrar.sh"]
+    volumes:
+      - ./:/killauru/deploy:ro
+      - ../db:/killauru/db:ro
+
+  alloy:
+    <<: *comun
+    image: grafana/alloy:v1.11.0   # versión fija (D12)
+    command: run /etc/alloy/config.alloy
+    env_file: .env
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host/root:ro
+      - metricas-backup:/metricas:ro
+    cpus: "0.25"
+    mem_limit: 512m
+
+volumes:
+  pgdata: {}
+  metricas-backup: {}
+
+networks:
+  interna:
+    ipam:
+      config: [{ subnet: 172.30.0.0/24 }]

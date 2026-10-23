@@ -1,0 +1,154 @@
+<title>Logos KillaUru</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Overpass:wght@700;800;900&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* Layout: tres propuestas en columnas iguales; cada una se prueba en grande, en marca horizontal (claro y oscuro) y en tamaños de ícono reales */
+:root{
+  --bg:#F3F4F7; --surface:#FFFFFF; --ink:#121829; --ink-2:#434A63; --ink-3:#6A7190; --line:#E0E3EA; --accent:#2C3D9C; --accent-soft:#E4E8FA;
+  --f-display:"Overpass","Arial Narrow",system-ui,sans-serif; --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0B0F1B;--surface:#131929;--ink:#E8EBF4;--ink-2:#AAB1C8;--ink-3:#7E86A3;--line:#232B45;--accent:#9AABFF;--accent-soft:#1C2550;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0B0F1B;--surface:#131929;--ink:#E8EBF4;--ink-2:#AAB1C8;--ink-3:#7E86A3;--line:#232B45;--accent:#9AABFF;--accent-soft:#1C2550;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.4}
+.wrap{max-width:1320px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:34px 89px}
+h1,h2,h3{font-family:var(--f-display);margin:0;line-height:1.1;letter-spacing:-.015em;text-wrap:balance}
+.head{display:grid;gap:8px;max-width:62ch;margin-bottom:34px}
+.head h1{font-size:34px;font-weight:900;letter-spacing:-.025em}
+.head p{color:var(--ink-2)}
+.kicker{font-family:var(--f-display);font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:21px}
+@media (max-width:1000px){.grid{grid-template-columns:1fr;max-width:560px}}
+.opt{background:var(--surface);border:1px solid var(--line);border-radius:13px;overflow:hidden;display:flex;flex-direction:column}
+.hero{display:grid;place-items:center;padding:34px 21px;background:var(--bg);border-bottom:1px solid var(--line)}
+.hero svg{width:min(233px,70%);height:auto;filter:drop-shadow(0 8px 21px rgba(10,14,30,.25))}
+.info{padding:21px;display:grid;gap:8px;border-bottom:1px solid var(--line);flex:1;align-content:start}
+.info .tag{display:flex;align-items:center;gap:8px}
+.info .tag b{font-family:var(--f-display);font-weight:900;font-size:13px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--surface)}
+.info h2{font-size:21px;font-weight:800}
+.info p{color:var(--ink-2);font-size:15px}
+.info ul{margin:0;padding-left:1.1em;color:var(--ink-2);font-size:14px;display:grid;gap:3px}
+.lock{display:flex;align-items:center;gap:13px;padding:21px}
+.lock svg{width:55px;height:55px;flex:none}
+.lock b{font-family:var(--f-display);font-weight:900;font-size:26px;letter-spacing:-.03em;line-height:1;display:block}
+.lock small{font-size:13px;display:block;margin-top:3px}
+.lock.l{background:#FFFFFF;color:#121829}.lock.l small{color:#6A7190}
+.lock.d{background:#0B0F1B;color:#E8EBF4}.lock.d small{color:#AAB1C8}
+.sizes{display:flex;align-items:flex-end;gap:21px;padding:21px;border-top:1px solid var(--line);flex-wrap:wrap}
+.sizes figure{margin:0;display:grid;gap:5px;justify-items:center;font-size:11px;color:var(--ink-3)}
+.phone{margin-left:auto;display:grid;grid-template-columns:repeat(4,34px);gap:13px 10px;padding:13px;border-radius:13px;background:linear-gradient(160deg,#3B4A7A,#1A2140)}
+.phone i{display:block;width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.18)}
+.phone span{display:block;width:34px;height:34px}
+.foot{margin-top:34px;padding:21px;border:1px solid var(--line);border-radius:13px;background:var(--surface);display:grid;gap:8px;max-width:760px}
+.foot p{color:var(--ink-2);font-size:15px}
+</style>
+
+<main class="wrap">
+  <div class="head">
+    <span class="kicker">KillaUru · propuestas de marca · 20 oct 2026</span>
+    <h1>Una luciérnaga que alumbra la pista entre montañas</h1>
+    <p>Tres caminos distintos para la misma idea. Cada uno se muestra en grande, junto al nombre en fondo claro y oscuro, y en los tamaños reales de un celular.</p>
+  </div>
+  <div class="grid" id="grid"></div>
+  <div class="foot">
+    <span class="kicker">Cómo elegir</span>
+    <p>Fíjate sobre todo en la fila de tamaños chicos y en la pantalla de inicio de ejemplo. Un logo profesional tiene que reconocerse a 32 px, que es como se ve en la barra de notificaciones. Cuando elijas, preparo la versión final: un solo color, versión para la barra de notificaciones de Android, ícono adaptativo y los colores exactos.</p>
+  </div>
+</main>
+
+<script>
+(function(){
+let n=0;
+/* A · Faro: la luciérnaga sobre el abra ilumina la carretera que sube entre cerros */
+function markA(){const u='a'+(++n);return `<svg viewBox="0 0 120 120" role="img" aria-label="Opción A: luciérnaga que ilumina la carretera entre montañas">
+ <defs><linearGradient id="${u}bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0D1433"/><stop offset="1" stop-color="#22307A"/></linearGradient>
+ <linearGradient id="${u}cone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE38A" stop-opacity=".75"/><stop offset="1" stop-color="#FFE38A" stop-opacity="0"/></linearGradient>
+ <radialGradient id="${u}glow"><stop offset="0" stop-color="#FFE38A" stop-opacity=".9"/><stop offset=".45" stop-color="#FFD45C" stop-opacity=".35"/><stop offset="1" stop-color="#FFD45C" stop-opacity="0"/></radialGradient>
+ <clipPath id="${u}c"><rect width="120" height="120" rx="27"/></clipPath></defs>
+ <g clip-path="url(#${u}c)">
+  <rect width="120" height="120" fill="url(#${u}bg)"/>
+  <g fill="#C9D3FF"><circle cx="18" cy="20" r="1"/><circle cx="98" cy="16" r="1.2"/><circle cx="104" cy="38" r=".8"/><circle cx="12" cy="44" r=".8"/><circle cx="84" cy="30" r=".7"/></g>
+  <path d="M0 80 L20 56 L32 66 L56 38 L74 58 L88 46 L120 74 V120 H0Z" fill="#33449E"/>
+  <path d="M56 38 L50 45 L55 44 L58 47 L62 43 L60 42Z" fill="#E8EDFF"/>
+  <path d="M60 30 L36 98 H84Z" fill="url(#${u}cone)"/>
+  <path d="M0 120 V88 L14 80 L28 90 L40 84 L48 98 L32 120Z" fill="#1A235F"/>
+  <path d="M120 120 V86 L106 78 L92 88 L80 82 L72 98 L90 120Z" fill="#1A235F"/>
+  <path d="M30 120 C 44 100, 66 88, 57 68 L63 68 C 72 86, 76 102, 90 120Z" fill="#10163A"/>
+  <path d="M30 120 C 44 100, 66 88, 57 68" fill="none" stroke="#F2C14E" stroke-width="1.6"/>
+  <path d="M90 120 C 76 102, 72 86, 63 68" fill="none" stroke="#F2C14E" stroke-width="1.6"/>
+  <path d="M60 120 C 60 102, 70 88, 60 68" fill="none" stroke="#FFFFFF" stroke-width="1.4" stroke-dasharray="4 4" opacity=".85"/>
+  <ellipse cx="60" cy="92" rx="21" ry="6" fill="#FFE38A" opacity=".22"/>
+  <circle cx="60" cy="31" r="17" fill="url(#${u}glow)"/>
+  <ellipse cx="51.5" cy="22" rx="8.5" ry="4.2" transform="rotate(-28 51.5 22)" fill="#DCE6FF" opacity=".9"/>
+  <ellipse cx="68.5" cy="22" rx="8.5" ry="4.2" transform="rotate(28 68.5 22)" fill="#DCE6FF" opacity=".9"/>
+  <path d="M57.5 15 Q54 10 51 9 M62.5 15 Q66 10 69 9" stroke="#F4EFE0" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+  <circle cx="60" cy="17" r="3.2" fill="#F4EFE0"/>
+  <ellipse cx="60" cy="23.5" rx="3.8" ry="4.2" fill="#F4EFE0"/>
+  <ellipse cx="60" cy="31.5" rx="5" ry="6.2" fill="#FFD45C"/>
+  <ellipse cx="58.6" cy="29.6" rx="1.6" ry="2.4" fill="#FFF6CF"/>
+ </g></svg>`}
+
+/* B · Estela: la luz de la luciérnaga dibuja la carretera que sube por la cordillera */
+function markB(){const u='b'+(++n);return `<svg viewBox="0 0 120 120" role="img" aria-label="Opción B: la estela de la luciérnaga forma la carretera sobre la cordillera">
+ <defs><linearGradient id="${u}bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFD25A"/><stop offset="1" stop-color="#F29A1E"/></linearGradient>
+ <radialGradient id="${u}glow"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".4" stop-color="#FFF6CF" stop-opacity=".7"/><stop offset="1" stop-color="#FFF6CF" stop-opacity="0"/></radialGradient>
+ <clipPath id="${u}c"><rect width="120" height="120" rx="27"/></clipPath></defs>
+ <g clip-path="url(#${u}c)">
+  <rect width="120" height="120" fill="url(#${u}bg)"/>
+  <path d="M0 84 L24 60 L38 72 L62 42 L84 68 L98 58 L120 76 V120 H0Z" fill="#1E2A6B"/>
+  <path d="M62 42 L55 51 L59.5 50 L62 53.5 L65.5 49.5 L69 51Z" fill="#FFFFFF"/>
+  <path d="M24 60 L19.5 64.5 L23 64 L25.5 66 L28 63.5Z" fill="#FFFFFF" opacity=".9"/>
+  <path d="M36 122 C 38 104, 78 100, 70 86 S 44 70, 58 60 S 84 50, 82 38" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+  <path d="M36 122 C 38 104, 78 100, 70 86 S 44 70, 58 60 S 84 50, 82 38" fill="none" stroke="#1E2A6B" stroke-width="1.3" stroke-dasharray="3.5 3.5"/>
+  <circle cx="82" cy="28" r="17" fill="url(#${u}glow)"/>
+  <ellipse cx="73.5" cy="17" rx="8.5" ry="4" transform="rotate(-28 73.5 17)" fill="#FFFFFF" opacity=".9"/>
+  <ellipse cx="90.5" cy="17" rx="8.5" ry="4" transform="rotate(28 90.5 17)" fill="#FFFFFF" opacity=".9"/>
+  <path d="M79.5 10 Q76 5.5 73 4.5 M84.5 10 Q88 5.5 91 4.5" stroke="#1E2A6B" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+  <circle cx="82" cy="12" r="3.2" fill="#1E2A6B"/>
+  <ellipse cx="82" cy="18.5" rx="3.8" ry="4.2" fill="#1E2A6B"/>
+  <ellipse cx="82" cy="27" rx="5" ry="6.4" fill="#FFF6CF" stroke="#1E2A6B" stroke-width="1.3"/>
+ </g></svg>`}
+
+/* C · Señal: la luciérnaga es un marcador de mapa; su luz marca el punto exacto de la pista */
+function markC(){const u='c'+(++n);return `<svg viewBox="0 0 120 120" role="img" aria-label="Opción C: luciérnaga con forma de marcador de mapa sobre la carretera andina">
+ <defs><linearGradient id="${u}bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0B2433"/><stop offset="1" stop-color="#11475A"/></linearGradient>
+ <radialGradient id="${u}core"><stop offset="0" stop-color="#FFF6CF"/><stop offset=".55" stop-color="#FFD45C"/><stop offset="1" stop-color="#F2A81E"/></radialGradient>
+ <radialGradient id="${u}halo"><stop offset="0" stop-color="#FFD45C" stop-opacity=".55"/><stop offset="1" stop-color="#FFD45C" stop-opacity="0"/></radialGradient>
+ <clipPath id="${u}c"><rect width="120" height="120" rx="27"/></clipPath></defs>
+ <g clip-path="url(#${u}c)">
+  <rect width="120" height="120" fill="url(#${u}bg)"/>
+  <g fill="#BFEDE3" opacity=".8"><circle cx="16" cy="22" r="1"/><circle cx="104" cy="20" r="1.1"/><circle cx="96" cy="58" r=".8"/><circle cx="20" cy="60" r=".8"/></g>
+  <path d="M0 98 L18 84 L32 92 L48 78 L60 88 L72 78 L88 92 L102 84 L120 98 V120 H0Z" fill="#0A3445"/>
+  <path d="M0 106 L22 96 L40 104 L60 96 L80 104 L98 96 L120 106 V120 H0Z" fill="#082834"/>
+  <path d="M42 120 L58 90 H62 L78 120Z" fill="#06202A"/>
+  <path d="M42 120 L58 90 M78 120 L62 90" stroke="#F2C14E" stroke-width="1.5"/>
+  <path d="M60 120 V92" stroke="#FFFFFF" stroke-width="1.3" stroke-dasharray="3.5 3.5" opacity=".85"/>
+  <ellipse cx="60" cy="90" rx="24" ry="5" fill="#FFD45C" opacity=".35"/>
+  <circle cx="60" cy="44" r="30" fill="url(#${u}halo)"/>
+  <ellipse cx="39" cy="34" rx="15" ry="7" transform="rotate(-28 39 34)" fill="#9FE6D6" opacity=".55"/>
+  <ellipse cx="81" cy="34" rx="15" ry="7" transform="rotate(28 81 34)" fill="#9FE6D6" opacity=".55"/>
+  <path d="M54 25 Q50 16 45 14 M66 25 Q70 16 75 14" stroke="#F4EFE0" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+  <circle cx="45" cy="14" r="2" fill="#F4EFE0"/><circle cx="75" cy="14" r="2" fill="#F4EFE0"/>
+  <path d="M60 86 C 52 74, 42 64, 42 46 A18 18 0 1 1 78 46 C 78 64, 68 74, 60 86Z" fill="#F4EFE0"/>
+  <circle cx="60" cy="46" r="11" fill="url(#${u}core)"/>
+  <circle cx="56.5" cy="42.5" r="2.6" fill="#FFFFFF" opacity=".85"/>
+ </g></svg>`}
+
+const OPTS=[
+ {k:'A',name:'Faro',fn:markA,idea:'La luciérnaga vuela sobre el abra y su luz cae sobre la carretera que sube entre los cerros nevados.',pros:['Cuenta toda la historia: noche andina, vía y aviso.','Usa el añil y el dorado de la marca actual.','Se siente confiable y sereno.'],tag:'Baches avisados a tiempo'},
+ {k:'B',name:'Estela',fn:markB,idea:'La luz que deja la luciérnaga dibuja la carretera en zigzag que trepa por la cordillera.',pros:['El más llamativo en la pantalla de inicio: dorado intenso.','Pocas formas: se reconoce rápido y se imprime fácil.','Moderno y optimista.'],tag:'Baches avisados a tiempo'},
+ {k:'C',name:'Señal',fn:markC,idea:'La luciérnaga tiene forma de marcador de mapa: su luz señala el punto exacto de la pista donde hay un bache.',pros:['Dice «app de mapas» de inmediato.','El más simple a 32 px: la silueta del marcador sigue clara.','Verde azulado andino: se diferencia de otras apps de navegación.'],tag:'Baches avisados a tiempo'}
+];
+document.getElementById('grid').innerHTML=OPTS.map(o=>`<article class="opt">
+  <div class="hero">${o.fn()}</div>
+  <div class="info"><div class="tag"><b>${o.k}</b><span class="kicker">Opción ${o.k}</span></div><h2>${o.name}</h2><p>${o.idea}</p><ul>${o.pros.map(p=>`<li>${p}</li>`).join('')}</ul></div>
+  <div class="lock l">${o.fn()}<div><b>KillaUru</b><small>${o.tag}</small></div></div>
+  <div class="lock d">${o.fn()}<div><b>KillaUru</b><small>${o.tag}</small></div></div>
+  <div class="sizes">
+   ${[89,55,34].map(s=>`<figure><span style="display:block;width:${s}px;height:${s}px">${o.fn().replace('<svg ','<svg width="'+s+'" height="'+s+'" ')}</span><figcaption>${s} px</figcaption></figure>`).join('')}
+   <div class="phone" aria-label="Pantalla de inicio de ejemplo"><i></i><i></i><span>${o.fn().replace('<svg ','<svg width="34" height="34" ')}</span><i></i><i></i><i></i><i></i><i></i></div>
+  </div></article>`).join('');
+})();
+</script>

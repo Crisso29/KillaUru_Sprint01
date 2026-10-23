@@ -1,6 +1,6 @@
 # Nivel 4 · Diagrama de Código
 
-> **Proyecto:** KillaUru · **Modelo:** C4 · Nivel 4 de 4 · **Versión:** 3.0 · **Revisión:** 2026-10-14 · **Estado:** Vigente (alineado con `diseño-interno-de-modulos.md`)
+> **Proyecto:** KillaUru · **Modelo:** C4 · Nivel 4 de 4 · **Versión:** 3.1 · **Revisión:** 2026-10-21 · **Estado:** Vigente (alineado con `diseño-interno-de-modulos.md`)
 > **Componentes detallados:** Ingesta, Anomalías y Consulta de Mapa (backend) · Proximidad (app)
 > **Herramienta:** diagramas de clases UML en Mermaid (C4 recomienda este nivel solo para los componentes críticos)
 
@@ -40,12 +40,13 @@ sequenceDiagram
     participant B as IPublicadorEventos
 
     C->>R: EjecutarAsync(lote)
-    R->>S: EvaluarIntrinseca(evento, ahora) × N
+    R->>R: genera loteId; otro seudónimo → SeudonimoInconsistente
+    R->>S: EvaluarIntrinseca(evento, recibidoUtc) × N
     R->>P: InsertarAsync(aceptados) — un INSERT con unnest
     R->>Q: TryEscribir(LoteRecibido)
     R-->>C: ResultadoLote.Aceptado → 200 por evento
     Q->>W: lote
-    W->>W: arma ContextoReporte (con_sesion, eventos en la hora)
+    W->>W: arma ContextoReporte (con_sesion, eventos en la hora, recibidoUtc)
     W->>U: ProcesarReporteAsync(evento, contexto)
     U->>U: transacción + bloqueo por celdas
     U->>A: Crear(...) o RegistrarReporte(reporte, ventana, reglas)
@@ -93,6 +94,7 @@ classDiagram
         <<interface>>
         +RegistrarLote(resultado)
         +RegistrarDescarte(motivo)
+        +RegistrarRetrasoCola(TimeSpan)
     }
     Celda ..> Coordenada
 ```
@@ -144,7 +146,7 @@ classDiagram
     }
     class IAnomaliasService {
         <<contract>>
-        +EvaluarIntrinseca(evento, ahora) MotivoDescarte?
+        +EvaluarIntrinseca(evento, recibidoUtc) MotivoDescarte?
         +ProcesarReporteAsync(evento, ContextoReporte, ct) ResultadoProceso
     }
 
@@ -180,7 +182,7 @@ classDiagram
     }
     class ModerarAnomaliaUseCase {
         <<application>>
-        +EjecutarAsync(id, AccionAdmin, actor, ct)
+        +EjecutarAsync(comando, actor, ct) ResultadoModeracion
     }
     class IAnomaliaRepository {
         <<interface>>
@@ -199,6 +201,7 @@ classDiagram
         +Guid Id
         +Coordenada Posicion
         +Celda Celda
+        +float KmVia
         +EstadoAnomalia Estado
         +Severidad SeveridadMostrada
         +EstadoPersistencia Persistencia
@@ -207,7 +210,7 @@ classDiagram
         -Dictionary PermitidoDesde
         +Crear(reporte, porTope)$ Anomalia
         +RegistrarReporte(reporte, ventana, reglas)
-        +Moderar(accion, ahora) ResultadoModeracion
+        +Moderar(accion, ahora, reglas) bool
     }
     class ReporteAnomalia {
         <<value object>>
@@ -216,11 +219,11 @@ classDiagram
         +DateTimeOffset DetectadoUtc
         +SeudonimoInstalacion? Seudonimo
         +bool ConSesion
-        +Desde(evento, conSesion)$ ReporteAnomalia
+        +Desde(evento, contexto)$ ReporteAnomalia
     }
     class ReglasCalidad {
         <<domain policy>>
-        +EvaluarIntrinseca(reporte, ahora) MotivoDescarte?
+        +EvaluarIntrinseca(reporte, recibidoUtc) MotivoDescarte?
     }
     class CorredorVia {
         <<domain>>
@@ -298,7 +301,7 @@ classDiagram
         <<interface>>
         +ObtenerAsync(celda, alcance, ct) CeldaGeoJson
     }
-    class FuenteCeldasPostgis {
+    class FuenteCeldasAnomalias {
         <<infrastructure>>
         usa IAnomaliaLectura
     }
@@ -324,16 +327,22 @@ classDiagram
     }
     class IAnomaliaLectura {
         <<contract>>
+        +ActivasPorCeldasAsync(celdas, ct)
+        +FiltrarAsync(bbox, filtros, ct)
+        +CambiosDesdeAsync(desde, ct)
+        +ResumenDelDiaAsync(dia, ct)
+        +CeldasDelCorredor()
     }
 
     AnomaliasController --> ConsultarMapaUseCase
     ConsultarMapaUseCase --> IFuenteCeldas
     ConsultarMapaUseCase --> VersionesCelda
     ConsultarMapaUseCase --> ZonaDemo
-    FuenteCeldasPostgis ..|> IFuenteCeldas
+    FuenteCeldasAnomalias ..|> IFuenteCeldas
     FuenteCeldasCacheada ..|> IFuenteCeldas
     FuenteCeldasCacheada --> IFuenteCeldas : envuelve
-    FuenteCeldasPostgis --> IAnomaliaLectura
+    FuenteCeldasAnomalias --> IAnomaliaLectura
+    ConsultarMapaUseCase --> IAnomaliaLectura : con filtros (sin caché)
     InvalidarCeldasMapa --> VersionesCelda
     InvalidarCeldasMapa --> FuenteCeldasCacheada : invalida por etiqueta
 ```

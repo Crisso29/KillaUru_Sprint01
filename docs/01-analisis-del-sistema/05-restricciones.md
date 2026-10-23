@@ -1,8 +1,8 @@
 # Restricciones
 
-> **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-14
+> **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-21
 > Las restricciones son condiciones que no podemos cambiar: límites fijos que la arquitectura debe respetar. Las **decisiones** que se derivan de ellas están en `07-decisiones-arquitectonicas.md`.
-> Los supuestos y riesgos que acompañan a las restricciones se registran en las secciones 2 y 3.
+> Los supuestos y riesgos que acompañan a las restricciones se registran en las secciones 2 a 5.
 
 ## 1. Restricciones
 
@@ -18,7 +18,7 @@
 | R-08 | Conectividad | El sistema debe operar en zonas sin cobertura celular durante al menos 5 horas continuas (RNF-33). La arquitectura no puede depender de conexión permanente. Los eventos pueden llegar al servidor hasta 7 días después de generarse. | ADR-003; ventana de timestamp en RF-12 |
 | R-09 | Equipo | El proyecto es desarrollado por **una sola persona**, que asume los roles PO, Dev, QA y SM. La arquitectura debe ser simple de operar y desplegar. | ADR-001 |
 | R-10 | Tiempo | El sistema debe estar desplegado en producción en **6 a 8 semanas**, para la sustentación del curso IS488. | Priorización MoSCoW en `02`; DA-12 |
-| R-11 | Infraestructura | **Entorno de pruebas sin costo:** no hay una segunda VM. Los simulacros (restauración, rollback, incidente) se hacen en un **segundo `docker compose` en la misma VM** («killauru-pruebas»), con su propia BD, otros puertos y solo datos sintéticos. Se levanta solo para el simulacro y se apaga al terminar, para no restar recursos a producción (verificar la cuota vigente de Oracle Always Free). Nunca se restaura un backup sobre producción para «probar». | RNF-07, RNF-18, RNF-29; EQ-05, EQ-10, EQ-13 |
+| R-11 | Infraestructura | **Entorno de pruebas sin costo:** no hay una segunda VM. Los simulacros (restauración, rollback, incidente) se hacen en un **segundo `docker compose` en la misma VM** («killauru-pruebas»), con su propia BD, otros puertos y solo datos sintéticos. Se levanta solo para el simulacro y se apaga al terminar, para no restar recursos a producción (verificar la cuota vigente de Oracle Always Free). Nunca se restaura un backup sobre producción para «probar». **También sirve para las pruebas de carga, estrés, resistencia y caos** (RNF-03), con estas condiciones: la VM es una **A1 de 4 OCPU / 24 GB** (Always Free) con límites de CPU y memoria por contenedor también en producción; el compose de pruebas limita la API y la BD de pruebas (`cpus: 2`, `mem_limit: 6g`) y usa un volumen aparte; sus límites de tasa se relajan por configuración; k6 corre **fuera de la VM** (PC del autor o un workflow manual de GitHub), y las pruebas se hacen en horario de poco tráfico. | RNF-03, RNF-07, RNF-18, RNF-29; EQ-05, EQ-06, EQ-09, EQ-10, EQ-13, EQ-14 |
 
 ## 2. Supuestos
 
@@ -49,3 +49,10 @@
 |---|---|---|
 | RS-07 | El catálogo (RN-01) **no incluye rompemuelles**: el modelo puede clasificar una giba como Bache y generar falsas alarmas cerca de los poblados. | Confirmación por 2 dispositivos para severidad 4–5 (RN-06); estado `Descartada` por el administrador (RN-07); evaluar la clase «Rompemuelles» en el siguiente reentrenamiento |
 | RS-08 | La app **no puede comprobar** que el vehículo sea liviano ni que el celular esté en un soporte (RN-18): un conductor puede elegir mal la categoría o llevar el celular en el bolsillo, y la señal llega amortiguada o distinta. | Guía clara en el primer uso; el umbral de confidence descarta las ventanas dudosas (RN-04); la confirmación por 2 dispositivos protege lo grave (RN-06); el administrador puede descartar falsos positivos (RN-07) |
+
+## 5. Riesgos aceptados *(decididos por el autor el 2026-10-21)*
+
+| ID | Riesgo | Por qué se acepta y cómo se acota |
+|---|---|---|
+| RS-09 | Al registrarse con un correo que ya tiene cuenta, el sistema responde «correo en uso» (409): un script podría averiguar qué correos están registrados. | Se acepta para que el registro siga siendo simple (la sesión empieza al instante, HU-18). Se acota con el límite de 5 registros por hora por IP (RF-21, RNF-11). La recuperación de contraseña sí responde igual exista o no la cuenta (RF-32) |
+| RS-10 | Restaurar un backup devuelve la BD al momento del backup: las eliminaciones de cuenta, desactivaciones y cambios de rol hechos después se pierden. | Acotado por el RPO de 24 h (RNF-24). Antes de reabrir se revocan todas las sesiones, se cambia la clave de firma de los tokens, se lanzan las purgas y se revisan a mano las solicitudes de eliminación del último día (RN-10); el simulacro mensual lo verifica (RNF-07) |

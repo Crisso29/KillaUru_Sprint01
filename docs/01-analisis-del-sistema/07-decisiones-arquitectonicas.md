@@ -1,6 +1,6 @@
 # Decisiones Arquitectónicas
 
-> **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-14 · **Estado:** Vigente
+> **Proyecto:** KillaUru · **Versión:** 1.2 · **Revisión:** 2026-10-21 · **Estado:** Vigente
 > Un ADR (Architecture Decision Record) documenta una decisión importante: el contexto que la motivó, las alternativas evaluadas, la decisión tomada y sus consecuencias.
 > **Estados:** **Aceptado** (vigente). La columna «Drivers» de cada ADR coincide con la columna «ADR» de `06-driver-arquitectonicos.md` (trazabilidad en ambos sentidos).
 
@@ -10,14 +10,14 @@
 |---|---|---|---|---|
 | **ADR-001** | Monolito modular | Aceptado | DA-06, DA-09, DA-12 | Un proceso con 6 módulos: Identidad y Accesos, Ingesta, Anomalías, Consulta de Mapa, Dashboard y Auditoría |
 | **ADR-002** | Clean Architecture por módulo | Aceptado | DA-06, DA-09 | Capas Domain, Application, Adapters e Infrastructure; puertos en Application; `Contracts/` entre módulos |
-| **ADR-003** | Store-and-Forward con SQLite | Aceptado | DA-01, DA-02 | Buffer local PENDING/SYNCED/REJECTED_LOCAL con reintentos y *jitter* |
+| **ADR-003** | Store-and-Forward con SQLite | Aceptado | DA-01, DA-02 | Buffer local con estados PENDING/ENVIANDO/SYNCED/REJECTED_LOCAL/EXPIRADO_LOCAL, reintentos y *jitter* |
 | **ADR-004** | Edge AI con LiteRT (TFLite) | Aceptado | DA-03, DA-04, DA-18 | Modelo MLP cuantizado; inicial en el APK y actualizable desde R2 con SHA-256; `modeloVersion` en cada evento |
 | **ADR-005** | Ingesta durable e idempotente | Aceptado | DA-02, DA-05 | Tabla de recepción + Channel como aviso + HTTP 200 tras el *commit* |
 | **ADR-006** | Caché en memoria (`IMemoryCache`) | Aceptado | DA-05, DA-08, DA-09 | Caché por celdas, propiedad de Consulta de Mapa, invalidada por eventos de dominio (Observer); Redis diferido |
 | **ADR-007** | Privacidad por diseño | Aceptado | DA-07 | Seudónimo rotativo, purga a 72 h, historial local |
 | **ADR-008** | Ciclo de vida de la anomalía | Aceptado | DA-13 | Estados y caducidad parametrizable |
 | **ADR-009** | Identidad y accesos | Aceptado | DA-10, DA-17 | Módulo unificado; tokens de acceso de 5 min y de actualización revocables; RBAC y recorte por rol en el servidor |
-| **ADR-010** | Despliegue y operación | Aceptado | DA-08, DA-11 | Cloudflare Tunnel y Pages, backups, rollback por tag |
+| **ADR-010** | Despliegue y operación | Aceptado | DA-08, DA-11 | Cloudflare Tunnel y Pages, backups, rollback por tag, CI/CD con GitHub Actions y métricas de la VM con Grafana Alloy |
 | **ADR-011** | Mapa base vectorial offline | Aceptado | DA-14 | PMTiles del corredor en R2; MapLibre en app y panel |
 | **ADR-012** | Convenciones de diseño | Aceptado | DA-09, DA-12 | Lenguaje ubicuo, una tecnología de datos, umbrales por configuración |
 | **ADR-013** | Auditoría en la misma transacción | Aceptado | DA-06, DA-16 | «No hay acción sensible sin rastro»; excepción documentada a la transacción por módulo |
@@ -83,7 +83,7 @@
 | Archivo local en disco | Simple | Sin integridad ni control de estado por evento |
 | **SQLite + Store-and-Forward** | Persistencia garantizada; estado por evento; nativo en Android | Requiere lógica de sincronización |
 
-**Decisión.** SQLite como buffer local. Cada evento lleva un `eventoId` (UUID) y nace `PENDING`. Pasa a `SYNCED` solo tras un HTTP 200 que lo incluya. Un HTTP 400 lo marca `REJECTED_LOCAL`. Backoff 30 s → 2 min → 10 min → 30 min → 2 h, con *jitter* de ±25 %, respetando `Retry-After` y **reiniciando el backoff al recuperar conectividad**.
+**Decisión.** SQLite como buffer local. Cada evento lleva un `eventoId` (UUID) y nace `PENDING`. Pasa a `SYNCED` solo tras un HTTP 200 que lo incluya. Ante un HTTP 400 (lote ilegible) la app parte el lote y reintenta por partes; solo un evento que falla **solo** se marca `REJECTED_LOCAL`. Los estados completos (`PENDING`, `ENVIANDO`, `SYNCED`, `REJECTED_LOCAL`, `EXPIRADO_LOCAL`) están en RF-06. Backoff 30 s → 2 min → 10 min → 30 min → 2 h, con *jitter* de ±25 %, respetando `Retry-After` y **reiniciando el backoff al recuperar conectividad**.
 
 **Consecuencias**
 - ✅ La app funciona sin internet durante todo el trayecto.
@@ -136,7 +136,7 @@
 
 **Decisión**
 1. El controlador aplica a **cada evento** las reglas de recepción de RN-11 (esquema, confidence, GPS, timestamp, tipo y distancia a la polilínea cargada en memoria), sin consultar la BD. Los que fallan salen en `rechazados[]` y no se guardan; un evento mal formado nunca hace fallar el lote (el 400 queda solo para un lote ilegible, vacío o de más de 50).
-2. Inserta los eventos aceptados en la tabla `evento_recibido` con un único `INSERT … ON CONFLICT DO NOTHING` sobre `evento_id`, y **solo entonces responde 200** con el resultado por evento.
+2. Inserta los eventos aceptados en la tabla `evento_recibido` con un único `INSERT … ON CONFLICT DO NOTHING` sobre `evento_id`, y **solo entonces responde 200** con el resultado por evento y el `loteId`, que genera el servidor (contrato del lote en `03-requisitos-funcionales.md`).
 3. El Channel queda como **aviso de trabajo** (el elemento es el lote completo, no el evento); al arrancar, el `BackgroundService` reprocesa las filas pendientes.
 4. El módulo Anomalías (validación, confirmación y clasificación) procesa de forma asíncrona, **serializando por celda geográfica** (bloqueo consultivo de PostgreSQL por celda) para evitar carreras al confirmar y al crear anomalías. **Anomalías es dueño de su transacción y de su bloqueo**; Ingesta solo lo invoca y marca `PROCESADO` después de una respuesta correcta.
 5. **Idempotencia de extremo a extremo:** `evento_recibido.evento_id` (Ingesta) y `reporte_anomalia.evento_id` (Anomalías) son únicos. Si el proceso se cae entre ambos pasos, el reintento no duplica nada (*at-least-once* + receptor idempotente).
@@ -161,7 +161,7 @@
 | Redis | Compartida entre instancias | Un contenedor más que operar (R-09) |
 | Sin caché | Simple | Riesgo para RNF-01 |
 
-**Decisión.** `IMemoryCache` **dentro del módulo Consulta de Mapa** (no en `Shared`), usada a través de **HybridCache** de .NET, cuyo nivel 1 es justamente `IMemoryCache`: protege contra la estampida de peticiones simultáneas, invalida por etiqueta y admite Redis como nivel 2 sin cambiar el código si algún día hay más de una instancia (S-03). Diseño detallado en `diseño-interno-de-modulos.md`, sección 4. La invalidación usa el **patrón Observer con eventos de dominio en proceso**: después del *commit*, Anomalías publica `AnomaliaCambiada(anomaliaId, celdas)` y **no sabe quién escucha**; Consulta de Mapa se suscribe y borra sus celdas. Futuros interesados (notificaciones v1.5, empresas v2.0) se suscriben sin modificar Anomalías (principio abierto/cerrado). El publicador es una lista de suscriptores en memoria: sin broker y sin costo. Las claves se calculan por **celdas de rejilla y alcance del rol** (el `bbox` se ajusta a celdas; «anónimo», «registrado» y «administrador» nunca comparten una entrada) para que se reutilicen sin mezclar datos. **Solo las respuestas a anónimos** llevan `Cache-Control: public` corto y `ETag` para que Cloudflare las cachee; las respuestas a peticiones con token llevan `Cache-Control: private, no-store`, y la regla de caché de Cloudflare excluye las peticiones con cabecera `Authorization`. Así la caché nunca le entrega a un anónimo el corredor completo que pidió un registrado (R-07, RNF-27).
+**Decisión.** `IMemoryCache` **dentro del módulo Consulta de Mapa** (no en `Shared`), usada a través de **HybridCache** de .NET, cuyo nivel 1 es justamente `IMemoryCache`: protege contra la estampida de peticiones simultáneas, invalida por etiqueta y admite Redis como nivel 2 sin cambiar el código si algún día hay más de una instancia (S-03). Diseño detallado en `diseño-interno-de-modulos.md`, sección 4. La invalidación usa el **patrón Observer con eventos de dominio en proceso**: después del *commit*, Anomalías publica `AnomaliaCambiada(anomaliaId, celda)` y **no sabe quién escucha**; Consulta de Mapa se suscribe y borra esa celda. Futuros interesados (notificaciones v1.5, empresas v2.0) se suscriben sin modificar Anomalías (principio abierto/cerrado). El publicador es una lista de suscriptores en memoria: sin broker y sin costo. Las claves se calculan por **celdas de rejilla y alcance del rol** (el `bbox` se ajusta a celdas; «anónimo», «registrado» y «administrador» nunca comparten una entrada) para que se reutilicen sin mezclar datos. **Solo las respuestas a anónimos** llevan `Cache-Control: public` corto y `ETag` para que Cloudflare las cachee; las respuestas a peticiones con token llevan `Cache-Control: private, no-store`, y la regla de caché de Cloudflare excluye las peticiones con cabecera `Authorization`. Así la caché nunca le entrega a un anónimo el corredor completo que pidió un registrado (R-07, RNF-27).
 
 **Consecuencias**
 - ✅ Sin componentes adicionales.
@@ -185,7 +185,7 @@
 **Decisión**
 1. La instalación genera un **UUID aleatorio** (no derivado de hardware).
 2. Al servidor se envía un **seudónimo rotativo** (rotación mensual).
-3. El servidor **purga el seudónimo a las 72 h de recibir el evento**, tanto de los reportes como de la copia de recepción `evento_recibido` (solo se necesita para la confirmación, RN-06, y la plausibilidad, RN-15; RN-12 usa días distintos). Tras restaurar un backup se repite la purga (RN-10).
+3. El servidor **purga el seudónimo a las 72 h de recibir el evento**, tanto de los reportes como de la copia de recepción `evento_recibido` (solo se necesita para la confirmación, RN-06, y la plausibilidad, RN-15; RN-12 usa días distintos). En la misma purga se borra el `lote_id` y la hora de recepción se redondea a la hora, para que la hora no permita unir una cuenta con sus eventos (RN-09). Tras restaurar un backup se repite la purga (RN-10).
 4. El **historial de recorridos es solo local**: la cuenta nunca se une a los eventos.
 5. La exportación no incluye seudónimos.
 6. Se documenta una evaluación breve de impacto en privacidad, incluido el flujo transfronterizo hacia todos los proveedores que reciben datos (Cloudflare, Oracle en Santiago de Chile, el proveedor de correo y Grafana Cloud, R-06), y se informa en la política de privacidad junto con sus finalidades (RF-29). El conductor sin cuenta también acepta el aviso de forma explícita.
@@ -208,7 +208,7 @@
 | Sin caducidad (estado actual) | Simple | El mapa se llena de anomalías obsoletas |
 | **Estados + caducidad parametrizable + moderación** | Mapa fiel a la realidad | Un job y un campo `UltimaDeteccionUtc` |
 
-**Decisión.** Estados `Activa`, `PendienteConfirmacion`, `Expirada`, `Reparada` y `Descartada` (diagrama en RN-07). Valores iniciales: episódica expira a las 72 h sin reportes; persistente expira a los 7 días sin reportes; pendiente expira a las 72 h sin segundo dispositivo; el administrador puede marcar `Reparada` o `Descartada` (RF-24). Un `BackgroundService` aplica la caducidad **cada hora**, con la hora de detección del último reporte (RN-07); una anomalía `Expirada` o `Reparada` que recibe un reporte vuelve a nacer y pasa otra vez por la confirmación (RN-06). El mapa y las alertas usan solo `Activa`. Los parámetros se calibran con el piloto.
+**Decisión.** Estados `Activa`, `PendienteConfirmacion`, `Expirada`, `Reparada` y `Descartada` (diagrama en RN-07). Valores iniciales: episódica expira a las 72 h sin reportes; persistente expira a los 7 días sin reportes; pendiente expira a las 72 h sin segundo dispositivo; el administrador puede marcar `Reparada` o `Descartada` (RF-24). Un `BackgroundService` aplica la caducidad **cada hora**, con la hora de detección del último reporte (RN-07); una anomalía `Expirada` o `Reparada` que recibe un reporte nuevo (detectado después del vencimiento o de la reparación, RN-07) vuelve a nacer y pasa otra vez por la confirmación (RN-06). El mapa y las alertas usan solo `Activa`. Los parámetros se calibran con el piloto.
 
 **Consecuencias**
 - ✅ Menos falsas alarmas.
@@ -239,7 +239,7 @@
    | Administrador | 5 min | Máximo 8 h absolutas (RF-16) |
    | Conductor Registrado | 5 min | 30 días, se extiende con el uso (RF-21) |
 
-   Cada renovación verifica que la cuenta siga activa. Al desactivar o eliminar una cuenta se **revocan** sus tokens de actualización, así pierde el acceso en ≤ 5 min (RNF-26) sin consultar la BD en cada petición. Los tokens de actualización **rotan** en cada uso. Si se reutiliza uno viejo **después de 60 s**, se revoca toda la sesión; dentro de esos 60 s se devuelve el mismo par nuevo, porque en la sierra es normal que la respuesta de la renovación se pierda y la app reintente con el token anterior. El acceso offline al corredor usa el derecho de acceso local, no el token; su vigencia, su revocación y el cierre de sesión siguen RN-21.
+   Cada renovación verifica que la cuenta siga activa. Al desactivar o eliminar una cuenta se **revocan** sus tokens de actualización, así pierde el acceso en ≤ 5 min (RNF-26) sin consultar la BD en cada petición; para eso el token de acceso se valida sin tolerancia de reloj (`ClockSkew = 0`). El token de acceso lleva la marca `verificado` (correo verificado), que usa RN-14; tras verificar el correo, la marca cambia en la siguiente renovación (≤ 5 min). Los tokens de actualización **rotan** en cada uso. Si se reutiliza uno viejo **después de 60 s**, se revoca toda la sesión; dentro de esos 60 s se devuelve el mismo par nuevo, porque en la sierra es normal que la respuesta de la renovación se pierda y la app reintente con el token anterior. El acceso offline al corredor usa el derecho de acceso local, no el token; su vigencia, su revocación y el cierre de sesión siguen RN-21.
    - *Descartado:* JWT de 8 h sin revocación (incumple RNF-26) y consultar la BD en cada petición (más carga sin necesidad).
 5. El panel usa cookie `HttpOnly; Secure; SameSite=Strict`.
 6. **Bloqueo temporal progresivo** por intentos fallidos para administradores y conductores, con los valores de RN-19, más protección anti-bot en el login.
@@ -265,9 +265,10 @@
 **Decisión**
 - **Cloudflare Tunnel** para `api.killauru.pe` y **Cloudflare Pages** para `panel.killauru.pe` (cabeceras por archivo `_headers`).
 - **Backup** diario cifrado a almacenamiento de objetos fuera de la VM (R2), retención de 30 días, y simulacro de restauración mensual (RPO ≤ 24 h, RTO ≤ 2 h; ≤ 4 h si se pierde la VM entera, RNF-24). La clave de cifrado y los demás secretos tienen copia fuera de la VM (RNF-34).
-- **Rollback**: imágenes con *tag* inmutable; volver al tag anterior con `docker compose up -d`. Las migraciones se ejecutan como paso explícito, precedidas de un `pg_dump`, y en dos fases (agregar primero, borrar en un despliegue posterior), para que la versión anterior funcione con el esquema nuevo (RNF-18).
+- **CI/CD con GitHub Actions** (2026-10-21): en cada PR corren build (advertencias como errores), pruebas unitarias, de arquitectura (incluido el límite de 200 líneas), de integración (Testcontainers), de contrato OpenAPI y cobertura ≥ 90 % del dominio; si algo falla, el cambio no se une a `main` (rama protegida). Al unir a `main` se construye la imagen arm64, se publica en GHCR con la etiqueta = commit y se **despliega automáticamente**: SSH a la VM a través de **Cloudflare Access** (sin puertos abiertos; el token de servicio y la llave SSH son secretos de GitHub, RNF-34) y el script de despliegue hace respaldo → migraciones → `docker compose up -d` → espera `/health/ready`. Las pruebas de carga y estrés quedan fuera del CI (RNF-03, R-11).
+- **Rollback**: imágenes con *tag* inmutable (la etiqueta es el commit); volver atrás = desplegar la etiqueta anterior con el mismo script. Las migraciones se ejecutan como paso explícito, precedidas de un `pg_dump`, y en dos fases (agregar primero, borrar en un despliegue posterior), para que la versión anterior funcione con el esquema nuevo (RNF-18).
 - **IP real del cliente:** detrás del túnel todas las peticiones llegan desde `cloudflared`, así que el límite de tasa usa la cabecera `CF-Connecting-IP` (RNF-11).
-- **Salud:** `/health/live` para el reinicio automático de Docker y `/health/ready` (BD y antigüedad de la cola) para UptimeRobot (RF-28).
+- **Salud:** `/health/live` para el reinicio automático de Docker y `/health/ready` (BD, antigüedad de la cola, polilínea del corredor cargada y migraciones al día) para UptimeRobot (RF-28).
 - **Observabilidad** (2026-10-13), con costo cero:
 
   | Pieza | Herramienta | Uso |
@@ -276,8 +277,9 @@
   | Logs | **Serilog** en JSON con ID de correlación | Cada log dice qué petición lo generó |
   | Paneles y alertas | **Grafana Cloud, plan gratuito** | p95, errores, descartes por motivo, cola; alerta por correo |
   | Disponibilidad | **UptimeRobot** + `/health/ready` | Caída en ≤ 10 min (RNF-20) y página de estado pública gratuita de UptimeRobot |
+  | VM, logs de Docker y backup (2026-10-21) | Contenedor **Grafana Alloy** (imagen oficial, fija por versión) | Envía disco, CPU y memoria de la VM y los logs de Docker a Grafana Cloud; lee la hora de la última ejecución correcta del backup, que el script de backup escribe en un archivo, y la convierte en métrica. Alertas: disco > 80 %, tarea > 26 h (RNF-22) |
 
-  **Control de costo (RNF-32):** cuenta sin tarjeta; muestreo de trazas ≤ 10 %; sin logs de `/health`; sin etiquetas de alta cardinalidad. No se expone `/metrics`: la API **envía** la telemetría a Grafana (OTLP), sin abrir puertos.
+  **Control de costo (RNF-32):** cuenta sin tarjeta; muestreo de trazas ≤ 10 %; sin logs de `/health`; sin etiquetas de alta cardinalidad. No se expone `/metrics`: la API y Alloy **envían** la telemetría a Grafana (OTLP), sin abrir puertos. Los logs de Docker rotan (`max-size: 10m`, `max-file: 3`).
   - *Descartado:* métricas hechas a mano en tablas propias (reinventa lo que OpenTelemetry ya hace) y Prometheus + Grafana autoalojados (consumen memoria del único servidor y hay que operarlos).
 - Vista de despliegue documentada en C4.
 
@@ -328,7 +330,7 @@
 - **Un esquema de PostgreSQL y un `DbContext` por módulo**, sin llaves foráneas entre esquemas (detalle en `componentes-arquitectonicos.md`, sección 6).
 - **EF Core con NetTopologySuite** para agregados y escritura. Consultas de mapa en SQL parametrizado solo si el perfilado lo exige.
 - Columna de ubicación `geography(Point, 4326)` con índice GiST.
-- Todos los umbrales (`09-reglas-de-negocio.md`) por **configuración tipada, una clase por módulo** (`IngestaOptions`, `AnomaliasOptions`, `IdentidadOptions`, `MapaOptions`), no constantes ni una clase global (principio de segregación de interfaces).
+- Todos los umbrales (`09-reglas-de-negocio.md`) por **configuración tipada, una clase por módulo** (`IngestaOptions`, `AnomaliasOptions`, `IdentidadOptions`, `MapaOptions`, `DashboardOptions`), no constantes ni una clase global (principio de segregación de interfaces).
 - `Shared` contiene solo el kernel mínimo; los contratos de un módulo (p. ej. `EventoReportado`) viven en su carpeta `Contracts/`.
 - `TimeProvider` para el reloj; día calendario local con **desfase fijo UTC−5** (Perú no usa horario de verano).
 
@@ -351,7 +353,8 @@
 | Bandeja de salida (*Outbox*) por módulo | Robusto y extraíble a servicios | Una tabla y un proceso más por módulo; desproporcionado para una persona |
 
 **Decisión**
-1. `IAuditoriaService.RegistrarAsync` se ejecuta **dentro de la transacción del módulo que actúa** (unidad de trabajo compartida sobre la misma conexión de PostgreSQL). Si la auditoría falla, la acción se revierte.
+1. `IAuditoriaService.RegistrarAsync` se ejecuta **dentro de la transacción del módulo que actúa** (unidad de trabajo compartida sobre la misma conexión de PostgreSQL). Si la auditoría falla, la acción se revierte. **La transacción es obligatoria** (2026-10-21): si el módulo llama a `RegistrarAsync` sin haber unido su transacción, la llamada falla con un error de programación, que se ve en las pruebas y en desarrollo; así ningún módulo audita por olvido fuera de su transacción.
+   - Para las **lecturas sensibles**, que no tienen escritura propia, existe `IAuditoriaService.RegistrarLecturaAsync`, que usa una transacción propia. Se registran solo las lecturas con datos personales o de seguridad: lista y detalle de usuarios (Identidad y Accesos), consulta de la auditoría (Auditoría) y exportación (Anomalías, que cuenta primero las filas y registra ese número antes de escribir el archivo). La consulta del mapa y del dashboard **no** se registra. Cada módulo dueño registra sus propias lecturas.
 2. Es una **excepción documentada** a la regla de que cada módulo maneja su propia transacción (ADR-005): se admite porque Auditoría **solo inserta** filas, no bloquea ni modifica datos de otros módulos.
 3. Los registros guardan el **identificador interno** del actor, nunca el correo de un titular que pidió eliminar su cuenta (RF-30).
 4. Se audita también la **revisión mensual de privilegios** (RNF-30).
@@ -418,9 +421,11 @@
 2. **Sesión para confirmar lo grave (RN-14):** una anomalía de severidad 4–5 pasa a `Activa` solo si al menos uno de los dispositivos que la confirman envió su reporte con sesión. El reporte guarda solo `con_sesion` (sí/no), nunca la cuenta.
 3. **Plausibilidad del dispositivo (RN-15):** (a) si un seudónimo supera 120 eventos por hora **de detección**, sus eventos se guardan pero exigen confirmación de otro dispositivo, en lugar de descartarse; (b) se descartan los saltos de posición que implican más de 150 km/h.
 4. Los descartes y retenciones se cuentan por motivo en la telemetría, con alerta en Grafana (ADR-010).
+5. **Cambiar de seudónimo no da cuota ni tope nuevos** (2026-10-21). El seudónimo lo elige el cliente, así que: (a) **un lote = un seudónimo**: los eventos con un seudónimo distinto al del lote se rechazan con `SeudonimoInconsistente` (RN-11), y la app parte el lote cuando rota su seudónimo; (b) las peticiones **anónimas** tienen, además de la cuota por seudónimo + IP, un **techo por IP** de 600 lotes/h y 300 consultas/h, calibrable (RNF-11), con la IP real de `CF-Connecting-IP`.
 
 **Consecuencias**
-- ✅ Un script con un solo dispositivo no puede publicar baches fuera de la vía, ni confirmar graves, ni inundar el mapa.
+- ✅ Un script con un solo dispositivo no puede publicar baches fuera de la vía, ni confirmar graves, ni inundar el mapa, aunque invente seudónimos en cada lote.
+- ⚠️ Varios celulares reales detrás de una misma IP (CGNAT) comparten el techo por IP; por eso es holgado y se calibra con el piloto.
 - ✅ Ningún evento real se pierde por picos legítimos (lluvia, subida tras horas offline).
 - ⚠️ Riesgo residual: varios atacantes con cuentas reales coordinadas. Se mitiga con la moderación del administrador (`Descartada`, RN-07) y la revisión de las métricas de descartes.
 - 🔜 **Disparador:** al publicar en Play Store, añadir la verificación de integridad de Google Play como señal adicional en Ingesta.

@@ -1,6 +1,6 @@
 # Estilo Arquitectónico
 
-> **Proyecto:** KillaUru · **Versión:** 2.1 · **Revisión:** 2026-10-14 · **Estado:** Vigente (alineado con ADR-001…ADR-015)
+> **Proyecto:** KillaUru · **Versión:** 2.2 · **Revisión:** 2026-10-21 · **Estado:** Vigente (alineado con ADR-001…ADR-015)
 > **Relacionados:** `arquitectura-inicial.md`, `enfoque-arquitectonico.md`, `componentes-arquitectonicos.md`, `06-driver-arquitectonicos.md`, `07-decisiones-arquitectonicas.md`
 
 ## 1. ¿Qué es un estilo arquitectónico?
@@ -113,7 +113,7 @@ Estas reglas no son sugerencias: mantienen el sistema ordenado conforme crece. L
 | 3 | **Un dueño por tabla.** Un esquema de PostgreSQL y un `DbContext` por módulo; solo el dueño escribe; los demás leen por su contrato; sin llaves foráneas entre esquemas. | Independencia de los datos; extraer un módulo es mover su esquema | Pruebas de arquitectura (RNF-28) |
 | 4 | **Sin ciclos entre módulos.** Las dependencias forman un grafo acíclico. | Evita acoplamiento circular (ADR-009 eliminó el de Autenticación ↔ Usuarios) | Pruebas de arquitectura |
 | 5 | **Dominio sin dependencias externas.** Nada de ASP.NET, EF Core ni SDKs en `Domain/`. | RN-11 y RN-12 se prueban sin infraestructura | Pruebas de arquitectura |
-| 6 | **Despliegue único.** Un proceso API, una BD y `cloudflared`; sin orquestación de múltiples servicios en v1.0. | R-09, RNF-17 | `docker compose up -d` |
+| 6 | **Despliegue único.** Un proceso API, una BD, `cloudflared` y el agente Grafana Alloy (solo envía telemetría); sin orquestación de múltiples servicios en v1.0. | R-09, RNF-17 | `docker compose up -d` |
 | 7 | **Ingesta durable.** El HTTP 200 se responde **solo tras el *commit*** en `evento_recibido`; el procesamiento es asíncrono e idempotente por `eventoId`. | RNF-06, DA-02 | EQ-02, EQ-09 |
 | 8 | **El servidor decide el acceso.** RBAC y recorte por rol se aplican en la API; la app no es frontera de seguridad. | R-07, DA-10 | EQ-04, EQ-11 |
 | 9 | **Offline-first.** La app nunca depende de la red para detectar, guardar, mostrar el mapa descargado ni alertar. | R-08, DA-01 | EQ-01 |
@@ -147,12 +147,13 @@ Estas reglas no son sugerencias: mantienen el sistema ordenado conforme crece. L
 | Base de datos | PostgreSQL + PostGIS · columna `geography(Point, 4326)` · índice GiST · bloqueos consultivos por celda | Consultas espaciales y serialización por zona (R-03) |
 | Panel web | React · **MapLibre GL JS** con el mismo PMTiles y estilo que la app | Un solo mapa base y una sola librería de mapas en todo el sistema (ADR-011) |
 | Hosting del panel y mapa base | Cloudflare Pages (panel) y **Cloudflare R2** para el mapa base PMTiles (Pages no admite archivos de más de 25 MiB) | Costo cero y sin servidor propio (ADR-010, ADR-011) |
-| Infraestructura | Docker Compose en Oracle Cloud ARM · `cloudflared` | Un comando levanta todo; origen sin puertos abiertos |
+| Infraestructura | Docker Compose en Oracle Cloud ARM (A1 de 4 OCPU / 24 GB, Always Free, con límites por contenedor) · `cloudflared` | Un comando levanta todo; origen sin puertos abiertos |
+| CI/CD | **GitHub Actions**: en cada PR, build, pruebas y cobertura ≥ 90 % del dominio; al unir a `main`, imagen arm64 en **GitHub Container Registry (GHCR)** con etiqueta = commit y despliegue automático a la VM por SSH a través de Cloudflare Access (respaldo → migraciones → `docker compose up -d`); volver atrás = desplegar la etiqueta anterior | Despliegue repetible sin abrir puertos (RNF-17, RNF-18, RNF-28) |
 | Borde | Cloudflare Free: DNS, TLS, proxy, caché de borde, Tunnel | TLS, A+ en SSL Labs y origen oculto (RNF-08) |
-| Observabilidad | OpenTelemetry (.NET 10) · Serilog (JSON) · **Grafana Cloud, plan gratuito, sin tarjeta** · UptimeRobot Free con su página de estado pública · `/health/live` y `/health/ready` | Métricas, trazas, logs y alertas sin código hecho a mano y con costo cero (RNF-20…22, RNF-32) |
-| Backups | `pg_dump` cifrado a Cloudflare R2 (fuera de la VM), retención de 30 días; `pg_dump` adicional antes de cada migración; clave de cifrado guardada fuera (RNF-34); simulacros en el entorno de pruebas (R-11) | RNF-07, RNF-18, RNF-24 |
+| Observabilidad | OpenTelemetry (.NET 10) · Serilog (JSON) · **Grafana Cloud, plan gratuito, sin tarjeta** · contenedor **Grafana Alloy** (disco, CPU y memoria de la VM, logs de Docker con rotación y hora del último backup correcto) · UptimeRobot Free con su página de estado pública · `/health/live` y `/health/ready` | Métricas, trazas, logs y alertas sin código hecho a mano y con costo cero (RNF-20…22, RNF-32) |
+| Backups | `pg_dumpall --roles-only` + `pg_dump` cifrados a Cloudflare R2 (fuera de la VM), retención de 30 días; `pg_dump` adicional antes de cada migración; clave de cifrado guardada fuera (RNF-34); simulacros en el entorno de pruebas (R-11) | RNF-07, RNF-18, RNF-24 |
 | Correo transaccional | Proveedor con plan gratuito o costo marginal (p. ej. Amazon SES, Brevo o Resend), detrás del adaptador `IEnviadorCorreo` | Verificación de correo y recuperación de contraseña en v1.0 (HU-18b, HU-25); el plan gratuito de SendGrid ya no existe (RS-04) |
-| Pruebas | xUnit · NSubstitute · `FakeTimeProvider` · Testcontainers (PostgreSQL + PostGIS) · `WebApplicationFactory` · NetArchTest · herramienta de carga *(p. ej. k6)* | Estrategia por capas (ver `enfoque-arquitectonico.md`) |
+| Pruebas | xUnit · NSubstitute · `FakeTimeProvider` · Testcontainers (PostgreSQL + PostGIS) · `WebApplicationFactory` · NetArchTest · coverlet · BannedApiAnalyzers · **k6** (carga, picos, estrés, resistencia y caos, fuera de la VM contra el entorno de pruebas) | Estrategia por capas (ver `enfoque-arquitectonico.md`) |
 
 > **Riesgos de la infraestructura gratuita:** ver RS-01…RS-06 en `05-restricciones.md` (y los riesgos del dominio RS-07 y RS-08). En particular, comprobar que PostGIS tenga imagen arm64 y confirmar las condiciones vigentes de Oracle, UptimeRobot y del proveedor de correo.
 

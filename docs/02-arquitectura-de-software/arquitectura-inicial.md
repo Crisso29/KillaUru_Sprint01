@@ -1,6 +1,6 @@
 # Arquitectura Inicial del Sistema
 
-> **Proyecto:** KillaUru · **Versión:** 2.1 · **Revisión:** 2026-10-14 · **Estado:** Vigente (alineado con ADR-001…ADR-015)
+> **Proyecto:** KillaUru · **Versión:** 2.2 · **Revisión:** 2026-10-21 · **Estado:** Vigente (alineado con ADR-001…ADR-015)
 > **Relacionados:** `estilo-arquitectonico.md`, `enfoque-arquitectonico.md`, `componentes-arquitectonicos.md`, `Nivel1…Nivel4`, `07-decisiones-arquitectonicas.md`
 
 ## 1. Propósito y alcance
@@ -23,8 +23,8 @@ KillaUru es una plataforma colaborativa que detecta, valida y presenta anomalía
 | **1 · Dispositivo** | App Android nativa con modelo TFLite embebido, buffer SQLite local, mapa base offline | Detectar y clasificar sin internet, guardar eventos, sincronizar cuando hay señal, alertar de forma local | ADR-003, ADR-004, ADR-011 |
 | **2 · Navegador** | Panel Admin (SPA) | Gestión de usuarios, anomalías, dashboard, auditoría y exportación | ADR-009 |
 | **3 · Borde** | Cloudflare: DNS, TLS, proxy, caché de borde, Tunnel y Pages | Terminar TLS, ocultar el origen y servir el panel estático | ADR-010 |
-| **4 · Servidor** | Un proceso API (monolito modular), PostgreSQL + PostGIS, `cloudflared`, job de backup; un segundo `docker compose` de pruebas que se levanta solo para simulacros (R-11) | Recibir, validar, clasificar y servir anomalías; autenticar y auditar; tareas horarias de caducidad y purga | ADR-001, ADR-002, ADR-005, ADR-006, ADR-008 |
-| **5 · Operación** | UptimeRobot (con su página de estado pública gratuita), Grafana Cloud, almacenamiento de objetos | Detectar caídas y degradaciones (RNF-20, RNF-22) y conservar backups cifrados fuera de la VM, con los secretos también fuera (RNF-07, RNF-34) | ADR-010 |
+| **4 · Servidor** | Un proceso API (monolito modular), PostgreSQL + PostGIS, `cloudflared`, Grafana Alloy (solo envía telemetría), job de backup; un segundo `docker compose` de pruebas, con límites de CPU y memoria, que se levanta solo para simulacros y pruebas de carga y estrés (R-11) | Recibir, validar, clasificar y servir anomalías; autenticar y auditar; tareas por reloj de caducidad y purga | ADR-001, ADR-002, ADR-005, ADR-006, ADR-008 |
+| **5 · Operación** | UptimeRobot (con su página de estado pública gratuita), Grafana Cloud, almacenamiento de objetos, GitHub Actions y GitHub Container Registry (GHCR) | Detectar caídas y degradaciones (RNF-20, RNF-22), conservar backups cifrados fuera de la VM, con los secretos también fuera (RNF-07, RNF-34), y construir, probar y desplegar cada cambio de `main` (RNF-17, RNF-18) | ADR-010 |
 
 > El backend **no** contiene módulos de detección ni de sincronización: viven en la app (ADR-001, ADR-003, ADR-004). El servidor nunca recibe la señal cruda de los sensores.
 
@@ -44,14 +44,14 @@ sequenceDiagram
     participant K as Caché del mapa
 
     S->>B: Evento con confidence ≥ 0.75 (PENDING, eventoId, seudónimo, modeloVersion)
-    Y->>B: Lee PENDING (lotes de hasta 50)
+    Y->>B: Lee PENDING (lotes de hasta 50, todos del mismo seudónimo)
     Y->>API: POST /api/v1/anomalies/batch (vía Cloudflare Tunnel)
-    API->>API: Reglas de recepción por evento (RN-11, sin BD) y marca con_sesion según el token
+    API->>API: Genera el loteId; reglas de recepción por evento (RN-11, sin BD; otro seudónimo → SeudonimoInconsistente) y marca con_sesion según el token
     API->>DB: INSERT de los aceptados en evento_recibido ON CONFLICT DO NOTHING
-    API-->>Y: HTTP 200 {aceptados, duplicados, rechazados}
-    Y->>B: Marca SYNCED los ids del 200 (ante 400 parte el lote; ante 401 renueva y reenvía)
+    API-->>Y: HTTP 200 {loteId, aceptados, duplicados, rechazados con indice}
+    Y->>B: Marca SYNCED los ids del 200 y REJECTED_LOCAL los rechazados (por indice) (ante 400 parte el lote; ante 401 renueva y reenvía)
     API->>W: Aviso del lote (Channel)
-    W->>A: ProcesarReporteAsync(evento)
+    W->>A: ProcesarReporteAsync(evento, contexto)
     A->>A: Plausibilidad (RN-15) y revalidación de recepción
     alt Evento descartado
         A->>DB: Marca DESCARTADO y registra el motivo (métrica)
@@ -62,7 +62,7 @@ sequenceDiagram
 ```
 
 1. El **HTTP 200 se envía solo después del *commit*** en `evento_recibido` (ADR-005). Si el proceso se reinicia, ningún evento aceptado se pierde (RNF-06, EQ-09).
-2. Un reintento con los mismos `eventoId` devuelve `duplicados` y no reinserta (EQ-02). Un evento mal formado sale en `rechazados` y nunca hace fallar el lote; el 400 queda para un lote ilegible, y el 401 hace que la app renueve el token y reenvíe (contrato en `03-requisitos-funcionales.md`).
+2. Un reintento con los mismos `eventoId` devuelve `duplicados` y no reinserta (EQ-02). Un evento mal formado sale en `rechazados` (con su `indice` en el lote e `id: null` si no trae `eventoId`) y nunca hace fallar el lote; un evento con un seudónimo distinto al del lote sale con `SeudonimoInconsistente` (un lote = un seudónimo: la app parte el lote al rotar su seudónimo); el `loteId` lo genera el servidor. El 400 queda para un lote ilegible, sin arreglo `eventos`, vacío o de más de 50, y el 401 hace que la app renueve el token y reenvíe (contrato en `03-requisitos-funcionales.md`).
 3. El Channel es solo un **aviso de trabajo**: al arrancar, el `BackgroundService` reprocesa las filas que sigan pendientes.
 
 ### 4.2 Consulta del mapa con alcance por rol
@@ -78,7 +78,7 @@ sequenceDiagram
 
     U->>CF: GET /api/v1/anomalies?bbox=… (sesión opcional)
     CF->>R: Reenvía (o responde desde el borde, solo para peticiones sin token)
-    R->>R: Límite de tasa (IP real de CF-Connecting-IP) y resolución de rol
+    R->>R: Límite de tasa (IP real de CF-Connecting-IP, con techo por IP para anónimos) y resolución de rol
     R->>M: Consulta con el rol
     M->>M: Recorta el bbox por rol y lo ajusta a celdas (clave de caché = celdas + rol)
     alt Hay copia en caché
@@ -96,7 +96,7 @@ sequenceDiagram
 |---|---|
 | Anónimo | Solo anomalías `Activa` del tramo demo Ayacucho–Vinchos (~65 km), aunque pida un `bbox` mayor; es la única respuesta que puede guardarse en la caché de borde |
 | Conductor Registrado | Solo anomalías `Activa`, en el corredor completo |
-| Administrador | Todos los estados, con filtros por tipo, severidad, estado y fechas |
+| Administrador | Todos los estados (sin `estado` recibe los 5; el panel abre con «Activa + PendienteConfirmacion» marcados), con filtros por tipo, severidad, estado y fechas |
 
 Con `updatedSince`, la respuesta incluye las anomalías que dejaron de ser visibles como `{id, eliminada: true}`, para que la copia offline las borre (RF-14, RF-26).
 
@@ -116,7 +116,7 @@ Con `updatedSince`, la respuesta incluye las anomalías que dejaron de ser visib
 | Borde ↔ Clientes | La caché de borde no debe mezclar roles | Solo se cachean respuestas anónimas; las que llevan token son `private, no-store` (ADR-006) |
 | API ↔ BD | La BD no se expone | Red interna de Docker Compose; credenciales por variables de entorno o secretos |
 | Panel ↔ API | El navegador puede sufrir XSS o CSRF | Cookie `HttpOnly; Secure; SameSite=Strict`, CSP y HSTS (RNF-09) |
-| Datos ↔ Persona | Un seudónimo + ubicación puede reidentificar | Seudónimo rotativo, purga a 72 h de los reportes **y** de la copia de recepción, historial solo local y borrado al cerrar sesión (ADR-007, RN-09, RN-21) |
+| Datos ↔ Persona | Un seudónimo + ubicación puede reidentificar | Seudónimo rotativo, purga a 72 h de los reportes **y** de la copia de recepción (con `lote_id` en `NULL` y `recibido_utc` redondeado a la hora), horas de sesión guardadas truncadas a la hora, historial solo local y borrado al cerrar sesión (ADR-007, RN-09, RN-21) |
 
 ## 6. Alcance de v1.0 y roadmap
 
@@ -149,7 +149,7 @@ Con `updatedSince`, la respuesta incluye las anomalías que dejaron de ser visib
 | ADR-007 Privacidad | Seudónimo rotativo, purga a 72 h (reportes y recepción), historial local, aceptación explícita también del anónimo |
 | ADR-008 Ciclo de vida | Estados de la anomalía, caducidad revisada cada hora, «vuelve a nacer» con confirmación y lista «Por revisar» |
 | ADR-009 Identidad | Módulo único; sesión validada en middleware; rotación del *refresh* con 60 s de gracia; bloqueo de RN-19 |
-| ADR-010 Despliegue | Tunnel, Pages, backups fuera de la VM, migraciones en dos fases, rollback por *tag*, `/health/live` y `/health/ready` |
+| ADR-010 Despliegue | Tunnel, Pages, backups fuera de la VM, migraciones en dos fases, CI/CD con GitHub Actions y GHCR (despliegue automático al unir a `main`), rollback por *tag*, Grafana Alloy, `/health/live` y `/health/ready` |
 | ADR-011 Mapa offline | Mapa base vectorial y polilínea del corredor, con manifiesto y descarga reanudable |
 | ADR-012 Convenciones | Lenguaje ubicuo, EF Core, umbrales por configuración |
 | ADR-013 Auditoría transaccional | Ninguna acción sensible sin rastro |

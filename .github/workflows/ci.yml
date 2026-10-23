@@ -1,0 +1,45 @@
+# CI de cada pull request (T069, D10). Si algo falla, el PR no se puede unir a main (T070).
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: KillaUru-main/backend
+
+jobs:
+  ci:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: KillaUru-main/backend/global.json
+
+      - name: Compilar (advertencias = errores)
+        run: dotnet build KillaUru.sln -c Release
+
+      - name: Pruebas unitarias del kernel y de los módulos, con cobertura
+        # --ignore-exit-code 8: un módulo que aún no tiene pruebas no rompe el CI (MTP sale con 8 si no corrió ninguna)
+        run: |
+          for proyecto in Shared Auditoria Identidad Anomalias Ingesta Mapa Dashboard; do
+            dotnet test --project "tests/KillaUru.$proyecto.Tests" -c Release --no-build \
+              -- --coverage --coverage-output-format cobertura --ignore-exit-code 8
+          done
+
+      - name: Puerta de cobertura del dominio (≥ 90 %)
+        run: |
+          python3 -m unittest discover -s deploy/ci -p 'test_*.py'
+          python3 deploy/ci/cobertura_dominio.py 90
+
+      - name: Arquitectura (capas, módulos, 200 líneas), integración (Testcontainers) y contrato OpenAPI
+        run: |
+          dotnet test --project tests/KillaUru.Arquitectura.Tests -c Release --no-build
+          dotnet test --project tests/KillaUru.Integracion.Tests -c Release --no-build

@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Kernel compartido: no depende de ningún módulo, de ASP.NET ni de EF Core.
+       Solo usa las abstracciones de DI y de logging, que necesita el publicador de eventos. -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+</Project>
