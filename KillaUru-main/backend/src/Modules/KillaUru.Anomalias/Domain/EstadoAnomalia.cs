@@ -1,17 +1,20 @@
 namespace KillaUru.Anomalias.Domain;
-/// <summary>Estados persistidos del ciclo de vida RN-07.</summary>
-internal enum EstadoAnomalia : short { 
-    /// <summary>Código estable: Activa.</summary>
+
+/// <summary>Estados persistidos del ciclo de vida RN-07; los números no cambian porque se guardan en la base.</summary>
+internal enum EstadoAnomalia : short
+{
+    /// <summary>Publicada en el mapa y en las alertas.</summary>
     Activa = 1,
-    
-    /// <summary>Código estable: PendienteConfirmacion.</summary>
+
+    /// <summary>Grave o creada por tope: espera a un segundo vehículo antes de publicarse.</summary>
     PendienteConfirmacion = 2,
-    
-    /// <summary>Código estable: Expirada.</summary>
+
+    /// <summary>Nadie la volvió a ver antes de su vencimiento; renace si alguien la detecta después.</summary>
     Expirada = 3,
-    
-    /// <summary>Código estable: Reparada.</summary>
+
+    /// <summary>El administrador la marcó como reparada; renace si alguien la detecta después.</summary>
     Reparada = 4,
-    
-    /// <summary>Código estable: Descartada.</summary>
-    Descartada = 5 }
+
+    /// <summary>El administrador la descartó (falso positivo); nunca se reactiva sola.</summary>
+    Descartada = 5,
+}

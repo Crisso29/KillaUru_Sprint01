@@ -1,34 +1,92 @@
 using KillaUru.Anomalias.Domain;
+
 namespace KillaUru.Anomalias.Tests.Domain;
-/// <summary>Matriz completa RN-07, incluida la condición adicional de mantener descartada.</summary>
+
+/// <summary>
+/// RN-07: el administrador solo puede mover una anomalía por las flechas de la tabla; cualquier otra
+/// combinación no tiene efecto. Spec 004 · FR-025, FR-026.
+/// </summary>
 public sealed class ModeracionTablaTests
 {
-    public static IEnumerable<object[]> Casos()
+    /// <summary>
+    /// Fila = estado (1 Activa … 5 Descartada); columna = acción (MarcarReparada, Descartar, Reabrir,
+    /// MantenerDescartada); valor = estado destino o null si no se permite.
+    /// </summary>
+    private static readonly int?[,] TablaEsperada =
     {
-        int?[,] esperado = { {4,5,null,null}, {4,5,null,null}, {null,5,null,null}, {null,null,1,null}, {null,null,1,5} };
+        { 4, 5, null, null },
+        { 4, 5, null, null },
+        { null, 5, null, null },
+        { null, null, 1, null },
+        { null, null, 1, 5 },
+    };
+
+    public static TheoryData<int, int, int?> Combinaciones()
+    {
+        var casos = new TheoryData<int, int, int?>();
         for (var estado = 1; estado <= 5; estado++)
-            for (var accion = 0; accion < 4; accion++) yield return new object[] { estado, accion, esperado[estado-1, accion]! };
+            for (var accion = 0; accion < 4; accion++) casos.Add(estado, accion, TablaEsperada[estado - 1, accion]);
+        return casos;
     }
-    [Theory, MemberData(nameof(Casos))]
-    public void Matriz_de_veinte_combinaciones(int estado, int accion, int? esperado) =>
-        Assert.Equal((EstadoAnomalia?)esperado, TablaModeracion.Destino((EstadoAnomalia)estado, (AccionAdmin)accion, true));
-    [Fact]
-    public void Mantener_descartada_requiere_revision() =>
-        Assert.Null(TablaModeracion.Destino(EstadoAnomalia.Descartada, AccionAdmin.MantenerDescartada, false));
-    [Fact]
-    public void Tres_vehiculos_posteriores_marcan_revision_y_mantener_limpia_sin_transicion()
+
+    /// <summary>Las 20 combinaciones estado × acción coinciden con la tabla de RN-07 (FR-025).</summary>
+    [Theory, MemberData(nameof(Combinaciones))]
+    public void Matriz_de_veinte_combinaciones(int estado, int accion, int? destinoEsperado)
     {
-        var inicial = ReportesPrueba.Crear(); var ventana = new List<ReporteAnomalia> { inicial };
-        var a = Anomalia.Crear(inicial, false, ReportesPrueba.Ahora); a.RegistrarReporte(inicial, ventana, new(), ReportesPrueba.Ahora);
-        Assert.True(a.Moderar(AccionAdmin.Descartar, ReportesPrueba.Ahora, new(), Guid.NewGuid()));
-        for (var i=1; i<=3; i++)
-        {
-            var nuevo = ReportesPrueba.Crear(segundos: i*180); ventana.Add(nuevo);
-            a.RegistrarReporte(nuevo, ventana, new(), nuevo.DetectadoUtc);
-        }
-        Assert.True(a.PorRevisar); Assert.Equal(3, a.MarcasRevision.Count);
-        var cantidad = a.Transiciones.Count;
-        Assert.True(a.Moderar(AccionAdmin.MantenerDescartada, ReportesPrueba.Ahora.AddHours(1), new(), Guid.NewGuid()));
-        Assert.False(a.PorRevisar); Assert.Empty(a.MarcasRevision); Assert.Equal(cantidad, a.Transiciones.Count);
+        // Act
+        var destino = TablaModeracion.Destino((EstadoAnomalia)estado, (AccionAdmin)accion, porRevisar: true);
+
+        // Assert
+        Assert.Equal((EstadoAnomalia?)destinoEsperado, destino);
+    }
+
+    /// <summary>«Mantener descartada» solo tiene sentido si está «Por revisar» (FR-026).</summary>
+    [Fact]
+    public void Mantener_descartada_requiere_estar_por_revisar()
+    {
+        // Act
+        var destino = TablaModeracion.Destino(EstadoAnomalia.Descartada, AccionAdmin.MantenerDescartada, porRevisar: false);
+
+        // Assert
+        Assert.Null(destino);
+    }
+
+    /// <summary>
+    /// Mantener descartada reinicia el contador «Por revisar» sin crear transición, porque el estado
+    /// no cambia (FR-015, FR-026).
+    /// </summary>
+    [Fact]
+    public void Mantener_descartada_limpia_la_revision_sin_transicion()
+    {
+        // Arrange
+        var inicial = ReportesPrueba.Crear();
+        var anomalia = ReportesPrueba.Nacida(inicial);
+        Assert.True(anomalia.Moderar(AccionAdmin.Descartar, ReportesPrueba.Ahora, new(), Guid.NewGuid()));
+        ReportesPrueba.TresVehiculosMas(anomalia, inicial);
+        var transicionesAntes = anomalia.Transiciones.Count;
+
+        // Act
+        var aplicada = anomalia.Moderar(AccionAdmin.MantenerDescartada, ReportesPrueba.Ahora.AddHours(1), new(), Guid.NewGuid());
+
+        // Assert
+        Assert.True(aplicada);
+        Assert.False(anomalia.PorRevisar);
+        Assert.Empty(anomalia.MarcasRevision);
+        Assert.Equal(transicionesAntes, anomalia.Transiciones.Count);
+    }
+
+    /// <summary>Mantener sobre una Descartada que aún no está «Por revisar» se rechaza (FR-026).</summary>
+    [Fact]
+    public void Mantener_sin_revision_pendiente_se_rechaza()
+    {
+        // Arrange
+        var anomalia = ReportesPrueba.Nacida(ReportesPrueba.Crear());
+        Assert.True(anomalia.Moderar(AccionAdmin.Descartar, ReportesPrueba.Ahora, new(), Guid.NewGuid()));
+
+        // Act
+        var aplicada = anomalia.Moderar(AccionAdmin.MantenerDescartada, ReportesPrueba.Ahora, new(), Guid.NewGuid());
+
+        // Assert
+        Assert.False(aplicada);
     }
 }
