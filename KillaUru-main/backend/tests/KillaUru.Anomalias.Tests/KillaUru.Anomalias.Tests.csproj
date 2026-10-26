@@ -12,6 +12,8 @@
   </ItemGroup>
   <ItemGroup>
     <Using Include="Xunit" />
+    <None Include="..\..\db\datos\corredor_pe28a.geojson" Link="Datos\corredor_pe28a.geojson" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\db\datos\km_referencia.csv" Link="Datos\km_referencia.csv" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\KillaUru.Shared\KillaUru.Shared.csproj" />

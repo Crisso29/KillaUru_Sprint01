@@ -18,11 +18,13 @@ internal sealed class RegistroAuditoria
     {
         if (CatalogoAcciones.Categoria(accion) is null) return new(null, "accion_desconocida");
         if (objetivo?.Length > 100) return new(null, "objetivo_invalido");
-        if ((actorId is null) != (actorRol is null) || actorId == Guid.Empty
-            || actorRol is not (null or Roles.Administrador or Roles.ConductorRegistrado))
-        {
+
+        // El actor es siempre completo (id + rol) o nulo (Sistema); un campo sin el otro es incoherente.
+        var actorIncompleto = (actorId is null) != (actorRol is null);
+        var actorVacio     = actorId == Guid.Empty;
+        var rolDesconocido = actorRol is not (null or Roles.Administrador or Roles.ConductorRegistrado);
+        if (actorIncompleto || actorVacio || rolDesconocido)
             return new(null, "actor_invalido");
-        }
         var copia = JsonSerializer.SerializeToElement(contexto);
         if (ClavesProhibidas.Contiene(copia)) return new(null, "contexto_no_permitido");
         // El JSON es una instantánea: cambios posteriores al diccionario no alteran el hecho registrado.

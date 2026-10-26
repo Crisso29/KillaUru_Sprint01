@@ -263,7 +263,7 @@ Valores de `enfoque-arquitectonico.md` §5 (sin cambios):
 - **Anomalía** (agregado): tipo, posición fija, celda, km sobre la vía (fijo al nacer, D13), estado, severidad mostrada, persistencia, última detección, vencimiento, desde cuándo está en su estado, creada por tope, marcas de revisión, por revisar.
 - **Reporte**: evento aceptado y asociado a una anomalía; único por `eventoId`; con seudónimo (hasta 72 h), `con_sesion`, severidad, confidence, precisión, posición, km sobre la vía, hora de detección, hora de recepción (redondeada a la hora a las 72 h, D3) y versión del modelo.
 - **Transición**: cambio de estado de una anomalía (desde, hacia, cuándo, administrador o sistema).
-- **Corredor vía**: polilínea de la PE-28A (333 km).
+- **Corredor vía**: polilínea de la PE-28A (335.073 km).
 - **Evento reportado / contexto del reporte** (contratos): lo que entrega Ingesta para cada evento.
 
 ## Success Criteria *(mandatory)*

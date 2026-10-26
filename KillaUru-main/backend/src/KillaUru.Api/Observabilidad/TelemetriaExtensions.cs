@@ -23,24 +23,28 @@ internal static class TelemetriaExtensions
         services.AddSingleton<IMetricas, MetricasOpenTelemetry>();
         services.AddOpenTelemetry()
             .ConfigureResource(r => r.AddService("killauru-api"))
-            .WithMetrics(metricas =>
-            {
-                metricas.AddAspNetCoreInstrumentation().AddMeter(MetricasOpenTelemetry.NombreMedidor);
-                if (telemetria.OtlpEndpoint is { } endpoint)
-                {
-                    metricas.AddOtlpExporter(o => o.Endpoint = endpoint);
-                }
-            })
-            .WithTracing(trazas =>
-            {
-                trazas
-                    .SetSampler(new ParentBasedSampler(new TraceIdRatioBasedSampler(telemetria.MuestreoTrazas)))
-                    .AddAspNetCoreInstrumentation(o => o.Filter = c => !c.Request.Path.StartsWithSegments("/health"));
-                if (telemetria.OtlpEndpoint is { } endpoint)
-                {
-                    trazas.AddOtlpExporter(o => o.Endpoint = endpoint);
-                }
-            });
+            .WithMetrics(metricas => ConfigurarMetricas(metricas, telemetria))
+            .WithTracing(trazas => ConfigurarTrazas(trazas, telemetria));
         return services;
+    }
+
+    private static void ConfigurarMetricas(MeterProviderBuilder metricas, OpcionesTelemetria telemetria)
+    {
+        metricas.AddAspNetCoreInstrumentation().AddMeter(MetricasOpenTelemetry.NombreMedidor);
+        if (telemetria.OtlpEndpoint is { } endpoint)
+        {
+            metricas.AddOtlpExporter(o => o.Endpoint = endpoint);
+        }
+    }
+
+    private static void ConfigurarTrazas(TracerProviderBuilder trazas, OpcionesTelemetria telemetria)
+    {
+        trazas
+            .SetSampler(new ParentBasedSampler(new TraceIdRatioBasedSampler(telemetria.MuestreoTrazas)))
+            .AddAspNetCoreInstrumentation(o => o.Filter = c => !c.Request.Path.StartsWithSegments("/health"));
+        if (telemetria.OtlpEndpoint is { } endpoint)
+        {
+            trazas.AddOtlpExporter(o => o.Endpoint = endpoint);
+        }
     }
 }

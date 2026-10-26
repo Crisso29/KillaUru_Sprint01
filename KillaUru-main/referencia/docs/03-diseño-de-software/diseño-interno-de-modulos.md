@@ -445,6 +445,7 @@ internal sealed class Anomalia
     public bool Moderar(AccionAdmin accion, DateTimeOffset ahora, ReglasAnomalia reglas)
     {
         if (!PermitidoDesde[accion].Contains(Estado)) return false;
+        if (accion == AccionAdmin.MantenerDescartada && !PorRevisar) return false; // RN-07
         var antes = Estado;
         if (accion != AccionAdmin.MantenerDescartada)          // mantener: sin cambio de estado ni transición
             CambiarEstado(accion switch

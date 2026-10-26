@@ -9,8 +9,8 @@ El sistema tiene **tres actores humanos** (dos tipos de conductor y el administr
 
 | Actor (nombre en C1) | Rol RBAC | Tipo | Descripción | Interfaz | Alcance de datos | Autenticación |
 |---|---|---|---|---|---|---|
-| **Conductor No Registrado** | `Anonimo` (sin token) | Principal (v1.0) | Instala la app y no crea cuenta. Sus sensores detectan anomalías de forma pasiva y aporta eventos de forma anónima. | App Android | Solo el tramo demo Ayacucho–Vinchos (~65 km) | Ninguna. Se identifica solo con un seudónimo de instalación rotativo (RF-27) |
-| **Conductor Registrado** | `ConductorRegistrado` | Principal (v1.0) | Conductor con cuenta (correo y contraseña). Ve el corredor completo, recibe alertas anticipadas y consulta su historial local. | App Android | Corredor completo de 333 km (PE-28A, Vía Los Libertadores) | Token de acceso de 5 min con renovación; sesión de 30 días que se extiende con el uso (RF-21) |
+| **Conductor No Registrado** | `Anonimo` (sin token) | Principal (v1.0) | Instala la app y no crea cuenta. Sus sensores detectan anomalías de forma pasiva y aporta eventos de forma anónima. | App Android | Solo el tramo demo Ayacucho–Vinchos (~67 km) | Ninguna. Se identifica solo con un seudónimo de instalación rotativo (RF-27) |
+| **Conductor Registrado** | `ConductorRegistrado` | Principal (v1.0) | Conductor con cuenta (correo y contraseña). Ve el corredor completo, recibe alertas anticipadas y consulta su historial local. | App Android | Corredor completo de 335.073 km (PE-28A, Vía Los Libertadores) | Token de acceso de 5 min con renovación; sesión de 30 días que se extiende con el uso (RF-21) |
 | **Administrador** | `Administrador` | Principal (v1.0) · Personal interno de CRISSO DEV S.A.C. | Gestiona usuarios e identidad, administra anomalías, consulta estadísticas globales, exporta datos y revisa la auditoría. | Panel web | Corredor completo y datos de operación | Correo y contraseña, sesión de máximo 8 h con token de acceso de 5 min renovable, bloqueo temporal tras 3 intentos fallidos (RF-16) |
 
 > **Nota:** los dos tipos de conductor usan **la misma app (mismo APK)**. Cambian el alcance de los datos y las funciones disponibles, no la aplicación.
@@ -44,8 +44,8 @@ Ambos requerirán nuevos roles RBAC y una API comercial (ver patrón *Facade* en
 |---|:---:|:---:|:---:|
 | Detectar anomalías y guardarlas localmente (solo vehículo liviano con soporte, RN-18) | ✅ | ✅ | — |
 | Sincronizar eventos (`POST /api/v1/anomalies/batch`) | ✅ | ✅ | — |
-| Ver mapa del tramo demo (~65 km) | ✅ | ✅ | ✅ |
-| Ver corredor completo (333 km) | ❌ | ✅ | ✅ |
+| Ver mapa del tramo demo (~67 km) | ✅ | ✅ | ✅ |
+| Ver corredor completo (335.073 km) | ❌ | ✅ | ✅ |
 | Recibir alertas anticipadas | ❌ | ✅ | — |
 | Ver historial de recorridos (local, 6 meses) | ❌ | ✅ | — |
 | Registrarse e iniciar sesión | — | ✅ | ✅ (login) |

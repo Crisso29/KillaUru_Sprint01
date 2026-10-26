@@ -52,7 +52,7 @@ specs/002-modulo-auditoria/
 └── checklists/requirements.md · checklists/trazabilidad.md
 ```
 
-### Source Code — árbol exacto
+### Source Code — organización prevista
 
 ```text
 backend/src/Modules/KillaUru.Auditoria/
@@ -92,6 +92,11 @@ backend/deploy/runbooks/incidentes-datos-personales.md · deploy/runbooks/restau
 ```
 
 **Structure Decision**: plantilla de módulo de `enfoque-arquitectonico.md` §4 con dominio liviano (§4.1: «Registro inmutable», `RegistrarAuditoriaUseCase`, `AuditoriaController` de solo lectura, repositorio *append-only*).
+
+**Implementación 2026-10-23:** se conserva esa separación; R-011 documenta los colaboradores extraídos:
+ResultadoRegistro y CrearRegistro, IConsultaAuditoria/ConsultaAuditoriaRepositorio (lectura separada),
+RegistroConsultado (proyección) y Adapters/Documentacion (esquemas y operación OpenAPI).
+FabricaContextoAuditoria usa CrearUnidoAsync para respetar cancelación. No se agregaron proyectos productivos ni servicios externos.
 
 ## Complexity Tracking
 

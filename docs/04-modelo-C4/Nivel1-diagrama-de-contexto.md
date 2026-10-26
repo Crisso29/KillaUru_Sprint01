@@ -28,7 +28,7 @@ flowchart TB
     classDef futuro fill:#fff,color:#475569,stroke:#94a3b8,stroke-dasharray: 5 4
 
     CNR["👤 Conductor No Registrado<br/>[Persona]<br/>Ve el tramo demo y aporta datos sin cuenta"]:::externo
-    CR["👤 Conductor Registrado<br/>[Persona]<br/>Ve los 333 km y recibe alertas"]:::externo
+    CR["👤 Conductor Registrado<br/>[Persona]<br/>Ve los 335.073 km y recibe alertas"]:::externo
     ADM["👤 Administrador<br/>[Persona · interno]<br/>Opera la plataforma"]:::interno
     EMP["Empresa suscriptora<br/>[Persona · v1.5+]"]:::futuro
     AUT["Autoridad Vial<br/>[Persona · v2.0+]"]:::futuro
@@ -58,7 +58,7 @@ flowchart TB
 | Persona | Tipo | Qué hace con el sistema | Reglas clave |
 |---|---|---|---|
 | **Conductor No Registrado** | Usuario externo | Acepta términos y aviso de privacidad; ve solo el tramo demo Ayacucho–Vinchos; aporta eventos anónimos si maneja un vehículo liviano con soporte | RN-08, RN-18, HU-27, RF-29 |
-| **Conductor Registrado** | Usuario externo | Ve el corredor de 333 km, recibe alertas anticipadas sin señal, consulta su historial local y gestiona su cuenta y sus datos | RN-08, RN-16, RN-21, HU-08, HU-09 |
+| **Conductor Registrado** | Usuario externo | Ve el corredor de 335.073 km, recibe alertas anticipadas sin señal, consulta su historial local y gestiona su cuenta y sus datos | RN-08, RN-16, RN-21, HU-08, HU-09 |
 | **Administrador** | Personal interno | Gestiona usuarios y privilegios, modera anomalías (incluida la lista «Por revisar»), ve indicadores, exporta datos y revisa la auditoría | RF-16…RF-20, RF-24, RNF-30 |
 | *Empresa suscriptora* | Futuro (v1.5+) | Consumirá **analítica de tramos** | `01-actores.md` |
 | *Autoridad Vial* | Futuro (v2.0+) | Accederá bajo convenio | `01-actores.md` |

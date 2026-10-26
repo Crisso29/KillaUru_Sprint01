@@ -141,9 +141,9 @@ description: "Tareas de la app Android KillaUru"
 
 ## Phase 7: User Story 8 — Publicar los datos del corredor en R2 (P1)
 
-- [ ] T073 [P] [US8] Puntos de referencia: 20 coordenadas con su km esperado (Pisco km 0, km 268, km 333, curvas cerradas) — `herramientas/corredor/km_referencia.csv` · (FR-074; R-016)
+- [ ] T073 [P] [US8] Puntos de referencia: 20 coordenadas con su km esperado (Pisco km 0, km 268, km 335.073, curvas cerradas) — `herramientas/corredor/km_referencia.csv` · (FR-074; R-016)
 - [ ] T074 [P] [US8] `generar_corredor.py`: lee `backend/db/datos/corredor_pe28a.geojson`, km acumulado con haversine (radio 6 371 008,8 m), escribe `corredor_pe28a.v<N>.json` con `fuenteSha256`; dependencias fijas — `herramientas/corredor/generar_corredor.py`, `herramientas/corredor/requisitos.txt` · (FR-072, FR-074)
-- [ ] T075 [P] [US8] `verificar_datos.py`: km creciente; todos los vértices del km 268 al 333 dentro de `tramo_demo.geojson`; polígono cerrado ≤ 60 vértices; km de `km_referencia.csv` ≤ 1 m — `herramientas/corredor/verificar_datos.py` · (FR-072, FR-074; BD-19)
+- [ ] T075 [P] [US8] `verificar_datos.py`: km creciente; todos los vértices del km 268 al 335.073 dentro de `tramo_demo.geojson`; polígono cerrado ≤ 60 vértices; km de `km_referencia.csv` ≤ 1 m — `herramientas/corredor/verificar_datos.py` · (FR-072, FR-074; BD-19)
 - [ ] T076 [P] [US8] `region_corredor.py` (franja de 5 km) y `generar_pmtiles.sh` (`pmtiles extract` de un *build* de Protomaps, `--maxzoom=14`, falla si > 80 MB) — `herramientas/mapa/` · (FR-072; R-015, RNF-15)
 - [ ] T077 [P] [US8] `generar_manifiesto.py`: `mapa/manifiesto.json` con versión, `bytes`, `sha256` y atribución; valida contra `ManifiestoMapa` de `cdn.openapi.yaml` — `herramientas/corredor/generar_manifiesto.py` · (FR-072; R-014)
 - [ ] T078 [US8] Workflow `workflow_dispatch` (entrada `version`, `ensayo: true/false`): instala requisitos → genera → verifica → sube archivos versionados con `Cache-Control: immutable` → sube el manifiesto al final (`max-age=300`), con `KU_R2_ACCESS_KEY_ID`, `KU_R2_SECRET_ACCESS_KEY`, `KU_R2_ENDPOINT` — `../.github/workflows/app-datos-r2.yml` · (FR-073; D16, RNF-34)
@@ -224,7 +224,7 @@ description: "Tareas de la app Android KillaUru"
 
 ## Phase 11: User Story 10 — Mis viajes (P3, *Could*, recortable 2.º)
 
-- [ ] T115 [P] [US10] `AcumuladorRecorridoTest`: viaje 333 → 268 con 7 eventos; ida y vuelta suma `kmRecorridos`; anónimo → no guarda; purga a 6 meses + 1 día — `KT/historial/dominio/AcumuladorRecorridoTest.kt` · (FR-069)
+- [ ] T115 [P] [US10] `AcumuladorRecorridoTest`: viaje 335.073 → 268 con 7 eventos; ida y vuelta suma `kmRecorridos`; anónimo → no guarda; purga a 6 meses + 1 día — `KT/historial/dominio/AcumuladorRecorridoTest.kt` · (FR-069)
 - [ ] T116 [US10] `Recorrido`, `AcumuladorRecorrido`, `RepositorioRecorridos`; `RecorridoDao`, `RepositorioRecorridosRoom` — `K/historial/dominio/`, `K/historial/datos/` · (FR-069)
 - [ ] T117 [US10] `HistorialPantalla` + `HistorialViewModel` («Se guarda solo en este celular por 6 meses…», totales, lista; anónimo → explicación) — `K/historial/ui/` · (FR-069, FR-008)
 

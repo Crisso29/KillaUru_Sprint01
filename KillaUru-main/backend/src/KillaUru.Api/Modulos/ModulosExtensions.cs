@@ -35,6 +35,16 @@ internal static class ModulosExtensions
             .AddMapaModule(configuracion)
             .AddDashboardModule(configuracion);
 
+        AgregarControladores(services);
+        return services;
+    }
+
+    /// <summary>
+    /// Registra los ensamblados de los módulos y reemplaza el proveedor de controladores.
+    /// ASP.NET solo descubre controladores públicos por defecto; se reemplaza el proveedor
+    /// para que también encuentre los internos (ADR-001: los módulos no exponen tipos públicos).
+    /// </summary>
+    private static void AgregarControladores(IServiceCollection services) =>
         services.AddControllers().ConfigureApplicationPartManager(partes =>
         {
             foreach (var ensamblado in Ensamblados)
@@ -42,9 +52,8 @@ internal static class ModulosExtensions
                 partes.ApplicationParts.Add(new Microsoft.AspNetCore.Mvc.ApplicationParts.AssemblyPart(ensamblado));
             }
 
+            // Reemplazar ControllerFeatureProvider estándar por uno que incluye clases internal
             partes.FeatureProviders.Remove(partes.FeatureProviders.OfType<ControllerFeatureProvider>().Single());
             partes.FeatureProviders.Add(new ControladoresInternosFeatureProvider());
         });
-        return services;
-    }
 }

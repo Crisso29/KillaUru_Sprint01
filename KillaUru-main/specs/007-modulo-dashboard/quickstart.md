@@ -24,7 +24,7 @@ dotnet test tests/KillaUru.Integracion.Tests --filter "FullyQualifiedName~Dashbo
 | 5 | Eventos D−7…D−1 = 250, 270, 260, 290, 276, 302, 300 y D = 321 | `comparacion` 278,3 · `variacion` 15,3 % |
 | 6 | 7 días: 18 confirmaciones y 6 pendientes expiradas | `confirmacionPct` 75,0 |
 | 7 | 7 días sin expiraciones | `reaparicionPct.valor` = `null` |
-| 8 | Tramos 237 de 333 | `coberturaPct` 71,2 |
+| 8 | Tramos 237 de 336 | `coberturaPct` 70,5 |
 | 9 | Día faltante dentro de la serie | `null` en su posición; los promedios lo ignoran |
 | 10 | Filas de hace 731 días | borradas en la siguiente corrida |
 | 11 | `dias=10` / token de conductor / sin token | 400 / 403 / 401 (T-SEG20) |

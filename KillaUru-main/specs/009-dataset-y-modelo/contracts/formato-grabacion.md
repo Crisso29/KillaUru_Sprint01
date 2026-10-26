@@ -10,7 +10,7 @@ Una carpeta por celular y recorrido: `<AAAAMMDD>-<recorrido>-<celular>/`. Texto 
   "celular": { "alias": "C2", "marcaModelo": "Samsung Galaxy A34", "ramGb": 4, "anioLanzamiento": 2023, "android": "14" },
   "vehiculo": { "alias": "V1", "categoria": "Liviano" },
   "soporte": { "tipo": "rejilla", "posicion": "centro-tablero" },
-  "tramo": { "kmInicio": 268.0, "kmFin": 333.0, "sentido": "VinchosAyacucho" },
+  "tramo": { "kmInicio": 268.0, "kmFin": 335.073, "sentido": "VinchosAyacucho" },
   "fecha": "2026-10-26", "esCelularVideo": false,
   "parametros": { "samplingPeriodUs": 20000, "maxReportLatencyUs": 1000000, "gpsIntervaloMs": 1000 }
 }

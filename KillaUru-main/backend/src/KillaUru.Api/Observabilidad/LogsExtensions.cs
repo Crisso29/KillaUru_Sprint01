@@ -23,6 +23,7 @@ internal static class LogsExtensions
             configuracion
                 .MinimumLevel.Information()
                 .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+                .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
                 .Enrich.FromLogContext()
                 .Enrich.With<FiltroDatosPersonales>()
                 .WriteTo.Console(new RenderedCompactJsonFormatter());

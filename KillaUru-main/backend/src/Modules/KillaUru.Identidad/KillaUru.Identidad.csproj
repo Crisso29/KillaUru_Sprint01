@@ -2,10 +2,14 @@
   <!-- Todo es internal salvo Contracts/ y IdentidadModule (constitución II). -->
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="KillaUru.Identidad.Tests" />
     <InternalsVisibleTo Include="KillaUru.Integracion.Tests" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\KillaUru.Shared\KillaUru.Shared.csproj" />

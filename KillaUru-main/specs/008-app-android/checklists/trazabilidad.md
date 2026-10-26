@@ -12,7 +12,7 @@
 - [ ] CHK004 HU-03 · 5 h sin señal, 100 % `PENDING`, mapa y alertas → FR-019, FR-025, FR-059 → T065, T123
 - [ ] CHK005 HU-04 · mismos `eventoId`, `SYNCED` solo tras 200, reanudar ≤ 60 s → FR-028…FR-038 → T054…T072
 - [ ] CHK006 HU-07 · demo, zona sombreada, aviso una vez por viaje → FR-045, FR-049 → T081, T083, T085, T096
-- [ ] CHK007 HU-08 · 333 km, severidad, tiempo relativo, sin señal → FR-041…FR-044, FR-047, FR-050 → T082, T086, T089, T094, T096
+- [ ] CHK007 HU-08 · 335.073 km, severidad, tiempo relativo, sin señal → FR-041…FR-044, FR-047, FR-050 → T082, T086, T089, T094, T096
 - [ ] CHK008 HU-09 · 8 s / 12 s ± 1 s por la vía, una alerta, sin internet, pantalla bloqueada → FR-054…FR-059 → T097…T104
 - [ ] CHK009 HU-10 · 6 meses solo en el celular (*Could*) → FR-069 → T115…T117
 - [ ] CHK010 HU-18 / HU-18b · registro, sesión, verificación, conservar corredor offline, cerrar sesión → FR-060…FR-064, FR-066 → T105…T114

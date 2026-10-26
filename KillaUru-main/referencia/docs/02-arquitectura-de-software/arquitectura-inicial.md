@@ -7,7 +7,7 @@
 
 Este documento da la **visión de conjunto** de KillaUru: de qué zonas se compone, cómo viaja un dato desde el sensor hasta el mapa, dónde están las fronteras de confianza y qué entra en v1.0. El detalle por nivel está en los diagramas C4 (`Nivel1…Nivel4`); las decisiones, en los ADR.
 
-KillaUru es una plataforma colaborativa que detecta, valida y presenta anomalías viales de la carretera PE-28A (Vía Los Libertadores, 333 km). Se compone de tres piezas ejecutables:
+KillaUru es una plataforma colaborativa que detecta, valida y presenta anomalías viales de la carretera PE-28A (Vía Los Libertadores, 335.073 km). Se compone de tres piezas ejecutables:
 
 - una **app Android** que detecta y clasifica en el dispositivo y funciona sin internet;
 - un **backend monolítico modular** (ASP.NET Core 10) con 6 módulos, que valida, clasifica y sirve el mapa;
@@ -94,7 +94,7 @@ sequenceDiagram
 
 | Rol | Resultado |
 |---|---|
-| Anónimo | Solo anomalías `Activa` del tramo demo Ayacucho–Vinchos (~65 km), aunque pida un `bbox` mayor; es la única respuesta que puede guardarse en la caché de borde |
+| Anónimo | Solo anomalías `Activa` del tramo demo Ayacucho–Vinchos (~67 km), aunque pida un `bbox` mayor; es la única respuesta que puede guardarse en la caché de borde |
 | Conductor Registrado | Solo anomalías `Activa`, en el corredor completo |
 | Administrador | Todos los estados (sin `estado` recibe los 5; el panel abre con «Activa + PendienteConfirmacion» marcados), con filtros por tipo, severidad, estado y fechas |
 

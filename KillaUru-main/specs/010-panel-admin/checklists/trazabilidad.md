@@ -28,7 +28,7 @@
 ## Reglas de negocio
 
 - [ ] CHK019 RN-07 · tabla de acciones del administrador (solo ayuda, decide la API) → FR-027, FR-002 → T063, T064
-- [ ] CHK020 RN-08 · filtro inicial del administrador y tramo demo km 268–333 → FR-022, FR-025 → T035, T037
+- [ ] CHK020 RN-08 · filtro inicial del administrador y tramo demo km 268–335.073 → FR-022, FR-025 → T035, T037
 - [ ] CHK021 RN-19 · mensaje de bloqueo del panel (423) → FR-005 → T028, T029
 
 ## Calidad, decisiones y escenarios

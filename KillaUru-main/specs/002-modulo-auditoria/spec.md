@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-20
 
-**Status**: Draft
+**Status**: Implementado y verificado localmente; pendientes operativos T027/T031 y revisión de consumidores T038
 
 **Input**: User description: "Módulo Auditoría de KillaUru: registro inmutable de toda acción sensible, escrito en la misma transacción que la acción, y consulta de solo lectura para el administrador, para reconstruir un incidente con datos personales en menos de 48 h."
 

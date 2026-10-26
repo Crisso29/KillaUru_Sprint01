@@ -26,5 +26,8 @@
 
 ## Notes
 
+- Implementación revisada el 2026-10-23. Este checklist valida la especificación; no acredita alertas ni simulacros ejecutados.
+  Estado real en [trazabilidad.md](trazabilidad.md) y [revision-implementacion.md](../revision-implementacion.md).
+
 - Hueco detectado en docs (RN-10 tras pérdida total de la BD): `research.md` R-009, **confirmado por el autor el 2026-10-21 (D9)** como riesgo aceptado con revisión manual.
 - Revisado el 2026-10-21: D15 (FR-001, FR-002, FR-012, FR-013, FR-017), T-SEG19/T-SEG20 (FR-011), T-QA14 (FR-018), `ActorAuditoria.Sistema` unificado.

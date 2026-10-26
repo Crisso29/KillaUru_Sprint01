@@ -1,0 +1,7 @@
+# Ejecutar el comando inicial sin guardar su enlace en logs de Docker/Alloy (FR-043).
+# Requiere Compose con soporte de !reset; validar con docker compose config antes del comando.
+services:
+  api:
+    logging:
+      driver: none
+      options: !reset {}

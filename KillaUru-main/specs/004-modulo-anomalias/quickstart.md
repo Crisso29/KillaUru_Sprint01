@@ -2,14 +2,14 @@
 
 ## Requisitos previos
 
-001 y 002 funcionando; migraciones `V0004` y `V0005` aplicadas (polilínea cargada: `/health/ready` = 200). Hasta que exista Ingesta (005), los eventos se inyectan con la prueba de integración o con `db/semillas/anomalias-escenarios.sql`.
+001 y 002 funcionando; migraciones `V0004` y `V0005` aplicadas (polilínea cargada: `/health/ready` = 200). Hasta que exista Ingesta (005), los eventos se inyectan con la prueba de integración con los escenarios automatizados de `tests/KillaUru.Integracion.Tests/Anomalias/`.
 
 ## 1. Pruebas automáticas
 
 ```powershell
 cd backend
-dotnet test tests/KillaUru.Anomalias.Tests            # dominio y casos de uso
-dotnet test tests/KillaUru.Integracion.Tests --filter "FullyQualifiedName~Anomalias"
+dotnet test --project tests/KillaUru.Anomalias.Tests --no-restore  # dominio y casos de uso
+dotnet test --project tests/KillaUru.Integracion.Tests --no-restore -- --filter-namespace "KillaUru.Integracion.Tests.Anomalias"
 ```
 
 ## 2. Escenarios que deben pasar (los de `diseño-interno-de-modulos.md` §10 y `enfoque` §8)
@@ -59,3 +59,7 @@ WHERE seudonimo IS NOT NULL AND recibido_utc < now() - interval '72 hours';   --
 SELECT count(*) FROM anomalias.reporte_anomalia
 WHERE seudonimo IS NULL AND recibido_utc <> date_trunc('hour', recibido_utc); -- Esperado: 0 (D3)
 ```
+
+## Resultado local — 2026-10-26
+
+Ver [revisión y evidencias](revision-implementacion.md). Las pruebas usan PostgreSQL/PostGIS en Docker; requieren Docker Desktop activo. La medición `RendimientoAnomaliasTests` guarda `backend/TestResults/004-rendimiento.json`: aprobar la ejecución solo confirma que se procesaron 300 eventos; la aceptación de p95 ≤ 100 ms se evalúa aparte y sigue pendiente. EQ-12 completo necesita el spec 005.

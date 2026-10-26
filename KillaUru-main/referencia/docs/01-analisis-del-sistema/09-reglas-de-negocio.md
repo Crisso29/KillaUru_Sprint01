@@ -168,15 +168,17 @@ Parámetros: `CaducidadEpisodicaHoras = 72`, `CaducidadPersistenteDias = 7`, `Ca
 
 | Rol | Qué anomalías recibe | ¿Recibe alertas (RN-16)? |
 |---|---|:---:|
-| Anónimo | Solo `Activa` dentro del polígono del tramo demo Ayacucho–Vinchos (~65 km), aunque pida un área mayor | ❌ |
-| Conductor Registrado | `Activa` en todo el corredor de 333 km | ✅ (cualquier categoría de vehículo, RN-18) |
+| Anónimo | Solo `Activa` dentro del polígono del tramo demo Ayacucho–Vinchos (~67 km), aunque pida un área mayor | ❌ |
+| Conductor Registrado | `Activa` en todo el corredor de 335.073 km | ✅ (cualquier categoría de vehículo, RN-18) |
 | Administrador | Todos los estados, con filtros por tipo, severidad, estado y fechas. Si no filtra por estado, la API le devuelve **los 5 estados**; el panel abre con el filtro «`Activa` + `PendienteConfirmacion`» ya marcado, que el administrador puede cambiar | — |
 
-**Polígono del tramo demo** (`PoligonoDemo`): se arma con la polilínea de la PE-28A entre el **km 268 (Vinchos) y el km 333 (Ayacucho)**, con un **margen de 200 m** a cada lado del eje, simplificado a ≤ 60 vértices. El servidor y la app usan el mismo polígono (recorte y sombreado). Parámetro: `PoligonoDemo`.
+**Polígono del tramo demo** (`PoligonoDemo`): se arma con la polilínea de la PE-28A entre el **km 268 (límite geométrico demo) y el km 335.073 (Ayacucho)**, con un **margen de 200 m** a cada lado del eje, simplificado a ≤ 60 vértices. El servidor y la app usan el mismo polígono (recorte y sombreado). Parámetro: `PoligonoDemo`.
+
+**Revisión geométrica 2026-10-24 (004)**: el eje canónico `backend/db/datos/corredor_pe28a.geojson` mide **335,072963461 km** (335,073 km al mostrarlo). El km 0 es el extremo seleccionado en el enlace PE-1S, no el centro de Pisco; el km final es el extremo seleccionado en Ayacucho. Son distancias acumuladas del eje con radio esférico 6 371 008,8 m, no progresivas oficiales. El demo conserva el inicio geométrico km 268 y termina en `properties.demo_km_fin = properties.longitud_km`: **67,072963461 km**. El nombre histórico «Ayacucho–Vinchos» no certifica que el km 268 sea el centro de Vinchos. Los cálculos y límites usan el valor completo del GeoJSON; los valores redondeados de documentos e interfaz son solo de presentación. La generación del polígono de 200 m y su validación de ≤ 60 vértices corresponden a 006; no se reemplaza ese recorte por una comprobación de kilometraje.
 
 El recorte lo hace **siempre el servidor** (RNF-27). Las alertas son una función del rol, no de la categoría de vehículo: un camionero sin cuenta ve el mapa del tramo demo, pero no recibe alertas.
 
-**Anónimo fuera del tramo demo.** El anónimo **sigue detectando y enviando** eventos en todo el corredor (sus datos ayudan a confirmar baches para todos). Pero fuera del tramo demo el mapa **no puede verse «limpio»**: esa zona se muestra sombreada en gris con el mensaje «Sin información de baches para usuarios sin cuenta. Crea una cuenta gratis para ver los 333 km.» Al salir del tramo demo, la app muestra ese aviso **una sola vez por viaje**, sin exigir ningún toque. Así nadie confunde «no hay datos» con «no hay baches».
+**Anónimo fuera del tramo demo.** El anónimo **sigue detectando y enviando** eventos en todo el corredor (sus datos ayudan a confirmar baches para todos). Pero fuera del tramo demo el mapa **no puede verse «limpio»**: esa zona se muestra sombreada en gris con el mensaje «Sin información de baches para usuarios sin cuenta. Crea una cuenta gratis para ver los 335.073 km.» Al salir del tramo demo, la app muestra ese aviso **una sola vez por viaje**, sin exigir ningún toque. Así nadie confunde «no hay datos» con «no hay baches».
 
 ## 4. Reglas contra datos falsos
 

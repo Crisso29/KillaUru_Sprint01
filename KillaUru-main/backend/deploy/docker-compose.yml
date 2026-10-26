@@ -18,6 +18,9 @@ services:
     environment:
       ConnectionStrings__KillaUru: "Host=postgres;Database=killauru;Username=killauru_app;Password=${KU_DB_APP_PASSWORD:?}"
       Api__Jwt__ClaveFirma: ${KU_JWT_CLAVE_FIRMA:?}
+      Identidad__ClaveRotacion: ${KU_IDENTIDAD_CLAVE_ROTACION:?}
+      Identidad__TurnstileSecreto: ${KU_TURNSTILE_SECRETO:?}
+      Identidad__CorreoApiKey: ${KU_CORREO_API_KEY:?}
       Api__Telemetria__OtlpEndpoint: ${KU_GRAFANA_OTLP_ENDPOINT:-}
       OTEL_EXPORTER_OTLP_HEADERS: "Authorization=Basic ${KU_GRAFANA_OTLP_TOKEN:-}"
     cpus: "2.0"

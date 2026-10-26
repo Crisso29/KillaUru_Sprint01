@@ -241,9 +241,9 @@ Como conductor o administrador, quiero que el enlace de verificación, de recupe
 
 - **FR-021**: El mapa MUST usar MapLibre GL JS con el PMTiles del corredor leído por rangos HTTP desde `https://cdn.killauru.pe` y el mismo estilo que la app (rutas que publica 008, D16), y mostrar la atribución de OpenStreetMap. *(ADR-011 puntos 2–4; `estilo-arquitectonico.md`)*
 - **FR-022**: Al abrir, el filtro «Estado» MUST traer marcados `Activa` y `PendienteConfirmacion` y enviarlos en `estado`; los filtros tipo, severidad, estado y periodo (24 h / 7 d / 30 d → `desde`) se envían a `GET /api/v1/anomalies` sin `bbox` (todo el corredor). *(RF-17, RN-08, HU-12; D6; R-011)*
-- **FR-023**: Cada anomalía MUST dibujarse con forma por estado (Activa: círculo lleno, con anillo en 4 y 5; Pendiente: círculo con borde punteado; Expirada: anillo gris; Reparada: círculo con ✓; Descartada: círculo con ✕) y su número de severidad; el tramo demo (km 268–333) se resalta y hay leyenda. *(prototipo «Nunca solo color»; RN-08)*
+- **FR-023**: Cada anomalía MUST dibujarse con forma por estado (Activa: círculo lleno, con anillo en 4 y 5; Pendiente: círculo con borde punteado; Expirada: anillo gris; Reparada: círculo con ✓; Descartada: círculo con ✕) y su número de severidad; el tramo demo (km 268–335.073) se resalta y hay leyenda. *(prototipo «Nunca solo color»; RN-08)*
 - **FR-024**: La pestaña «Lista» MUST mostrar cada anomalía filtrada con «Tipo · km X» (`kmVia`), id corto, tiempo relativo y estado, y servir de alternativa accesible al mapa. *(D13; PO-09; RNF-14)*
-- **FR-025**: El detalle MUST mostrar `DetalleAnomalia` completo (incluido `historial` con el actor) y derivar «Dentro / Fuera del tramo demo» de `kmVia` (268 ≤ km ≤ 333). *(004 `obtenerDetalleAnomalia`; prototipo; RN-08; R-012)*
+- **FR-025**: El detalle MUST mostrar `DetalleAnomalia` completo (incluido `historial` con el actor) y derivar «Dentro / Fuera del tramo demo» de `kmVia` (268 ≤ km ≤ 335.073). *(004 `obtenerDetalleAnomalia`; prototipo; RN-08; R-012)*
 - **FR-026**: Los filtros y la anomalía elegida MUST vivir en la dirección (`/mapa?estado=…&tipo=…&severidad=…&periodo=…&anomalia=…`); sin parámetros rige FR-022. *(Decisión SDD, R-011)*
 
 **E. Moderación (HU-19, RF-24, RN-07)**
@@ -291,14 +291,14 @@ Como conductor o administrador, quiero que el enlace de verificación, de recupe
 |---|---|---|---|
 | D6, RN-08 | `ESTADOS_INICIALES_MAPA` | `Activa`, `PendienteConfirmacion` | RF-17, RN-08 |
 | — | `PERIODO_INICIAL_MAPA` | `7 d` | prototipo |
-| RN-08 | `TRAMO_DEMO_KM` | 268 → 333 | RN-08 (`PoligonoDemo`) |
+| RN-08 | `TRAMO_DEMO_KM` | 268 → 335.073 | RN-08 (`PoligonoDemo`) |
 | RF-16 | `SESION_MAXIMA_HORAS` | 8 | RF-16, ADR-009 (solo para la barra; la API decide) |
 | ADR-009 | `VIDA_ACCESO_MIN` | 5 | ADR-009 (para estimar la hora del servidor, R-006) |
 | — | `MARGEN_RENOVACION_S` | 60 | Decisión SDD (R-006) |
 | — | `REFRESCO_OPERATIVO_S` | 60 | Decisión SDD (R-027) |
 | D15 | `CACHE_LECTURA_AUDITADA_MIN` | 10 | Decisión SDD (R-027) |
 | — | `TRAMO_FRANJA_KM` | 10 | prototipo |
-| — | `PUEBLOS_CORREDOR` | Pisco 0 · Huaytará 140 · Rumichaca 196 · Vinchos 268 · Ayacucho 333 | prototipo |
+| — | `PUEBLOS_CORREDOR` | Pisco 0 · Huaytará 140 · Rumichaca 196 · Inicio demo 268 · Ayacucho 335.073 | prototipo |
 | 007 | `DIAS_GRAFICO` | 7, 14 (inicial), 30 | 007 contrato |
 | — | Variables de entorno | `VITE_URL_API`, `VITE_URL_ESTILO_MAPA`, `VITE_URL_PMTILES`, `VITE_TURNSTILE_SITEKEY`, `VITE_URL_ESTADO`, `VITE_ENTORNO` | R-025 |
 

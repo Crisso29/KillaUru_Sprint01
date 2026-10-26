@@ -2,14 +2,14 @@
 
 ## Requisitos previos
 
-001 y 002 funcionando; migración `V0003` aplicada; `EnviadorCorreoConsola` activo en desarrollo (los enlaces salen en el log, **solo en desarrollo**); el primer administrador creado con `docker compose run --rm api crear-admin <correo>`, que imprime el enlace de invitación solo en la consola (T-SEG14).
+001 y 002 funcionando; migración `V0003` aplicada. El adaptador de consola no imprime enlaces ni destinatarios: las pruebas capturan el correo en memoria; para el recorrido manual, configurar el proveedor según `backend/deploy/runbooks/correo.md`. Crear el primer administrador con el override `docker-compose.semilla.yml` descrito en el runbook de despliegue, que desactiva la captura de logs de Docker (T-SEG14).
 
 ## 1. Pruebas automáticas
 
 ```powershell
 cd backend
-dotnet test tests/KillaUru.Identidad.Tests
-dotnet test tests/KillaUru.Integracion.Tests --filter "FullyQualifiedName~Identidad"
+dotnet test --project tests/KillaUru.Identidad.Tests
+dotnet test --project tests/KillaUru.Integracion.Tests -- --filter-class 'KillaUru.Integracion.Tests.Identidad.*'
 ```
 
 ## 2. Recorrido del conductor (app)
@@ -17,11 +17,11 @@ dotnet test tests/KillaUru.Integracion.Tests --filter "FullyQualifiedName~Identi
 | Paso | Petición | Esperado |
 |---|---|---|
 | 1 | `GET /api/v1/legal/versiones` | 200 con versión `1.2` de ambos documentos |
-| 2 | `POST /api/v1/auth/registro` con versiones `1.2` | 201 con `tokenAcceso` (5 min) y `tokenRenovacion`, `sesionVenceUtc` ≈ hoy + 30 días; en el log, el enlace de verificación |
+| 2 | `POST /api/v1/auth/registro` con versiones `1.2` | 201 con `tokenAcceso` (5 min) y `tokenRenovacion`, `sesionVenceUtc` ≈ hoy + 30 días; en el correo, el enlace de verificación |
 | 3 | `POST /api/v1/auth/registro` sin aceptar | 400 `aceptacion_requerida` |
 | 3b | 6 registros desde la misma IP en 1 h | los 5 primeros 201 (o 409); el 6.º → 429 con `Retry-After` (D8, T-QA18) |
 | 3c | Decodificar `tokenAcceso` | *claims* `sub`, `rol`, `verificado = false`, `jti`; tras el paso 4 y una renovación, `verificado = true` (D8) |
-| 4 | `POST /api/v1/auth/verificar-correo` con el token del log | 204; repetirlo → 400 `enlace_invalido` |
+| 4 | `POST /api/v1/auth/verificar-correo` con el token del correo | 204; repetirlo → 400 `enlace_invalido` |
 | 5 | `GET /api/v1/me` | 200 con correo, rol, alta, verificado y las 2 aceptaciones |
 | 6 | `POST /api/v1/auth/renovar` dos veces con el **mismo** token en < 60 s | ambas 200 con el **mismo** `tokenRenovacion` |
 | 7 | Repetir el paso 6 pasados 61 s (con `FakeTimeProvider` en la prueba) | 401 `sesion_invalida` y la familia revocada |
@@ -35,9 +35,9 @@ dotnet test tests/KillaUru.Integracion.Tests --filter "FullyQualifiedName~Identi
 
 | Paso | Esperado |
 |---|---|
-| Login con `canal = panel` y Turnstile de prueba | 200, cookies `ku_acceso` y `ku_renovacion` `HttpOnly; Secure; SameSite=Strict`; `sesionVenceUtc` = ahora + 8 h; auditado `InicioSesionAdministrador` con IP enmascarada |
+| Login con `canal = panel` y Turnstile de prueba | 200, cookies `ku_acceso` y `ku_renovacion` `HttpOnly; Secure; SameSite=Strict`; `sesionVenceUtc` ≤ ahora + 8 h, truncada a la hora; auditado `InicioSesionAdministrador` sin guardar IP |
 | 3 fallos | 423 `cuenta_bloqueada` con `bloqueadoHastaUtc` |
-| `POST /api/v1/usuarios` | 201, estado `InvitacionPendiente`, enlace de invitación en el log |
+| `POST /api/v1/usuarios` | 201, estado `InvitacionPendiente`, enlace de invitación por correo |
 | `POST /api/v1/usuarios/{id}/desactivar` | 204; la siguiente renovación de ese usuario → 401 `cuenta_desactivada`; su JWT deja de servir en ≤ 5 min |
 | Desactivarse a sí mismo | 409 `accion_sobre_si_mismo` |
 | `GET /api/v1/usuarios/revision-privilegios` → `POST` | `venceUtc` = día 1 del mes siguiente; auditado `RevisionPrivilegios` (y el `GET` como `AccesoAdministrativoDatos`, D15) |

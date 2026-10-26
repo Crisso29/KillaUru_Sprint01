@@ -82,7 +82,7 @@ description: "Tareas del panel de administración «KillaUru Ops»"
 
 - [ ] T035 [P] [US2] `filtros.test.ts`: sin parámetros → `Activa,PendienteConfirmacion`, todos los tipos, 1–5, `7d`; ida y vuelta con la dirección; valores desconocidos descartados; grupo vacío → sin petición — `F/mapa/modelo/filtros.test.ts` · (FR-022, FR-026, SC-001; D6)
 - [ ] T036 [P] [US2] `peticion.test.ts`: `estado` siempre; `tipo` solo con uno; `severidad` omitida con las 5; `desde` = ahora − 24 h / 7 d / 30 d con reloj fijo; nunca `bbox` ni `updatedSince` — `F/mapa/modelo/peticion.test.ts` · (FR-022; R-011)
-- [ ] T037 [P] [US2] `tramoDemo.test.ts`: 267,9 → fuera; 268 y 333 → dentro; 333,1 → fuera — `F/mapa/modelo/tramoDemo.test.ts` · (FR-025; R-012)
+- [ ] T037 [P] [US2] `tramoDemo.test.ts`: 267,9 → fuera; 268 y 335.073 → dentro; 335,1 → fuera — `F/mapa/modelo/tramoDemo.test.ts` · (FR-025; R-012)
 - [ ] T038 [P] [US2] `simbolos.test.ts`: forma por cada estado; anillo solo en `Activa` 4–5; las 25 combinaciones llevan su número — `F/mapa/modelo/simbolos.test.ts` · (FR-023)
 - [ ] T039 [P] [US2] `busqueda.test.ts`: UUID completo, prefijo de 8, «287,4» → la más cercana, correo → usuarios, texto suelto → sin resultados — `F/mapa/modelo/busqueda.test.ts` · (FR-040; R-028)
 - [ ] T040 [US2] `PaginaMapa.test.tsx` (MSW, `LienzoMapa` doble): la primera petición lleva `estado=Activa,PendienteConfirmacion`; lista «Bache · km 287,4», id corto y «hace 2 h»; «N de M»; vacío; error con «Reintentar»; elegir una fila abre el detalle y pone `?anomalia=` — `F/mapa/ui/PaginaMapa.test.tsx` · (FR-022, FR-024, FR-026, FR-042)
@@ -155,7 +155,7 @@ description: "Tareas del panel de administración «KillaUru Ops»"
 ### Pruebas
 
 - [ ] T069 [P] [US4] `indicadores.test.ts`: rótulo, unidad y formato de variación por indicador; «Reaparición» al subir = malo; `null` → «—» — `F/resumen/modelo/indicadores.test.ts` · (FR-015)
-- [ ] T070 [P] [US4] `franja.test.ts`: km 0, 9,99, 10, 332,9 y 333 → tramos 0, 0, 1, 33 y 33; severidad máxima; tramo vacío — `F/resumen/modelo/franja.test.ts` · (FR-019; R-013)
+- [ ] T070 [P] [US4] `franja.test.ts`: km 0, 9,99, 10, 332,9 y 335.073 → tramos 0, 0, 1, 33 y 33; severidad máxima; tramo vacío — `F/resumen/modelo/franja.test.ts` · (FR-019; R-013)
 - [ ] T071 [P] [US4] `atencion.test.ts`: «N temas»; revisión a 16/15 días → no/sí suma; vencida; «<id> expira en N h» — `F/resumen/modelo/atencion.test.ts` · (FR-018)
 - [ ] T072 [P] [US4] `transicion.test.ts`: cada fila de la tabla «Qué pasó» de `data-model.md` §5 — `F/resumen/modelo/transicion.test.ts` · (FR-020; R-014)
 - [ ] T073 [US4] `PaginaResumen.test.tsx` (MSW con el `example` de 007): 6 rótulos, «—», selector 7/14/30 envía `dias`, «Paneles técnicos» con `target="_blank"` y `rel="noopener noreferrer"`, «Estado del servicio» sin cifras, últimos cambios con «sistema», una tarjeta con error no rompe las demás — `F/resumen/ui/PaginaResumen.test.tsx` · (FR-015…FR-020, FR-042)

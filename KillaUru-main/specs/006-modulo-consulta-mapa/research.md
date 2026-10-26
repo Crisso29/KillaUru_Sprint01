@@ -2,7 +2,7 @@
 
 ## R-001 · De `bbox` a celdas: hace falta saber qué celdas toca la vía
 
-- **Problema**: `diseño-interno` §4 dice «bbox → celdas» y «el corredor tiene ~1 000 celdas». Pero el rectángulo que envuelve los 333 km (≈ 2,6° × 1,5°) contiene ~150 000 celdas de 0,005°, casi todas cerro vacío. Sin saber cuáles tocan la vía, cada petición del corredor haría 150 000 búsquedas en la caché.
+- **Problema**: `diseño-interno` §4 dice «bbox → celdas» y «el corredor tiene ~1 000 celdas». Pero el rectángulo que envuelve los 335.073 km (≈ 2,6° × 1,5°) contiene ~150 000 celdas de 0,005°, casi todas cerro vacío. Sin saber cuáles tocan la vía, cada petición del corredor haría 150 000 búsquedas en la caché.
 - **Decision**: `IAnomaliaLectura.CeldasDelCorredor()` (agregado en 004, R-012): celdas que toca la franja de 50 m alrededor de la polilínea. `CorredorMapa` las pide una vez (perezoso, cuando dejan de estar vacías) y guarda también la clasificación de la zona demo. Celdas de una petición = celdas del corredor cuyo rectángulo intersecta el `bbox`.
 - **Rationale**: toda anomalía nace a ≤ 50 m de la vía (RN-13), así que su celda siempre está en ese conjunto. Mapa no copia la polilínea (un dato, un dueño).
 - **Confirmado (D1)**: la operación pasa a docs (`componentes-arquitectonicos.md` §3.1, Nivel3 §2.2, `diseño-interno` §4).
@@ -41,7 +41,7 @@
 
 ## R-007 · Aciertos en el borde (RNF-01: ≥ 80 % anónimo en el demo)
 
-- **Decision**: Cloudflare cachea por URL exacta. Para que las URL se repitan, la app anónima pide **sin `bbox`** (todo el demo, ~65 km, pocos KB) y refresca la copia completa en lugar de usar `updatedSince` (cuyo valor cambia en cada petición). El conductor registrado sí usa `updatedSince` (no pasa por el borde).
+- **Decision**: Cloudflare cachea por URL exacta. Para que las URL se repitan, la app anónima pide **sin `bbox`** (todo el demo, ~67 km, pocos KB) y refresca la copia completa en lugar de usar `updatedSince` (cuyo valor cambia en cada petición). El conductor registrado sí usa `updatedSince` (no pasa por el borde).
 - **Confirmado (D17)**: es una regla de la app; se traslada a la futura spec **008-app-android**. Esta spec solo la supone (Assumptions).
 
 ## R-008 · `ETag` y 304
@@ -56,8 +56,8 @@
 
 ## R-010 · Polígono del tramo demo
 
-- **Decision**: el polígono se arma una vez a partir de la polilínea de la PE-28A entre el km 268 (Vinchos) y el km 333 (Ayacucho), con un margen de 200 m a cada lado, simplificado a ≤ 60 vértices, y se guarda en `appsettings.json` (`Mapa:PoligonoDemo`) y como GeoJSON en `db/datos/tramo_demo.geojson`, con la atribución de OpenStreetMap. Ese archivo es la fuente única que reutilizará la app para sombrear (RF-08; D16, se publica según la spec 008).
-- **Confirmado (D1)**: km 268 → 333, margen 200 m, ≤ 60 vértices; pasa a RN-08 y al glosario (`PoligonoDemo`).
+- **Decision**: el polígono se arma una vez a partir de la polilínea de la PE-28A entre el km 268 (límite geométrico demo) y el km 335.073 (Ayacucho), con un margen de 200 m a cada lado, simplificado a ≤ 60 vértices, y se guarda en `appsettings.json` (`Mapa:PoligonoDemo`) y como GeoJSON en `db/datos/tramo_demo.geojson`, con la atribución de OpenStreetMap. Ese archivo es la fuente única que reutilizará la app para sombrear (RF-08; D16, se publica según la spec 008).
+- **Confirmado (D1)**: km 268 → 335.073, margen 200 m, ≤ 60 vértices; pasa a RN-08 y al glosario (`PoligonoDemo`).
 
 ## R-011 · `kmVia` en cada *feature* (D13)
 
@@ -81,5 +81,11 @@
 2. R-002 sin «tamaño de celda» en `MapaOptions`; `Celda.Limites()` en Shared — D1.
 3. R-004 sin `estado`, el administrador recibe los 5 estados; el panel abre con «Activa + PendienteConfirmacion» — D6.
 4. R-007 la app anónima pide sin `bbox` y sin `updatedSince`: regla de la spec 008-app-android — D17.
-5. R-010 km 268 → 333, margen 200 m, ≤ 60 vértices — D1 (fuente única para la app: D16).
+5. R-010 km 268 → 335.073, margen 200 m, ≤ 60 vértices — D1 (fuente única para la app: D16).
 6. R-011 `kmVia` en cada *feature* — D13.
+
+## Ajuste geométrico autorizado — 2026-10-24
+
+**Revisión geométrica 2026-10-24 (004)**: el eje canónico `backend/db/datos/corredor_pe28a.geojson` mide **335,072963461 km** (335,073 km al mostrarlo). El km 0 es el extremo seleccionado en el enlace PE-1S, no el centro de Pisco; el km final es el extremo seleccionado en Ayacucho. Son distancias acumuladas del eje con radio esférico 6 371 008,8 m, no progresivas oficiales. El demo conserva el inicio geométrico km 268 y termina en `properties.demo_km_fin = properties.longitud_km`: **67,072963461 km**. El nombre histórico «Ayacucho–Vinchos» no certifica que el km 268 sea el centro de Vinchos. Los cálculos y límites usan el valor completo del GeoJSON; los valores redondeados de documentos e interfaz son solo de presentación. La generación del polígono de 200 m y su validación de ≤ 60 vértices corresponden a 006; no se reemplaza ese recorte por una comprobación de kilometraje.
+
+Referencia reproducible: `backend/db/datos/README.md`; 20 puntos compartidos en `backend/db/datos/km_referencia.csv`. Backend y Android deben usar ese mismo CSV, radio y eje. `TramosTotales = ceil(longitud_km) = 336`. El panel no debe conservar las progresivas de pueblos del prototipo sin verificarlas contra el eje.

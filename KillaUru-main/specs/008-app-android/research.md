@@ -96,7 +96,7 @@ Cada decisión dice qué se decidió, por qué, qué se descartó y de dónde sa
 
 ## R-016 · El mismo km en la app y en el servidor (D13, BD-19)
 
-- **Decision**: `generar_corredor.py` calcula el km acumulado con **haversine** (radio 6 371 008,8 m, el mismo que debe usar `CorredorVia` de 004, R-001 de 004), km 0 en el primer vértice (Pisco). `Corredor.proyectar` usa la misma proyección local equirectangular por segmento. `herramientas/corredor/km_referencia.csv` (20 puntos: inicio, fin, curvas cerradas, km 268 y 333) guarda el km esperado; `CorredorKmReferenciaTest` exige diferencia ≤ 1 m. **Nota para 004**: su prueba de `CorredorVia.KmSobreVia` debe leer el mismo CSV.
+- **Decision**: `generar_corredor.py` calcula el km acumulado con **haversine** (radio 6 371 008,8 m, el mismo que debe usar `CorredorVia` de 004, R-001 de 004), km 0 en el primer vértice (Pisco). `Corredor.proyectar` usa la misma proyección local equirectangular por segmento. `herramientas/corredor/km_referencia.csv` (20 puntos: inicio, fin, curvas cerradas, km 268 y 335.073) guarda el km esperado; `CorredorKmReferenciaTest` exige diferencia ≤ 1 m. **Nota para 004**: su prueba de `CorredorVia.KmSobreVia` debe leer el mismo CSV.
 - **Rationale**: el `kmVia` que llega del servidor y el km del vehículo se comparan para la alerta: si el algoritmo difiere, la alerta se corre (BD-19 punto 1).
 
 ## R-017 · Contrato del manifiesto del modelo, compartido con 009
@@ -233,3 +233,9 @@ La constitución 1.1.0 está escrita para el backend. Para la app se propone una
 ## Confirmados por el autor el 2026-10-22 (D18)
 
 Todos los «Pendientes de confirmar por el autor» de este archivo y la «Propuesta de enmienda a la constitución» quedaron aprobados tal como se recomendaron (`specs/revision/decisiones.md`, D18). La enmienda se aplicó en la constitución 1.2.0.
+
+## Ajuste geométrico autorizado — 2026-10-24
+
+**Revisión geométrica 2026-10-24 (004)**: el eje canónico `backend/db/datos/corredor_pe28a.geojson` mide **335,072963461 km** (335,073 km al mostrarlo). El km 0 es el extremo seleccionado en el enlace PE-1S, no el centro de Pisco; el km final es el extremo seleccionado en Ayacucho. Son distancias acumuladas del eje con radio esférico 6 371 008,8 m, no progresivas oficiales. El demo conserva el inicio geométrico km 268 y termina en `properties.demo_km_fin = properties.longitud_km`: **67,072963461 km**. El nombre histórico «Ayacucho–Vinchos» no certifica que el km 268 sea el centro de Vinchos. Los cálculos y límites usan el valor completo del GeoJSON; los valores redondeados de documentos e interfaz son solo de presentación. La generación del polígono de 200 m y su validación de ≤ 60 vértices corresponden a 006; no se reemplaza ese recorte por una comprobación de kilometraje.
+
+Referencia reproducible: `backend/db/datos/README.md`; 20 puntos compartidos en `backend/db/datos/km_referencia.csv`. Backend y Android deben usar ese mismo CSV, radio y eje. `TramosTotales = ceil(longitud_km) = 336`. El panel no debe conservar las progresivas de pueblos del prototipo sin verificarlas contra el eje.

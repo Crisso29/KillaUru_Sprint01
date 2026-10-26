@@ -2,6 +2,10 @@
 
 Fecha local: 2026-10-22. Alcance: constitución 1.3.0, documentos de referencia, spec, plan, research, data-model, contratos, tareas, backend, despliegue y workflows de la raíz del repositorio.
 
+**Seguimiento 2026-10-23:** durante 002 se resolvieron R03/R04/R05, se reforzó R08 y se atendieron partes
+de R06/R09. Los hallazgos originales de abajo se conservan como registro de la revisión inicial;
+su estado actualizado y evidencia están en [revisión de 002](../002-modulo-auditoria/revision-implementacion.md).
+
 **Dictamen actualizado (2026-10-23): la base está bien encaminada y respeta la estructura general prevista, pero 001 aún no está completamente cerrado.** La solución compila y su suite actual pasa; quedan diferencias funcionales y verificaciones incompletas en tareas marcadas como terminadas. Los seis módulos vacíos son esperables en esta etapa. Esta revisión modifica comentarios y documentación; los defectos funcionales descritos abajo siguen pendientes.
 
 ## Lectura integral y alcance del dictamen

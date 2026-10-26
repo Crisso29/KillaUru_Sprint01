@@ -108,3 +108,11 @@ Las decisiones marcadas **«Derivado del prototipo»** o **«Decisión de diseñ
 6. R-010 409 en el registro, como riesgo aceptado con tope de 5 registros/h por IP — **D8**.
 7. Valores de RF-32 (3/h por correo, 10/h por IP) — **D1**; política de contraseñas **10–128** — **D13**.
 8. Eliminar la cuenta pide la contraseña (R-012), se mantiene y se agrega al prototipo — **D13**.
+# Decisiones de implementación verificadas (2026-10-24)
+
+- Concurrencia: bloqueo de fila por cuenta; para correos aún inexistentes, advisory lock por correo normalizado. Los cambios administrativos usan un mutex transaccional separado. Evita serializar todos los logins y protege al último administrador.
+- Canje y refresh leen el token después de bloquear su cuenta. PostgreSQL conserva microsegundos; `usado_utc` y la comparación de gracia usan esa precisión para aceptar exactamente sesenta segundos.
+- El `jti` firmado identifica la familia al cerrar sesión: la cookie refresh tiene Path restringido a renovar. No se amplía su exposición al resto de rutas.
+- Correos después del commit, con idempotencia y reintentos. Si el proceso termina entre commit y envío, se usa reenvío; no se agrega un outbox fuera del alcance acordado. La consola de desarrollo omite enlaces y correos.
+- Reenvío administrativo usa el código existente `RecuperacionSolicitada` con contexto de operación `Reenvio` y propósito; no cambia el catálogo de 002 ni genera métrica de riesgo.
+- Los archivos de pruebas se agrupan por responsabilidad; los nombres tentativos de tasks.md se corresponden con la tabla de evidencia de la revisión. La matriz distingue validación local de verificaciones operativas externas.

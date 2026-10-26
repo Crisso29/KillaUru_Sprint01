@@ -38,9 +38,19 @@ internal sealed class FiltroDatosPersonales : ILogEventEnricher
         }
     }
 
+    /// <summary>
+    /// Una propiedad es prohibida si su nombre en minúsculas coincide exactamente con un término
+    /// de la lista, o si lo contiene como subcadena (solo para términos de más de 2 caracteres,
+    /// para evitar falsos positivos con nombres cortos como "ip").
+    /// </summary>
     private static bool EsProhibida(string nombre)
     {
         var minuscula = nombre.ToLowerInvariant();
-        return Prohibidas.Any(p => minuscula == p || minuscula.Contains(p, StringComparison.Ordinal) && p.Length > 2);
+        return Prohibidas.Any(termino =>
+        {
+            var coincideExacto    = minuscula == termino;
+            var contieneTermino   = termino.Length > 2 && minuscula.Contains(termino, StringComparison.Ordinal);
+            return coincideExacto || contieneTermino;
+        });
     }
 }
