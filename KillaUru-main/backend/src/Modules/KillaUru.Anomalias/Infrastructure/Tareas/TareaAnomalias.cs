@@ -14,7 +14,9 @@ internal abstract class TareaAnomalias(IServiceScopeFactory scopes, TimeProvider
         while (!stoppingToken.IsCancellationRequested)
         {
             await IntentarAsync(stoppingToken);
-            var demora = Proxima(reloj.GetUtcNow()) - reloj.GetUtcNow();
+            var ahora = reloj.GetUtcNow();
+            // Task.Delay no admite demoras negativas: si ya es la hora, la siguiente pasada corre enseguida.
+            var demora = Proxima(ahora) - ahora;
             await Task.Delay(demora > TimeSpan.Zero ? demora : TimeSpan.Zero, reloj, stoppingToken);
         }
     }

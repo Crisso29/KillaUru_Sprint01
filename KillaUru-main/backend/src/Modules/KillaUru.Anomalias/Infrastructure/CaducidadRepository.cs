@@ -1,4 +1,5 @@
 using KillaUru.Anomalias.Application.Puertos;
+using KillaUru.Anomalias.Application.Tareas;
 using KillaUru.Anomalias.Contracts;
 using KillaUru.Shared.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +11,7 @@ internal sealed class CaducidadRepository(AnomaliasDbContext db) : ICaducidadRep
     {
         var filas = await db.Database.SqlQuery<CaducidadFila>($"""
             WITH vencidas AS (SELECT id, estado, vence_utc FROM anomalias.anomalia
-              WHERE estado IN (1,2) AND vence_utc <= {ahora} ORDER BY id LIMIT 5000 FOR UPDATE SKIP LOCKED),
+              WHERE estado IN (1,2) AND vence_utc <= {ahora} ORDER BY id LIMIT {LoteMantenimiento.Filas} FOR UPDATE SKIP LOCKED),
             cambios AS (UPDATE anomalias.anomalia a SET estado=3, estado_desde_utc=v.vence_utc, actualizada_utc={ahora}
               FROM vencidas v WHERE a.id=v.id RETURNING a.id, a.celda),
             historial AS (INSERT INTO anomalias.transicion(anomalia_id,desde,hacia,ocurrida_utc)

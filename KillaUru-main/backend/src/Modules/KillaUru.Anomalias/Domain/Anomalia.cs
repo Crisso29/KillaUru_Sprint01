@@ -36,14 +36,23 @@ internal sealed class Anomalia
         UltimaDeteccionUtc = reporte.DetectadoUtc > UltimaDeteccionUtc ? reporte.DetectadoUtc : UltimaDeteccionUtc;
         ActualizadaUtc = ahora;
         ActualizarResumen(ventana, opciones);
-        if (Estado == EstadoAnomalia.Descartada) { Revisar(reporte, ventana, opciones); }
-        else if (renace || Estado is EstadoAnomalia.Activa or EstadoAnomalia.PendienteConfirmacion)
-        {
-            if (renace || Estado == EstadoAnomalia.PendienteConfirmacion)
-                Estado = new PoliticaConfirmacion(opciones).Decidir(ventana, SeveridadMostrada, CreadaPorTope, UltimaDeteccionUtc);
-            VenceUtc = UltimaDeteccionUtc + ReglasAnomalia.Caducidad(Estado, Persistencia, opciones);
-        }
+        // Una Descartada nunca se reactiva sola: solo acumula vehículos para «Por revisar» (FR-020).
+        if (Estado == EstadoAnomalia.Descartada) Revisar(reporte, ventana, opciones);
+        else if (renace || EnCurso) ActualizarCicloDeVida(renace, ventana, opciones);
         Anotar(antes, UltimaDeteccionUtc, null);
+    }
+
+    private bool EnCurso => Estado is EstadoAnomalia.Activa or EstadoAnomalia.PendienteConfirmacion;
+
+    /// <summary>
+    /// Se decide la confirmación al nacer, al renacer o mientras espera; una Activa no vuelve a
+    /// pendiente (FR-012). El vencimiento se recalcula con cada reporte (FR-017).
+    /// </summary>
+    private void ActualizarCicloDeVida(bool renace, IReadOnlyList<ReporteAnomalia> ventana, AnomaliasOptions opciones)
+    {
+        var debeDecidir = renace || Estado == EstadoAnomalia.PendienteConfirmacion;
+        if (debeDecidir) Estado = new PoliticaConfirmacion(opciones).Decidir(ventana, SeveridadMostrada, CreadaPorTope, UltimaDeteccionUtc);
+        VenceUtc = UltimaDeteccionUtc + ReglasAnomalia.Caducidad(Estado, Persistencia, opciones);
     }
 
     internal bool Moderar(AccionAdmin accion, DateTimeOffset ahora, AnomaliasOptions opciones, Guid actor)
@@ -52,17 +61,23 @@ internal sealed class Anomalia
         if (destino is null) return false;
         var antes = Estado;
         Estado = destino.Value;
+        // Reabrir le da un plazo nuevo desde ahora; las demás acciones dejan el vencimiento como estaba.
         if (accion == AccionAdmin.Reabrir) VenceUtc = ahora + ReglasAnomalia.Caducidad(Estado, Persistencia, opciones);
-        MarcasRevision.Clear(); PorRevisar = false;
+        // Toda acción del administrador cierra la revisión pendiente (FR-026).
+        MarcasRevision.Clear();
+        PorRevisar = false;
         ActualizadaUtc = ahora;
         Anotar(antes, ahora, actor);
         return true;
     }
 
+    /// <summary>Pasa a Expirada si venció; la transición se fecha en el vencimiento, no en la hora de la tarea (FR-018).</summary>
     internal void Caducar(DateTimeOffset ahora)
     {
-        if (Estado is not (EstadoAnomalia.Activa or EstadoAnomalia.PendienteConfirmacion) || VenceUtc > ahora) return;
-        var antes = Estado; Estado = EstadoAnomalia.Expirada;
+        var vencida = EnCurso && VenceUtc <= ahora;
+        if (!vencida) return;
+        var antes = Estado;
+        Estado = EstadoAnomalia.Expirada;
         ActualizadaUtc = ahora;
         Anotar(antes, VenceUtc, null);
     }
@@ -79,9 +94,11 @@ internal sealed class Anomalia
     {
         var desde = UltimaDeteccionUtc.AddDays(-opciones.VentanaRevisionDescartadaDias);
         var recientes = ventana.Where(r => r.DetectadoUtc >= desde && r.DetectadoUtc <= UltimaDeteccionUtc).ToArray();
-        if (reporte.DetectadoUtc >= desde && reporte.DetectadoUtc > EstadoDesdeUtc
-            && new PoliticaConfirmacion(opciones).EsVehiculoNuevo(reporte, recientes))
-        { MarcasRevision.Add(reporte.DetectadoUtc); }
+        // Solo cuentan vehículos nuevos que la vieron después de descartarla y dentro de los 7 días.
+        var dentroDeLaVentana = reporte.DetectadoUtc >= desde;
+        var posteriorAlDescarte = reporte.DetectadoUtc > EstadoDesdeUtc;
+        var esOtroVehiculo = new PoliticaConfirmacion(opciones).EsVehiculoNuevo(reporte, recientes);
+        if (dentroDeLaVentana && posteriorAlDescarte && esOtroVehiculo) MarcasRevision.Add(reporte.DetectadoUtc);
         MarcasRevision.RemoveAll(m => m < desde);
         PorRevisar = MarcasRevision.Count >= opciones.VehiculosRevisionDescartada;
     }

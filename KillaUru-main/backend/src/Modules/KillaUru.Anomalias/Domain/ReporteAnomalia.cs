@@ -8,20 +8,29 @@ internal sealed record ReporteAnomalia(Guid EventoId, TipoAnomalia Tipo, DateTim
 {
     public Guid AnomaliaId { get; init; }
     private ReporteAnomalia() : this(Guid.Empty, default, default, default, default, 0, default, default, "", null, false) { }
+    /// <summary>Valida la entrada cruda; un campo inválido descarta solo este evento, nunca el lote (FR-001).</summary>
     internal static (ReporteAnomalia? Reporte, MotivoDescarte? Motivo) Desde(ReporteEntrada e, ContextoDeteccion c)
     {
-        if (e.EventoId == Guid.Empty || e.DetectadoUtc is null || e.Latitud is null || e.Longitud is null
-            || e.PrecisionMetros is null || !double.IsFinite(e.PrecisionMetros.Value) || e.PrecisionMetros < 0
-            || e.Severidad is null || e.Confidence is null || e.Seudonimo is null || e.Seudonimo == Guid.Empty
-            || string.IsNullOrWhiteSpace(e.ModeloVersion) || string.IsNullOrWhiteSpace(e.Tipo))
-        { return (null, MotivoDescarte.EsquemaInvalido); }
-        var punto = Coordenada.Crear(e.Latitud.Value, e.Longitud.Value);
-        var severidad = Severidad.Crear(e.Severidad.Value);
-        var confianza = Confidence.Crear(e.Confidence.Value);
+        if (!EsquemaCompleto(e)) return (null, MotivoDescarte.EsquemaInvalido);
+        var punto = Coordenada.Crear(e.Latitud!.Value, e.Longitud!.Value);
+        var severidad = Severidad.Crear(e.Severidad!.Value);
+        var confianza = Confidence.Crear(e.Confidence!.Value);
         if (punto is null || severidad is null || confianza is null) return (null, MotivoDescarte.EsquemaInvalido);
-        if (e.Tipo is not ("Bache" or "Hundimiento")) return (null, MotivoDescarte.TipoDesconocido);
-        return (new(e.EventoId, Enum.Parse<TipoAnomalia>(e.Tipo), e.DetectadoUtc.Value.ToUniversalTime(),
-            c.RecibidoUtc.ToUniversalTime(), punto.Value, e.PrecisionMetros.Value, severidad.Value,
-            confianza.Value, e.ModeloVersion, e.Seudonimo, c.ConSesion), null);
+        // Comparación explícita: Enum.TryParse aceptaría "3" o "Normal", que no son tipos del catálogo.
+        if (e.Tipo is not (nameof(TipoAnomalia.Bache) or nameof(TipoAnomalia.Hundimiento))) return (null, MotivoDescarte.TipoDesconocido);
+        return (new(e.EventoId, Enum.Parse<TipoAnomalia>(e.Tipo), e.DetectadoUtc!.Value.ToUniversalTime(),
+            c.RecibidoUtc.ToUniversalTime(), punto.Value, e.PrecisionMetros!.Value, severidad.Value,
+            confianza.Value, e.ModeloVersion!, e.Seudonimo, c.ConSesion), null);
+    }
+
+    /// <summary>Todos los campos obligatorios presentes y la precisión GPS finita y no negativa.</summary>
+    private static bool EsquemaCompleto(ReporteEntrada e)
+    {
+        var identificadoresValidos = e.EventoId != Guid.Empty && e.Seudonimo is { } seudonimo && seudonimo != Guid.Empty;
+        var medicionPresente = e.DetectadoUtc is not null && e.Latitud is not null && e.Longitud is not null
+            && e.Severidad is not null && e.Confidence is not null;
+        var precisionValida = e.PrecisionMetros is { } precision && double.IsFinite(precision) && precision >= 0;
+        var textosPresentes = !string.IsNullOrWhiteSpace(e.ModeloVersion) && !string.IsNullOrWhiteSpace(e.Tipo);
+        return identificadoresValidos && medicionPresente && precisionValida && textosPresentes;
     }
 }

@@ -1,69 +1,156 @@
 using KillaUru.Anomalias.Domain;
+
 namespace KillaUru.Anomalias.Tests.Domain;
-/// <summary>El agregado conserva posición, cronología y transiciones incluso con reportes tardíos.</summary>
+
+/// <summary>
+/// El agregado nace con su posición y kilometraje fijos, calcula su severidad y vencimiento con cada
+/// reporte y nunca retrocede en el tiempo por reportes tardíos.
+/// Spec 004 · FR-008, FR-009, FR-010, FR-012, FR-017, FR-019, FR-020, FR-032.
+/// </summary>
 public sealed class AnomaliaTests
 {
+    /// <summary>
+    /// Leve sin tope nace Activa; grave (4–5) o creada por superar el tope nace pendiente de un
+    /// segundo vehículo (FR-010). En ambos casos vence 72 h después de la detección (FR-017).
+    /// </summary>
     [Theory]
     [InlineData(2, false, (int)EstadoAnomalia.Activa)]
     [InlineData(5, false, (int)EstadoAnomalia.PendienteConfirmacion)]
     [InlineData(2, true, (int)EstadoAnomalia.PendienteConfirmacion)]
-    public void Nacimiento(int severidad, bool tope, int esperado)
+    public void Nace_activa_o_pendiente_segun_severidad_y_tope(int severidad, bool porTope, int estadoEsperado)
     {
-        var r = ReportesPrueba.Crear(severidad) with { KmVia = 22.5f };
-        var a = Anomalia.Crear(r, tope, ReportesPrueba.Ahora);
-        a.RegistrarReporte(r, [r], new(), ReportesPrueba.Ahora);
-        Assert.Equal((EstadoAnomalia)esperado, a.Estado); Assert.Equal(22.5f, a.KmVia);
-        Assert.Equal(r.DetectadoUtc.AddHours(72), a.VenceUtc);
-        Assert.Single(a.Transiciones); Assert.Null(a.Transiciones[0].Desde);
+        // Arrange
+        var primero = ReportesPrueba.Crear(severidad) with { KmVia = 22.5f };
+
+        // Act
+        var anomalia = ReportesPrueba.Nacida(primero, porTope: porTope);
+
+        // Assert
+        Assert.Equal((EstadoAnomalia)estadoEsperado, anomalia.Estado);
+        Assert.Equal(primero.DetectadoUtc.AddHours(72), anomalia.VenceUtc);
+        Assert.Equal(22.5f, anomalia.KmVia);
     }
 
+    /// <summary>Nacer es una transición desde «nada» (Desde nulo) y se registra una sola vez (FR-015).</summary>
     [Fact]
-    public void Activa_no_regresa_a_pendiente_y_ultimo_no_retrocede()
+    public void Nacer_registra_una_transicion_sin_estado_previo()
     {
-        var r = ReportesPrueba.Crear(3); var a = Anomalia.Crear(r, false, ReportesPrueba.Ahora);
-        a.RegistrarReporte(r, [r], new(), ReportesPrueba.Ahora);
-        var viejo = ReportesPrueba.Crear(4, -60) with { KmVia = 99 };
-        a.RegistrarReporte(viejo, [r, viejo], new(), ReportesPrueba.Ahora);
-        Assert.Equal(EstadoAnomalia.Activa, a.Estado); Assert.Equal(4, a.SeveridadMostrada.Valor);
-        Assert.Equal(r.DetectadoUtc, a.UltimaDeteccionUtc); Assert.Equal(0, a.KmVia);
-        Assert.Single(a.Transiciones);
+        // Act
+        var anomalia = ReportesPrueba.Nacida(ReportesPrueba.Crear());
+
+        // Assert
+        var transicion = Assert.Single(anomalia.Transiciones);
+        Assert.Null(transicion.Desde);
     }
 
+    /// <summary>Una Activa no vuelve a pendiente aunque llegue un reporte grave (FR-012).</summary>
     [Fact]
-    public void Expirada_y_reparada_renacen_solo_despues_del_limite()
+    public void Activa_no_regresa_a_pendiente_por_un_reporte_grave()
     {
-        var r = ReportesPrueba.Crear(); var o = new AnomaliasOptions();
-        var a = Anomalia.Crear(r, false, ReportesPrueba.Ahora); a.RegistrarReporte(r, [r], o, ReportesPrueba.Ahora);
-        var vence = a.VenceUtc; a.Caducar(vence);
-        Assert.Equal(EstadoAnomalia.Expirada, a.Estado);
-        a.RegistrarReporte(r, [r], o, vence); Assert.Equal(EstadoAnomalia.Expirada, a.Estado);
-        var nuevo = ReportesPrueba.Crear(5) with { DetectadoUtc = vence.AddSeconds(1) };
-        a.RegistrarReporte(nuevo, [nuevo], o, vence.AddSeconds(1));
-        Assert.Equal(EstadoAnomalia.PendienteConfirmacion, a.Estado);
-        Assert.Equal(3, a.Transiciones.Count);
-        Assert.True(a.Moderar(AccionAdmin.MarcarReparada, vence.AddSeconds(2), o, Guid.NewGuid()));
-        nuevo = nuevo with { DetectadoUtc = vence.AddSeconds(3) };
-        a.RegistrarReporte(nuevo, [nuevo], o, vence.AddSeconds(3));
-        Assert.Equal(EstadoAnomalia.PendienteConfirmacion, a.Estado);
-        Assert.Equal(5, a.Transiciones.Count);
+        // Arrange
+        var primero = ReportesPrueba.Crear(3);
+        var anomalia = ReportesPrueba.Nacida(primero);
+        var grave = ReportesPrueba.Crear(4, segundos: -60);
+
+        // Act
+        anomalia.RegistrarReporte(grave, [primero, grave], new(), ReportesPrueba.Ahora);
+
+        // Assert
+        Assert.Equal(EstadoAnomalia.Activa, anomalia.Estado);
+        Assert.Equal(4, anomalia.SeveridadMostrada.Valor);
+        Assert.Single(anomalia.Transiciones);
     }
 
+    /// <summary>
+    /// Un reporte detectado antes que el último no retrasa la última detección, y el kilometraje
+    /// se fija al nacer: los reportes posteriores no lo cambian (FR-032).
+    /// </summary>
     [Fact]
-    public void Descartada_absorbe_y_mantener_exige_revision()
+    public void Reporte_tardio_no_retrocede_la_ultima_deteccion_ni_mueve_el_km()
     {
-        var r = ReportesPrueba.Crear(); var o = new AnomaliasOptions();
-        var a = Anomalia.Crear(r, false, ReportesPrueba.Ahora); a.RegistrarReporte(r, [r], o, ReportesPrueba.Ahora);
-        Assert.True(a.Moderar(AccionAdmin.Descartar, ReportesPrueba.Ahora, o, Guid.NewGuid()));
-        Assert.False(a.Moderar(AccionAdmin.MantenerDescartada, ReportesPrueba.Ahora, o, Guid.NewGuid()));
-        var ventana = new List<ReporteAnomalia> { r };
-        for (var i = 1; i <= 3; i++)
-        {
-            var otro = ReportesPrueba.Crear(segundos: i * 180); ventana.Add(otro);
-            a.RegistrarReporte(otro, ventana, o, otro.DetectadoUtc);
-        }
-        Assert.True(a.PorRevisar); Assert.Equal(EstadoAnomalia.Descartada, a.Estado);
-        Assert.Equal(ReportesPrueba.Ahora.AddMinutes(9), a.UltimaDeteccionUtc);
-        Assert.True(a.Moderar(AccionAdmin.MantenerDescartada, ReportesPrueba.Ahora.AddMinutes(10), o, Guid.NewGuid()));
-        Assert.False(a.PorRevisar); Assert.Equal(2, a.Transiciones.Count);
+        // Arrange
+        var primero = ReportesPrueba.Crear();
+        var anomalia = ReportesPrueba.Nacida(primero);
+        var tardio = ReportesPrueba.Crear(segundos: -60) with { KmVia = 99 };
+
+        // Act
+        anomalia.RegistrarReporte(tardio, [primero, tardio], new(), ReportesPrueba.Ahora);
+
+        // Assert
+        Assert.Equal(primero.DetectadoUtc, anomalia.UltimaDeteccionUtc);
+        Assert.Equal(0, anomalia.KmVia);
+    }
+
+    /// <summary>Una Expirada no renace con un reporte detectado justo en su vencimiento (límite exclusivo, FR-019).</summary>
+    [Fact]
+    public void Expirada_no_renace_con_deteccion_en_el_vencimiento()
+    {
+        // Arrange
+        var primero = ReportesPrueba.Crear();
+        var anomalia = ReportesPrueba.Nacida(primero);
+        var vence = anomalia.VenceUtc;
+        anomalia.Caducar(vence);
+
+        // Act
+        anomalia.RegistrarReporte(primero, [primero], new(), vence);
+
+        // Assert
+        Assert.Equal(EstadoAnomalia.Expirada, anomalia.Estado);
+    }
+
+    /// <summary>Un segundo después del vencimiento, un reporte grave la hace renacer pendiente (FR-019).</summary>
+    [Fact]
+    public void Expirada_renace_con_deteccion_posterior_al_vencimiento()
+    {
+        // Arrange
+        var anomalia = ReportesPrueba.Nacida(ReportesPrueba.Crear());
+        var vence = anomalia.VenceUtc;
+        anomalia.Caducar(vence);
+        var posterior = ReportesPrueba.Crear(5) with { DetectadoUtc = vence.AddSeconds(1) };
+
+        // Act
+        anomalia.RegistrarReporte(posterior, [posterior], new(), vence.AddSeconds(1));
+
+        // Assert
+        Assert.Equal(EstadoAnomalia.PendienteConfirmacion, anomalia.Estado);
+        Assert.Equal(3, anomalia.Transiciones.Count);
+    }
+
+    /// <summary>Una Reparada renace si alguien detecta el bache después de la reparación (FR-019).</summary>
+    [Fact]
+    public void Reparada_renace_con_deteccion_posterior_a_la_reparacion()
+    {
+        // Arrange
+        var anomalia = ReportesPrueba.Nacida(ReportesPrueba.Crear());
+        var reparadaEn = ReportesPrueba.Ahora.AddHours(1);
+        Assert.True(anomalia.Moderar(AccionAdmin.MarcarReparada, reparadaEn, new(), Guid.NewGuid()));
+        var posterior = ReportesPrueba.Crear(5) with { DetectadoUtc = reparadaEn.AddSeconds(1) };
+
+        // Act
+        anomalia.RegistrarReporte(posterior, [posterior], new(), posterior.DetectadoUtc);
+
+        // Assert
+        Assert.Equal(EstadoAnomalia.PendienteConfirmacion, anomalia.Estado);
+    }
+
+    /// <summary>
+    /// Una Descartada absorbe reportes sin reactivarse (su última detección avanza); tres vehículos
+    /// nuevos la marcan «Por revisar» (FR-020).
+    /// </summary>
+    [Fact]
+    public void Descartada_absorbe_reportes_y_tres_vehiculos_la_marcan_por_revisar()
+    {
+        // Arrange
+        var inicial = ReportesPrueba.Crear();
+        var anomalia = ReportesPrueba.Nacida(inicial);
+        Assert.True(anomalia.Moderar(AccionAdmin.Descartar, ReportesPrueba.Ahora, new(), Guid.NewGuid()));
+
+        // Act
+        ReportesPrueba.TresVehiculosMas(anomalia, inicial);
+
+        // Assert
+        Assert.Equal(EstadoAnomalia.Descartada, anomalia.Estado);
+        Assert.True(anomalia.PorRevisar);
+        Assert.Equal(ReportesPrueba.Ahora.AddMinutes(9), anomalia.UltimaDeteccionUtc);
     }
 }

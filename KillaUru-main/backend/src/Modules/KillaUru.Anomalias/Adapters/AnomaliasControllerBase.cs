@@ -10,10 +10,12 @@ namespace KillaUru.Anomalias.Adapters;
 internal abstract class AnomaliasControllerBase : ControllerBase
 {
     protected ActorAnomalias Actor => new(Guid.Parse(User.FindFirst("sub")!.Value), User.FindFirst("rol")!.Value);
+    /// <summary>ProblemDetails con el código estable del contrato y el id de correlación para buscar el log.</summary>
     protected ObjectResult Error(string codigo, int estado)
     {
-        var p = new ProblemDetails { Status = estado, Title = "No se pudo completar la operación.", Type = "https://api.killauru.pe/errores/" + codigo };
-        p.Extensions["codigo"] = codigo; p.Extensions["correlacionId"] = HttpContext.TraceIdentifier;
-        return new(p) { StatusCode = estado, ContentTypes = { "application/problem+json" } };
+        var problema = new ProblemDetails { Status = estado, Title = "No se pudo completar la operación.", Type = "https://api.killauru.pe/errores/" + codigo };
+        problema.Extensions["codigo"] = codigo;
+        problema.Extensions["correlacionId"] = HttpContext.TraceIdentifier;
+        return new(problema) { StatusCode = estado, ContentTypes = { "application/problem+json" } };
     }
 }

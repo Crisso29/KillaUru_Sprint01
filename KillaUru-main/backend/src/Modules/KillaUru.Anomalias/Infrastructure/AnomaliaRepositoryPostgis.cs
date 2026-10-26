@@ -19,6 +19,10 @@ internal sealed class AnomaliaRepositoryPostgis(AnomaliasDbContext db) : IAnomal
     public async Task<Anomalia?> ObtenerParaActualizarAsync(Guid id, CancellationToken ct) =>
         (await db.Anomalias.FromSqlInterpolated($"SELECT * FROM anomalias.anomalia WHERE id = {id} FOR UPDATE").ToListAsync(ct)).SingleOrDefault();
     public Task<Anomalia?> ObtenerAsync(Guid id, CancellationToken ct) => db.Anomalias.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
+    /// <summary>
+    /// Guarda la anomalía y sus transiciones pendientes; luego las vacía para que un segundo guardado
+    /// en la misma transacción no las inserte dos veces (FR-015).
+    /// </summary>
     public async Task GuardarAsync(Anomalia anomalia, bool nueva, CancellationToken ct)
     {
         if (nueva) db.Anomalias.Add(anomalia);
