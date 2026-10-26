@@ -19,6 +19,15 @@ public sealed class ServiciosExternosTests
     private static VerificadorTurnstile Turnstile(HttpClient cliente) =>
         new(cliente, Options.Create(new IdentidadOptions { TurnstileSecreto = "ficticio" }));
 
+    /// <summary>Responde 503 al primer envío y 200 después, anotando la clave de idempotencia de cada intento.</summary>
+    private static HttpClient ProveedorQueFallaLaPrimeraVez(List<string> clavesEnviadas) =>
+        new(new RespuestaHttpPrueba(peticion =>
+        {
+            clavesEnviadas.Add(peticion.Headers.GetValues("Idempotency-Key").Single());
+            var primerIntento = clavesEnviadas.Count == 1;
+            return new HttpResponseMessage(primerIntento ? HttpStatusCode.ServiceUnavailable : HttpStatusCode.OK);
+        }));
+
     /// <summary>Solo un «success: true» de Cloudflare deja pasar el inicio del panel (FR-012).</summary>
     [Theory]
     [InlineData("{\"success\":true}", true)]
@@ -58,12 +67,7 @@ public sealed class ServiciosExternosTests
     {
         // Arrange
         var clavesEnviadas = new List<string>();
-        using var cliente = new HttpClient(new RespuestaHttpPrueba(peticion =>
-        {
-            clavesEnviadas.Add(peticion.Headers.GetValues("Idempotency-Key").Single());
-            var primerIntento = clavesEnviadas.Count == 1;
-            return new HttpResponseMessage(primerIntento ? HttpStatusCode.ServiceUnavailable : HttpStatusCode.OK);
-        }));
+        using var cliente = ProveedorQueFallaLaPrimeraVez(clavesEnviadas);
         var correo = new EnviadorCorreoHttp(cliente, Options.Create(new IdentidadOptions { CorreoApiKey = "ficticia" }),
             TimeProvider.System, NullLogger<EnviadorCorreoHttp>.Instance);
 

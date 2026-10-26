@@ -12,24 +12,37 @@ internal sealed class RegistrarRevisionUseCase(IUsuarioRepositorio usuarios, IRe
         transaccion.EjecutarAsync(async () =>
         {
             var administradores = await usuarios.AdministradoresAsync(ct);
-            var todos = confirmados.Concat(retirados).ToArray();
-            if (todos.Length > short.MaxValue || todos.Distinct().Count() != todos.Length
-                || !todos.ToHashSet().SetEquals(administradores.Select(x => x.Id))) { return new ResultadoRevision(Error: "revision_incompleta", Estado: 400); }
-            if (retirados.Contains(actor.Id)) return new ResultadoRevision(Error: "accion_sobre_si_mismo", Estado: 409);
-            if (confirmados.Length == 0) return new ResultadoRevision(Error: "ultimo_administrador", Estado: 409);
+            var error = Validar(confirmados, retirados, administradores, actor);
+            if (error is not null) return error;
             await RetirarAsync(administradores.Where(x => retirados.Contains(x.Id)), actor, ct);
             var ahora = reloj.GetUtcNow();
             revisiones.Agregar(RevisionPrivilegios.Crear(actor.Id, (short)confirmados.Length, (short)retirados.Length, ahora));
             await auditoria.EscrituraAsync(AccionAuditada.RevisionPrivilegios, actor, null,
                 new Dictionary<string, object?> { ["confirmados"] = confirmados, ["retirados"] = retirados }, ct);
-            return new ResultadoRevision(new(ahora, RevisionPrivilegios.Vence(ahora, ahora),
-                administradores.Where(x => x.Activo).Select(ProyectarUsuario.Vista).ToArray()));
+            var activosRestantes = administradores.Where(x => x.Activo).Select(ProyectarUsuario.Vista).ToArray();
+            return new ResultadoRevision(new(ahora, RevisionPrivilegios.Vence(ahora, ahora), activosRestantes));
         }, ct, protegerAdministradores: true);
+
+    /// <summary>Cada administrador activo debe aparecer exactamente una vez, sin retirar al revisor ni a todos.</summary>
+    private static ResultadoRevision? Validar(Guid[] confirmados, Guid[] retirados,
+        IReadOnlyList<Usuario> administradores, ActorIdentidad actor)
+    {
+        var revisados = confirmados.Concat(retirados).ToArray();
+        var cabeEnLaConstancia = revisados.Length <= short.MaxValue;
+        var sinRepetidos = revisados.Distinct().Count() == revisados.Length;
+        var cubreATodos = revisados.ToHashSet().SetEquals(administradores.Select(x => x.Id));
+        if (!(cabeEnLaConstancia && sinRepetidos && cubreATodos)) return new(Error: "revision_incompleta", Estado: 400);
+        if (retirados.Contains(actor.Id)) return new(Error: "accion_sobre_si_mismo", Estado: 409);
+        if (confirmados.Length == 0) return new(Error: "ultimo_administrador", Estado: 409);
+        return null;
+    }
 
     private async Task RetirarAsync(IEnumerable<Usuario> usuariosRetirados, ActorIdentidad actor, CancellationToken ct)
     {
         foreach (var usuario in usuariosRetirados)
         {
+            // Dentro de la transacción PorIdAsync hace SELECT ... FOR UPDATE: bloquea la fila
+            // para que nadie la modifique mientras se retira.
             await usuarios.PorIdAsync(usuario.Id, ct);
             usuario.Desactivar();
             await sesiones.RevocarUsuarioAsync(usuario.Id, reloj.GetUtcNow(), ct);

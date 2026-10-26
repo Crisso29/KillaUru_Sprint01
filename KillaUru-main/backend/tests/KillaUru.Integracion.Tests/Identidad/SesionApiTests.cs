@@ -1,102 +1,161 @@
 using System.Net;
-using System.Net.Http.Json;
-using System.Text.Json;
 using KillaUru.Integracion.Tests.Infraestructura;
+
 namespace KillaUru.Integracion.Tests.Identidad;
 
+/// <summary>
+/// Inicio, renovación y cierre de sesión por la API real con el reloj controlado.
+/// Spec 003 · FR-008, FR-009, FR-013, FR-014, FR-015, FR-016, FR-018.
+/// </summary>
 public sealed class SesionApiTests(BaseDatosPrueba bd)
 {
+    /// <summary>
+    /// Reusar el token ya rotado hasta 60 s después (reintento por red) devuelve el mismo
+    /// sucesor, no uno nuevo (FR-016).
+    /// </summary>
     [Theory]
-    [InlineData(59, HttpStatusCode.OK)]
-    [InlineData(60, HttpStatusCode.OK)]
-    [InlineData(61, HttpStatusCode.Unauthorized)]
-    public async Task Renovacion_gracia_y_reuso_revocan_la_familia(int segundos, HttpStatusCode esperado)
+    [InlineData(59)]
+    [InlineData(60)]
+    public async Task Reuso_dentro_de_la_gracia_devuelve_el_mismo_par(int segundosDespues)
     {
-        using var e = new EscenarioIdentidad(bd);
-        var sesion = await e.RegistrarAsync(Guid.NewGuid() + "@example.com");
-        var cuerpo = new { tokenRenovacion = sesion.GetProperty("tokenRenovacion").GetString() };
-        var primera = await e.Cliente.PostAsJsonAsync("/api/v1/auth/renovar", cuerpo, TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.OK, primera.StatusCode);
-        var nuevo = (await primera.Content.ReadFromJsonAsync<JsonElement>(TestContext.Current.CancellationToken)).GetProperty("tokenRenovacion").GetString();
-        e.Reloj.Advance(TimeSpan.FromSeconds(segundos));
-        var segunda = await e.Cliente.PostAsJsonAsync("/api/v1/auth/renovar", cuerpo, TestContext.Current.CancellationToken);
-        Assert.Equal(esperado, segunda.StatusCode);
-        if (esperado == HttpStatusCode.OK)
-        {
-            Assert.Equal(nuevo, (await segunda.Content.ReadFromJsonAsync<JsonElement>(TestContext.Current.CancellationToken)).GetProperty("tokenRenovacion").GetString());
-        }
-        else
-        {
-            Assert.Equal(HttpStatusCode.Unauthorized, (await e.Cliente.PostAsJsonAsync("/api/v1/auth/renovar",
-                new { tokenRenovacion = nuevo }, TestContext.Current.CancellationToken)).StatusCode);
-        }
+        // Arrange
+        using var escenario = new EscenarioIdentidad(bd);
+        var tokenOriginal = EscenarioIdentidad.TokenRenovacion(await escenario.RegistrarAsync(EscenarioIdentidad.CorreoNuevo()));
+        var sucesor = await EscenarioIdentidad.PropiedadAsync(await escenario.RenovarAsync(tokenOriginal), "tokenRenovacion");
+        escenario.Reloj.Advance(TimeSpan.FromSeconds(segundosDespues));
+
+        // Act
+        var reuso = await escenario.RenovarAsync(tokenOriginal);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, reuso.StatusCode);
+        Assert.Equal(sucesor, await EscenarioIdentidad.PropiedadAsync(reuso, "tokenRenovacion"));
     }
 
+    /// <summary>Reusar un token rotado pasada la gracia se trata como robo: cae toda la familia (FR-016).</summary>
+    [Fact]
+    public async Task Reuso_fuera_de_la_gracia_revoca_toda_la_familia()
+    {
+        // Arrange
+        using var escenario = new EscenarioIdentidad(bd);
+        var tokenOriginal = EscenarioIdentidad.TokenRenovacion(await escenario.RegistrarAsync(EscenarioIdentidad.CorreoNuevo()));
+        var sucesor = await EscenarioIdentidad.PropiedadAsync(await escenario.RenovarAsync(tokenOriginal), "tokenRenovacion");
+        escenario.Reloj.Advance(TimeSpan.FromSeconds(61));
+
+        // Act
+        var reuso = await escenario.RenovarAsync(tokenOriginal);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Unauthorized, reuso.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await escenario.RenovarAsync(sucesor)).StatusCode);
+    }
+
+    /// <summary>Dos renovaciones simultáneas (app con dos pestañas o reintentos) reciben el mismo sucesor (FR-016).</summary>
     [Fact]
     public async Task Renovaciones_simultaneas_devuelven_el_mismo_sucesor()
     {
-        using var e = new EscenarioIdentidad(bd);
-        var sesion = await e.RegistrarAsync(Guid.NewGuid() + "@example.com");
-        var cuerpo = new { tokenRenovacion = sesion.GetProperty("tokenRenovacion").GetString() };
-        var respuestas = await Task.WhenAll(Enumerable.Range(0, 2).Select(_ =>
-            e.Cliente.PostAsJsonAsync("/api/v1/auth/renovar", cuerpo, TestContext.Current.CancellationToken)));
-        var tokens = new List<string?>();
-        foreach (var respuesta in respuestas)
-        {
-            Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
-            tokens.Add((await respuesta.Content.ReadFromJsonAsync<JsonElement>(TestContext.Current.CancellationToken)).GetProperty("tokenRenovacion").GetString());
-        }
-        Assert.Equal(tokens[0], tokens[1]);
+        // Arrange
+        using var escenario = new EscenarioIdentidad(bd);
+        var token = EscenarioIdentidad.TokenRenovacion(await escenario.RegistrarAsync(EscenarioIdentidad.CorreoNuevo()));
+
+        // Act
+        var respuestas = await Task.WhenAll(escenario.RenovarAsync(token), escenario.RenovarAsync(token));
+
+        // Assert
+        Assert.All(respuestas, r => Assert.Equal(HttpStatusCode.OK, r.StatusCode));
+        var sucesores = await Task.WhenAll(respuestas.Select(r => EscenarioIdentidad.PropiedadAsync(r, "tokenRenovacion")));
+        Assert.Equal(sucesores[0], sucesores[1]);
     }
 
-    [Fact]
-    public async Task Jwt_aceptado_a_459_y_rechazado_a_501()
+    /// <summary>El JWT de acceso dura 5 min sin tolerancia de reloj: vale a 4:59 y no a 5:01 (FR-014).</summary>
+    [Theory]
+    [InlineData(299, HttpStatusCode.OK)]
+    [InlineData(301, HttpStatusCode.Unauthorized)]
+    public async Task Jwt_de_acceso_dura_cinco_minutos_exactos(int segundosDespues, HttpStatusCode esperado)
     {
-        using var e = new EscenarioIdentidad(bd);
-        e.Autenticar(await e.RegistrarAsync(Guid.NewGuid() + "@example.com"));
-        e.Reloj.Advance(TimeSpan.FromMinutes(4) + TimeSpan.FromSeconds(59));
-        Assert.Equal(HttpStatusCode.OK, (await e.Cliente.GetAsync("/api/v1/me", TestContext.Current.CancellationToken)).StatusCode);
-        e.Reloj.Advance(TimeSpan.FromSeconds(2));
-        Assert.Equal(HttpStatusCode.Unauthorized, (await e.Cliente.GetAsync("/api/v1/me", TestContext.Current.CancellationToken)).StatusCode);
+        // Arrange
+        using var escenario = new EscenarioIdentidad(bd);
+        escenario.Autenticar(await escenario.RegistrarAsync(EscenarioIdentidad.CorreoNuevo()));
+        escenario.Reloj.Advance(TimeSpan.FromSeconds(segundosDespues));
+
+        // Act
+        var respuesta = await escenario.MisDatosAsync();
+
+        // Assert
+        Assert.Equal(esperado, respuesta.StatusCode);
     }
 
+    /// <summary>Correo inexistente y contraseña incorrecta reciben la misma respuesta (FR-008).</summary>
     [Fact]
-    public async Task Inicio_de_sesion_bloquea_y_no_revela_correos()
+    public async Task Inicio_fallido_no_revela_si_el_correo_existe()
     {
-        using var e = new EscenarioIdentidad(bd);
-        var correo = Guid.NewGuid() + "@example.com";
-        await e.RegistrarAsync(correo);
-        foreach (var direccion in new[] { "inexistente-" + correo, correo, correo, correo })
-        {
-            var r = await e.Cliente.PostAsJsonAsync("/api/v1/auth/inicio-sesion",
-                new { correo = direccion, contrasena = "incorrecta", canal = "app" }, TestContext.Current.CancellationToken);
-            Assert.Equal(HttpStatusCode.Unauthorized, r.StatusCode);
-            Assert.Equal("credenciales_invalidas", (await r.Content.ReadFromJsonAsync<JsonElement>(TestContext.Current.CancellationToken)).GetProperty("codigo").GetString());
-        }
-        var bloqueada = await e.Cliente.PostAsJsonAsync("/api/v1/auth/inicio-sesion",
-            new { correo, contrasena = EscenarioIdentidad.Contrasena, canal = "app" }, TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.Unauthorized, bloqueada.StatusCode);
-        e.Reloj.Advance(TimeSpan.FromMinutes(5));
-        var valida = await e.Cliente.PostAsJsonAsync("/api/v1/auth/inicio-sesion",
-            new { correo, contrasena = EscenarioIdentidad.Contrasena, canal = "app" }, TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.OK, valida.StatusCode);
+        // Arrange
+        using var escenario = new EscenarioIdentidad(bd);
+        var correo = EscenarioIdentidad.CorreoNuevo();
+        await escenario.RegistrarAsync(correo);
+
+        // Act
+        var inexistente = await escenario.IniciarSesionAsync("inexistente-" + correo, "incorrecta");
+        var claveIncorrecta = await escenario.IniciarSesionAsync(correo, "incorrecta");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Unauthorized, inexistente.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, claveIncorrecta.StatusCode);
+        Assert.Equal("credenciales_invalidas", await EscenarioIdentidad.CodigoAsync(inexistente));
+        Assert.Equal("credenciales_invalidas", await EscenarioIdentidad.CodigoAsync(claveIncorrecta));
     }
 
+    /// <summary>Tras 3 fallos, ni la clave correcta entra hasta que pasan 5 min (FR-009).</summary>
     [Fact]
-    public async Task Cierre_revoca_refresh_y_conductor_no_entra_al_panel()
+    public async Task Tercer_fallo_bloquea_cinco_minutos()
     {
-        using var e = new EscenarioIdentidad(bd);
-        var correo = Guid.NewGuid() + "@example.com";
-        var sesion = await e.RegistrarAsync(correo);
-        var panel = await e.Cliente.PostAsJsonAsync("/api/v1/auth/inicio-sesion", new
-        {
-            correo, contrasena = EscenarioIdentidad.Contrasena, canal = "panel", turnstileToken = "antibot-prueba",
-        }, TestContext.Current.CancellationToken);
+        // Arrange
+        using var escenario = new EscenarioIdentidad(bd);
+        var correo = EscenarioIdentidad.CorreoNuevo();
+        await escenario.RegistrarAsync(correo);
+        for (var fallo = 0; fallo < 3; fallo++) await escenario.IniciarSesionAsync(correo, "incorrecta");
+
+        // Act
+        var duranteElBloqueo = await escenario.IniciarSesionAsync(correo);
+        escenario.Reloj.Advance(TimeSpan.FromMinutes(5));
+        var alTerminar = await escenario.IniciarSesionAsync(correo);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Unauthorized, duranteElBloqueo.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, alTerminar.StatusCode);
+    }
+
+    /// <summary>Un conductor con credenciales válidas no entra al panel (FR-013).</summary>
+    [Fact]
+    public async Task Conductor_no_entra_al_panel()
+    {
+        // Arrange
+        using var escenario = new EscenarioIdentidad(bd);
+        var correo = EscenarioIdentidad.CorreoNuevo();
+        await escenario.RegistrarAsync(correo);
+
+        // Act
+        var panel = await escenario.IniciarSesionAsync(correo, canal: "panel", turnstileToken: EscenarioIdentidad.AntiBotValido);
+
+        // Assert
         Assert.Equal(HttpStatusCode.Forbidden, panel.StatusCode);
-        e.Autenticar(sesion);
-        Assert.Equal(HttpStatusCode.NoContent, (await e.Cliente.PostAsync("/api/v1/auth/cerrar-sesion", null, TestContext.Current.CancellationToken)).StatusCode);
-        e.Cliente.DefaultRequestHeaders.Authorization = null;
-        Assert.Equal(HttpStatusCode.Unauthorized, (await e.Cliente.PostAsJsonAsync("/api/v1/auth/renovar",
-            new { tokenRenovacion = sesion.GetProperty("tokenRenovacion").GetString() }, TestContext.Current.CancellationToken)).StatusCode);
+    }
+
+    /// <summary>Cerrar sesión revoca el token de renovación de esa familia (FR-018).</summary>
+    [Fact]
+    public async Task Cerrar_sesion_revoca_la_renovacion()
+    {
+        // Arrange
+        using var escenario = new EscenarioIdentidad(bd);
+        var sesion = await escenario.RegistrarAsync(EscenarioIdentidad.CorreoNuevo());
+        escenario.Autenticar(sesion);
+
+        // Act
+        var cierre = await escenario.CerrarSesionAsync();
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NoContent, cierre.StatusCode);
+        escenario.QuitarAutenticacion();
+        Assert.Equal(HttpStatusCode.Unauthorized, (await escenario.RenovarAsync(EscenarioIdentidad.TokenRenovacion(sesion))).StatusCode);
     }
 }

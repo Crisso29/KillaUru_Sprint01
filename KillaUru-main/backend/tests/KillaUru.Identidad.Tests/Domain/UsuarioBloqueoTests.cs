@@ -6,7 +6,7 @@ namespace KillaUru.Identidad.Tests.Domain;
 /// RN-19: tras 3 fallos en 15 min la cuenta se bloquea 5, 15 y 60 min (creciente); un inicio
 /// correcto reinicia contador y nivel. Spec 003 · FR-009.
 /// </summary>
-public sealed class PoliticaBloqueoTests
+public sealed class UsuarioBloqueoTests
 {
     private static readonly ParametrosBloqueo Parametros = new(IntentosMaximos: 3, VentanaMinutos: 15, DuracionesMinutos: [5, 15, 60]);
 

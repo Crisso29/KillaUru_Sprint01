@@ -12,9 +12,13 @@ internal sealed class EmisionSesion(ISesionRepositorio sesiones, IGeneradorSecre
     internal SesionEmitida Crear(Usuario usuario)
     {
         var ahora = reloj.GetUtcNow();
-        DateTimeOffset? limite = usuario.Rol == RolUsuario.Administrador ? ahora.AddHours(opciones.Value.SesionAdministradorHoras) : null;
-        return Agregar(usuario, Guid.CreateVersion7(ahora), secretos.Aleatorio32(), limite, ahora);
+        var limiteAbsoluto = LimiteAbsoluto(usuario, ahora);
+        return Agregar(usuario, Guid.CreateVersion7(ahora), secretos.Aleatorio32(), limiteAbsoluto, ahora);
     }
+
+    /// <summary>Solo el administrador tiene un tope de 8 h que no se extiende al renovar (FR-015).</summary>
+    private DateTimeOffset? LimiteAbsoluto(Usuario usuario, DateTimeOffset ahora) =>
+        usuario.Rol == RolUsuario.Administrador ? ahora.AddHours(opciones.Value.SesionAdministradorHoras) : null;
 
     internal SesionEmitida Agregar(Usuario usuario, Guid familia, string token, DateTimeOffset? limite, DateTimeOffset ahora)
     {
@@ -27,7 +31,9 @@ internal sealed class EmisionSesion(ISesionRepositorio sesiones, IGeneradorSecre
     internal SesionEmitida Par(Usuario usuario, SesionRenovacion sesion, string token, DateTimeOffset ahora)
     {
         var vence = ahora.AddMinutes(opciones.Value.TokenAccesoMinutos);
+        // El JWT de acceso tampoco puede sobrevivir al límite absoluto del administrador.
         if (sesion.LimiteAbsolutoUtc is { } limite && limite < vence) vence = limite;
-        return new(jwt.Emitir(usuario, sesion.FamiliaId, ahora, vence), vence, token, sesion.ExpiraUtc, usuario.Rol.ToString());
+        var jwtAcceso = jwt.Emitir(usuario, sesion.FamiliaId, ahora, vence);
+        return new(jwtAcceso, vence, token, sesion.ExpiraUtc, usuario.Rol.ToString());
     }
 }
