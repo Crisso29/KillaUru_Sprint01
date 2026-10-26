@@ -181,7 +181,7 @@ Como única persona del equipo, quiero saber al día 7 y al día 11 si voy a lle
 - **FR-003**: Cada grabación MUST guardarse como una carpeta con `meta.json`, `acelerometro.csv`, `giroscopio.csv`, `gps.csv`, `marcas.csv` y, solo en el celular de video, `video.mp4` + `video.json`, con todas las horas en `elapsedRealtimeNanos` y la hora UTC tomada del GPS. *(RF-03; R-002; `data-model.md` §1)*
 - **FR-004**: `meta.json` MUST traer: alias del celular, marca y modelo comercial, RAM, año de lanzamiento, versión de Android, alias del vehículo y categoría `Liviano`, tipo y posición del soporte, tramo (km inicial y final), sentido, fecha y versión del grabador. *(S-06, RNF-04, RNF-35)*
 - **FR-005**: El dataset MUST NOT contener datos personales: ni IMEI, ni `ANDROID_ID`, ni cuentas, nombres o placas; el grabador no tiene permiso de internet; la ubicación solo sirve para calcular km y sentido (el dataset derivado guarda km y velocidad, no latitud ni longitud); el crudo y el video viven solo en un *bucket* R2 privado y el video se borra a los 90 días de congelar la versión del dataset. *(R-06, RNF-10, ADR-007; R-004)*
-- **FR-006**: Las grabaciones MUST hacerse solo con vehículos livianos y el celular en soporte fijo, con **≥ 3 celulares distintos** (los tres a la vez en el mismo vehículo), en ambos sentidos del tramo Ayacucho–Vinchos (km 268–333). *(HU-28, S-06, RN-18, RNF-35)*
+- **FR-006**: Las grabaciones MUST hacerse solo con vehículos livianos y el celular en soporte fijo, con **≥ 3 celulares distintos** (los tres a la vez en el mismo vehículo), en ambos sentidos del tramo Ayacucho–Vinchos (km 268–335.073). *(HU-28, S-06, RN-18, RNF-35)*
 - **FR-007**: `ingerir` MUST verificar cada grabación (archivos completos, frecuencia efectiva ≥ 45 Hz, huecos > 200 ms en ≤ 1 % del tiempo, `meta.json` válido), calcular su SHA-256, registrarla en `ml/datos/catalogo.csv` con estado `Apta` o `NoApta` y motivo, y subirla al *bucket* privado. *(HU-28; R-002, R-016)*
 
 **B. Etiquetado (RN-01, RN-02)**
@@ -287,6 +287,6 @@ Como única persona del equipo, quiero saber al día 7 y al día 11 si voy a lle
 ## Assumptions
 
 - Se dispone de al menos 1 vehículo liviano, 3 celulares Android de gama media y 3 soportes; un segundo vehículo es deseable, no obligatorio.
-- El tramo Ayacucho–Vinchos (km 268–333, ~65 km) tiene suficientes baches; los hundimientos son más escasos y pueden pedir pasadas dirigidas (R-020).
+- El tramo Ayacucho–Vinchos (km 268–335.073, ~67 km) tiene suficientes baches; los hundimientos son más escasos y pueden pedir pasadas dirigidas (R-020).
 - El entrenamiento corre en la computadora del autor (CPU); un MLP de este tamaño entrena en minutos.
 - La app 008 usa los mismos parámetros de captura (FR-001) y el preprocesamiento `p1` (FR-017); si 008 decide otra cosa, se versiona el preprocesamiento (FR-027).

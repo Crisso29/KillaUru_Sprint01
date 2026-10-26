@@ -9,7 +9,7 @@
 ## R-002 · Por qué `EventoReportado` lleva datos «crudos»
 
 - **Decision**: `EventoReportado` (contrato) lleva tipos simples y nulables (`string? Tipo`, `int? Severidad`, `double? Confidence`, `double? Latitud`…). `ReporteAnomalia.Desde(evento, contexto)` lo convierte en value objects y devuelve `EsquemaInvalido` o `TipoDesconocido` si no puede.
-- **Rationale**: RN-11 pide decir **qué** falló por evento (`rechazados[{id, indice, motivo}]`). Si el contrato tuviera value objects, un valor inválido rompería la deserialización de todo el lote. El dominio usa los tipos de **su propio** `Contracts/` (nunca los de otro módulo, D4).
+- **Rationale**: RN-11 pide decir **qué** falló por evento (`rechazados[{id, indice, motivo}]`). Si el contrato tuviera value objects, un valor inválido rompería la deserialización de todo el lote. Application copia los datos a `ReporteEntrada`/`ContextoDeteccion` de Domain y mapea los resultados. Domain conserva sus propios catálogos internos; no referencia Contracts, conforme a la tabla de enfoque §3. Corrección de implementación del 2026-10-24: el plan original contradecía esa tabla.
 
 ## R-003 · Distancia a la vía y km sin PostGIS en el dominio (RN-13, ADR-015)
 
@@ -27,7 +27,7 @@
 
 ## R-005 · `MantenerDescartada` — hueco en docs
 
-- **Decision**: cuarta acción del administrador, permitida solo desde `Descartada`, que no cambia el estado, limpia `marcas_revision`, pone `por_revisar = false` y se audita (`AnomaliaModerada` con `accion = MantenerDescartada`). No registra transición (no hay cambio de estado).
+- **Decision**: cuarta acción del administrador, permitida solo desde `Descartada` con `por_revisar = true` (RN-07), que no cambia el estado, limpia `marcas_revision`, pone `por_revisar = false` y se audita (`AnomaliaModerada` con `accion = MantenerDescartada`). No registra transición (no hay cambio de estado).
 - **Fuente**: RN-07 («la reabre o la mantiene descartada, y en ese caso el contador se reinicia») y el prototipo (botones «Mantener descartada» y «Reabrir»).
 - **Confirmado por el autor el 2026-10-21 (D1)**: fila nueva en la tabla «Acciones del administrador» de RN-07 (patrones §2.1: 4 acciones).
 
@@ -67,7 +67,7 @@
 - **Decision**: `ResumenDelDiaAsync(DateOnly diaLocal)` calcula, con el día local UTC−5:
   - `EventosRecibidos`: **eventos válidos** = reportes procesados (filas de `reporte_anomalia`) con `recibido_utc` en el día (D14);
   - `DispositivosDistintos`: seudónimos distintos no nulos entre esos reportes (se calcula a las 00:30 del día siguiente, antes de la purga de 72 h);
-  - `TramosConReportes7d` y `TramosTotales`: km enteros de la vía (`km_via`) con ≥ 1 reporte en los 7 días que terminan ese día, sobre los tramos de 1 km de la polilínea cargada (`ceil(longitud en km)` = 333 con la traza actual);
+  - `TramosConReportes7d` y `TramosTotales`: km enteros de la vía (`km_via`) con ≥ 1 reporte en los 7 días que terminan ese día, sobre los tramos de 1 km de la polilínea cargada (`ceil(longitud en km)` = 336 con la traza actual);
   - `Confirmaciones` (`Pendiente→Activa`), `PendientesExpiradas` (`Pendiente→Expirada`), `Expiraciones` (`→Expirada`) y `Renacimientos` = **reapariciones**: `Expirada → Activa | PendienteConfirmacion` (definición del glosario, D14) del día, desde `transicion`.
 - Para la cobertura, cada reporte guarda `km_via` al procesarse (calculado una vez con `CorredorVia`), así el conteo es un `COUNT(DISTINCT floor(km_via))`.
 - **Efecto de la purga de 72 h (D3)**: `recibido_utc` redondeado hacia abajo a la hora no cambia el día local de ningún reporte (el día UTC−5 empieza a las 05:00 UTC, una hora en punto), así que recalcular un día viejo da el mismo `EventosRecibidos`.
@@ -115,3 +115,9 @@
 5. R-012 operación `CeldasDelCorredor` en `IAnomaliaLectura` (la necesita 006) — D1.
 6. R-011 definiciones de `EventosRecibidos` (eventos válidos) y `Renacimientos` (reaparición) — D14; R-014 `Reparada` — D14.
 7. R-015 `SeudonimoInconsistente` — D2; R-016 tipos de moderación — D4; R-017 purgas — D3, D7; R-010 orden de la exportación — D15.
+
+## Ajuste geométrico autorizado — 2026-10-24
+
+**Revisión geométrica 2026-10-24 (004)**: el eje canónico `backend/db/datos/corredor_pe28a.geojson` mide **335,072963461 km** (335,073 km al mostrarlo). El km 0 es el extremo seleccionado en el enlace PE-1S, no el centro de Pisco; el km final es el extremo seleccionado en Ayacucho. Son distancias acumuladas del eje con radio esférico 6 371 008,8 m, no progresivas oficiales. El demo conserva el inicio geométrico km 268 y termina en `properties.demo_km_fin = properties.longitud_km`: **67,072963461 km**. El nombre histórico «Ayacucho–Vinchos» no certifica que el km 268 sea el centro de Vinchos. Los cálculos y límites usan el valor completo del GeoJSON; los valores redondeados de documentos e interfaz son solo de presentación. La generación del polígono de 200 m y su validación de ≤ 60 vértices corresponden a 006; no se reemplaza ese recorte por una comprobación de kilometraje.
+
+Referencia reproducible: `backend/db/datos/README.md`; 20 puntos compartidos en `backend/db/datos/km_referencia.csv`. Backend y Android deben usar ese mismo CSV, radio y eje. `TramosTotales = ceil(longitud_km) = 336`. El panel no debe conservar las progresivas de pueblos del prototipo sin verificarlas contra el eje.

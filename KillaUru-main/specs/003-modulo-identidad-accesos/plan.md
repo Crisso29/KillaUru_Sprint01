@@ -1,5 +1,7 @@
 # Implementation Plan: Módulo Identidad y Accesos
 
+**Estado al 2026-10-24:** implementado y validado localmente. Rutas finales, evidencia, agrupación de pruebas y pendientes operativos en [revision-implementacion.md](revision-implementacion.md).
+
 **Branch**: `003-modulo-identidad-accesos` | **Date**: 2026-10-20 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `/specs/003-modulo-identidad-accesos/spec.md`

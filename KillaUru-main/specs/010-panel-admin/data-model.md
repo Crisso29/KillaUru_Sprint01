@@ -144,7 +144,7 @@ Valores desconocidos se descartan; un grupo vacío → sin petición y lista vac
 
 **Franja del corredor (R-013)**: `tramo(k) = floor(min(kmVia, 332.999) / 10)`, 34 tramos; `{ desdeKm, cantidad, severidadMax | null }`.
 
-**Tramo demo (R-012)**: `dentroDelDemo(km) = 268 ≤ km ≤ 333`.
+**Tramo demo (R-012)**: `dentroDelDemo(km) = TRAMO_DEMO_KM.desde ≤ km ≤ TRAMO_DEMO_KM.hasta`.
 
 **Actor de auditoría (R-016)**: `interpretarActor(texto) → { tipo: 'id', id } | { tipo: 'correo', correo } | { tipo: 'invalido' }`; `elegirCuenta(correo, usuarios) → id | null` por igualdad sin mayúsculas.
 
@@ -205,14 +205,14 @@ Valores desconocidos se descartan; un grupo vacío → sin petición y lista vac
 |---|---|---|
 | `ESTADOS_INICIALES_MAPA` | `['Activa', 'PendienteConfirmacion']` | D6, RN-08, RF-17 |
 | `PERIODO_INICIAL_MAPA` | `'7d'` | prototipo |
-| `TRAMO_DEMO_KM` | `{ desde: 268, hasta: 333 }` | RN-08 |
+| `TRAMO_DEMO_KM` | `{ desde: geojson.properties.demo_km_inicio, hasta: geojson.properties.demo_km_fin }` | RN-08 |
 | `SESION_MAXIMA_HORAS` | `8` | RF-16 |
 | `VIDA_ACCESO_MIN` | `5` | ADR-009 |
 | `MARGEN_RENOVACION_S` | `60` | R-006 |
 | `REFRESCO_OPERATIVO_S` | `60` | R-027 |
 | `CACHE_LECTURA_AUDITADA_MIN` | `10` | R-027 |
-| `TRAMO_FRANJA_KM` / `LARGO_CORREDOR_KM` | `10` / `333` | prototipo; glosario (333 km) |
-| `PUEBLOS_CORREDOR` | `[[0,'Pisco'],[140,'Huaytará'],[196,'Rumichaca'],[268,'Vinchos'],[333,'Ayacucho']]` | prototipo |
+| `TRAMO_FRANJA_KM` / `LARGO_CORREDOR_KM` | `10` / `geojson.properties.longitud_km` | prototipo; glosario (335.073 km) |
+| `PUEBLOS_CORREDOR` | `[[0,'Inicio PE-1S'],[268,'Inicio demo'],[LARGO_CORREDOR_KM,'Fin Ayacucho']]` | prototipo |
 | `DIAS_GRAFICO` | `[7, 14, 30]`, inicial `14` | 007 contrato |
 | `TAMANO_PAGINA` | `50` | `convenciones-api.md` §2 |
 

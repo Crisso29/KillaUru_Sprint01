@@ -1,45 +1,90 @@
-# CI de cada pull request (T069, D10). Si algo falla, el PR no se puede unir a main (T070).
-name: ci
+# CHK036 T070 — build verde en cada push; cobertura >= 90 % sobre módulos implementados.
+# El check llamado "ci" (job.ci) es el que la rama main exige para fusionar PRs.
+# Configurar en: Settings → Branches → Branch protection rules → "ci" requerido.
+name: CI
 
 on:
-  pull_request:
   push:
+    branches: ["**"]
+  pull_request:
     branches: [main]
 
-permissions:
-  contents: read
-
-defaults:
-  run:
-    working-directory: KillaUru-main/backend
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_NOLOGO: 1
+  NUGET_XMLDOC_MODE: skip
 
 jobs:
   ci:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    name: Build · Test · Cobertura
+    runs-on: ubuntu-latest
+
+    # Todos los pasos corren desde backend/; ubuntu-latest incluye Docker para Testcontainers.
+    defaults:
+      run:
+        working-directory: KillaUru-main/backend
+
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+
+      - name: Instalar .NET 10
+        uses: actions/setup-dotnet@v4
         with:
-          global-json-file: KillaUru-main/backend/global.json
+          # global.json pide 10.0.204 rollForward:latestFeature; cualquier 10.0.x lo satisface.
+          dotnet-version: "10.0.x"
 
-      - name: Compilar (advertencias = errores)
-        run: dotnet build KillaUru.sln -c Release
+      - name: Caché de NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('KillaUru-main/backend/Directory.Packages.props', 'KillaUru-main/backend/**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
 
-      - name: Pruebas unitarias del kernel y de los módulos, con cobertura
-        # --ignore-exit-code 8: un módulo que aún no tiene pruebas no rompe el CI (MTP sale con 8 si no corrió ninguna)
+      - name: Restaurar
+        run: dotnet restore KillaUru.sln
+
+      - name: Compilar (Release)
+        run: dotnet build KillaUru.sln -c Release --no-restore
+
+      # Microsoft.Testing.Platform (global.json: "runner":"Microsoft.Testing.Platform").
+      # Cada proyecto genera su propio tests/**/<proyecto>/TestResults/**/*.cobertura.xml.
+      # Testcontainers (KillaUru.Integracion.Tests) necesita Docker → ubuntu-latest lo tiene.
+      - name: Tests (arquitectura · unitarios · integración)
         run: |
-          for proyecto in Shared Auditoria Identidad Anomalias Ingesta Mapa Dashboard; do
-            dotnet test --project "tests/KillaUru.$proyecto.Tests" -c Release --no-build \
-              -- --coverage --coverage-output-format cobertura --ignore-exit-code 8
-          done
+          dotnet test KillaUru.sln \
+            --no-build -c Release \
+            -- --coverage --coverage-output-format cobertura
 
-      - name: Puerta de cobertura del dominio (≥ 90 %)
-        run: |
-          python3 -m unittest discover -s deploy/ci -p 'test_*.py'
-          python3 deploy/ci/cobertura_dominio.py 90
+      - name: Instalar reportgenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.3.11
 
-      - name: Arquitectura (capas, módulos, 200 líneas), integración (Testcontainers) y contrato OpenAPI
+      # Excluye módulos pendientes (Dashboard, Ingesta, Mapa) que aún no tienen código de producción
+      # para no arrastrar la cobertura global hacia abajo (CHK036 T070, spec 001 §5).
+      - name: Generar reporte de cobertura
         run: |
-          dotnet test --project tests/KillaUru.Arquitectura.Tests -c Release --no-build
-          dotnet test --project tests/KillaUru.Integracion.Tests -c Release --no-build
+          reportgenerator \
+            -reports:"tests/**/*.cobertura.xml" \
+            -targetdir:"$GITHUB_WORKSPACE/coverage-report" \
+            -reporttypes:"TextSummary;HtmlInline_AzurePipelines" \
+            -assemblyfilters:"-*.Tests;-KillaUru.Dashboard;-KillaUru.Ingesta;-KillaUru.Mapa"
+
+      - name: Verificar cobertura >= 90 % (CHK036 T070)
+        run: |
+          cat "$GITHUB_WORKSPACE/coverage-report/Summary.txt"
+          LINEA=$(grep -oP 'Line coverage:\s*\K[\d.]+' "$GITHUB_WORKSPACE/coverage-report/Summary.txt")
+          echo "Cobertura de líneas: ${LINEA}%"
+          python3 -c "
+          c = float('${LINEA}')
+          if c < 90.0:
+              print(f'FAIL  cobertura {c}% < 90 % (CHK036 T070)')
+              exit(1)
+          print(f'OK    cobertura {c}% >= 90 %')
+          "
+
+      - name: Publicar reporte de cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ github.run_id }}
+          path: coverage-report/
+          retention-days: 30

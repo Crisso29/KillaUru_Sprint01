@@ -10,7 +10,9 @@ internal sealed class RegistrarLecturaUseCase(IRegistroAuditoriaRepositorio repo
     internal async Task EjecutarAsync(AccionAuditada accion, ActorAuditoria actor, string? objetivo,
         IReadOnlyDictionary<string, object?> contexto, CancellationToken ct)
     {
-        if (accion is not (AccionAuditada.AccesoAdministrativoDatos or AccionAuditada.DatasetExportado))
+        // Solo dos acciones de lectura son suficientemente sensibles para auditarse con transacción propia.
+        var esLecturaSensible = accion is AccionAuditada.AccesoAdministrativoDatos or AccionAuditada.DatasetExportado;
+        if (!esLecturaSensible)
             throw new InvalidOperationException("Esta operación solo registra lecturas sensibles.");
         var registro = CrearRegistro.De(accion, actor, objetivo, contexto, reloj);
         await repositorio.AgregarConTransaccionPropiaAsync(registro, ct);

@@ -68,7 +68,7 @@ backend/src/Modules/KillaUru.Anomalias/
 │   ├── EstadoAnomalia.cs                         # Activa = 1 … Descartada = 5
 │   ├── AnomaliaCambiada.cs                       # IEventoDominio (AnomaliaId, Celda)
 │   └── Lecturas/ AnomaliaVisible.cs · FiltroAnomalias.cs · AnomaliaCambio.cs · ResumenDia.cs   # con KmVia (D13)
-├── Domain/                                       # solo Shared/Domain y su propio Contracts/
+├── Domain/                                       # solo Shared/Domain y BCL; Application mapea Contracts
 │   ├── AnomaliasOptions.cs                       # POCO (enfoque §5) — Domain puede usarlo
 │   ├── CorredorVia.cs                            # polilínea en memoria: DistanciaMetros, KmSobreVia, Celdas (franja de 50 m)
 │   ├── GeodesiaLocal.cs                          # distancia punto–segmento y haversine (sin PostGIS)

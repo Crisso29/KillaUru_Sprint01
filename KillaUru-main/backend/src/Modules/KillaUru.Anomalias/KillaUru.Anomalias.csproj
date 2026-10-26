@@ -2,10 +2,13 @@
   <!-- Todo es internal salvo Contracts/ y AnomaliasModule (constitución II). -->
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="KillaUru.Anomalias.Tests" />
     <InternalsVisibleTo Include="KillaUru.Integracion.Tests" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\KillaUru.Shared\KillaUru.Shared.csproj" />

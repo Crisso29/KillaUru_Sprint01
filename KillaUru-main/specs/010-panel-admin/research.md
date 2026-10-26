@@ -100,13 +100,13 @@
 
 ## R-012 · «Dentro / Fuera del tramo demo» y resaltado del tramo
 
-- **Decision**: se deriva de `kmVia`: dentro si 268 ≤ `kmVia` ≤ 333 (`TRAMO_DEMO_KM`, RN-08). El resaltado del mapa usa el mismo intervalo sobre la polilínea si 008 la publica; mientras tanto se resalta con la capa `tramo_demo` del estilo compartido o, si no existe, se omite (la leyenda lo dice).
+- **Decision**: se deriva de `kmVia`: dentro si `demo_km_inicio` ≤ `kmVia` ≤ `demo_km_fin` (valores completos del GeoJSON de 004) (`TRAMO_DEMO_KM`, RN-08). El resaltado del mapa usa el mismo intervalo sobre la polilínea si 008 la publica; mientras tanto se resalta con la capa `tramo_demo` del estilo compartido o, si no existe, se omite (la leyenda lo dice).
 - **Rationale**: toda anomalía nace a ≤ 50 m de la vía (RN-13) y el polígono tiene 200 m de margen (RN-08): con `kmVia` en el intervalo, la posición está dentro. Evita bajar el polígono solo para una etiqueta.
 - **Alternatives**: descargar `tramo_demo.geojson` desde R2 (su ruta la fija 008, D16); pedir el dato a la API (no existe y no se inventa).
 
 ## R-013 · Franja «Anomalías activas a lo largo del corredor»
 
-- **Decision**: `GET /api/v1/anomalies?estado=Activa` (sin otros filtros); 34 tramos de 10 km (`[0,10)`, …, `[330,333]`); altura = cantidad, color = `--s{max severidad}`; tramo vacío = sin barra (el prototipo inventa valores de relleno: no se copian). Etiquetas «Pisco · 0», «Huaytará · 140», «Rumichaca · 196», «Vinchos · 268», «Ayacucho · 333» (del prototipo). Accesible: `role="img"` con resumen («N anomalías activas; más en km X–Y») y tabla oculta para lectores de pantalla.
+- **Decision**: `GET /api/v1/anomalies?estado=Activa` (sin otros filtros); 34 tramos de 10 km (`[0,10)`, …, `[330,335.073]`); altura = cantidad, color = `--s{max severidad}`; tramo vacío = sin barra (el prototipo inventa valores de relleno: no se copian). Etiquetas «Inicio PE-1S · 0», «Inicio demo · 268», «Fin Ayacucho · 335,073» (longitud completa del GeoJSON para cálculos; pueblos intermedios pendientes de georreferenciar). Accesible: `role="img"` con resumen («N anomalías activas; más en km X–Y») y tabla oculta para lectores de pantalla.
 - **Fuente**: 007 «fuera de alcance» («el panel la arma con el mapa del administrador»); D13 (`kmVia`); PO-09.
 
 ## R-014 · «Qué pasó» en «Últimos cambios» y en el historial
@@ -167,7 +167,7 @@
 
   | Nivel | Herramienta | Qué |
   |---|---|---|
-  | Unitarias | Vitest | todo `modelo/`, `sesion/`, `compartido/formato` y `api/problema` (valores límite: 267,9/268/333/333,1 km; 59/60/61 s antes del vencimiento; `null` en indicadores) |
+  | Unitarias | Vitest | todo `modelo/`, `sesion/`, `compartido/formato` y `api/problema` (valores límite: 267,9/268/335.073/335,1 km; 59/60/61 s antes del vencimiento; `null` en indicadores) |
   | Componentes | Vitest + Testing Library + MSW | cada pantalla en carga, vacío, error y con datos; acciones y mensajes por código |
   | Contrato | `openapi-typescript` + `tsc`; Ajv 2020 | tipos al día (CI); cada dato simulado de `pruebas/msw/datos/` validado contra el esquema de su operación en el YAML |
   | E2E simulado | Playwright + compilación `simulado` (MSW en el navegador) | todos los flujos, en el CI, en Chromium, Firefox y Edge |
@@ -223,7 +223,7 @@
 La constitución 1.1.0 está escrita para el backend .NET. **No se edita aquí**; se propone al autor una versión **1.2.0 (MENOR)**:
 
 1. **II** — agregar: «El panel (`panel/`) se organiza por funcionalidades con capas `ui → api → modelo`; una funcionalidad usa a otra solo por su `index.ts`; sin ciclos; se verifica con `dependency-cruiser` en el CI del panel.»
-2. **III** — agregar: «El panel no tiene reglas de negocio; los pocos valores de docs que usa para mostrar (8 h, km 268–333, estados iniciales de RN-08) viven en `panel/src/config/` citando su fuente.»
+2. **III** — agregar: «El panel no tiene reglas de negocio; los pocos valores de docs que usa para mostrar (8 h, km 268–335.073, estados iniciales de RN-08) viven en `panel/src/config/` citando su fuente.»
 3. **VII** — agregar: «En el panel: Vitest para `modelo/` con cobertura ≥ 90 %, componentes con Testing Library + MSW, contrato con tipos generados y Ajv, E2E con Playwright y axe; CI en cada PR que toque `panel/`.»
 4. **VIII** — ampliar la regla de 200 líneas a `.ts`/`.tsx` (excepto `panel/src/api/generado/`) y prohibir `Date.now()`/`new Date()` sin argumento en `modelo/` y `sesion/` (ESLint), equivalente a `BannedApiAnalyzers`.
 5. **IX** — agregar: «Los clientes (app y panel) generan sus tipos desde los mismos YAML y el CI falla si están desalineados.»
@@ -242,3 +242,9 @@ La constitución 1.1.0 está escrita para el backend .NET. **No se edita aquí**
 ## Confirmados por el autor el 2026-10-22 (D18)
 
 Todos los «Pendientes de confirmar por el autor» de este archivo y la «Propuesta de enmienda a la constitución» quedaron aprobados tal como se recomendaron (`specs/revision/decisiones.md`, D18). La enmienda se aplicó en la constitución 1.2.0.
+
+## Ajuste geométrico autorizado — 2026-10-24
+
+**Revisión geométrica 2026-10-24 (004)**: el eje canónico `backend/db/datos/corredor_pe28a.geojson` mide **335,072963461 km** (335,073 km al mostrarlo). El km 0 es el extremo seleccionado en el enlace PE-1S, no el centro de Pisco; el km final es el extremo seleccionado en Ayacucho. Son distancias acumuladas del eje con radio esférico 6 371 008,8 m, no progresivas oficiales. El demo conserva el inicio geométrico km 268 y termina en `properties.demo_km_fin = properties.longitud_km`: **67,072963461 km**. El nombre histórico «Ayacucho–Vinchos» no certifica que el km 268 sea el centro de Vinchos. Los cálculos y límites usan el valor completo del GeoJSON; los valores redondeados de documentos e interfaz son solo de presentación. La generación del polígono de 200 m y su validación de ≤ 60 vértices corresponden a 006; no se reemplaza ese recorte por una comprobación de kilometraje.
+
+Referencia reproducible: `backend/db/datos/README.md`; 20 puntos compartidos en `backend/db/datos/km_referencia.csv`. Backend y Android deben usar ese mismo CSV, radio y eje. `TramosTotales = ceil(longitud_km) = 336`. El panel no debe conservar las progresivas de pueblos del prototipo sin verificarlas contra el eje.

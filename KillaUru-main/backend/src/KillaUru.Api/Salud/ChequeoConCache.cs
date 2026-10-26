@@ -12,7 +12,7 @@ namespace KillaUru.Api.Salud;
 internal abstract class ChequeoConCache(TimeProvider reloj) : IHealthCheck
 {
     private static readonly TimeSpan Vigencia = TimeSpan.FromSeconds(5);
-    private Guardado? _ultimo;
+    private ResultadoSaludGuardado? _ultimo;
 
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
@@ -23,7 +23,7 @@ internal abstract class ChequeoConCache(TimeProvider reloj) : IHealthCheck
         }
 
         var resultado = await ConsultarSeguroAsync(cancellationToken).ConfigureAwait(false);
-        _ultimo = new Guardado(resultado, ahora + Vigencia);
+        _ultimo = new ResultadoSaludGuardado(resultado, ahora + Vigencia);
         return resultado;
     }
 
@@ -46,5 +46,4 @@ internal abstract class ChequeoConCache(TimeProvider reloj) : IHealthCheck
         }
     }
 
-    private sealed record Guardado(HealthCheckResult Resultado, DateTimeOffset Hasta);
 }

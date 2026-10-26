@@ -7,7 +7,7 @@
 ## Historias y requisitos funcionales
 
 - [ ] CHK001 HU-07 · anónimo: solo el tramo demo aunque pida un `bbox` mayor (recorte en el servidor) → FR-002…FR-004 → T019…T021
-- [ ] CHK002 HU-08 · registrado: 333 km, `Activa`, severidad y tiempo relativo; datos para usar sin señal → FR-002, FR-005, FR-012 → T011…T018, T025…T027
+- [ ] CHK002 HU-08 · registrado: 335.073 km, `Activa`, severidad y tiempo relativo; datos para usar sin señal → FR-002, FR-005, FR-012 → T011…T018, T025…T027
 - [ ] CHK003 HU-12 · administrador: filtros por tipo, severidad, fecha y estado; incluye no confirmadas → FR-010, FR-011 → T022…T024
 - [ ] CHK004 RF-14 · GeoJSON, filtros, `estado` solo administrador, `updatedSince` con bajas `{id, eliminada: true}`, `ETag`, borde solo anónimo → FR-001…FR-013 → T010…T027
 - [ ] CHK005 RF-17 · mapa completo del administrador con filtros (sin `estado`, los 5 estados, D6) → FR-002, FR-010, FR-011 → T022…T024
@@ -43,7 +43,7 @@
 - [x] CHK023 `CeldasDelCorredor` (R-001; 004 R-012) y `Celda.Limites` (R-002) → D1
 - [x] CHK024 Sin `estado`, el administrador recibe los 5 estados; el panel abre con «Activa + PendienteConfirmacion» (R-004) → D6 → FR-002 → T022
 - [x] CHK025 La app anónima pide sin `bbox` ni `updatedSince` (R-007) → D17: pasa a la spec 008-app-android
-- [x] CHK026 Polígono demo km 268 → 333, margen 200 m, ≤ 60 vértices (R-010) → D1 → T002
+- [x] CHK026 Polígono demo km 268 → 335.073, margen 200 m, ≤ 60 vértices (R-010) → D1 → T002
 - [ ] CHK027 `kmVia` en cada *feature*, todos los roles (R-011) → D13 → FR-005 → T010
 - [ ] CHK028 `venceUtc` nulo en estados finales → T-PO08 → FR-005 → T010
 - [ ] CHK029 Bajas del anónimo solo dentro del polígono demo (R-012) → T-SEG16 → FR-012 → T025, T027

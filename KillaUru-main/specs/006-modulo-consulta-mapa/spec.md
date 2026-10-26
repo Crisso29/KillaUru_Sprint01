@@ -48,7 +48,7 @@ Como conductor no registrado, quiero ver las anomalías del tramo Ayacucho–Vin
 
 **Acceptance Scenarios**:
 
-1. **Given** una petición sin token con un `bbox` que cubre los 333 km, **When** se responde, **Then** el GeoJSON trae solo anomalías `Activa` **dentro** del polígono demo (RF-14, RN-08).
+1. **Given** una petición sin token con un `bbox` que cubre los 335.073 km, **When** se responde, **Then** el GeoJSON trae solo anomalías `Activa` **dentro** del polígono demo (RF-14, RN-08).
 2. **Given** una anomalía en una celda del borde del polígono pero fuera de él, **When** se responde al anónimo, **Then** no aparece (filtro punto por punto, `diseño-interno` §4).
 3. **Given** un `bbox` que no toca el tramo demo, **When** lo pide el anónimo, **Then** recibe 200 con una colección vacía.
 4. **Given** una respuesta anónima, **When** sale, **Then** lleva `Cache-Control: public, max-age=60` y `ETag` (ADR-006).
@@ -58,7 +58,7 @@ Como conductor no registrado, quiero ver las anomalías del tramo Ayacucho–Vin
 
 ### User Story 2 - El conductor registrado ve el corredor completo (Priority: P1)
 
-Como conductor registrado, quiero ver los 333 km con las anomalías activas, su severidad, cuándo se detectaron y cuándo vencen, para planificar mi viaje y alertarme sin señal (HU-08, RF-14, RF-26).
+Como conductor registrado, quiero ver los 335.073 km con las anomalías activas, su severidad, cuándo se detectaron y cuándo vencen, para planificar mi viaje y alertarme sin señal (HU-08, RF-14, RF-26).
 
 **Why this priority**: *Must*; es el valor principal de registrarse.
 
@@ -157,7 +157,7 @@ Como administrador, quiero ver todas las anomalías, incluidas las no confirmada
 
 | Regla | Parámetro | Valor | Fuente |
 |---|---|---|---|
-| RN-08 | `PoligonoDemo` | polígono Ayacucho–Vinchos (~65 km, km 268–333) | `10-glosario.md`; coordenadas: tarea T002 |
+| RN-08 | `PoligonoDemo` | polígono Ayacucho–Vinchos (~67 km, km 268–335.073) | `10-glosario.md`; coordenadas: tarea T002 |
 | ADR-006 | `VigenciaCacheMinutos` | 10 | `diseño-interno` §4 |
 | ADR-006 | `MaxAgeBordeSegundos` | 60 | `diseño-interno` §4 |
 | ADR-006 | `TamanoCacheMb` | 64 | `diseño-interno` §4 |

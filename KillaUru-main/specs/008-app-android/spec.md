@@ -122,7 +122,7 @@ Como conductor, quiero un mapa del corredor que funcione sin internet y me diga 
 3. **Given** datos móviles y la opción «Usar datos móviles» apagada, **When** falta el mapa, **Then** no se descarga y veo «Aún no tienes el mapa» con el botón para usar datos (RF-26).
 4. **Given** un anónimo, **When** actualiza anomalías, **Then** pide `GET /api/v1/anomalies` **sin** `bbox` ni `updatedSince` (con `If-None-Match` si tiene `ETag`) y reemplaza toda su copia del demo (006 R-007).
 5. **Given** un conductor registrado con copia, **When** actualiza, **Then** pide con `updatedSince` = el último `generadoUtc`, guarda las altas, borra las bajas (`eliminada: true`) y guarda el nuevo `generadoUtc` en la misma transacción (RF-14, RF-26).
-6. **Given** un anónimo que sale del tramo demo, **When** cruza el límite, **Then** ve la zona sombreada y el aviso «Sin información de baches para usuarios sin cuenta. Crea una cuenta gratis para ver los 333 km.» una sola vez por viaje, sin tocar nada; la detección sigue (RF-08, RN-08).
+6. **Given** un anónimo que sale del tramo demo, **When** cruza el límite, **Then** ve la zona sombreada y el aviso «Sin información de baches para usuarios sin cuenta. Crea una cuenta gratis para ver los 335.073 km.» una sola vez por viaje, sin tocar nada; la detección sigue (RF-08, RN-08).
 7. **Given** una anomalía con `venceUtc` vencido según la hora del GPS y una copia que no se pudo actualizar, **When** miro el mapa, **Then** ya no aparece ni alerta (RF-26).
 8. **Given** el mapa, **When** lo miro, **Then** veo «Actualizado hace 12 min», cada anomalía con su severidad, «permanente» si es persistente (sin número de días), «Último reporte hace 2 horas» y su km (RF-09, RNF-14, D13).
 
@@ -163,7 +163,7 @@ Como conductor, quiero crear mi cuenta, entrar, verificar mi correo, ver mis dat
 
 1. **Given** una contraseña de 9 caracteres, **When** creo la cuenta, **Then** la app no la envía y explica «Mínimo 10 caracteres» (D13, RF-21).
 2. **Given** el registro sin marcar la aceptación, **When** lo intento, **Then** no se crea la cuenta (HU-22).
-3. **Given** un registro correcto (201), **When** termina, **Then** veo «Revisa tu correo» y puedo ir al mapa de 333 km enseguida (HU-18, HU-18b).
+3. **Given** un registro correcto (201), **When** termina, **Then** veo «Revisa tu correo» y puedo ir al mapa de 335.073 km enseguida (HU-18, HU-18b).
 4. **Given** credenciales malas, una cuenta bloqueada o desactivada, **When** inicio sesión, **Then** veo siempre «Correo o contraseña incorrectos. Si fallas varias veces, espera unos minutos.», sin cuenta regresiva (RN-19, D13).
 5. **Given** «Olvidé mi contraseña», **When** envío el correo, **Then** veo el mismo mensaje exista o no la cuenta (HU-25).
 6. **Given** que cierro sesión con 3 detecciones pendientes, **When** confirmo tras el aviso, **Then** se borran el permiso local y el historial, la copia se recorta al tramo demo y los 3 pendientes se envían sin cuenta (RF-38, RN-21 d).
@@ -202,7 +202,7 @@ Como equipo, quiero generar desde el repositorio la polilínea con km, el políg
 
 1. **Given** `backend/db/datos/corredor_pe28a.geojson`, **When** corro el script, **Then** obtengo `corredor_pe28a.v<N>.json` con `[lon, lat, kmAcumulado]` por vértice, km 0 en Pisco, calculado con la misma fórmula que `CorredorVia` de 004 (R-016).
 2. **Given** los puntos de referencia, **When** comparo el km de la app con el `km_via` del servidor, **Then** la diferencia es ≤ 1 m (D13; SC-012).
-3. **Given** `tramo_demo.geojson`, **When** se verifica, **Then** todos los vértices de la polilínea entre el km 268 y el 333 caen dentro del polígono (BD-19).
+3. **Given** `tramo_demo.geojson`, **When** se verifica, **Then** todos los vértices de la polilínea entre el km 268 y el 335.073 caen dentro del polígono (BD-19).
 4. **Given** el workflow manual, **When** se ejecuta, **Then** sube primero los archivos versionados (inmutables) y al final el manifiesto con versión, tamaño y SHA-256 de cada uno (D16, RF-26).
 
 ---
@@ -233,7 +233,7 @@ Como conductor registrado, quiero ver los tramos que recorrí y cuántos baches 
 
 **Acceptance Scenarios**:
 
-1. **Given** un viaje del km 333 al 268 con 7 detecciones, **When** termina (parada > 30 min), **Then** aparece «Ayacucho → Vinchos · km 333 → 268 · 1 h 20 min · 7» (HU-10).
+1. **Given** un viaje del km 335.073 al 268 con 7 detecciones, **When** termina (parada > 30 min), **Then** aparece «Ayacucho → Vinchos · km 335.073 → 268 · 1 h 20 min · 7» (HU-10).
 2. **Given** un recorrido de hace 6 meses y 1 día, **When** corre la purga, **Then** se borra (RN-10).
 3. **Given** un anónimo, **When** abre «Mis viajes», **Then** ve que el historial es para cuentas; no se guarda nada (`01-actores.md` §4).
 

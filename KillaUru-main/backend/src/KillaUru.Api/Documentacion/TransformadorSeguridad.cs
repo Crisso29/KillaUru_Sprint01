@@ -17,8 +17,7 @@ internal sealed class TransformadorSeguridad : IOpenApiOperationTransformer
 
     public Task TransformAsync(OpenApiOperation operation, OpenApiOperationTransformerContext context, CancellationToken cancellationToken)
     {
-        var ruta = context.Description.RelativePath ?? string.Empty;
-        if (!ruta.StartsWith(PrefijoNegocio, StringComparison.OrdinalIgnoreCase))
+        if (!(context.Description.RelativePath ?? string.Empty).StartsWith(PrefijoNegocio, StringComparison.OrdinalIgnoreCase))
         {
             return Task.CompletedTask;
         }
@@ -26,24 +25,49 @@ internal sealed class TransformadorSeguridad : IOpenApiOperationTransformer
         var metadatos = context.Description.ActionDescriptor.EndpointMetadata;
         var autorizacion = metadatos.OfType<IAuthorizeData>().ToList();
         var esPublico = autorizacion.Count == 0 || metadatos.OfType<IAllowAnonymous>().Any();
-        var roles = string.Join(", ", autorizacion.Select(a => a.Roles).Where(r => !string.IsNullOrEmpty(r)));
-
-        operation.Description = $"Rol: {(esPublico ? "público" : roles.Length > 0 ? roles : "con sesión")}. {operation.Description}".Trim();
+        DescribirRol(operation, autorizacion, esPublico);
         operation.Responses ??= [];
         Agregar(operation, "429", "Límite de tasa superado (`limite_excedido`), con `Retry-After`.");
         if (!esPublico)
         {
-            operation.Security =
-            [
-                new OpenApiSecurityRequirement { [new OpenApiSecuritySchemeReference("tokenAcceso", context.Document)] = [] },
-                new OpenApiSecurityRequirement { [new OpenApiSecuritySchemeReference("cookieAcceso", context.Document)] = [] },
-            ];
-            Agregar(operation, "401", "Token inválido, vencido o ausente (`token_invalido`).");
-            Agregar(operation, "403", "El rol no tiene permiso (`sin_permiso`).");
+            AgregarCredenciales(operation, context.Document);
         }
 
         RespuestasComunes.Completar(operation);
         return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Prefija la descripción del endpoint con "Rol: …" según su metadato de autorización.
+    /// Permite al consumidor de la API ver de un vistazo quién puede llamar a cada operación.
+    /// </summary>
+    private static void DescribirRol(OpenApiOperation operacion, List<IAuthorizeData> autorizacion, bool publico)
+    {
+        if (publico)
+        {
+            operacion.Description = $"Rol: público. {operacion.Description}".Trim();
+            return;
+        }
+
+        var esSoloAdmin = autorizacion.Any(a => a.Policy == "SoloAdministrador");
+        var rolesExplicitos = string.Join(", ", autorizacion.Select(a => a.Roles).Where(r => !string.IsNullOrEmpty(r)));
+
+        var etiquetaRol = esSoloAdmin          ? "Administrador"
+                        : rolesExplicitos.Length > 0 ? rolesExplicitos
+                        :                              "con sesión";
+
+        operacion.Description = $"Rol: {etiquetaRol}. {operacion.Description}".Trim();
+    }
+
+    private static void AgregarCredenciales(OpenApiOperation operacion, OpenApiDocument? documento)
+    {
+        operacion.Security =
+        [
+            new OpenApiSecurityRequirement { [new OpenApiSecuritySchemeReference("tokenAcceso", documento)] = [] },
+            new OpenApiSecurityRequirement { [new OpenApiSecuritySchemeReference("cookieAcceso", documento)] = [] },
+        ];
+        Agregar(operacion, "401", "Token inválido, vencido o ausente (`token_invalido`).");
+        Agregar(operacion, "403", "El rol no tiene permiso (`sin_permiso`).");
     }
 
     private static void Agregar(OpenApiOperation operacion, string codigo, string descripcion) =>

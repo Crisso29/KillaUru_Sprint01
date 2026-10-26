@@ -23,7 +23,7 @@ Sin índices extra: la llave primaria sirve para leer un rango de días y para l
 | 2 | `ConductoresActivos` | `IIdentidadConsultas.ContarConductoresActivosAsync(7)` (003) | Cuentas que renovaron su sesión en 7 días (RN-17) |
 | 3 | `DispositivosDistintos` | `ResumenDia.DispositivosDistintos` | Seudónimos distintos con reportes ese día; solo el número |
 | 4 | `TramosConReportes7d` | `ResumenDia.TramosConReportes7d` | Tramos de 1 km con ≥ 1 reporte en los 7 días que terminan ese día |
-| 5 | `TramosTotales` | `ResumenDia.TramosTotales` | 333 |
+| 5 | `TramosTotales` | `ResumenDia.TramosTotales` | 336 |
 | 6 | `Confirmaciones` | `ResumenDia.Confirmaciones` | Transiciones `PendienteConfirmacion → Activa` del día |
 | 7 | `PendientesExpiradas` | `ResumenDia.PendientesExpiradas` | `PendienteConfirmacion → Expirada` |
 | 8 | `Expiraciones` | `ResumenDia.Expiraciones` | `→ Expirada` |

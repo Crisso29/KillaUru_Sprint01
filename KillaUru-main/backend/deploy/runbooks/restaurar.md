@@ -7,7 +7,7 @@
 4. **Base limpia**: `docker compose down postgres && docker volume rm killauru_pgdata && docker compose up -d postgres`.
 5. **Roles primero, luego datos**: `psql -U postgres -f roles.sql` y `pg_restore -U postgres -d killauru --no-owner --role=killauru_migrador killauru.dump`.
 6. **Pasos de D9, antes de reabrir**:
-   - Revocar todas las sesiones: `UPDATE identidad.sesion_refresh SET revocado_utc = now() WHERE revocado_utc IS NULL;`
+   - Revocar todas las sesiones con [`restaurar-sesiones-identidad.sql`](../../db/consultas/restaurar-sesiones-identidad.sql), pasando `instante_restauracion` en UTC. La hora se trunca como exige D3.
    - Rotar `KU_JWT_CLAVE_FIRMA` en `.env` (todos vuelven a iniciar sesión una vez).
    - Arrancar la API: `docker compose up -d api`. Las purgas corren **al arrancar** (T-OPS05).
    - Comprobar 0 seudónimos con más de 72 h: `SELECT count(*) FROM ingesta.evento_recibido WHERE seudonimo IS NOT NULL AND recibido_utc < now() - interval '72 hours';` (y lo mismo en `anomalias.reporte_anomalia`).
@@ -25,4 +25,7 @@ Identidad (003) y verificar su nueva auditoría antes de reabrir. No borrar dire
 Si la base anterior se perdió, la consulta al respaldo no puede reconstruir lo que ocurrió después:
 revisar manualmente las solicitudes de eliminación del último día con CRISOLOGO o CRISSO.
 Persisten el riesgo aceptado de D9 y el límite de RPO de 24 h. Registrar las solicitudes pendientes de confirmar.
-La revocación de sesiones y las purgas de los pasos anteriores requieren que 003–005 ya estén implementados.
+Identidad (003) ya implementa la revocación y ejecuta `purga-identidad` al arrancar y a las 03:45 de Lima.
+Antes de reabrir, comprobar `count(*) = 0` de sesiones con `revocado_utc IS NULL`, probar que un refresh
+previo devuelve 401 y que la firma JWT anterior se rechaza. La rotación es obligatoria aunque el refresh esté revocado.
+Las purgas de eventos y seudónimos siguen dependiendo de 004–005. Conservar el registro del simulacro mensual.

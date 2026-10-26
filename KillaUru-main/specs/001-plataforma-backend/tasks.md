@@ -176,6 +176,12 @@ description: "Tareas de la plataforma base del backend"
 
 ## Dependencies & Execution Order
 
+**Seguimiento al integrar 002 (2026-10-23):** se corrigieron caché autenticada, errores vacíos/MVC,
+documentación en Production, seguridad OpenAPI, comparación detallada del contrato de Auditoría,
+puerta de cobertura por dominio y reglas de legibilidad de producción. Se completó el README de Auditoría;
+T055 sigue abierta por los demás módulos. No se cierran las tareas externas ni los restantes hallazgos de revisión.
+Véase [revisión de 002](../002-modulo-auditoria/revision-implementacion.md) para evidencia y límites.
+
 - Phase 1 → Phase 2 (US6) → Phase 3 (kernel) → Phase 4 (US1) → Phase 5 (US3) → Phase 6 (US2) → Phase 7 (US4) → Phase 8 (US5) → Phase 9 (US7) → Phase 10 (US8) → Phase 11.
 - Las features 002–007 pueden empezar cuando terminen las fases 1–6. US7 conviene hacerla justo después de la Phase 6 para que todo lo demás pase por CI. US8 necesita 005 y 006; T080 necesita 004–007.
 - Dentro de cada fase: pruebas → implementación; las tareas `[P]` de una misma fase pueden hacerse juntas.

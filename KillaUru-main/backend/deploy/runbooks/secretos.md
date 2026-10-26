@@ -22,3 +22,14 @@ Ningún secreto vive en el repositorio. Los de la VM están en `deploy/.env` (pe
 1. Zero Trust → Access → Applications → *Self-hosted* `ssh.killauru.pe` con política **Service Auth** que solo acepta el token de servicio del despliegue.
 2. En el túnel, una ruta `ssh.killauru.pe` → `ssh://localhost:22`. La VM sigue sin puertos abiertos.
 3. Usuario `killauru` en la VM, sin contraseña, con la llave pública de `KU_DEPLOY_SSH_KEY` y permiso solo sobre Docker.
+
+## Secretos añadidos por Identidad (003)
+
+- `KU_IDENTIDAD_CLAVE_ROTACION`: mínimo 32 bytes aleatorios, independiente de JWT; deriva sucesores refresh.
+- `KU_TURNSTILE_SECRETO`: clave privada del widget del panel, nunca enviada al navegador.
+- `KU_CORREO_API_KEY`: API key de Resend con permiso de envío restringido al dominio verificado.
+
+Compose los mapea a Identidad__ClaveRotacion, Identidad__TurnstileSecreto e Identidad__CorreoApiKey.
+Rotar la clave HMAC requiere revocar las sesiones existentes; de otro modo no se puede reconstruir el
+sucesor de una rotación previa durante la gracia. Tras restaurar, revocar sesiones y rotar siempre JWT.
+Conservar las nuevas claves en la copia cifrada del inventario y validar entrega/anti-bot según correo.md.

@@ -31,11 +31,13 @@ Sin llaves foráneas hacia `identidad` (FR-010). Retención permanente (RN-10).
 | `OcurridoUtc` | `DateTimeOffset` | Del `TimeProvider` (nunca `DateTime.UtcNow`) |
 | `ActorId` | `Guid?` | `null` si es el sistema |
 | `ActorRol` | `string?` | `ConductorRegistrado`, `Administrador` o `null` (sistema) |
-| `Accion` | `AccionAuditada` | Debe estar definida en el enum |
+| `Accion` | `short` | Código validado del catálogo; Application traduce AccionAuditada (R-011) |
 | `Objetivo` | `string?` | Máx. 100 caracteres |
-| `Contexto` | `IReadOnlyDictionary<string, object?>` | Sin claves de `ClavesProhibidas`; serializado a `jsonb` |
+| `Contexto` | `string` (JSON inmutable) | Instantánea del diccionario del contrato, sin claves prohibidas incluso anidadas; mapeada a jsonb |
 
-**Fábrica:** `RegistroAuditoria.Crear(accion, actor, objetivo, contexto, ahora)` → `ResultadoRegistro` (`Creado(registro)` · `AccionDesconocida` · `ContextoNoPermitido(clave)`). No hay métodos que cambien un registro creado.
+**Fábrica:** `RegistroAuditoria.Crear(codigo, actorId, actorRol, objetivo, contexto, ahora)` → `ResultadoRegistro(Registro, Error)`.
+Rechaza acción desconocida, contexto prohibido, actor incoherente u objetivo largo; Error no contiene los valores recibidos.
+No hay métodos que cambien un registro creado (R-011).
 
 ## 3. Catálogo (`CatalogoAcciones`)
 

@@ -3,9 +3,14 @@
 // antes de medir rendimiento hay que verificar que las reglas de negocio acepten el recorrido generado.
 import http from 'k6/http';
 import { check } from 'k6';
+import { Rate } from 'k6/metrics';
 import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
 
 export const URL = __ENV.KU_URL_PRUEBAS || 'http://localhost:18080';
+
+// D11: bajo carga normal no debe haber throttling de usuarios individuales.
+// Cada función que hace HTTP suma 1 a esta métrica cuando recibe 429.
+const tasa429 = new Rate('tasa_429');
 
 // Polilínea de 004 (T002): [[lon, lat], ...]
 const corredor = JSON.parse(open('../../db/datos/corredor_pe28a.geojson')).features[0].geometry.coordinates;
@@ -45,6 +50,7 @@ export function enviarLote() {
     headers: { 'Content-Type': 'application/json', 'X-KillaUru-Seudonimo': seudonimoDelVu() },
     tags: { ruta: 'lote' },
   });
+  tasa429.add(r.status === 429);
   check(r, { 'lote 200': (x) => x.status === 200 });
 }
 
@@ -53,11 +59,13 @@ export function consultarMapa() {
     headers: { 'X-KillaUru-Seudonimo': seudonimoDelVu() },
     tags: { ruta: 'mapa' },
   });
+  tasa429.add(r.status === 429);
   check(r, { 'mapa 200/304': (x) => x.status === 200 || x.status === 304 });
 }
 
-// Umbrales agregados: toleran menos de 1 % de fallas. Falta una condición específica de cero 429 (D11).
+// D11: cero 429 bajo carga normal (los límites de cuota están dimensionados para 300 VUs).
 export const umbralesComunes = {
   'http_req_failed': ['rate<0.01'],
   'checks': ['rate>0.99'],
+  'tasa_429': ['rate==0'],
 };

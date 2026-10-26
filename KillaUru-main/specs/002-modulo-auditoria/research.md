@@ -56,5 +56,19 @@
 
 ## Confirmados por el autor el 2026-10-21
 
+## R-011 · Ajustes de implementación (2026-10-23)
+
+- Domain recibe el código short y los campos simples del actor; Application traduce Contracts.
+  Así Domain solo depende de BCL y Shared/Domain, conforme a la tabla de enfoque §3.
+- El contexto se conserva como una instantánea JSON inmutable (BCL), validada recursivamente antes de persistir;
+  el contrato público sigue recibiendo IReadOnlyDictionary. Se validan también objetivo ≤ 100 y coherencia id/rol.
+- ResultadoRegistro contiene Registro/Error, sin tipos anidados. Los errores internos inválidos lanzan
+  InvalidOperationException en Application, sin incluir datos personales.
+- ConsultaAuditoriaRepositorio e IConsultaAuditoria separan lectura de escritura (ISP);
+  COUNT y página usan RepeatableRead para evitar totales incoherentes ante inserciones concurrentes.
+- RegistrarLecturaAsync restringe su catálogo a accesos administrativos y exportaciones, conforme a D15.
+- Los números del DTO usan serialización estricta y los filtros documentan sus catálogos y límites.
+- CRISOLOGO coordina incidentes; CRISSO lo reemplaza (confirmado por el autor durante la implementación).
+
 - R-009 (eliminaciones tras restaurar): confirmado con ajuste por **D9** — riesgo aceptado acotado por el RPO de 24 h y revisión manual; se quita la dependencia de logs de Grafana.
 - R-001, R-007 y R-010 (transacción exigida, `RegistrarLecturaAsync`, métrica con `AlConfirmar` y único emisor): **D15**.

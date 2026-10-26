@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-20
 
-**Status**: Draft
+**Status**: Implementado y validado localmente; operación externa pendiente (ver revision-implementacion.md)
 
 **Input**: User description: "Módulo Identidad y Accesos de KillaUru: cuentas de conductores y administradores, registro con consentimiento, inicio de sesión con bloqueo progresivo, sesiones cortas y revocables, verificación de correo, recuperación de contraseña, derechos del titular (ver mis datos, eliminar mi cuenta), gestión de usuarios y revisión mensual de privilegios."
 
@@ -42,7 +42,7 @@
 
 ### User Story 1 - Registrarse como conductor con consentimiento (Priority: P1)
 
-Como conductor, quiero crear mi cuenta con correo y contraseña aceptando la política de privacidad y los términos de uso, para ver los 333 km y recibir alertas (HU-18, HU-22, HU-27).
+Como conductor, quiero crear mi cuenta con correo y contraseña aceptando la política de privacidad y los términos de uso, para ver los 335.073 km y recibir alertas (HU-18, HU-22, HU-27).
 
 **Why this priority**: Sin cuenta no hay corredor completo ni alertas; es el paso que convierte al anónimo en registrado.
 

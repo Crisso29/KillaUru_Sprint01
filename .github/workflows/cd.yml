@@ -1,56 +1,124 @@
-# Despliegue continuo (T071, D10): cada unión a main publica la imagen arm64 y la despliega en la VM.
-# La VM no tiene puertos abiertos: GitHub entra por SSH a través de Cloudflare Access con un token de servicio.
-name: cd
+# CHK036 T072 — imagen arm64 a GHCR y despliegue automático a la VM Oracle A1 (Santiago).
+# Solo corre cuando el job "ci" termina con éxito en main; nunca se dispara si el CI falló.
+#
+# Secretos necesarios en Settings → Secrets and variables → Actions:
+#   SSH_PRIVATE_KEY         clave privada ed25519 (la pública va en ~/.ssh/authorized_keys de la VM)
+#   VM_HOSTNAME             hostname registrado en Cloudflare Access (ej: api.killauru.pe)
+#   VM_USER                 usuario SSH de la VM (ej: ubuntu)
+#   CF_ACCESS_CLIENT_ID     Service Token Client ID de Cloudflare Access
+#   CF_ACCESS_CLIENT_SECRET Service Token Secret de Cloudflare Access
+#
+# Variables de repositorio (Settings → Variables → Actions):
+#   KU_GHCR_CUENTA          cuenta en minúsculas para GHCR (ej: crisso29)
+#                           Si no se define, se usa github.repository_owner en minúsculas.
+name: CD
 
 on:
   workflow_run:
-    workflows: [ci]
+    workflows: [CI]
     types: [completed]
     branches: [main]
 
-permissions:
-  contents: read
-  packages: write
+env:
+  REGISTRY: ghcr.io
 
 jobs:
-  imagen:
+  publicar:
+    name: Imagen arm64 → GHCR
+    runs-on: ubuntu-latest
     if: github.event.workflow_run.conclusion == 'success'
-    runs-on: ubuntu-24.04-arm
-    timeout-minutes: 30
+
+    outputs:
+      sha: ${{ steps.vars.outputs.sha }}
+      imagen: ${{ steps.vars.outputs.imagen }}
+
+    permissions:
+      contents: read
+      packages: write
+
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
-      - uses: docker/login-action@v3
+
+      - name: Calcular SHA e imagen
+        id: vars
+        run: |
+          SHA="${{ github.event.workflow_run.head_sha }}"
+          # Usa la variable KU_GHCR_CUENTA si existe; si no, github.repository_owner en minúsculas.
+          CUENTA="${{ vars.KU_GHCR_CUENTA }}"
+          if [ -z "$CUENTA" ]; then
+            CUENTA="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
+          fi
+          echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
+          echo "imagen=ghcr.io/${CUENTA}/killauru-api:${SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Autenticar en GHCR
+        uses: docker/login-action@v3
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Construir y publicar killauru-api:<sha> (etiqueta inmutable)
-        working-directory: KillaUru-main/backend
-        run: |
-          imagen="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/killauru-api:${{ github.event.workflow_run.head_sha }}"
-          docker build --platform linux/arm64 -f deploy/Dockerfile -t "$imagen" .
-          docker push "$imagen"
+
+      # QEMU emula arm64 en el runner x86-64; buildx usará el SDK nativo ($BUILDPLATFORM) para compilar
+      # y cross-compilará solo la publicación — igual que el comentario del Dockerfile (T027).
+      - name: Configurar QEMU (arm64)
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Construir y publicar imagen arm64
+        uses: docker/build-push-action@v6
+        with:
+          context: KillaUru-main/backend
+          file: KillaUru-main/backend/deploy/Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: ${{ steps.vars.outputs.imagen }}
+          # Caché en GitHub Actions para que builds sucesivos reusen capas (D10).
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   desplegar:
-    needs: imagen
-    runs-on: ubuntu-24.04
+    name: Desplegar en Oracle A1
+    runs-on: ubuntu-latest
+    needs: publicar
+    # El entorno "produccion" puede configurarse con revisores manuales en Settings → Environments.
     environment: produccion
-    timeout-minutes: 15
+
     steps:
       - name: Instalar cloudflared
         run: |
-          curl -fsSL -o cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
-          sudo dpkg -i cloudflared.deb
-      - name: Desplegar por SSH a través de Cloudflare Access
-        env:
-          CLAVE: ${{ secrets.KU_DEPLOY_SSH_KEY }}
-          TOKEN_ID: ${{ secrets.KU_CF_ACCESS_CLIENT_ID }}
-          TOKEN_SECRETO: ${{ secrets.KU_CF_ACCESS_CLIENT_SECRET }}
-          SHA: ${{ github.event.workflow_run.head_sha }}
+          curl -fsSL \
+            https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb \
+            -o /tmp/cloudflared.deb
+          sudo dpkg -i /tmp/cloudflared.deb
+
+      # Monta la clave privada y escribe la entrada SSH que redirige el tráfico por Cloudflare Access.
+      # El ProxyCommand es la única forma de llegar a la VM: no hay puerto SSH expuesto directamente.
+      - name: Configurar SSH vía Cloudflare Access
         run: |
-          install -m 600 /dev/null clave && printf '%s\n' "$CLAVE" > clave
-          ssh -i clave -o StrictHostKeyChecking=accept-new \
-            -o ProxyCommand="cloudflared access ssh --hostname %h --service-token-id $TOKEN_ID --service-token-secret $TOKEN_SECRETO" \
-            killauru@ssh.killauru.pe "cd /opt/killauru/KillaUru-main/backend/deploy && ./desplegar.sh $SHA"
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          cat >> ~/.ssh/config << EOF
+          Host ${{ secrets.VM_HOSTNAME }}
+            IdentityFile ~/.ssh/id_ed25519
+            StrictHostKeyChecking accept-new
+            ProxyCommand cloudflared access ssh --hostname %h --service-token-id ${{ secrets.CF_ACCESS_CLIENT_ID }} --service-token-secret ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+          EOF
+
+      # Secuencia D10: git pull (sincroniza scripts de migración) → desplegar.sh <sha>.
+      # desplegar.sh: pull imagen → migraciones → docker compose up → esperar /health/ready (150 s).
+      - name: Desplegar (git pull → desplegar.sh)
+        run: |
+          SHA="${{ needs.publicar.outputs.sha }}"
+          ssh ${{ secrets.VM_USER }}@${{ secrets.VM_HOSTNAME }} "
+            set -euo pipefail
+            git -C /opt/killauru pull
+            cd /opt/killauru/KillaUru-main/backend/deploy
+            ./desplegar.sh ${SHA}
+          "

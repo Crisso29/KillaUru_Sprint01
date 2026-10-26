@@ -66,7 +66,7 @@ CREATE TABLE anomalias.corredor_via (
 );
 ```
 
-`V0005__corredor_via_datos.sql` inserta la fila 1 con la polilínea de la PE-28A (Pisco km 0 → Ayacucho km 333).
+`V0005__corredor_via_datos.sql` inserta la fila 1 con la polilínea de la PE-28A (Pisco km 0 → Ayacucho km 335.073).
 
 **Revisión 2026-10-21 (T-BD-CHK):** CHECK de `persistencia`, `confidence`, `precision_m`, `transicion.desde/hacia`; se quita `ix_anomalia_pendiente` porque sobra: la lista «Esperan confirmación» (estado 2, orden por `vence_utc`) la sirve `ix_anomalia_vence` (parcial sobre estados 1 y 2). Las dos FK del esquema apuntan a `anomalias.anomalia` (ninguna FK entre esquemas; la prueba es de 001).
 
@@ -106,7 +106,7 @@ CREATE TABLE anomalias.corredor_via (
 | `Activa` / `PendienteConfirmacion` | `Reparada` | administrador: `MarcarReparada` | RN-07 |
 | `Activa` / `PendienteConfirmacion` / `Expirada` | `Descartada` | administrador: `Descartar` | RN-07 |
 | `Reparada` / `Descartada` | `Activa` | administrador: `Reabrir` | RN-07 |
-| `Descartada` | `Descartada` (sin transición) | administrador: `MantenerDescartada` | RN-07 (R-005) |
+| `Descartada` con `por_revisar = true` | `Descartada` (sin transición) | administrador: `MantenerDescartada` | RN-07 (R-005) |
 
 **Una sola transición por operación** (`Anomalia.Transiciones.cs`): se compara el estado al empezar con el estado al terminar. Así el paso interno por `PendienteConfirmacion` al nacer o renacer no se registra si termina en `Activa`.
 

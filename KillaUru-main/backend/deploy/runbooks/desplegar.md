@@ -22,3 +22,21 @@
 
 - Cada script `V####__descripcion.sql` lleva en su primera línea `-- V#### · descripcion · fase 1|2`.
 - Fase 1 = agregar (columnas, tablas, índices). Fase 2 = borrar, **en un despliegue posterior** a la versión que dejó de usarlo. Así la versión anterior siempre funciona con el esquema nuevo y la vuelta atrás es solo cambiar la imagen.
+
+## Identidad: primer administrador (003)
+
+Aplicar V0003 antes de arrancar esta versión y configurar los secretos de Identidad. Generar dos claves
+independientes para firma JWT y rotación HMAC. No copiar sus valores a Git, terminal compartida ni tickets.
+
+Validar la composición y ejecutar desde una terminal privada:
+
+```sh
+docker compose -f docker-compose.yml -f docker-compose.semilla.yml config --quiet
+docker compose -f docker-compose.yml -f docker-compose.semilla.yml run --rm --no-deps api crear-admin admin@killauru.pe
+```
+
+El override usa `logging.driver=none` para que la consola con el enlace no alimente Docker ni Alloy.
+No usar `tee`, redirección a archivos ni una sesión grabada. Canjear la invitación de 24 h en el panel.
+El comando no inicia HTTP ni manda correo; audita UsuarioCreado con actor Sistema. Rechaza la ejecución
+si ya existe cualquier administrador, incluso invitado o desactivado. No es un mecanismo de recuperación.
+La página que canjea el enlace pertenece a 010; en pruebas se usa POST /api/v1/auth/fijar-contrasena.

@@ -26,3 +26,7 @@
 ## Notes
 
 - Los pendientes de `research.md` (R-001, R-005, R-006, R-007, R-011, R-012) quedaron **confirmados por el autor el 2026-10-21** (D1); la revisión del 2026-10-21 suma D2, D3, D4, D7, D13, D14, D15 y las correcciones técnicas (FR-030…FR-034, R-013…R-017). Lo no aplicado está en `specs/revision/no-aplicado-004.md`.
+
+## Verificación de implementación — 2026-10-26
+
+Este checklist evalúa la calidad de la especificación. La implementación y su aceptación se registran en [trazabilidad.md](trazabilidad.md) y [revision-implementacion.md](../revision-implementacion.md): 56/58 tareas verificadas; permanecen abiertas T053 (latencia) y T054 (EQ-12 integrado con 005).

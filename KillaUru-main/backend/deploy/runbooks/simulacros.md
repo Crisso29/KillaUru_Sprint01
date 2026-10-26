@@ -7,7 +7,7 @@ Todos se hacen en el entorno de pruebas `killauru-pruebas` (R-11), nunca en prod
 | Cada | Verificación | Runbook | Meta |
 |---|---|---|---|
 | mes | restaurar el último respaldo | `restaurar.md` | RTO ≤ 2 h, 0 sesiones sin revocar, 0 seudónimos > 72 h |
-| mes | revisión de privilegios (feature 003) | — | registro en la auditoría (RNF-30) |
+| día 1 de cada mes | revisión de privilegios (003); CRISOLOGO, reemplazo CRISSO | GET y POST `/api/v1/usuarios/revision-privilegios` | revisar todos los administradores y guardar constancia auditada (RNF-30) |
 | mes | costo y uso de Grafana | `monitoreo.md` | < US$ 8; < 80 % del plan |
 | mes y antes de cada versión | carga, picos, estrés, resistencia, caos | `tests/carga/` | tabla de abajo |
 | semestre | incidente de datos personales EQ-13 (002 T035) | [incidentes-datos-personales.md](incidentes-datos-personales.md) | borrador listo en ≤ 48 h; sin envío real durante el ejercicio |

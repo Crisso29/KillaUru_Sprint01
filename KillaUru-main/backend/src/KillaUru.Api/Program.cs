@@ -5,9 +5,16 @@ using KillaUru.Api.Modulos;
 using KillaUru.Api.Observabilidad;
 using KillaUru.Api.Salud;
 using KillaUru.Api.Seguridad;
+using KillaUru.Identidad;
+
+// Comando especial: "crear-admin <correo>" crea el primer administrador sin levantar el servidor.
+// Cuando se detecta, el builder recibe args vacíos para no procesar flags de Kestrel.
+const string ComandoCrearAdmin = "crear-admin";
+
+var builder = WebApplication.CreateBuilder(
+    args.Length > 0 && args[0] == ComandoCrearAdmin ? [] : args);
 
 // El host solo compone: cada asunto transversal vive en su extensión y cada módulo en su Add<Modulo>Module.
-var builder = WebApplication.CreateBuilder(args);
 builder.AgregarLogs();
 builder.Services
     .AgregarConfiguracion(builder.Configuration)
@@ -23,6 +30,21 @@ builder.Services
     .AgregarModulos(builder.Configuration);
 
 var app = builder.Build();
+
+if (args.Length > 0 && args[0] == ComandoCrearAdmin)
+{
+    if (args.Length != 2)
+    {
+        await Console.Error.WriteLineAsync("Uso: crear-admin <correo>");
+        Environment.ExitCode = 1;
+    }
+    else
+    {
+        Environment.ExitCode = await IdentidadModule.CrearAdministradorInicialAsync(app.Services, args[1], Console.Out, CancellationToken.None);
+    }
+    await app.DisposeAsync();
+    return;
+}
 
 // El orden importa: IP real → errores → cabeceras → logs → CORS → quién es → token inválido = 401 → límites → permisos.
 app.UseForwardedHeaders();
