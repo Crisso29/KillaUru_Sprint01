@@ -11,7 +11,12 @@ internal sealed class Usuario
     public bool CorreoVerificado { get; private set; }
     public DateTimeOffset CreadoUtc { get; private set; }
     public PoliticaBloqueo Bloqueo { get; private set; } = new();
-    internal string Estado => HashContrasena is null ? "InvitacionPendiente" : Activo ? "Activa" : "Desactivada";
+    internal string Estado => (HashContrasena, Activo) switch
+    {
+        (null, _) => "InvitacionPendiente",
+        (_, true) => "Activa",
+        _ => "Desactivada",
+    };
 
     internal static Usuario RegistrarConductor(Correo correo, string hash, DateTimeOffset ahora)
     {
@@ -35,5 +40,9 @@ internal sealed class Usuario
     internal void CambiarRol(RolUsuario rol) => Rol = rol;
     internal void Desactivar() => Activo = false;
     internal void Activar() => Activo = true;
-    internal bool PuedeIniciarSesion(DateTimeOffset ahora) => Activo && HashContrasena is not null && !Bloqueo.EstaBloqueado(ahora);
+    internal bool PuedeIniciarSesion(DateTimeOffset ahora)
+    {
+        var tieneContrasena = HashContrasena is not null;
+        return Activo && tieneContrasena && !Bloqueo.EstaBloqueado(ahora);
+    }
 }

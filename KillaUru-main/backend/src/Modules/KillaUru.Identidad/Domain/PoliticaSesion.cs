@@ -1,9 +1,15 @@
 namespace KillaUru.Identidad.Domain;
 
-/// <summary>Vencimiento deslizante del conductor y absoluto del administrador.</summary>
+/// <summary>Vencimiento deslizante del conductor y absoluto del administrador (FR-015).</summary>
 internal static class PoliticaSesion
 {
-    internal static DateTimeOffset Vencimiento(DateTimeOffset ahora, DateTimeOffset? limite, int dias, int horas)
-        => HorasGuardadas.ALaHora(limite is null ? ahora.AddDays(dias) :
-            (ahora.AddHours(horas) < limite.Value ? ahora.AddHours(horas) : limite.Value));
+    /// <summary>Solo el administrador tiene límite absoluto; cada renovación suya no puede pasarlo.</summary>
+    internal static DateTimeOffset Vencimiento(DateTimeOffset ahora, DateTimeOffset? limiteAbsoluto,
+        int diasConductor, int horasAdministrador)
+    {
+        if (limiteAbsoluto is null) return HorasGuardadas.ALaHora(ahora.AddDays(diasConductor));
+        var siguienteRenovacion = ahora.AddHours(horasAdministrador);
+        var primeroQueOcurre = siguienteRenovacion < limiteAbsoluto.Value ? siguienteRenovacion : limiteAbsoluto.Value;
+        return HorasGuardadas.ALaHora(primeroQueOcurre);
+    }
 }

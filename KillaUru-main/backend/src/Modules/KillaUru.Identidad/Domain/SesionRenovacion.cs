@@ -19,12 +19,16 @@ internal sealed class SesionRenovacion
             CreadoUtc = HorasGuardadas.ALaHora(ahora), ExpiraUtc = HorasGuardadas.ALaHora(expira), LimiteAbsolutoUtc = limite,
         };
 
-    internal string? Validar(DateTimeOffset ahora, bool activo, int graciaSegundos)
+    /// <summary>Devuelve null si la sesión sirve, o el código de error del contrato.</summary>
+    internal string? Validar(DateTimeOffset ahora, bool cuentaActiva, int graciaSegundos)
     {
         ahora = HorasGuardadas.AlMicrosegundo(ahora);
-        if (RevocadoUtc is not null || ExpiraUtc <= ahora || LimiteAbsolutoUtc <= ahora) return "sesion_invalida";
-        if (UsadoUtc is not null && ahora - UsadoUtc > TimeSpan.FromSeconds(graciaSegundos)) return "sesion_invalida";
-        return activo ? null : "cuenta_desactivada";
+        var revocada = RevocadoUtc is not null;
+        var vencida = ExpiraUtc <= ahora || LimiteAbsolutoUtc <= ahora;
+        // Reusar un token ya rotado fuera de la gracia indica robo (FR-016).
+        var reusoFueraDeGracia = UsadoUtc is not null && ahora - UsadoUtc > TimeSpan.FromSeconds(graciaSegundos);
+        if (revocada || vencida || reusoFueraDeGracia) return ErroresSesion.SesionInvalida;
+        return cuentaActiva ? null : ErroresSesion.CuentaDesactivada;
     }
 
     internal void Usar(DateTimeOffset ahora) => UsadoUtc ??= HorasGuardadas.AlMicrosegundo(ahora);

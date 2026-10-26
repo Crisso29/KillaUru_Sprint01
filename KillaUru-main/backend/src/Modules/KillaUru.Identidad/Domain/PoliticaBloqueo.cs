@@ -7,21 +7,16 @@ internal sealed class PoliticaBloqueo
     public short NivelBloqueo { get; private set; }
     public DateTimeOffset? VentanaFallosDesdeUtc { get; private set; }
     public DateTimeOffset? BloqueadoHasta { get; private set; }
+
+    /// <summary>Devuelve true solo cuando este fallo inicia un bloqueo nuevo.</summary>
     internal bool RegistrarFallo(DateTimeOffset ahora, ParametrosBloqueo parametros)
     {
+        // Mientras dura el bloqueo, los fallos no cuentan: así un atacante no puede alargarlo.
         if (EstaBloqueado(ahora)) return false;
-        if (VentanaFallosDesdeUtc is null || ahora - VentanaFallosDesdeUtc > TimeSpan.FromMinutes(parametros.VentanaMinutos))
-        {
-            IntentosFallidos = 0;
-            VentanaFallosDesdeUtc = ahora;
-        }
+        if (VentanaVencida(ahora, parametros)) AbrirVentana(ahora);
         IntentosFallidos++;
         if (IntentosFallidos < parametros.IntentosMaximos) return false;
-        var nivel = Math.Min(NivelBloqueo, parametros.DuracionesMinutos.Length - 1);
-        BloqueadoHasta = ahora.AddMinutes(parametros.DuracionesMinutos[nivel]);
-        NivelBloqueo = (short)Math.Min(NivelBloqueo + 1, parametros.DuracionesMinutos.Length);
-        IntentosFallidos = 0;
-        VentanaFallosDesdeUtc = null;
+        Bloquear(ahora, parametros.DuracionesMinutos);
         return true;
     }
 
@@ -33,5 +28,24 @@ internal sealed class PoliticaBloqueo
         NivelBloqueo = 0;
         VentanaFallosDesdeUtc = null;
         BloqueadoHasta = null;
+    }
+
+    private bool VentanaVencida(DateTimeOffset ahora, ParametrosBloqueo parametros) =>
+        VentanaFallosDesdeUtc is null || ahora - VentanaFallosDesdeUtc > TimeSpan.FromMinutes(parametros.VentanaMinutos);
+
+    private void AbrirVentana(DateTimeOffset ahora)
+    {
+        IntentosFallidos = 0;
+        VentanaFallosDesdeUtc = ahora;
+    }
+
+    /// <summary>Cada bloqueo sube un nivel; al pasar el último se repite la duración más larga.</summary>
+    private void Bloquear(DateTimeOffset ahora, int[] duracionesMinutos)
+    {
+        var ultimoNivel = duracionesMinutos.Length - 1;
+        BloqueadoHasta = ahora.AddMinutes(duracionesMinutos[Math.Min(NivelBloqueo, ultimoNivel)]);
+        NivelBloqueo = (short)Math.Min(NivelBloqueo + 1, duracionesMinutos.Length);
+        IntentosFallidos = 0;
+        VentanaFallosDesdeUtc = null;
     }
 }
