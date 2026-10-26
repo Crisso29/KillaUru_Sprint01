@@ -5,45 +5,96 @@ using KillaUru.Anomalias.Infrastructure;
 using KillaUru.Integracion.Tests.Infraestructura;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using EstadoDominio = KillaUru.Anomalias.Domain.EstadoAnomalia;
+
 namespace KillaUru.Integracion.Tests.Anomalias;
-/// <summary>Verifica estados y retención en PostgreSQL con reloj controlado.</summary>
+
+/// <summary>
+/// Tareas de mantenimiento en PostgreSQL con reloj controlado: caducidad, purga de seudónimos y
+/// lecturas que otros módulos usan después. Spec 004 · FR-018, FR-021, FR-029.
+/// </summary>
 [Collection("Anomalias")]
 public sealed class MantenimientoTests(BaseDatosPrueba bd)
 {
+    /// <summary>
+    /// Caducar fecha la expiración en el vencimiento (no en la hora de la tarea), deja una sola
+    /// transición y aparece en «cambios desde» para que el mapa se actualice (FR-018, FR-029).
+    /// </summary>
     [Fact]
-    public async Task Caducidad_conserva_instante_de_vencimiento_y_lectura_incremental()
+    public async Task Caducidad_conserva_el_instante_de_vencimiento_y_la_lectura_incremental()
     {
-        using var e = new EscenarioAnomalias(bd); var evento = e.Evento(); await e.ProcesarAsync(evento);
-        await using var scope = e.Api.Services.CreateAsyncScope(); var ct = TestContext.Current.CancellationToken;
-        var db = scope.ServiceProvider.GetRequiredService<AnomaliasDbContext>();
-        var r = await db.Reportes.SingleAsync(r => r.EventoId == evento.EventoId, ct);
-        var antes = await db.Anomalias.AsNoTracking().SingleAsync(a => a.Id == r.AnomaliaId, ct);
-        e.Reloj.Advance(TimeSpan.FromHours(73));
-        await scope.ServiceProvider.GetRequiredService<CaducarAnomaliasUseCase>().EjecutarAsync(ct);
-        var actual = await db.Anomalias.AsNoTracking().SingleAsync(a => a.Id == r.AnomaliaId, ct);
-        Assert.Equal("Expirada", actual.Estado.ToString()); Assert.Equal(antes.VenceUtc, actual.EstadoDesdeUtc);
-        Assert.Single(await db.Transiciones.Where(t => t.AnomaliaId == actual.Id && t.Hacia == KillaUru.Anomalias.Domain.EstadoAnomalia.Expirada).ToListAsync(ct));
-        var lectura = scope.ServiceProvider.GetRequiredService<IAnomaliaLectura>();
-        Assert.Contains(await lectura.CambiosDesdeAsync(antes.ActualizadaUtc, ct), a => a.Id == actual.Id && a.Estado == EstadoAnomalia.Expirada);
+        // Arrange
+        using var escenario = new EscenarioAnomalias(bd);
+        var id = await escenario.ProcesarYObtenerAnomaliaAsync(escenario.Evento());
+        var antes = await escenario.LeerAnomaliaAsync(id);
+        escenario.Reloj.Advance(TimeSpan.FromHours(73));
+        await using var scope = escenario.Api.Services.CreateAsyncScope();
+
+        // Act
+        await scope.ServiceProvider.GetRequiredService<CaducarAnomaliasUseCase>().EjecutarAsync(EscenarioAnomalias.Ct);
+
+        // Assert
+        var despues = await escenario.LeerAnomaliaAsync(id);
+        Assert.Equal(EstadoDominio.Expirada, despues.Estado);
+        Assert.Equal(antes.VenceUtc, despues.EstadoDesdeUtc);
+        Assert.Equal(1, await ExpiracionesAsync(scope.ServiceProvider, id));
+        var cambios = await scope.ServiceProvider.GetRequiredService<IAnomaliaLectura>().CambiosDesdeAsync(antes.ActualizadaUtc, EscenarioAnomalias.Ct);
+        Assert.Contains(cambios, a => a.Id == id && a.Estado == EstadoAnomalia.Expirada);
     }
 
+    /// <summary>El filtro por caja geográfica y severidad usa la geometría real de PostGIS (FR-029).</summary>
     [Fact]
-    public async Task Purga_conserva_conteo_diario_y_filtrado_usa_geometria()
+    public async Task Filtrado_usa_la_geometria()
     {
-        using var e = new EscenarioAnomalias(bd); e.Reloj.Advance(TimeSpan.FromMinutes(37) + TimeSpan.FromSeconds(12));
-        var evento = e.Evento(); await e.ProcesarAsync(evento);
-        await using var scope = e.Api.Services.CreateAsyncScope(); var ct = TestContext.Current.CancellationToken;
-        var lectura = scope.ServiceProvider.GetRequiredService<IAnomaliaLectura>();
-        var db = scope.ServiceProvider.GetRequiredService<AnomaliasDbContext>();
-        var r = await db.Reportes.AsNoTracking().SingleAsync(r => r.EventoId == evento.EventoId, ct);
-        var filtro = new FiltroAnomalias(e.Longitud - .001, -13.001, e.Longitud + .001, -12.999, Severidades: [2]);
-        Assert.Contains(await lectura.FiltrarAsync(filtro, ct), a => a.Id == r.AnomaliaId);
-        var dia = DateOnly.FromDateTime(r.RecibidoUtc.ToOffset(TimeSpan.FromHours(-5)).DateTime);
-        var antes = await lectura.ResumenDelDiaAsync(dia, ct);
-        e.Reloj.Advance(TimeSpan.FromHours(72) + TimeSpan.FromSeconds(1));
-        await scope.ServiceProvider.GetRequiredService<PurgarSeudonimosUseCase>().EjecutarAsync(ct);
-        var purgado = await db.Reportes.AsNoTracking().SingleAsync(r => r.EventoId == evento.EventoId, ct);
-        Assert.Null(purgado.Seudonimo); Assert.Equal(0, purgado.RecibidoUtc.Minute);
-        Assert.Equal(antes.EventosRecibidos, (await lectura.ResumenDelDiaAsync(dia, ct)).EventosRecibidos);
+        // Arrange
+        using var escenario = new EscenarioAnomalias(bd);
+        var id = await escenario.ProcesarYObtenerAnomaliaAsync(escenario.Evento());
+        var caja = new FiltroAnomalias(escenario.Longitud - 0.001, -13.001, escenario.Longitud + 0.001, -12.999, Severidades: [2]);
+        await using var scope = escenario.Api.Services.CreateAsyncScope();
+
+        // Act
+        var encontradas = await scope.ServiceProvider.GetRequiredService<IAnomaliaLectura>().FiltrarAsync(caja, EscenarioAnomalias.Ct);
+
+        // Assert
+        Assert.Contains(encontradas, a => a.Id == id);
     }
+
+    /// <summary>
+    /// Pasadas 72 h, la purga borra el seudónimo y redondea la recepción a la hora en la misma
+    /// sentencia, sin cambiar el conteo diario del dashboard (FR-021).
+    /// </summary>
+    [Fact]
+    public async Task Purga_anonimiza_sin_cambiar_el_conteo_diario()
+    {
+        // Arrange
+        using var escenario = new EscenarioAnomalias(bd);
+        var evento = await RecibirConMinutosYSegundosAsync(escenario);
+        await using var scope = escenario.Api.Services.CreateAsyncScope();
+        var lectura = scope.ServiceProvider.GetRequiredService<IAnomaliaLectura>();
+        var dia = DateOnly.FromDateTime(escenario.Reloj.GetUtcNow().ToOffset(TimeSpan.FromHours(-5)).DateTime);
+        var conteoAntes = (await lectura.ResumenDelDiaAsync(dia, EscenarioAnomalias.Ct)).EventosRecibidos;
+        escenario.Reloj.Advance(TimeSpan.FromHours(72) + TimeSpan.FromSeconds(1));
+
+        // Act
+        await scope.ServiceProvider.GetRequiredService<PurgarSeudonimosUseCase>().EjecutarAsync(EscenarioAnomalias.Ct);
+
+        // Assert
+        var reporte = await escenario.LeerReporteAsync(evento.EventoId);
+        Assert.Null(reporte.Seudonimo);
+        Assert.Equal(0, reporte.RecibidoUtc.Minute);
+        Assert.Equal(conteoAntes, (await lectura.ResumenDelDiaAsync(dia, EscenarioAnomalias.Ct)).EventosRecibidos);
+    }
+
+    /// <summary>Recepción a las 12:37:12: con minutos y segundos, para que se note el redondeo a la hora.</summary>
+    private static async Task<EventoReportado> RecibirConMinutosYSegundosAsync(EscenarioAnomalias escenario)
+    {
+        escenario.Reloj.Advance(TimeSpan.FromMinutes(37) + TimeSpan.FromSeconds(12));
+        var evento = escenario.Evento();
+        await escenario.ProcesarAsync(evento);
+        return evento;
+    }
+
+    private static Task<int> ExpiracionesAsync(IServiceProvider servicios, Guid id) =>
+        servicios.GetRequiredService<AnomaliasDbContext>().Transiciones
+            .CountAsync(t => t.AnomaliaId == id && t.Hacia == EstadoDominio.Expirada, EscenarioAnomalias.Ct);
 }

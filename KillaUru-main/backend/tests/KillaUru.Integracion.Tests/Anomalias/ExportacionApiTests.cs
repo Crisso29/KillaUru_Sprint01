@@ -5,34 +5,57 @@ using KillaUru.Auditoria.Infrastructure;
 using KillaUru.Integracion.Tests.Infraestructura;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+
 namespace KillaUru.Integracion.Tests.Anomalias;
-/// <summary>El conteo auditado coincide con el archivo entregado en ambos formatos.</summary>
+
+/// <summary>
+/// Exportación por HTTP: el archivo se entrega como adjunto, sin seudónimos, y el número de filas
+/// auditado coincide con el entregado en ambos formatos. Spec 004 · FR-028.
+/// </summary>
 [Collection("Anomalias")]
 public sealed class ExportacionApiTests(BaseDatosPrueba bd)
 {
-    private static readonly string[] Activas = ["Activa"];
+    private static readonly string[] SoloActivas = ["Activa"];
+
     [Theory]
     [InlineData("CSV")]
     [InlineData("GeoJSON")]
     public async Task Exporta_y_audita_el_mismo_numero_de_filas(string formato)
     {
-        using var e = new EscenarioAnomalias(bd); await e.ProcesarAsync(e.Evento());
-        using var cliente = e.Api.CreateClient(); var actor = Guid.NewGuid(); var ct = TestContext.Current.CancellationToken;
-        cliente.DefaultRequestHeaders.Authorization = new("Bearer", Tokens.Emitir("Administrador", actor.ToString(), reloj:e.Reloj));
-        using var respuesta = await cliente.PostAsJsonAsync("/api/v1/exportaciones", new { formato, tipo="Bache", estados=Activas }, ct);
-        respuesta.EnsureSuccessStatusCode(); Assert.Equal("attachment", respuesta.Content.Headers.ContentDisposition!.DispositionType);
-        var texto = await respuesta.Content.ReadAsStringAsync(ct);
-        Assert.DoesNotContain("seudonimo", texto, StringComparison.OrdinalIgnoreCase);
-        var cantidad = formato == "CSV" ? texto.Split('\n', StringSplitOptions.RemoveEmptyEntries).Length-1 : ContarGeoJson(texto);
-        Assert.True(cantidad > 0);
-        await using var scope = e.Api.Services.CreateAsyncScope(); var db = scope.ServiceProvider.GetRequiredService<AuditoriaDbContext>();
-        var registro = await db.Registros.SingleAsync(r => r.ActorId == actor && r.Accion == (short)AccionAuditada.DatasetExportado, ct);
-        using var contexto = JsonDocument.Parse(registro.Contexto);
-        Assert.Equal(cantidad, contexto.RootElement.GetProperty("filas").GetInt32());
+        // Arrange
+        using var escenario = new EscenarioAnomalias(bd);
+        await escenario.ProcesarAsync(escenario.Evento());
+        var actor = Guid.NewGuid();
+        using var cliente = escenario.ClienteComo("Administrador", actor);
+
+        // Act
+        using var respuesta = await cliente.PostAsJsonAsync("/api/v1/exportaciones", new { formato, tipo = "Bache", estados = SoloActivas }, EscenarioAnomalias.Ct);
+
+        // Assert
+        respuesta.EnsureSuccessStatusCode();
+        Assert.Equal("attachment", respuesta.Content.Headers.ContentDisposition!.DispositionType);
+        var archivo = await respuesta.Content.ReadAsStringAsync(EscenarioAnomalias.Ct);
+        Assert.DoesNotContain("seudonimo", archivo, StringComparison.OrdinalIgnoreCase);
+        var filasEntregadas = formato == "CSV" ? ContarFilasCsv(archivo) : ContarFeatures(archivo);
+        Assert.True(filasEntregadas > 0);
+        Assert.Equal(filasEntregadas, await FilasAuditadasAsync(escenario, actor));
     }
-    private static int ContarGeoJson(string texto)
+
+    /// <summary>Filas sin contar la cabecera.</summary>
+    private static int ContarFilasCsv(string archivo) => archivo.Split('\n', StringSplitOptions.RemoveEmptyEntries).Length - 1;
+
+    private static int ContarFeatures(string archivo)
     {
-        using var json = JsonDocument.Parse(texto);
+        using var json = JsonDocument.Parse(archivo);
         return json.RootElement.GetProperty("features").GetArrayLength();
+    }
+
+    private static async Task<int> FilasAuditadasAsync(EscenarioAnomalias escenario, Guid actor)
+    {
+        await using var scope = escenario.Api.Services.CreateAsyncScope();
+        var registro = await scope.ServiceProvider.GetRequiredService<AuditoriaDbContext>().Registros
+            .SingleAsync(r => r.ActorId == actor && r.Accion == (short)AccionAuditada.DatasetExportado, EscenarioAnomalias.Ct);
+        using var contexto = JsonDocument.Parse(registro.Contexto);
+        return contexto.RootElement.GetProperty("filas").GetInt32();
     }
 }
