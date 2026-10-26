@@ -1,28 +1,56 @@
 using KillaUru.Anomalias.Application.Puertos;
 using KillaUru.Anomalias.Application.Tareas;
 using KillaUru.Anomalias.Contracts;
+using KillaUru.Shared.Domain;
 using KillaUru.Shared.Eventos;
 using KillaUru.Shared.Metricas;
 using NSubstitute;
+
 namespace KillaUru.Anomalias.Tests.Application;
-/// <summary>Un rollback nunca invalida el mapa ni declara éxito de una tarea.</summary>
+
+/// <summary>
+/// La tarea de caducidad avisa al mapa solo después del commit, para que un rollback nunca invalide
+/// la caché, y solo entonces declara éxito. Spec 004 · FR-014, FR-018, FR-024.
+/// </summary>
 public sealed class CaducidadTests
 {
+    private readonly IPublicadorEventos _eventos = Substitute.For<IPublicadorEventos>();
+    private readonly List<Func<Task>> _alConfirmar = [];
+    private bool _publicadoAntesDelCommit;
+
+    /// <summary>Ejecuta la acción, anota si ya se había publicado algo y recién entonces corre los efectos.</summary>
+    private ITransaccionAnomalias TransaccionQueConfirma()
+    {
+        var transaccion = Substitute.For<ITransaccionAnomalias>();
+        transaccion.AlConfirmar(Arg.Do<Func<Task>>(_alConfirmar.Add));
+        transaccion.EjecutarAsync(Arg.Any<IReadOnlyCollection<long>>(), null, null, Arg.Any<Func<Task<int>>>(), Arg.Any<CancellationToken>())
+            .Returns(async llamada =>
+            {
+                var caducadas = await llamada.Arg<Func<Task<int>>>()();
+                _publicadoAntesDelCommit = _eventos.ReceivedCalls().Any();
+                foreach (var efecto in _alConfirmar) await efecto();
+                return caducadas;
+            });
+        return transaccion;
+    }
+
+    /// <summary>Cada anomalía caducada se publica una vez, después del commit, y la tarea registra su éxito.</summary>
     [Fact]
     public async Task Publica_despues_del_commit_y_registra_exito()
     {
-        var repo = Substitute.For<ICaducidadRepository>(); var tx = Substitute.For<ITransaccionAnomalias>();
-        var eventos = Substitute.For<IPublicadorEventos>(); var metricas = Substitute.For<IMetricas>();
-        var cambio = new AnomaliaCambiada(Guid.NewGuid(), KillaUru.Shared.Domain.Celda.De(KillaUru.Shared.Domain.Coordenada.Crear(0, 0)!.Value)); var pendientes = new List<Func<Task>>();
-        repo.CaducarAsync(Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>()).Returns(new[] { cambio });
-        tx.AlConfirmar(Arg.Do<Func<Task>>(pendientes.Add));
-        tx.EjecutarAsync(Arg.Any<IReadOnlyCollection<long>>(), null, null, Arg.Any<Func<Task<int>>>(), Arg.Any<CancellationToken>())
-            .Returns(async llamada => { var n = await llamada.Arg<Func<Task<int>>>()();
-                await eventos.DidNotReceive().PublicarAsync(cambio, Arg.Any<CancellationToken>());
-                foreach (var accion in pendientes) await accion(); return n; });
-        await new CaducarAnomaliasUseCase(repo, tx, eventos, metricas, TimeProvider.System).EjecutarAsync(TestContext.Current.CancellationToken);
-        await eventos.Received(1).PublicarAsync(cambio, Arg.Any<CancellationToken>());
+        // Arrange
+        var repositorio = Substitute.For<ICaducidadRepository>();
+        var metricas = Substitute.For<IMetricas>();
+        var cambio = new AnomaliaCambiada(Guid.NewGuid(), Celda.De(Coordenada.Crear(0, 0)!.Value));
+        repositorio.CaducarAsync(Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>()).Returns([cambio]);
+        var caso = new CaducarAnomaliasUseCase(repositorio, TransaccionQueConfirma(), _eventos, metricas, TimeProvider.System);
+
+        // Act
+        await caso.EjecutarAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.False(_publicadoAntesDelCommit);
+        await _eventos.Received(1).PublicarAsync(cambio, Arg.Any<CancellationToken>());
         metricas.Received(1).RegistrarTareaCorrecta("caducidad");
     }
 }
-
