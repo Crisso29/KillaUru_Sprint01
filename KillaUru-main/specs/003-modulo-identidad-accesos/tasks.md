@@ -37,8 +37,8 @@ description: "Tareas del módulo Identidad y Accesos"
 - [x] T012 [P] `TokenCorreo`, `Consentimiento`, `RevisionPrivilegios` — `Id/Domain/` · (FR-002, FR-021, FR-034)
 - [x] T013 [P] Puertos (11 interfaces de `plan.md`, incluidos `ITransaccionIdentidad` e `IPurgaIdentidadRepositorio`) — `Id/Application/Puertos/`
 - [x] T014 `IdentidadDbContext` + 5 configuraciones EF — `Id/Infrastructure/` · (ADR-012)
-- [x] T015 [P] Repositorios + prueba de integración de cada uno con Testcontainers — `Id/Infrastructure/Repositorios/`, `IntId/RepositoriosTests.cs`
-- [x] T016 `TransaccionIdentidad` (abre transacción y `IContextoTransaccion.Unir`) + prueba «acción y auditoría juntas, o ninguna» y «`RegistrarAsync` sin transacción unida lanza `InvalidOperationException`» — `Id/Infrastructure/TransaccionIdentidad.cs`, `IntId/AuditoriaEnLaMismaTransaccionTests.cs` · (RNF-31, FR-038)
+- [x] T015 [P] Repositorios + prueba de integración de cada uno con Testcontainers — `Id/Infrastructure/Repositorios/`, `IntId/PersistenciaTests.cs`, `IntId/UsuariosApiTests.cs`
+- [x] T016 `TransaccionIdentidad` (abre transacción y `IContextoTransaccion.Unir`) + prueba «acción y auditoría juntas, o ninguna» y «`RegistrarAsync` sin transacción unida lanza `InvalidOperationException`» — `Id/Infrastructure/TransaccionIdentidad.cs`, `IntId/PersistenciaTests.cs` · (RNF-31, FR-038)
 - [x] T017 [P] `HashContrasenas` (PasswordHasher, rehash) — `Id/Infrastructure/Seguridad/HashContrasenas.cs` · (FR-005)
 - [x] T018 [P] `GeneradorSecretos` (aleatorio 32 B, SHA-256, derivación HMAC) + prueba: misma entrada → misma salida; distinta clave → distinta salida — `Id/Infrastructure/Seguridad/GeneradorSecretos.cs` · (R-003)
 - [x] T019 [P] `EmisorJwt` (5 min, `sub`, `rol`, `verificado`, `jti`) + prueba de que el middleware de 001 lo acepta a las 4:59 y lo rechaza a las 5:01 (`ClockSkew = TimeSpan.Zero`) — `Id/Infrastructure/Seguridad/EmisorJwt.cs` · (FR-014, D8, T-SEG09)
@@ -52,7 +52,7 @@ description: "Tareas del módulo Identidad y Accesos"
 
 ## Phase 3: User Story 1 — Registrarse con consentimiento (P1) 🎯 MVP
 
-- [x] T023 [P] [US1] `RegistrarConductorUseCaseTests` (aceptaciones vigentes, versión vieja, sin aceptar, correo en uso, correo de verificación enviado, sesión emitida con `verificado = false`, contraseña de 9/10 caracteres) — `IdT/Application/RegistrarConductorUseCaseTests.cs` · (FR-001, FR-002, FR-021)
+- [x] T023 [P] [US1] `RegistrarConductorUseCaseTests` (aceptaciones vigentes, versión vieja, sin aceptar, correo en uso, correo de verificación enviado, sesión emitida con `verificado = false`, contraseña de 9/10 caracteres) — `IdT/Application/RegistrarConductorTests.cs`, `IntId/CuentaApiTests.cs` · (FR-001, FR-002, FR-021)
 - [x] T024 [P] [US1] `ObtenerVersionesLegalesUseCase` + prueba — `Id/Application/Legal/` · (FR-003)
 - [x] T025 [US1] `RegistrarConductorUseCase` — `Id/Application/Cuenta/RegistrarConductorUseCase.cs` · (FR-001, FR-002)
 - [x] T026 [US1] `LegalController` y `CuentaController.Registrar` con DTOs documentados y la política de límite de tasa del registro del host (`LimiteTasa:RegistrosPorHoraPorIp`) — `Id/Adapters/` · (Constitución IX, FR-037)
@@ -62,7 +62,7 @@ description: "Tareas del módulo Identidad y Accesos"
 
 ## Phase 4: User Story 2 — Iniciar sesión con bloqueo (P1)
 
-- [x] T028 [P] [US2] `IniciarSesionUseCaseTests`: misma respuesta para correo inexistente, contraseña mala y cuenta desactivada; bloqueo progresivo; auditoría de fallos, bloqueos e inicio de administrador; conductor en panel → `solo_administradores`; invitación pendiente no puede entrar — `IdT/Application/IniciarSesionUseCaseTests.cs` · (FR-007…FR-013)
+- [x] T028 [P] [US2] `IniciarSesionUseCaseTests`: misma respuesta para correo inexistente, contraseña mala y cuenta desactivada; bloqueo progresivo; auditoría de fallos, bloqueos e inicio de administrador; conductor en panel → `solo_administradores`; invitación pendiente no puede entrar — `IdT/Domain/UsuarioBloqueoTests.cs`, `IntId/SesionApiTests.cs`, `IntId/RespuestasComunesApiTests.cs` · (FR-007…FR-013)
 - [x] T029 [P] [US2] `VerificadorTurnstile` + doble de prueba — `Id/Infrastructure/Seguridad/VerificadorTurnstile.cs` · (FR-012)
 - [x] T030 [US2] `IniciarSesionUseCase` — `Id/Application/Sesion/IniciarSesionUseCase.cs` · (FR-007…FR-013)
 - [x] T031 [US2] `CookiesSesion` y `SesionController.IniciarSesion` (app: cuerpo; panel: cookies; 423 solo en panel) — `Id/Adapters/` · (FR-011, FR-020)
@@ -72,7 +72,7 @@ description: "Tareas del módulo Identidad y Accesos"
 
 ## Phase 5: User Story 3 — Sesiones renovables y revocables (P1)
 
-- [x] T033 [P] [US3] `RenovarSesionUseCaseTests` (todas las filas de la tabla de decisión) y `CerrarSesionUseCaseTests` — `IdT/Application/` · (FR-015…FR-018)
+- [x] T033 [P] [US3] `RenovarSesionUseCaseTests` (todas las filas de la tabla de decisión) y `CerrarSesionUseCaseTests` — `IdT/Domain/SesionRenovacionTests.cs`, `IdT/Domain/PoliticaSesionTests.cs`, `IntId/SesionApiTests.cs` · (FR-015…FR-018)
 - [x] T034 [US3] `RenovarSesionUseCase` y `CerrarSesionUseCase` — `Id/Application/Sesion/` · (FR-015…FR-018)
 - [x] T035 [US3] `SesionController.Renovar` y `CerrarSesion` — `Id/Adapters/SesionController.cs`
 - [x] T036 [US3] `SesionApiTests.Renovacion*`: gracia de 60 s devuelve el mismo token; a los 61 s revoca; desactivada → `cuenta_desactivada`; prueba de extremo a extremo de RNF-26 (desactivar → JWT inútil en ≤ 5 min) — `IntId/SesionApiTests.cs` · (SC-001)
@@ -81,7 +81,7 @@ description: "Tareas del módulo Identidad y Accesos"
 
 ## Phase 6: User Story 4 — Verificación y recuperación (P1)
 
-- [x] T037 [P] [US4] Pruebas de `VerificarCorreoUseCase`, `ReenviarVerificacionUseCase`, `SolicitarRecuperacionUseCase` (respuesta idéntica, solo verificados, límites por correo e IP) y `FijarContrasenaConEnlaceUseCase` (recuperación e invitación; revoca sesiones; desbloquea; audita) — `IdT/Application/` · (FR-021…FR-023)
+- [x] T037 [P] [US4] Pruebas de `VerificarCorreoUseCase`, `ReenviarVerificacionUseCase`, `SolicitarRecuperacionUseCase` (respuesta idéntica, solo verificados, límites por correo e IP) y `FijarContrasenaConEnlaceUseCase` (recuperación e invitación; revoca sesiones; desbloquea; audita) — `IntId/CuentaApiTests.cs`, `IdT/Infrastructure/LimitadorRecuperacionTests.cs` · (FR-021…FR-023)
 - [x] T038 [P] [US4] `LimitadorRecuperacionEnMemoria` — `Id/Infrastructure/Seguridad/LimitadorRecuperacionEnMemoria.cs` · (FR-022)
 - [x] T039 [US4] Los 4 casos de uso — `Id/Application/Cuenta/` · (FR-021…FR-023)
 - [x] T040 [US4] `CuentaController` (verificar, recuperar, fijar contraseña) y `MeController.ReenviarVerificacion` — `Id/Adapters/`
@@ -92,16 +92,16 @@ description: "Tareas del módulo Identidad y Accesos"
 
 ## Phase 7: User Story 5 — Derechos del titular (P1)
 
-- [x] T043 [P] [US5] Pruebas de `ObtenerMisDatosUseCase`, `AceptarVersionUseCase` y `EliminarMiCuentaUseCase` (contraseña incorrecta → `confirmacion_invalida`; borra todo; audita sin correo; escribe log `CuentaEliminada {UsuarioId}`) — `IdT/Application/` · (FR-026…FR-028)
+- [x] T043 [P] [US5] Pruebas de `ObtenerMisDatosUseCase`, `AceptarVersionUseCase` y `EliminarMiCuentaUseCase` (contraseña incorrecta → `confirmacion_invalida`; borra todo; audita sin correo; escribe log `CuentaEliminada {UsuarioId}`) — `IntId/CuentaApiTests.cs`, `IntId/ConsultasYPrivacidadTests.cs` · (FR-026…FR-028)
 - [x] T044 [US5] Los 3 casos de uso — `Id/Application/Titular/` · (FR-026…FR-028)
 - [x] T045 [US5] `MeController` (GET, DELETE, aceptaciones) — `Id/Adapters/MeController.cs`
-- [x] T046 [US5] `MeApiTests` + consulta de verificación: tras eliminar, el correo no aparece en ninguna tabla — `IntId/MeApiTests.cs` · (SC-004)
+- [x] T046 [US5] `MeApiTests` + consulta de verificación: tras eliminar, el correo no aparece en ninguna tabla — `IntId/CuentaApiTests.cs`, `IntId/ConsultasYPrivacidadTests.cs` · (SC-004)
 
 ---
 
 ## Phase 8: User Story 6 — Usuarios y revisión mensual (P1)
 
-- [x] T047 [P] [US6] Pruebas de `ListarUsuariosUseCase` (filtros, `ids`, audita `AccesoAdministrativoDatos` con `RegistrarLecturaAsync`, también con `ids`), `CrearUsuarioUseCase`, `CambiarRolUseCase`, `DesactivarUsuarioUseCase`, `ActivarUsuarioUseCase`, `ReenviarCorreoUsuarioUseCase`, `ResolverCorreosUseCase`, `ConsultarRevisionUseCase` (audita la lectura) y `RegistrarRevisionUseCase` (incluye «sobre sí mismo» y «último administrador») — `IdT/Application/Usuarios/`, `IdT/Application/Privilegios/` · (FR-030…FR-035)
+- [x] T047 [P] [US6] Pruebas de `ListarUsuariosUseCase` (filtros, `ids`, audita `AccesoAdministrativoDatos` con `RegistrarLecturaAsync`, también con `ids`), `CrearUsuarioUseCase`, `CambiarRolUseCase`, `DesactivarUsuarioUseCase`, `ActivarUsuarioUseCase`, `ReenviarCorreoUsuarioUseCase`, `ResolverCorreosUseCase`, `ConsultarRevisionUseCase` (audita la lectura) y `RegistrarRevisionUseCase` (incluye «sobre sí mismo» y «último administrador») — `IdT/Application/` (ConsultasAdministrativas, GestionUsuarios, Invitaciones, ProteccionAdministradores, RevisionPrivilegios) · (FR-030…FR-035)
 - [x] T048 [US6] Los 9 casos de uso — `Id/Application/Usuarios/`, `Id/Application/Privilegios/` · (FR-030…FR-035)
 - [x] T049 [US6] `UsuariosController` (GET, POST), `EstadoUsuarioController` (rol, desactivar, activar, reenviar; restricción `{id:guid}`) y `RevisionPrivilegiosController`, sin tipos de `Domain/` — `Id/Adapters/` · (D4, FR-030…FR-035)
 - [x] T050 [US6] `UsuariosApiTests` y `RevisionApiTests` (401 sin token, 403 a conductores, 409, auditorías de escrituras y lecturas) — `IntId/` · (FR-038, FR-042)
@@ -111,7 +111,7 @@ description: "Tareas del módulo Identidad y Accesos"
 
 ## Phase 9: User Story 7 — Consultas para Dashboard (P3)
 
-- [x] T052 [US7] `IIdentidadConsultas` + `IdentidadConsultas` + prueba de integración (cuenta cuentas, no sesiones; solo conductores; ventana de N días) — `Id/Contracts/`, `Id/Application/IdentidadConsultas.cs`, `IntId/IdentidadConsultasTests.cs` · (FR-036, RN-17)
+- [x] T052 [US7] `IIdentidadConsultas` + `IdentidadConsultas` + prueba de integración (cuenta cuentas, no sesiones; solo conductores; ventana de N días) — `Id/Contracts/`, `Id/Application/IdentidadConsultas.cs`, `IntId/ConsultasYPrivacidadTests.cs` · (FR-036, RN-17)
 
 ---
 
@@ -119,10 +119,10 @@ description: "Tareas del módulo Identidad y Accesos"
 
 - [x] T058 [P] [US8] `PurgaIdentidadTests` (Testcontainers): sesión vencida o revocada hace 30 d → se conserva, 31 d → se borra; token de correo vencido o usado hace 31 d → se borra; `usado_utc` de hace 1:59 min → exacto, 2:01 min → truncado; borrar una cuenta usa los índices `_fk` — `IntId/PurgaIdentidadTests.cs` · (FR-040, SC-007)
 - [x] T059 [US8] `IPurgaIdentidadRepositorio`, `PurgaIdentidadRepositorio` (SQL de `data-model.md` §1.1, en lotes) y `PurgarIdentidadUseCase` (registra `RegistrarTareaCorrecta("purga-identidad")`) — `Id/Application/Puertos/`, `Id/Infrastructure/Repositorios/`, `Id/Application/Tareas/` · (FR-040)
-- [x] T060 [US8] `PurgaIdentidadTarea` (`BackgroundService` con `ProgramaReloj`: al arrancar y 03:45 hora local) + prueba con `FakeTimeProvider` del próximo instante — `Id/Infrastructure/Tareas/PurgaIdentidadTarea.cs`, `IdT/Application/PurgaIdentidadTareaTests.cs` · (FR-040, T-OPS05)
+- [x] T060 [US8] `PurgaIdentidadTarea` (`BackgroundService` con `ProgramaReloj`: al arrancar y 03:45 hora local) + prueba con `FakeTimeProvider` del próximo instante — `Id/Infrastructure/Tareas/PurgaIdentidadTarea.cs`, `IdT/Application/PurgaIdentidadTests.cs`, `IntId/PurgaIdentidadTests.cs` · (FR-040, T-OPS05)
 - [x] T061 [P] [US8] `HorasGuardadasTests` de integración: tras registrar, renovar, cerrar sesión y desactivar, `creado_utc`, `expira_utc` y `revocado_utc` están en la hora en punto y `usuario.creado_utc` en el día — `IntId/HorasGuardadasTests.cs` · (FR-039, SC-007)
-- [x] T062 [US8] Sección «Identidad» del *runbook* `restaurar.md` (de 001): revocar todas las sesiones (`data-model.md` §1.2), rotar `KU_JWT_CLAVE_FIRMA`, arrancar (corre `purga-identidad`), revisar a mano las eliminaciones del último día; prueba de que tras el `UPDATE` toda renovación da 401 — `deploy/runbooks/restaurar.md`, `IntId/RestauracionIdentidadTests.cs` · (FR-041, D9)
-- [x] T063 [P] [US8] Prueba de que ningún caso de uso de Identidad llama `IMetricas.RegistrarAccionRiesgo` — `IdT/Application/SinMetricaDeRiesgoTests.cs` · (FR-038)
+- [x] T062 [US8] Sección «Identidad» del *runbook* `restaurar.md` (de 001): revocar todas las sesiones (`data-model.md` §1.2), rotar `KU_JWT_CLAVE_FIRMA`, arrancar (corre `purga-identidad`), revisar a mano las eliminaciones del último día; prueba de que tras el `UPDATE` toda renovación da 401 — `deploy/runbooks/restaurar.md`, `IntId/DesactivacionRestauracionTests.cs` · (FR-041, D9)
+- [x] T063 [P] [US8] Prueba de que ningún caso de uso de Identidad llama `IMetricas.RegistrarAccionRiesgo` — `tests/KillaUru.Arquitectura.Tests/ReglasIdentidadTests.cs` · (FR-038)
 - [x] T064 [P] [US8] Fila «Revisión mensual de privilegios» (responsable, día 1 de cada mes) en el calendario de verificaciones periódicas — `deploy/runbooks/simulacros.md` · (FR-034, T-QA14)
 - [x] T065 [P] [US8] `RespuestasComunesApiTests`: cada operación del contrato declara 429; sin token → 401; conductor en operación de administrador → 403 — `IntId/RespuestasComunesApiTests.cs` · (FR-042, T-SEG19, T-SEG20)
 
