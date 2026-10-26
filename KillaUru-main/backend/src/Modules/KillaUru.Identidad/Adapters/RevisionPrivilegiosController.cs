@@ -22,6 +22,7 @@ internal sealed class RevisionPrivilegiosController(ConsultarRevisionUseCase con
     public async Task<IActionResult> Registrar(RevisionSolicitud solicitud, CancellationToken ct)
     {
         var resultado = await registrar.EjecutarAsync(solicitud.Confirmados, solicitud.Retirados, Actor, ct);
-        return resultado.Error is null ? StatusCode(201, resultado.Revision) : RespuestaIdentidad.Error(resultado.Error, resultado.Estado, HttpContext);
+        if (resultado.Error is not null) return RespuestaIdentidad.Error(resultado.Error, resultado.Estado, HttpContext);
+        return StatusCode(201, resultado.Revision);
     }
 }

@@ -19,11 +19,19 @@ internal sealed class SesionController(IniciarSesionUseCase iniciar, RenovarSesi
     [ProducesResponseType(typeof(ProblemDetails), 403), ProducesResponseType(typeof(ProblemDetails), 423)]
     public async Task<IActionResult> Iniciar(InicioSesionSolicitud solicitud, CancellationToken ct)
     {
-        var resultado = await iniciar.EjecutarAsync(new(solicitud.Correo, solicitud.Contrasena, solicitud.Canal, solicitud.TurnstileToken), ct);
-        if (resultado.BloqueadoHastaUtc is { } fin)
-            Response.Headers.RetryAfter = Math.Max(1, (int)Math.Ceiling((fin - reloj.GetUtcNow()).TotalSeconds)).ToString(CultureInfo.InvariantCulture);
-        return resultado.Error is null ? Entregar(resultado.Sesion!, solicitud.Canal == "panel")
-            : RespuestaIdentidad.Error(resultado.Error, resultado.Estado, HttpContext, resultado.BloqueadoHastaUtc);
+        var entrada = new InicioSesionEntrada(solicitud.Correo, solicitud.Contrasena, solicitud.Canal, solicitud.TurnstileToken);
+        var resultado = await iniciar.EjecutarAsync(entrada, ct);
+        if (resultado.BloqueadoHastaUtc is { } finBloqueo) Response.Headers.RetryAfter = SegundosHasta(finBloqueo);
+        if (resultado.Error is not null)
+            return RespuestaIdentidad.Error(resultado.Error, resultado.Estado, HttpContext, resultado.BloqueadoHastaUtc);
+        return Entregar(resultado.Sesion!, esPanel: solicitud.Canal == "panel");
+    }
+
+    /// <summary>Retry-After en segundos enteros, redondeado hacia arriba y nunca 0 (RFC 9110).</summary>
+    private string SegundosHasta(DateTimeOffset instante)
+    {
+        var segundos = (int)Math.Ceiling((instante - reloj.GetUtcNow()).TotalSeconds);
+        return Math.Max(1, segundos).ToString(CultureInfo.InvariantCulture);
     }
 
     /// <summary>Renovar una sesión con su token de actualización.</summary>
@@ -32,10 +40,12 @@ internal sealed class SesionController(IniciarSesionUseCase iniciar, RenovarSesi
     [ProducesResponseType(typeof(SesionEmitida), 200), ProducesResponseType(typeof(ProblemDetails), 401)]
     public async Task<IActionResult> Renovar([FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] RenovarSolicitud? solicitud, CancellationToken ct)
     {
-        var panel = string.IsNullOrEmpty(solicitud?.TokenRenovacion) && Request.Cookies.ContainsKey("ku_renovacion");
-        var token = panel ? Request.Cookies["ku_renovacion"] : solicitud?.TokenRenovacion;
+        // La app manda el token en el cuerpo; el panel no puede leer su cookie HttpOnly y manda el cuerpo vacío.
+        var esPanel = string.IsNullOrEmpty(solicitud?.TokenRenovacion) && Request.Cookies.ContainsKey(CookiesSesion.Renovacion);
+        var token = esPanel ? Request.Cookies[CookiesSesion.Renovacion] : solicitud?.TokenRenovacion;
         var resultado = await renovar.EjecutarAsync(token, ct);
-        return resultado.Error is null ? Entregar(resultado.Sesion!, panel) : RespuestaIdentidad.Error(resultado.Error, 401, HttpContext);
+        if (resultado.Error is not null) return RespuestaIdentidad.Error(resultado.Error, 401, HttpContext);
+        return Entregar(resultado.Sesion!, esPanel);
     }
 
     /// <summary>Cerrar la familia de la sesión autenticada.</summary>
@@ -44,15 +54,18 @@ internal sealed class SesionController(IniciarSesionUseCase iniciar, RenovarSesi
     [ProducesResponseType(204), ProducesResponseType(typeof(ProblemDetails), 401)]
     public async Task<IActionResult> Cerrar([FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] RenovarSolicitud? solicitud, CancellationToken ct)
     {
-        if (!Guid.TryParse(User.FindFirst("jti")?.Value, out var familia)) return RespuestaIdentidad.Error("token_invalido", 401, HttpContext);
+        // El jti del JWT de acceso es el id de la familia de sesiones (FR-018).
+        if (!Guid.TryParse(User.FindFirst("jti")?.Value, out var familia))
+            return RespuestaIdentidad.Error("token_invalido", 401, HttpContext);
         var resultado = await cerrar.EjecutarAsync(familia, ct);
         CookiesSesion.Borrar(Response);
         return RespuestaIdentidad.Gestion(resultado, HttpContext);
     }
 
-    private OkObjectResult Entregar(SesionEmitida sesion, bool panel)
+    /// <summary>La app recibe los tokens en el cuerpo; el panel, solo en cookies HttpOnly (FR-020).</summary>
+    private OkObjectResult Entregar(SesionEmitida sesion, bool esPanel)
     {
-        if (!panel) return Ok(sesion);
+        if (!esPanel) return Ok(sesion);
         CookiesSesion.Escribir(Response, sesion);
         return Ok(new SesionPanel(sesion.ExpiraAccesoUtc, sesion.SesionVenceUtc, sesion.Rol));
     }

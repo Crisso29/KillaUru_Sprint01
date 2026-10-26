@@ -28,6 +28,7 @@ internal sealed class UsuariosController(ListarUsuariosUseCase listar, CrearUsua
     public async Task<IActionResult> Crear(CrearUsuarioSolicitud solicitud, CancellationToken ct)
     {
         var resultado = await crear.EjecutarAsync(solicitud.Correo, solicitud.Rol, Actor, ct);
-        return resultado.Error is null ? StatusCode(201, resultado.Usuario) : RespuestaIdentidad.Error(resultado.Error, resultado.Estado, HttpContext);
+        if (resultado.Error is not null) return RespuestaIdentidad.Error(resultado.Error, resultado.Estado, HttpContext);
+        return StatusCode(201, resultado.Usuario);
     }
 }

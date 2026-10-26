@@ -19,14 +19,18 @@ internal sealed class LimitadorRecuperacionEnMemoria(IOptions<IdentidadOptions> 
         {
             var ahora = reloj.GetUtcNow();
             Limpiar(ahora.AddHours(-1));
-            var cuenta = Obtener("correo:" + correo);
-            var origen = Obtener("ip:" + ip);
-            if (cuenta.Count >= opciones.Value.RecuperacionesPorCorreoPorHora || origen.Count >= opciones.Value.RecuperacionesPorIpPorHora) return false;
-            cuenta.Enqueue(ahora); origen.Enqueue(ahora);
+            var pedidosAlCorreo = Obtener("correo:" + correo);
+            var pedidosDesdeIp = Obtener("ip:" + ip);
+            var correoAgotado = pedidosAlCorreo.Count >= opciones.Value.RecuperacionesPorCorreoPorHora;
+            var ipAgotada = pedidosDesdeIp.Count >= opciones.Value.RecuperacionesPorIpPorHora;
+            if (correoAgotado || ipAgotada) return false;
+            pedidosAlCorreo.Enqueue(ahora);
+            pedidosDesdeIp.Enqueue(ahora);
             return true;
         }
     }
 
+    /// <summary>La clave se guarda como HMAC con sal aleatoria: la memoria no contiene correos ni IP legibles.</summary>
     private Queue<DateTimeOffset> Obtener(string clave)
     {
         var hash = Convert.ToHexString(HMACSHA256.HashData(_sal, Encoding.UTF8.GetBytes(clave)));

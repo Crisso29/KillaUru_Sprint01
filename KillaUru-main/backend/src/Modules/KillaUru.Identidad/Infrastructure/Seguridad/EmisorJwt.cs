@@ -14,7 +14,9 @@ internal sealed class EmisorJwt(IOptions<OpcionesFirmaJwt> opciones) : IEmisorJw
 {
     public string Emitir(Usuario usuario, Guid familia, DateTimeOffset ahora, DateTimeOffset vence)
     {
-        var firma = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(opciones.Value.ClaveFirma)), SecurityAlgorithms.HmacSha256);
+        var clave = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(opciones.Value.ClaveFirma));
+        var firma = new SigningCredentials(clave, SecurityAlgorithms.HmacSha256);
+        // Solo sub, rol y verificado (FR-014): el token viaja en cada petición y no debe llevar datos personales.
         Claim[] claims =
         [
             new("sub", usuario.Id.ToString()), new("rol", usuario.Rol.ToString()),
