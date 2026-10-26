@@ -1,0 +1,39 @@
+AnomaliasModule.cs | líneas>135: 2
+Adapters/AnomaliasControllerBase.cs | líneas>135: 1
+Adapters/DetalleAnomaliaController.cs | líneas>135: 1
+Adapters/ModeracionController.cs | líneas>135: 3
+Adapters/Documentacion/EsquemasAnomalias.cs | líneas>135: 1
+Adapters/Documentacion/OperacionAnomalias.cs | líneas>135: 2
+Application/Administracion/DetalleAnomalia.cs | líneas>135: 1
+Application/Administracion/ElementoPendiente.cs | líneas>135: 1
+Application/Administracion/ElementoPorRevisar.cs | líneas>135: 1
+Application/Administracion/ModerarAnomaliaUseCase.cs | líneas>135: 3
+Application/Administracion/TransicionReciente.cs | líneas>135: 1
+Application/Exportacion/ExportarDatasetUseCase.cs | líneas>135: 1
+Application/Lecturas/AnomaliaLectura.cs | líneas>135: 4
+Application/Procesamiento/AnomaliasService.cs | líneas>135: 1
+Application/Procesamiento/ProcesarReporteUseCase.cs | líneas>135: 3
+Application/Puertos/ITransaccionAnomalias.cs | líneas>135: 1
+Application/Tareas/PurgarHistoricoUseCase.cs | líneas>135: 1
+Application/Tareas/PurgarSeudonimosUseCase.cs | líneas>135: 1
+Domain/Anomalia.cs | líneas>135: 2; apiñadas: 2
+Domain/AnomaliasOptions.cs | apiñadas: 25
+Domain/IndiceCorredor.cs | líneas>135: 1
+Domain/PoliticaConfirmacion.cs | líneas>135: 2
+Domain/ReporteAnomalia.cs | líneas>135: 1
+Domain/TablaModeracion.cs | líneas>135: 1
+Infrastructure/AnomaliaRepositoryPostgis.cs | líneas>135: 3
+Infrastructure/CaducidadRepository.cs | apiñadas: 2
+Infrastructure/CorredorFila.cs | apiñadas: 1
+Infrastructure/DetalleAnomaliaRepository.cs | líneas>135: 2
+Infrastructure/ExportacionRepository.cs | líneas>135: 3
+Infrastructure/LecturaAdministracionRepository.cs | líneas>135: 1
+Infrastructure/LecturaAnomaliasRepository.cs | líneas>135: 4
+Infrastructure/PurgasRepository.cs | líneas>135: 1; apiñadas: 5
+Infrastructure/ResumenDiaRepository.cs | métodos>20 ['L12:22']; líneas>135: 3; apiñadas: 4
+Infrastructure/ResumenFila.cs | líneas>135: 1
+Infrastructure/TransaccionAnomalias.cs | líneas>135: 1
+Infrastructure/Configuraciones/AnomaliaConfig.cs | líneas>135: 2
+Infrastructure/Configuraciones/ReporteConfig.cs | líneas>135: 1
+Infrastructure/Tareas/TareaAnomalias.cs | apiñadas: 1
+== fin src/Modules/KillaUru.Anomalias

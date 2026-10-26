@@ -45,7 +45,7 @@ description: "Tareas del módulo Anomalías"
 - [x] T019 [P] `PoliticaConfirmacion` (código de referencia de `diseño-interno` §6.2) — `An/Domain/PoliticaConfirmacion.cs` · (FR-010, FR-011)
 - [x] T020 [P] `ReglaPersistencia` (código de referencia de `enfoque` §5) — `An/Domain/ReglaPersistencia.cs` · (FR-016)
 - [x] T021 [P] `EstadoPersistencia`, `AccionAdmin` (4 acciones; se queda en Domain, D4), `Transicion`, `ReglasAnomalia` — `An/Domain/`
-- [x] T022 `Anomalia` y sus colaboradores, una clase por archivo (`Anomalia.cs`, `ReglaRenacimiento.cs`, `TablaModeracion.cs`, `RegistroTransiciones.cs`; sin `partial`) — `An/Domain/` · (FR-008…FR-020, FR-025, FR-032; R-014)
+- [x] T022 `Anomalia` y sus colaboradores, una clase por archivo (`Anomalia.cs`, `ReglaRenacimiento.cs`, `TablaModeracion.cs`, `Transicion.cs`; sin `partial`) — `An/Domain/` · (FR-008…FR-020, FR-025, FR-032; R-014)
 
 **Checkpoint**: `KillaUru.Anomalias.Tests` en verde; cobertura del dominio ≥ 90 % (SC-006). 005 puede empezar.
 

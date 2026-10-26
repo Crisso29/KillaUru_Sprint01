@@ -1,0 +1,25 @@
+  Determinando los proyectos que se van a restaurar...
+  Todos los proyectos están actualizados para la restauración.
+  KillaUru.Shared -> C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\src\KillaUru.Shared\bin\Debug\net10.0\KillaUru.Shared.dll
+  KillaUru.Shared.Tests -> C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Shared.Tests\bin\Debug\net10.0\KillaUru.Shared.Tests.dll
+  KillaUru.Auditoria -> C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\src\Modules\KillaUru.Auditoria\bin\Debug\net10.0\KillaUru.Auditoria.dll
+  KillaUru.Identidad -> C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\src\Modules\KillaUru.Identidad\bin\Debug\net10.0\KillaUru.Identidad.dll
+  KillaUru.Auditoria.Tests -> C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Auditoria.Tests\bin\Debug\net10.0\KillaUru.Auditoria.Tests.dll
+  KillaUru.Identidad.Tests -> C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Identidad.Tests\bin\Debug\net10.0\KillaUru.Identidad.Tests.dll
+  KillaUru.Anomalias -> C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\src\Modules\KillaUru.Anomalias\bin\Debug\net10.0\KillaUru.Anomalias.dll
+  KillaUru.Dashboard -> C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\src\Modules\KillaUru.Dashboard\bin\Debug\net10.0\KillaUru.Dashboard.dll
+  KillaUru.Mapa -> C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\src\Modules\KillaUru.Mapa\bin\Debug\net10.0\KillaUru.Mapa.dll
+  KillaUru.Ingesta -> C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\src\Modules\KillaUru.Ingesta\bin\Debug\net10.0\KillaUru.Ingesta.dll
+  KillaUru.Anomalias.Tests -> C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Anomalias.Tests\bin\Debug\net10.0\KillaUru.Anomalias.Tests.dll
+  KillaUru.Dashboard.Tests -> C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Dashboard.Tests\bin\Debug\net10.0\KillaUru.Dashboard.Tests.dll
+  KillaUru.Mapa.Tests -> C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Mapa.Tests\bin\Debug\net10.0\KillaUru.Mapa.Tests.dll
+  KillaUru.Ingesta.Tests -> C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Ingesta.Tests\bin\Debug\net10.0\KillaUru.Ingesta.Tests.dll
+  KillaUru.Api -> C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\src\KillaUru.Api\bin\Debug\net10.0\KillaUru.Api.dll
+  KillaUru.Integracion.Tests -> C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Integracion.Tests\bin\Debug\net10.0\KillaUru.Integracion.Tests.dll
+  KillaUru.Arquitectura.Tests -> C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Arquitectura.Tests\bin\Debug\net10.0\KillaUru.Arquitectura.Tests.dll
+
+Compilación correcta.
+    0 Advertencia(s)
+    0 Errores
+
+Tiempo transcurrido 00:00:15.82

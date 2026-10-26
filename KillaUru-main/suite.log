@@ -1,50 +1,50 @@
-Ejecutando pruebas desde C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Shared.Tests\bin\Debug\net10.0\KillaUru.Shared.Tests.dll (net10.0|x64)
-Ejecutando pruebas desde C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Identidad.Tests\bin\Debug\net10.0\KillaUru.Identidad.Tests.dll (net10.0|x64)
-Ejecutando pruebas desde C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Dashboard.Tests\bin\Debug\net10.0\KillaUru.Dashboard.Tests.dll (net10.0|x64)
-Ejecutando pruebas desde C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Auditoria.Tests\bin\Debug\net10.0\KillaUru.Auditoria.Tests.dll (net10.0|x64)
-Ejecutando pruebas desde C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Arquitectura.Tests\bin\Debug\net10.0\KillaUru.Arquitectura.Tests.dll (net10.0|x64)
-Ejecutando pruebas desde C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Anomalias.Tests\bin\Debug\net10.0\KillaUru.Anomalias.Tests.dll (net10.0|x64)
-Ejecutando pruebas desde C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Mapa.Tests\bin\Debug\net10.0\KillaUru.Mapa.Tests.dll (net10.0|x64)
-Ejecutando pruebas desde C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Ingesta.Tests\bin\Debug\net10.0\KillaUru.Ingesta.Tests.dll (net10.0|x64)
-C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Mapa.Tests\bin\Debug\net10.0\KillaUru.Mapa.Tests.dll (net10.0|x64) No se ejecutaron pruebas (2s 313ms)
+Ejecutando pruebas desde C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Arquitectura.Tests\bin\Debug\net10.0\KillaUru.Arquitectura.Tests.dll (net10.0|x64)
+Ejecutando pruebas desde C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Anomalias.Tests\bin\Debug\net10.0\KillaUru.Anomalias.Tests.dll (net10.0|x64)
+Ejecutando pruebas desde C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Mapa.Tests\bin\Debug\net10.0\KillaUru.Mapa.Tests.dll (net10.0|x64)
+Ejecutando pruebas desde C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Auditoria.Tests\bin\Debug\net10.0\KillaUru.Auditoria.Tests.dll (net10.0|x64)
+Ejecutando pruebas desde C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Identidad.Tests\bin\Debug\net10.0\KillaUru.Identidad.Tests.dll (net10.0|x64)
+Ejecutando pruebas desde C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Shared.Tests\bin\Debug\net10.0\KillaUru.Shared.Tests.dll (net10.0|x64)
+Ejecutando pruebas desde C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Dashboard.Tests\bin\Debug\net10.0\KillaUru.Dashboard.Tests.dll (net10.0|x64)
+Ejecutando pruebas desde C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Ingesta.Tests\bin\Debug\net10.0\KillaUru.Ingesta.Tests.dll (net10.0|x64)
+C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Mapa.Tests\bin\Debug\net10.0\KillaUru.Mapa.Tests.dll (net10.0|x64) No se ejecutaron pruebas (3s 038ms)
 Código de salida: 8
-C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Ingesta.Tests\bin\Debug\net10.0\KillaUru.Ingesta.Tests.dll (net10.0|x64) No se ejecutaron pruebas (2s 565ms)
+C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Ingesta.Tests\bin\Debug\net10.0\KillaUru.Ingesta.Tests.dll (net10.0|x64) No se ejecutaron pruebas (2s 892ms)
 Código de salida: 8
-C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Dashboard.Tests\bin\Debug\net10.0\KillaUru.Dashboard.Tests.dll (net10.0|x64) No se ejecutaron pruebas (2s 699ms)
+C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Anomalias.Tests\bin\Debug\net10.0\KillaUru.Anomalias.Tests.dll (net10.0|x64) correcto (5s 924ms)
+C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Dashboard.Tests\bin\Debug\net10.0\KillaUru.Dashboard.Tests.dll (net10.0|x64) No se ejecutaron pruebas (2s 900ms)
 Código de salida: 8
-Ejecutando pruebas desde C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Integracion.Tests\bin\Debug\net10.0\KillaUru.Integracion.Tests.dll (net10.0|x64)
-C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Auditoria.Tests\bin\Debug\net10.0\KillaUru.Auditoria.Tests.dll (net10.0|x64) correcto (3s 289ms)
-C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Shared.Tests\bin\Debug\net10.0\KillaUru.Shared.Tests.dll (net10.0|x64) correcto (3s 312ms)
-C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Anomalias.Tests\bin\Debug\net10.0\KillaUru.Anomalias.Tests.dll (net10.0|x64) correcto (3s 796ms)
-C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Arquitectura.Tests\bin\Debug\net10.0\KillaUru.Arquitectura.Tests.dll (net10.0|x64) correcto (4s 379ms)
-C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Identidad.Tests\bin\Debug\net10.0\KillaUru.Identidad.Tests.dll (net10.0|x64) correcto (5s 745ms)
+C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Arquitectura.Tests\bin\Debug\net10.0\KillaUru.Arquitectura.Tests.dll (net10.0|x64) correcto (7s 089ms)
+Ejecutando pruebas desde C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Integracion.Tests\bin\Debug\net10.0\KillaUru.Integracion.Tests.dll (net10.0|x64)
+C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Shared.Tests\bin\Debug\net10.0\KillaUru.Shared.Tests.dll (net10.0|x64) correcto (4s 763ms)
+C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Auditoria.Tests\bin\Debug\net10.0\KillaUru.Auditoria.Tests.dll (net10.0|x64) correcto (5s 741ms)
+C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Identidad.Tests\bin\Debug\net10.0\KillaUru.Identidad.Tests.dll (net10.0|x64) correcto (8s 758ms)
 omitido KillaUru.Integracion.Tests.PuntaAPunta.FlujoPuntaAPuntaTests.Anonimo_no_puede_enviar_lotes_ni_acceder_al_panel_admin
   BLOQUEADO: requiere specs 004, 005 y 006 implementados (FR-044, T080)
-  desde C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Integracion.Tests\bin\Debug\net10.0\KillaUru.Integracion.Tests.dll (net10.0|x64)
+  desde C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Integracion.Tests\bin\Debug\net10.0\KillaUru.Integracion.Tests.dll (net10.0|x64)
 omitido KillaUru.Integracion.Tests.PuntaAPunta.FlujoPuntaAPuntaTests.Conductor_envia_lote_pipeline_procesa_y_anomalia_aparece_en_mapa
   BLOQUEADO: requiere specs 004, 005 y 006 implementados (FR-044, T080)
-  desde C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Integracion.Tests\bin\Debug\net10.0\KillaUru.Integracion.Tests.dll (net10.0|x64)
+  desde C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Integracion.Tests\bin\Debug\net10.0\KillaUru.Integracion.Tests.dll (net10.0|x64)
 omitido KillaUru.Integracion.Tests.Identidad.RendimientoIdentidadTests.K6_con_300_cuentas_cumple_login_y_renovacion
   Not run (due to explicit test filtering)
-  desde C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Integracion.Tests\bin\Debug\net10.0\KillaUru.Integracion.Tests.dll (net10.0|x64)
-C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Integracion.Tests\bin\Debug\net10.0\KillaUru.Integracion.Tests.dll (net10.0|x64) correcto (1m 15s 635ms)
+  desde C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Integracion.Tests\bin\Debug\net10.0\KillaUru.Integracion.Tests.dll (net10.0|x64)
+C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Integracion.Tests\bin\Debug\net10.0\KillaUru.Integracion.Tests.dll (net10.0|x64) correcto (1m 20s 117ms)
 
 Resumen de la serie de pruebas: Error!
-  C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Ingesta.Tests\bin\Debug\net10.0\KillaUru.Ingesta.Tests.dll (net10.0|x64) No se ejecutaron pruebas (2s 565ms)
-  C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Arquitectura.Tests\bin\Debug\net10.0\KillaUru.Arquitectura.Tests.dll (net10.0|x64) correcto (4s 379ms)
-  C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Shared.Tests\bin\Debug\net10.0\KillaUru.Shared.Tests.dll (net10.0|x64) correcto (3s 312ms)
-  C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Auditoria.Tests\bin\Debug\net10.0\KillaUru.Auditoria.Tests.dll (net10.0|x64) correcto (3s 289ms)
-  C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Integracion.Tests\bin\Debug\net10.0\KillaUru.Integracion.Tests.dll (net10.0|x64) correcto (1m 15s 635ms)
-  C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Dashboard.Tests\bin\Debug\net10.0\KillaUru.Dashboard.Tests.dll (net10.0|x64) No se ejecutaron pruebas (2s 699ms)
-  C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Mapa.Tests\bin\Debug\net10.0\KillaUru.Mapa.Tests.dll (net10.0|x64) No se ejecutaron pruebas (2s 313ms)
-  C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Identidad.Tests\bin\Debug\net10.0\KillaUru.Identidad.Tests.dll (net10.0|x64) correcto (5s 745ms)
-  C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-003-aaa\KillaUru-main\backend\tests\KillaUru.Anomalias.Tests\bin\Debug\net10.0\KillaUru.Anomalias.Tests.dll (net10.0|x64) correcto (3s 796ms)
+  C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Integracion.Tests\bin\Debug\net10.0\KillaUru.Integracion.Tests.dll (net10.0|x64) correcto (1m 20s 117ms)
+  C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Identidad.Tests\bin\Debug\net10.0\KillaUru.Identidad.Tests.dll (net10.0|x64) correcto (8s 758ms)
+  C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Dashboard.Tests\bin\Debug\net10.0\KillaUru.Dashboard.Tests.dll (net10.0|x64) No se ejecutaron pruebas (2s 900ms)
+  C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Shared.Tests\bin\Debug\net10.0\KillaUru.Shared.Tests.dll (net10.0|x64) correcto (4s 763ms)
+  C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Ingesta.Tests\bin\Debug\net10.0\KillaUru.Ingesta.Tests.dll (net10.0|x64) No se ejecutaron pruebas (2s 892ms)
+  C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Arquitectura.Tests\bin\Debug\net10.0\KillaUru.Arquitectura.Tests.dll (net10.0|x64) correcto (7s 089ms)
+  C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Auditoria.Tests\bin\Debug\net10.0\KillaUru.Auditoria.Tests.dll (net10.0|x64) correcto (5s 741ms)
+  C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Mapa.Tests\bin\Debug\net10.0\KillaUru.Mapa.Tests.dll (net10.0|x64) No se ejecutaron pruebas (3s 038ms)
+  C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\.claude\worktrees\spec-004-refactor\KillaUru-main\backend\tests\KillaUru.Anomalias.Tests\bin\Debug\net10.0\KillaUru.Anomalias.Tests.dll (net10.0|x64) correcto (5s 924ms)
 
   error: 3
 
-  total: 812
+  total: 858
   error: 0
-  correcto: 809
+  correcto: 855
   omitido: 3
-  duración: 1m 19s 328ms
+  duración: 1m 28s 696ms
 Serie de pruebas completada con código de salida incorrecto: 8 (consulte: https://aka.ms/testingplatform/exitcodes)
