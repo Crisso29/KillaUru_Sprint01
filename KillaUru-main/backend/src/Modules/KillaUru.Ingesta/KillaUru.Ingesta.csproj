@@ -6,6 +6,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="KillaUru.Ingesta.Tests" />
     <InternalsVisibleTo Include="KillaUru.Integracion.Tests" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\KillaUru.Shared\KillaUru.Shared.csproj" />
