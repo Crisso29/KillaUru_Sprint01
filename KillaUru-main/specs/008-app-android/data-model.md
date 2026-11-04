@@ -113,11 +113,11 @@ BEGIN SELECT RAISE(ABORT, 'recorrido_invalido'); END;
 |---|---|---|---|
 | (nace) | `PENDING` (0) | Detección con confidence ≥ 0.75 (RF-03) | `GuardarEventoUseCase` |
 | `PENDING` | `ENVIANDO` (1) | Entra en un lote (≤ 50, un seudónimo) | `EventoDao.tomarLote` (transacción, R-007) |
-| `PENDING` | `EXPIRADO_LOCAL` (4) | `detectadoUtc` + 168 h ≤ ahora confiable; suma `expirado_local` | `ExpirarPendientesUseCase` antes de cada lote |
+| `PENDING` | `EXPIRADO_LOCAL` (4) | `detectadoUtc` + 168 h < ahora confiable; suma `expirado_local` | `ExpirarPendientesUseCase` antes de cada lote |
 | `ENVIANDO` | `SYNCED` (2) | El 200 lo nombra en `aceptados`, `duplicados` o `rechazados` (suma `rechazo.<Motivo>`) | `InterpretarRespuestaLote` |
 | `ENVIANDO` | `REJECTED_LOCAL` (3) | Falla **solo** en un 400/413, o el 200 lo rechaza con `id: null` en su `indice` | `PlanParticion` / `InterpretarRespuestaLote` |
 | `ENVIANDO` | `PENDING` | El 200 no lo menciona; 401 sin poder renovar por red; 429/503; 5xx; *timeout*; Android detiene el trabajo; la app se abre | `InterpretarRespuestaLote`, `SincronizacionWorker`, `RecuperarEnviandoUseCase` |
-| `SYNCED` · `REJECTED_LOCAL` · `EXPIRADO_LOCAL` | (borrado) | `estadoDesde` + 7 días ≤ ahora confiable | `PurgarLocalUseCase` |
+| `SYNCED` · `REJECTED_LOCAL` · `EXPIRADO_LOCAL` | (borrado) | `estadoDesde` + 7 días < ahora confiable | `PurgarLocalUseCase` |
 
 Todo otro cambio lo rechazan `TransicionEvento.validar` (dominio) y `trg_evento_transicion` (BD). Un 401 o 403 **nunca** produce `REJECTED_LOCAL`.
 
@@ -139,7 +139,7 @@ SELECT * FROM evento WHERE estado = 0 AND seudonimo = :s ORDER BY detectadoUtc, 
 UPDATE evento SET estado = 1, estadoDesde = :ahora WHERE eventoId IN (:ids);
 
 -- EventoDao.expirar (FR-022) y EventoDao.recuperarEnviando (FR-021)
-UPDATE evento SET estado = 4, estadoDesde = :ahora WHERE estado = 0 AND detectadoUtc <= :limite;   -- limite = ahora − 168 h
+UPDATE evento SET estado = 4, estadoDesde = :ahora WHERE estado = 0 AND detectadoUtc < :limite;   -- limite = ahora − 168 h
 UPDATE evento SET estado = 0, estadoDesde = :ahora WHERE estado = 1;
 
 -- PurgaDao (FR-023; BD-A4): una vez al día y al abrir la app, solo con ahora confiable
@@ -235,3 +235,4 @@ Validación al cargar (`CargadorParametros`): todos > 0; `ConfidenceMinimo` en (
 | N → N+1 | Lo que pida una spec futura | `comun/datos/bd/migraciones/MigracionNaN1.kt` | `MigracionNaN1Test` + `CadenaMigracionesTest` (1 → última con `PENDING`, `ENVIANDO` y recorridos sembrados) |
 
 Reglas: nunca `fallbackToDestructiveMigration`; `evento` y `recorrido` se copian si se recrean (`CREATE TABLE nueva` → `INSERT … SELECT` → `DROP` → `ALTER … RENAME`); los disparadores se recrean al final de la migración; `anomalia` y `estado_copia` pueden vaciarse (`generadoUtc = NULL`).
+

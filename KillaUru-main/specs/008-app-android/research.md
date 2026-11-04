@@ -239,3 +239,17 @@ Todos los «Pendientes de confirmar por el autor» de este archivo y la «Propue
 **Revisión geométrica 2026-10-24 (004)**: el eje canónico `backend/db/datos/corredor_pe28a.geojson` mide **335,072963461 km** (335,073 km al mostrarlo). El km 0 es el extremo seleccionado en el enlace PE-1S, no el centro de Pisco; el km final es el extremo seleccionado en Ayacucho. Son distancias acumuladas del eje con radio esférico 6 371 008,8 m, no progresivas oficiales. El demo conserva el inicio geométrico km 268 y termina en `properties.demo_km_fin = properties.longitud_km`: **67,072963461 km**. El nombre histórico «Ayacucho–Vinchos» no certifica que el km 268 sea el centro de Vinchos. Los cálculos y límites usan el valor completo del GeoJSON; los valores redondeados de documentos e interfaz son solo de presentación. La generación del polígono de 200 m y su validación de ≤ 60 vértices corresponden a 006; no se reemplaza ese recorte por una comprobación de kilometraje.
 
 Referencia reproducible: `backend/db/datos/README.md`; 20 puntos compartidos en `backend/db/datos/km_referencia.csv`. Backend y Android deben usar ese mismo CSV, radio y eje. `TramosTotales = ceil(longitud_km) = 336`. El panel no debe conservar las progresivas de pueblos del prototipo sin verificarlas contra el eje.
+
+## R-036 · Gradle 9.7.1 confirmado por el autor (2026-11-04)
+
+- **Decisión**: conservar Gradle 9.7.1, actualizado intencionalmente por el autor. Migrar AGP a 9.3.3 con Kotlin integrado; mantener JVM 17, minSdk 26, compileSdk/targetSdk 35 y un módulo.
+- **Evidencia**: el arranque con AGP 8.11.1 falla por `InternalProblems`, API interna eliminada en Gradle 9.6.0. No es un fallo de las reglas de dominio ni una fase roja de TDD.
+- **Compatibilidad**: actualizar conjuntamente los plugins de Compose/serialización, KSP, Hilt, Room, Kover y detekt. Las versiones resueltas y sus pruebas son las del catálogo y el informe de implementación; una consulta documental no sustituye un build.
+- **Fuentes primarias**: [AGP 9.3](https://developer.android.com/build/releases/agp-9-3-0-release-notes), [Kotlin integrado](https://developer.android.com/build/migrate-to-built-in-kotlin), [Hilt](https://dagger.dev/hilt/gradle-setup), [Kover](https://github.com/Kotlin/kotlinx-kover/blob/main/CHANGELOG.md), [detekt](https://detekt.dev/changelog-2.0.0/).
+- **Alternativa descartada**: revertir el wrapper a 8.13; contradice la decisión confirmada por el autor. No cambia requisitos funcionales ni reglas de negocio.
+
+## R-037 · Corrección de límites para respetar RF-06 y RN-11 (2026-11-04)
+
+- **Fuente prevalente**: `referencia/docs/01-analisis-del-sistema/03-requisitos-funcionales.md`, RF-06, y `09-reglas-de-negocio.md`, RN-11: un evento expira con **más de** 168 h. A las 168 h exactas sigue siendo enviable.
+- **Corrección**: `data-model.md` tenía `<=` y T059 pedía expirar exactamente a las 168 h, en contradicción con docs y FR-022. Se alinean a `<` en el corte SQL y se prueban ambos lados del límite. No se modifica la regla de la fuente.
+- **Purga**: FR-023 y la consulta SQL dicen **más de** 7 días. Se corrigen la tabla de transiciones y T064 para conservar a los 7 días exactos y borrar después.

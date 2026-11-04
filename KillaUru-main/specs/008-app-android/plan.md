@@ -10,7 +10,7 @@ App Kotlin *offline-first* con las tres capas de `enfoque-arquitectonico.md` §9
 
 ## Technical Context
 
-**Language/Version**: Kotlin 2.x (JVM 17), Android Gradle Plugin 8.x; `minSdk` 26, `targetSdk`/`compileSdk` 35
+**Language/Version**: Kotlin 2.x (JVM 17), Android Gradle Plugin 9.3.3 y Gradle 9.7.1 (actualización intencional del autor, 2026-11-04; R-036); `minSdk` 26, `targetSdk`/`compileSdk` 35
 
 **Primary Dependencies**: Jetpack Compose (Material 3, Navigation), Room (KSP, `room-ktx`), WorkManager, Hilt, Retrofit + OkHttp + kotlinx.serialization, LiteRT (`com.google.ai.edge.litert`), MapLibre Native Android (PMTiles), DataStore (Preferences) + Android Keystore, `androidx.core` (`LocationManagerCompat`). Versiones fijas en `gradle/libs.versions.toml`
 
@@ -28,7 +28,7 @@ App Kotlin *offline-first* con las tres capas de `enfoque-arquitectonico.md` §9
 
 ## Constitution Check
 
-La constitución 1.1.0 está escrita para el backend; donde no encaja se aplica su **intención** y se propone una enmienda (`research.md`, «Propuesta de enmienda a la constitución»).
+Rige la constitución **1.3.0**. La enmienda Android 1.2.0 ya fue aprobada en D18; no está pendiente de aprobación. Las puertas de esta tabla describen el diseño previsto, no certifican una implementación ni una ejecución de pruebas. La evidencia real se registra en `implementacion.md`.
 
 | Principio | Cómo lo cumple | Estado |
 |---|---|---|

@@ -1,0 +1,53 @@
+name: App Android
+
+on:
+  pull_request:
+    paths:
+      - 'KillaUru-main/app/**'
+      - 'KillaUru-main/specs/**/contracts/**'
+      - '.github/workflows/app-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'KillaUru-main/app/**'
+      - 'KillaUru-main/specs/**/contracts/**'
+      - '.github/workflows/app-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: KillaUru-main/app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compilar APK
+        run: bash gradlew assembleDebug
+      - name: Lint y reglas de diseño
+        run: bash gradlew lint detekt
+      - name: Pruebas y cobertura del dominio
+        run: bash gradlew testDebugUnitTest koverVerify koverXmlReport
+      - name: Límite constitucional de archivos
+        run: |
+          python -m unittest discover -s herramientas -p 'test_*.py'
+          python herramientas/verificar_lineas.py
+      - name: Evidencia de verificación
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-verificacion
+          path: |
+            KillaUru-main/app/build/reports/
+            KillaUru-main/app/build/test-results/
