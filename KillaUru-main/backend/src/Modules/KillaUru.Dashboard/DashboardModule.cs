@@ -1,3 +1,7 @@
+using KillaUru.Dashboard.Application;
+using KillaUru.Dashboard.Application.Puertos;
+using KillaUru.Dashboard.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,6 +17,18 @@ public static class DashboardModule
     public static IServiceCollection AddDashboardModule(this IServiceCollection services, IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);
+
+        services.Configure<DashboardOptions>(configuration.GetSection(DashboardOptions.Seccion));
+
+        services.AddDbContext<DashboardDbContext>(o =>
+            o.UseNpgsql(configuration.GetConnectionString("KillaUru")));
+
+        services.AddSingleton<CalculadoUtcHolder>();
+        services.AddScoped<IIndicadoresRepositorio, IndicadoresRepositorio>();
+        services.AddScoped<CalcularIndicadoresUseCase>();
+        services.AddScoped<ConsultarResumenUseCase>();
+        services.AddHostedService<TareaIndicadoresDiarios>();
+
         return services;
     }
 }

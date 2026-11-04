@@ -6,6 +6,10 @@
   <ItemGroup>
     <InternalsVisibleTo Include="KillaUru.Dashboard.Tests" />
     <InternalsVisibleTo Include="KillaUru.Integracion.Tests" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\KillaUru.Shared\KillaUru.Shared.csproj" />
