@@ -1,7 +1,7 @@
 package pe.killauru.app.sesion.dominio.casos
 
+import pe.killauru.app.sesion.dominio.RepositorioPreferencias
 import pe.killauru.app.sesion.dominio.RepositorioSesion
-import pe.killauru.app.sesion.datos.RepositorioPreferenciasDataStore
 import javax.inject.Inject
 
 /**
@@ -10,7 +10,7 @@ import javax.inject.Inject
  */
 internal class LimpiezaLocalSesion @Inject constructor(
     private val repoSesion: RepositorioSesion,
-    private val repoPrefs: RepositorioPreferenciasDataStore,
+    private val repoPrefs: RepositorioPreferencias,
 ) {
     suspend fun ejecutar() {
         repoSesion.cerrar()
