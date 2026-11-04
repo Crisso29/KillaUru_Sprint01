@@ -12,7 +12,8 @@ public sealed class ContratoOpenApiTests(BaseDatosPrueba bd)
 {
     private static readonly string[] Implementadas =
         ["001-plataforma-backend/contracts/plataforma.openapi.yaml", "002-modulo-auditoria/contracts/auditoria.openapi.yaml",
-        "003-modulo-identidad-accesos/contracts/identidad.openapi.yaml"];
+        "003-modulo-identidad-accesos/contracts/identidad.openapi.yaml",
+        "007-modulo-dashboard/contracts/dashboard.openapi.yaml"];
 
     public static TheoryData<string> Contratos() => new(Implementadas);
 
