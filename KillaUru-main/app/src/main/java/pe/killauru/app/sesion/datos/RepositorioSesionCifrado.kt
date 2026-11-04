@@ -1,41 +1,55 @@
 package pe.killauru.app.sesion.datos
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.first
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import pe.killauru.app.comun.datos.almacen.PreferenciasDataStore
-import pe.killauru.app.comun.datos.almacen.SerializadorCifrado
+import pe.killauru.app.sesion.dominio.PermisoLocal
 import pe.killauru.app.sesion.dominio.RepositorioSesion
 import pe.killauru.app.sesion.dominio.Sesion
 import javax.inject.Inject
+import javax.inject.Named
 import javax.inject.Singleton
 
-/** FR-062, R-022: sesión cifrada con AES-256-GCM vía Keystore. */
+/** FR-063, R-NF-10: repositorio de sesión usando DataStore cifrado. */
 @Singleton
 internal class RepositorioSesionCifrado @Inject constructor(
-    private val prefs: PreferenciasDataStore,
-    private val cifrador: SerializadorCifrado,
+    @Named("sesion") private val ds: DataStore<Preferences>,
 ) : RepositorioSesion {
 
-    private val CLAVE = stringPreferencesKey("sesion_cifrada")
-
-    override suspend fun guardar(sesion: Sesion) {
-        val json = Json.encodeToString(SesionDto.de(sesion))
-        prefs.guardar(CLAVE, cifrador.cifrar(json))
+    companion object {
+        val K_ID = stringPreferencesKey("sesion_id")
+        val K_TOKEN = stringPreferencesKey("sesion_token")
+        val K_EXPIRA = longPreferencesKey("sesion_expira")
+        val K_PERMISO = longPreferencesKey("sesion_permiso")
     }
 
     override suspend fun obtener(): Sesion? {
-        val cifrado = prefs.leer(CLAVE).first() ?: return null
-        return try {
-            SesionDto.aSesion(Json.decodeFromString(cifrador.descifrar(cifrado)))
-        } catch (_: Exception) { null }
+        val prefs = ds.data.first()
+        val id = prefs[K_ID] ?: return null
+        val token = prefs[K_TOKEN] ?: return null
+        val expira = prefs[K_EXPIRA] ?: return null
+        val permiso = prefs[K_PERMISO]?.let { PermisoLocal(it) }
+        return Sesion(id, token, expira, permiso)
     }
 
-    override suspend fun borrar() = prefs.borrar(CLAVE)
+    override suspend fun guardar(sesion: Sesion) {
+        ds.edit { p ->
+            p[K_ID] = sesion.usuarioId
+            p[K_TOKEN] = sesion.token
+            p[K_EXPIRA] = sesion.tokenExpiraMs
+            sesion.permiso?.let { p[K_PERMISO] = it.venceMs }
+        }
+    }
 
-    override suspend fun actualizarTokens(acceso: String, refresco: String, venceUtc: Long) {
-        val sesion = obtener() ?: return
-        guardar(sesion.copy(tokenAcceso = acceso, tokenRefresco = refresco, venceUtc = venceUtc))
+    override suspend fun cerrar() {
+        ds.edit { p ->
+            p.remove(K_ID)
+            p.remove(K_TOKEN)
+            p.remove(K_EXPIRA)
+            p.remove(K_PERMISO)
+        }
     }
 }

@@ -1,15 +1,27 @@
 package pe.killauru.app.actualizador.dominio
 
+import pe.killauru.app.sesion.dominio.RepositorioPreferencias
 import javax.inject.Inject
 
-/** FR-070, FR-071: descarga y activa un nuevo modelo si la política lo permite. */
+/** FR-070, FR-071: evalúa y activa un nuevo modelo si la política lo permite. */
 internal class ActualizarModeloUseCase @Inject constructor(
+    private val prefs: RepositorioPreferencias,
     private val politica: PoliticaActivacionModelo,
 ) {
-    suspend fun ejecutar(remoto: ManifiestoModelo, local: ManifiestoModelo?, enViaje: Boolean): Boolean {
-        if (!politica.puedeActivar(remoto)) return false
-        if (local != null && remoto.version == local.version) return false
-        if (enViaje) return false
-        return true
+    sealed class Resultado {
+        object Activado : Resultado()
+        object IncompatibleConApp : Resultado()
+        object SinCambios : Resultado()
+    }
+
+    suspend fun evaluar(manifiesto: ManifiestoModelo): Resultado {
+        val versionLocal = prefs.obtenerModeloVersion()
+        if (versionLocal == manifiesto.version) return Resultado.SinCambios
+        return if (politica.puedeActivar(manifiesto)) {
+            prefs.guardarModeloVersion(manifiesto.version)
+            Resultado.Activado
+        } else {
+            Resultado.IncompatibleConApp
+        }
     }
 }

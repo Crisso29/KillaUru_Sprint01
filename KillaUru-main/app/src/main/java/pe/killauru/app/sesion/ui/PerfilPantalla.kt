@@ -1,45 +1,40 @@
 package pe.killauru.app.sesion.ui
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 
+/** FR-067, FR-069: pantalla de perfil con opción de cerrar sesión y eliminar cuenta. */
 @Composable
 internal fun PerfilPantalla(
-    onCerrarSesion: () -> Unit,
-    onEliminarCuenta: () -> Unit,
-    viewModel: PerfilViewModel = hiltViewModel(),
+    usuarioId: String = "",
+    onCerrarSesion: () -> Unit = {},
+    onEliminarCuenta: () -> Unit = {},
+    onVolver: () -> Unit = {},
 ) {
-    val estado by viewModel.estado.collectAsState()
-
-    Scaffold(topBar = { TopAppBar(title = { Text("Mi perfil") }) }) { padding ->
-        Column(Modifier.padding(padding).padding(16.dp)) {
-            if (estado.perfil != null) {
-                Text("Correo: ${estado.perfil!!.correo}")
-                Text("Rol: ${estado.perfil!!.rol}")
-                if (!estado.perfil!!.verificado) Text("Cuenta sin verificar.")
-            }
+    Surface(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Spacer(Modifier.height(32.dp))
+            Text("Mi perfil", style = MaterialTheme.typography.titleLarge)
             Spacer(Modifier.height(16.dp))
-            OutlinedButton(onClick = onCerrarSesion, modifier = Modifier.fillMaxWidth()) {
-                Text("Cerrar sesión")
+            if (usuarioId.isNotBlank()) {
+                Text("ID: $usuarioId", style = MaterialTheme.typography.bodyMedium)
             }
+            Spacer(Modifier.weight(1f))
+            OutlinedButton(
+                onClick = onCerrarSesion,
+                modifier = Modifier.fillMaxWidth(),
+            ) { Text("Cerrar sesión") }
             Spacer(Modifier.height(8.dp))
-            Button(onClick = onEliminarCuenta, modifier = Modifier.fillMaxWidth()) {
-                Text("Eliminar cuenta")
-            }
+            TextButton(onClick = onEliminarCuenta) { Text("Eliminar cuenta") }
+            Spacer(Modifier.height(8.dp))
+            TextButton(onClick = onVolver) { Text("Volver") }
         }
     }
 }

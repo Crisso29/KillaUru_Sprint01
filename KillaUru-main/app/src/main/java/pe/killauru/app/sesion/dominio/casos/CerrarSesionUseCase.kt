@@ -1,20 +1,16 @@
 package pe.killauru.app.sesion.dominio.casos
 
-import pe.killauru.app.sesion.dominio.ApiCuenta
 import pe.killauru.app.sesion.dominio.RepositorioSesion
+import pe.killauru.app.sesion.dominio.RepositorioPreferencias
 import javax.inject.Inject
 
-/** FR-066: cierra sesión revocando el token; si sin red, deja revocación pendiente. */
+/** FR-069: cierra sesión limpiando token y preferencias de identidad. */
 internal class CerrarSesionUseCase @Inject constructor(
-    private val api: ApiCuenta,
-    private val repoSesion: RepositorioSesion,
-    private val limpiezaLocal: LimpiezaLocalSesion,
+    private val repo: RepositorioSesion,
+    private val prefs: RepositorioPreferencias,
 ) {
     suspend fun ejecutar() {
-        val sesion = repoSesion.obtener()
-        if (sesion != null) {
-            try { api.cerrarSesion(sesion.tokenAcceso) } catch (_: Exception) { /* red no disponible */ }
-        }
-        limpiezaLocal.ejecutar()
+        repo.cerrar()
+        prefs.limpiarSesion()
     }
 }

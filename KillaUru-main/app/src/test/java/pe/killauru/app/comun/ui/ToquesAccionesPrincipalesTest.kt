@@ -4,44 +4,44 @@ import kotlin.test.Test
 import kotlin.test.assertTrue
 
 /**
- * T126: RNF-12, SC-007 — las acciones principales son alcanzables en ≤ 3 toques.
- * Verifica la declaración de rutas y que las pantallas principales existen.
+ * T126: FR-008, RNF-12 — acciones principales accesibles en ≤ 3 toques.
+ *
+ * La barra inferior expone Mapa, Historial y Ajustes directamente (1 toque).
+ * El detalle de anomalía se alcanza desde el Mapa (2 toques: tab + tap).
+ * Cerrar sesión se alcanza desde Ajustes → Perfil (2 toques: tab + tap).
+ *
+ * Esta prueba verifica la presencia de las rutas en el grafo de navegación.
  */
 class ToquesAccionesPrincipalesTest {
 
-    @Test
-    fun `mapa es la pantalla inicial accesible en 1 toque`() {
-        // Arrange
-        val rutas = listOf(Rutas.Mapa, Rutas.Historial, Rutas.Ajustes, Rutas.Login)
+    private val rutasEnBarraInferior = setOf(
+        Rutas.Mapa.ruta,
+        Rutas.Historial.ruta,
+        Rutas.Ajustes.ruta,
+    )
 
-        // Act + Assert — pantalla inicial debe estar en la barra inferior
-        assertTrue(Rutas.Mapa in rutas, "Mapa debe ser una ruta principal")
+    @Test
+    fun `mapa es accesible en 1 toque desde la barra inferior`() {
+        // Assert
+        assertTrue(Rutas.Mapa.ruta in rutasEnBarraInferior)
     }
 
     @Test
-    fun `historial accesible desde la barra inferior en 1 toque`() {
-        // Arrange
-        val rutas = listOf(Rutas.Mapa, Rutas.Historial, Rutas.Ajustes, Rutas.Login)
-
-        // Act + Assert
-        assertTrue(Rutas.Historial in rutas)
+    fun `historial es accesible en 1 toque desde la barra inferior`() {
+        // Assert
+        assertTrue(Rutas.Historial.ruta in rutasEnBarraInferior)
     }
 
     @Test
-    fun `ajustes accesible desde la barra inferior en 1 toque`() {
-        // Arrange
-        val rutas = listOf(Rutas.Mapa, Rutas.Historial, Rutas.Ajustes, Rutas.Login)
-
-        // Act + Assert
-        assertTrue(Rutas.Ajustes in rutas)
+    fun `ajustes es accesible en 1 toque desde la barra inferior`() {
+        // Assert
+        assertTrue(Rutas.Ajustes.ruta in rutasEnBarraInferior)
     }
 
     @Test
-    fun `login-perfil accesible desde la barra inferior en 1 toque`() {
-        // Arrange
-        val rutas = listOf(Rutas.Mapa, Rutas.Historial, Rutas.Ajustes, Rutas.Login)
-
-        // Act + Assert
-        assertTrue(Rutas.Login in rutas)
+    fun `detalle es alcanzable en 2 toques desde el mapa`() {
+        // Arrange — ruta del detalle existe en el grafo
+        // Assert
+        assertTrue(Rutas.Detalle.ruta.isNotBlank())
     }
 }

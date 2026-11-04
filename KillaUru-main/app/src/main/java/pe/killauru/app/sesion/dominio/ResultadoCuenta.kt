@@ -1,11 +1,10 @@
 package pe.killauru.app.sesion.dominio
 
-/** FR-060, FR-061: resultados de operaciones de cuenta. */
+/** FR-063, FR-065, FR-067: resultados posibles de operaciones de cuenta. */
 internal sealed class ResultadoCuenta {
-    data object Exito : ResultadoCuenta()
-    data class Error(val mensaje: String) : ResultadoCuenta()
-    data object Conflicto : ResultadoCuenta()          // 409
-    data object LimiteAlcanzado : ResultadoCuenta()    // 429
-    data object RolNoPermitido : ResultadoCuenta()     // R-033
-    data object SesionInvalida : ResultadoCuenta()
+    data class Exitoso(val sesion: Sesion) : ResultadoCuenta()
+    object CorreoNoVerificado : ResultadoCuenta()
+    object CredencialesInvalidas : ResultadoCuenta()
+    object CorreoYaRegistrado : ResultadoCuenta()
+    data class Error(val causa: Throwable) : ResultadoCuenta()
 }
