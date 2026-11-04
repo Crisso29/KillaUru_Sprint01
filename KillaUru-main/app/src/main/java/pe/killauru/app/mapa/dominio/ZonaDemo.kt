@@ -11,8 +11,8 @@ internal class ZonaDemo(val vertices: List<Coordenada>) {
         for (i in vertices.indices) {
             val vi = vertices[i]
             val vj = vertices[j]
-            if ((vi.lat > punto.lat) != (vj.lat > punto.lat) &&
-                punto.lon < (vj.lon - vi.lon) * (punto.lat - vi.lat) / (vj.lat - vi.lat) + vi.lon
+            if ((vi.latitud > punto.latitud) != (vj.latitud > punto.latitud) &&
+                punto.longitud < (vj.longitud - vi.longitud) * (punto.latitud - vi.latitud) / (vj.latitud - vi.latitud) + vi.longitud
             ) {
                 dentro = !dentro
             }

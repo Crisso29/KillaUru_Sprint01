@@ -16,7 +16,7 @@ internal class Corredor(val vertices: List<Vertice>) {
         for (i in inicio until vertices.size - 1) {
             val a = vertices[i]; val b = vertices[i + 1]
             val pos = proyectarEnSegmento(punto, a, b, i) ?: continue
-            val dist = haversine(punto.lat, punto.lon, pos.lat, pos.lon)
+            val dist = haversine(punto.latitud, punto.longitud, pos.lat, pos.lon)
             if (dist < mejorDist) { mejorDist = dist; mejorPos = pos }
         }
         return if (mejorDist <= maxDistanciaM) mejorPos else null
@@ -27,7 +27,7 @@ internal class Corredor(val vertices: List<Vertice>) {
         val dx = bx - ax; val dy = by - ay
         val len2 = dx * dx + dy * dy
         if (len2 == 0.0) return null
-        val t = ((p.lon - ax) * dx + (p.lat - ay) * dy) / len2
+        val t = ((p.longitud - ax) * dx + (p.latitud - ay) * dy) / len2
         val tc = t.coerceIn(0.0, 1.0)
         val px = ax + tc * dx; val py = ay + tc * dy
         val km = a.km + tc * (b.km - a.km)
