@@ -14,7 +14,7 @@ internal class EliminarCuentaViewModel @Inject constructor(
 ) : ViewModel() {
     fun eliminar(contrasena: String, onEliminada: () -> Unit) {
         viewModelScope.launch {
-            if (eliminar.ejecutar(contrasena) == ResultadoCuenta.Exito) onEliminada()
+            if (eliminar.ejecutar(contrasena) is ResultadoCuenta.Exitoso) onEliminada()
         }
     }
 }

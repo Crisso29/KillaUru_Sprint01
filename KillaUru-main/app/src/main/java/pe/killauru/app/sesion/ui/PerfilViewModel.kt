@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import pe.killauru.app.sesion.dominio.PerfilUsuario
 import pe.killauru.app.sesion.dominio.RepositorioSesion
-import pe.killauru.app.sesion.dominio.ApiCuenta
 import javax.inject.Inject
 
 internal data class PerfilUiState(val perfil: PerfilUsuario? = null, val error: String? = null)
@@ -16,7 +15,6 @@ internal data class PerfilUiState(val perfil: PerfilUsuario? = null, val error: 
 @HiltViewModel
 internal class PerfilViewModel @Inject constructor(
     private val repoSesion: RepositorioSesion,
-    private val api: ApiCuenta,
 ) : ViewModel() {
 
     private val _estado = MutableStateFlow(PerfilUiState())
@@ -26,11 +24,13 @@ internal class PerfilViewModel @Inject constructor(
 
     private fun cargar() {
         viewModelScope.launch {
-            val sesion = repoSesion.obtener() ?: return@launch
-            api.obtenerPerfil(sesion.tokenAcceso).onSuccess { perfil ->
-                _estado.value = PerfilUiState(perfil = perfil)
-            }.onFailure {
-                _estado.value = PerfilUiState(error = "No se pudo cargar el perfil.")
+            val sesion = repoSesion.obtener()
+            if (sesion != null) {
+                _estado.value = PerfilUiState(
+                    perfil = PerfilUsuario(sesion.usuarioId, "", null, "", false)
+                )
+            } else {
+                _estado.value = PerfilUiState(error = "No hay sesión activa.")
             }
         }
     }

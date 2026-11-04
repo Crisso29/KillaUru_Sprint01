@@ -7,14 +7,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import pe.killauru.app.sesion.dominio.ResultadoCuenta
-import pe.killauru.app.sesion.dominio.casos.RegistrarCuentaUseCase
+import pe.killauru.app.sesion.dominio.casos.RegistrarseUseCase
 import javax.inject.Inject
 
 internal data class RegistroUiState(val error: String? = null, val cargando: Boolean = false)
 
 @HiltViewModel
 internal class RegistroViewModel @Inject constructor(
-    private val registrar: RegistrarCuentaUseCase,
+    private val registrar: RegistrarseUseCase,
 ) : ViewModel() {
 
     private val _estado = MutableStateFlow(RegistroUiState())
@@ -24,9 +24,11 @@ internal class RegistroViewModel @Inject constructor(
         viewModelScope.launch {
             _estado.value = RegistroUiState(cargando = true)
             when (registrar.ejecutar(correo, contrasena)) {
-                ResultadoCuenta.Exito -> { _estado.value = RegistroUiState(); onRegistrado() }
-                ResultadoCuenta.Conflicto -> _estado.value = RegistroUiState(error = "El correo ya tiene cuenta.")
-                ResultadoCuenta.LimiteAlcanzado -> _estado.value = RegistroUiState(error = "Demasiados intentos. Espera un momento.")
+                is ResultadoCuenta.Exitoso -> { _estado.value = RegistroUiState(); onRegistrado() }
+                is ResultadoCuenta.CorreoYaRegistrado -> _estado.value = RegistroUiState(
+                    error = "El correo ya tiene cuenta.")
+                is ResultadoCuenta.CredencialesInvalidas -> _estado.value = RegistroUiState(
+                    error = "Contraseña débil. Mínimo 8 caracteres.")
                 else -> _estado.value = RegistroUiState(error = "No se pudo crear la cuenta.")
             }
         }

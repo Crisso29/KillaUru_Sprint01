@@ -13,7 +13,7 @@ internal class LimpiezaLocalSesion @Inject constructor(
     private val repoPrefs: RepositorioPreferenciasDataStore,
 ) {
     suspend fun ejecutar() {
-        repoSesion.borrar()
+        repoSesion.cerrar()
         repoPrefs.limpiarSesion()
     }
 }

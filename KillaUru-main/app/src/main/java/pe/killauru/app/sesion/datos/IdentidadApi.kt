@@ -19,4 +19,10 @@ internal interface IdentidadApi {
 
     @DELETE("v1/users/{id}")
     suspend fun eliminar(@Path("id") id: String): Response<Unit>
+
+    @POST("v1/auth/refresh")
+    suspend fun renovarToken(@Body req: Map<String, String>): Response<TokenResponseDto>
+
+    @POST("v1/auth/logout")
+    suspend fun cerrarSesion(@Body req: Map<String, String>): Response<Unit>
 }
