@@ -10,9 +10,13 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import pe.killauru.app.comun.datos.bd.KillaUruBd
 import pe.killauru.app.comun.datos.bd.Migraciones
-import pe.killauru.app.comun.datos.bd.PurgaDao
 import pe.killauru.app.comun.datos.bd.ContadorDao
+import pe.killauru.app.comun.datos.bd.PurgaDao
 import pe.killauru.app.comun.datos.bd.TriggersValidacion
+import pe.killauru.app.deteccion.datos.EventoDao
+import pe.killauru.app.historial.datos.RecorridoDao
+import pe.killauru.app.mapa.datos.AnomaliaDao
+import pe.killauru.app.mapa.datos.EstadoCopiaDao
 
 /** T024: provee la base de datos Room y sus DAOs a través de Hilt. */
 @Module
@@ -32,4 +36,8 @@ internal object BdModulo {
 
     @Provides fun proveerPurgaDao(bd: KillaUruBd): PurgaDao = bd.purgaDao()
     @Provides fun proveerContadorDao(bd: KillaUruBd): ContadorDao = bd.contadorDao()
+    @Provides fun proveerEventoDao(bd: KillaUruBd): EventoDao = bd.eventoDao()
+    @Provides fun proveerAnomaliaDao(bd: KillaUruBd): AnomaliaDao = bd.anomaliaDao()
+    @Provides fun proveerEstadoCopiaDao(bd: KillaUruBd): EstadoCopiaDao = bd.estadoCopiaDao()
+    @Provides fun proveerRecorridoDao(bd: KillaUruBd): RecorridoDao = bd.recorridoDao()
 }

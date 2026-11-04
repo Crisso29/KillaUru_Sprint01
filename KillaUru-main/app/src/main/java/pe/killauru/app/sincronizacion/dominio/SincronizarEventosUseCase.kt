@@ -1,8 +1,9 @@
 package pe.killauru.app.sincronizacion.dominio
 
 import pe.killauru.app.comun.dominio.ParametrosApp
-import pe.killauru.app.deteccion.dominio.EstadoLocal
+import pe.killauru.app.comun.dominio.Reloj
 import pe.killauru.app.deteccion.dominio.RepositorioEventos
+import java.time.Duration
 import javax.inject.Inject
 
 /** FR-021, FR-022, FR-029, FR-037: sincroniza eventos en lotes, expira viejos. */
@@ -10,12 +11,16 @@ internal class SincronizarEventosUseCase @Inject constructor(
     private val repositorio: RepositorioEventos,
     private val enviarLote: EnviarLoteUseCase,
     private val parametros: ParametrosApp,
+    private val reloj: Reloj,
 ) {
+    private val ttl = Duration.ofHours(168)
+
     suspend fun ejecutar(soloVerMapa: Boolean, enAhorro: Boolean) {
         if (soloVerMapa || enAhorro) return
 
-        val limiteExpiracion = System.currentTimeMillis() - 168 * 60 * 60 * 1000L
-        repositorio.expirar(limiteExpiracion)
+        reloj.ahoraConfiable()?.let { ahora ->
+            repositorio.expirar(ahora.minus(ttl).toEpochMilli())
+        }
 
         val pendientes = repositorio.tomarLote("", parametros.maxEventosPorLote * 10)
         if (pendientes.isEmpty()) return

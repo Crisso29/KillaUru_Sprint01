@@ -11,7 +11,7 @@ internal interface AnomaliaDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertar(anomalia: AnomaliaEntity)
 
-    @Query("DELETE FROM anomalia WHERE anomaliaId = :id")
+    @Query("DELETE FROM anomalia WHERE id = :id")
     suspend fun eliminar(id: String)
 
     @Query("SELECT * FROM anomalia WHERE venceUtc > :ahoraMs OR persistente = 1")
