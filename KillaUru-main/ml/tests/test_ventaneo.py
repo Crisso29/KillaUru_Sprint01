@@ -58,15 +58,17 @@ def test_vecina_a_249_ms_es_zona_gris(tmp_path) -> None:
 
 
 def test_vecina_a_250_ms_no_es_zona_gris(tmp_path) -> None:
-    # Arrange — ventana exactamente a 250 ms del pico NO es zona gris
+    # Arrange — pico en ventana 4 (índice 75); la ventana 2 queda a ≥ 250 ms → no zona gris
+    # Con 50 Hz las ventanas miden 500 ms; borde ventana 2 termina a 1000 ms, pico a 1500 ms
+    # → distancia = 500 ms ≥ 250 ms → NO zona gris (límite estricto: solo < 250 ms es zona gris)
     t_ns, a_v, vel, km = _señal(6)
-    pico_ns = t_ns[75]  # pico en ventana 3
+    pico_ns = t_ns[75]  # inicio de ventana 4
     etiquetas = [{"t_pico_ns": int(pico_ns), "tipo": "Bache", "severidad": 3}]
     # Act
     ventanas = ventilar(t_ns, a_v, vel, km, etiquetas=etiquetas, conjunto="entrenamiento")
-    # Assert — ventana a 250 ms del pico (exactamente): NO zona gris
-    exactas = [v for v in ventanas if abs(v.t_fin_ns - pico_ns) == 250 * _NS_POR_MS and not v.zona_gris]
-    assert len(exactas) >= 1
+    # Assert — ventana 2 (borde a 500 ms del pico): NOT zona gris
+    ventana2 = [v for v in ventanas if v.t_inicio_ns == t_ns[25]][0]
+    assert not ventana2.zona_gris
 
 
 # --- prioridad de etiquetas ---

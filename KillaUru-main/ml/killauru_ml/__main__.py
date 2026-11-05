@@ -21,7 +21,8 @@ def _parser() -> argparse.ArgumentParser:
     sub.add_parser("candidatos", help="Lista picos candidatos para etiquetar")
 
     # --- etiquetado ---
-    sub.add_parser("validar-etiquetas", help="Valida archivos de etiquetas")
+    ve = sub.add_parser("validar-etiquetas", help="Valida archivos de etiquetas")
+    ve.add_argument("archivo", help="Ruta al archivo JSON de etiquetas")
     sub.add_parser("acuerdo", help="Calcula κ de Cohen del doble etiquetado")
 
     # --- ventanas y partición ---
@@ -58,6 +59,21 @@ def main(argv: list[str] | None = None) -> int:
         fila = ingerir(pathlib.Path(args.carpeta), ruta_catalogo=ruta_cat, subir=args.subir)
         print(f"{fila.grabacion_id}: {fila.estado} {fila.motivo}")
         return 0 if fila.estado == "Apta" else 1
+
+    if args.etapa == "validar-etiquetas":
+        import json
+        import pathlib
+        from killauru_ml.etiquetado.validar_etiquetas import validar_etiqueta, EtiquetaError
+        ruta = pathlib.Path(vars(args).get("archivo", ""))
+        etiquetas = json.loads(ruta.read_text()) if ruta.exists() else []
+        errores = 0
+        for etq in etiquetas:
+            try:
+                validar_etiqueta(etq)
+            except EtiquetaError as exc:
+                print(f"ERROR: {exc}", file=sys.stderr)
+                errores += 1
+        return 0 if errores == 0 else 1
 
     # El resto de etapas se implementan en sus fases correspondientes
     print(f"Etapa '{args.etapa}' aún no implementada en esta fase.", file=sys.stderr)
