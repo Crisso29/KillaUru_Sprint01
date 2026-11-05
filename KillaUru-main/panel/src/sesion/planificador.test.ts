@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { calcularDesfase, debeRenovar, fraccionRestante } from './planificador'
 import {
-  VIDA_ACCESO_MIN,
   MARGEN_RENOVACION_S,
   SESION_MAXIMA_HORAS,
 } from '@/config/constantes'
@@ -42,23 +41,22 @@ describe('debeRenovar', () => {
 })
 
 describe('fraccionRestante', () => {
+  const BASE = new Date('2026-11-05T10:00:00Z')
+
   it('fracción dentro de [0, 1]', () => {
-    const ahora = new Date()
-    const sesionVence = new Date(ahora.getTime() + SESION_MAXIMA_HORAS * 3600_000 / 2)
-    const f = fraccionRestante(sesionVence, ahora)
+    const sesionVence = new Date(BASE.getTime() + SESION_MAXIMA_HORAS * 3600_000 / 2)
+    const f = fraccionRestante(sesionVence, BASE)
     expect(f).toBeGreaterThan(0)
     expect(f).toBeLessThanOrEqual(1)
   })
 
   it('sesión ya vencida → 0', () => {
-    const ahora = new Date()
-    const sesionVence = new Date(ahora.getTime() - 1000)
-    expect(fraccionRestante(sesionVence, ahora)).toBe(0)
+    const sesionVence = new Date(BASE.getTime() - 1000)
+    expect(fraccionRestante(sesionVence, BASE)).toBe(0)
   })
 
   it('sesión muy larga → 1', () => {
-    const ahora = new Date()
-    const sesionVence = new Date(ahora.getTime() + 100 * 3600_000)
-    expect(fraccionRestante(sesionVence, ahora)).toBe(1)
+    const sesionVence = new Date(BASE.getTime() + 100 * 3600_000)
+    expect(fraccionRestante(sesionVence, BASE)).toBe(1)
   })
 })

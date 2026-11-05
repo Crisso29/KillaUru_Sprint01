@@ -1,6 +1,5 @@
 // T022 — clientes openapi-fetch con middleware de sesión
 import createClient from 'openapi-fetch'
-import type { ErrorApi } from './problema'
 import { armarError } from './problema'
 
 export interface OpcionesCliente {
@@ -18,7 +17,7 @@ export function crearCliente({ urlBase, renovar, onSesionTerminada }: OpcionesCl
   })
 
   cliente.use({
-    async onResponse({ response }) {
+    async onResponse({ request, response }) {
       if (response.status !== 401) return response
       const error = await armarError(response.clone())
 
@@ -26,21 +25,20 @@ export function crearCliente({ urlBase, renovar, onSesionTerminada }: OpcionesCl
         throw error
       }
 
-      // token_invalido → renovar una vez y reintentar
+      // token_invalido → renovar una vez y reintentar con URL original
+      let reintento: Response
       try {
         await renovar()
-        const clone = response.clone()
-        const req = new Request(clone.url, { method: 'GET', credentials: 'include' })
-        const reintento = await fetch(req)
-        if (reintento.status === 401) {
-          onSesionTerminada()
-          throw await armarError(reintento)
-        }
-        return reintento
+        reintento = await fetch(new Request(request.url, { method: request.method, credentials: 'include', headers: request.headers }))
       } catch (err) {
         onSesionTerminada()
         throw err
       }
+      if (reintento.status === 401) {
+        onSesionTerminada()
+        throw await armarError(reintento)
+      }
+      return reintento
     },
   })
 

@@ -1,10 +1,12 @@
-import { createContext, useCallback, useEffect, useReducer, useRef } from 'react'
+import { createContext, useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
 import type { EstadoSesion } from './estadoSesion'
 import { reducirSesion } from './estadoSesion'
 import { crearRenovador } from './renovador'
 import { crearCanalSesion } from './canalSesion'
 import { msDeltaRenovacion } from './planificador'
 import { entorno } from '@/config/entorno'
+import { relojReal } from '@/compartido/reloj'
+import type { Reloj } from '@/compartido/reloj'
 
 interface ContextoSesionVal {
   sesion: EstadoSesion
@@ -13,7 +15,13 @@ interface ContextoSesionVal {
 
 export const ContextoSesion = createContext<ContextoSesionVal | null>(null)
 
-export function ProveedorSesion({ children }: { children: React.ReactNode }) {
+export function ProveedorSesion({
+  children,
+  reloj = relojReal,
+}: {
+  children: React.ReactNode
+  reloj?: Reloj
+}) {
   const [sesion, despachar] = useReducer(reducirSesion, { tipo: 'desconocida' } as EstadoSesion)
   const timerId = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -27,25 +35,28 @@ export function ProveedorSesion({ children }: { children: React.ReactNode }) {
     }
     const body = await r.json() as { acceso_vence_utc: string; sesion_vence_utc?: string }
     const expira = new Date(body.acceso_vence_utc)
-    const sesionVence = body.sesion_vence_utc ? new Date(body.sesion_vence_utc) : new Date(Date.now() + 8 * 3600_000)
-    const desfaseMs = expira.getTime() - 5 * 60_000 - Date.now()
+    const ahora = reloj.ahora()
+    const sesionVence = body.sesion_vence_utc
+      ? new Date(body.sesion_vence_utc)
+      : new Date(ahora.getTime() + 8 * 3600_000)
+    const desfaseMs = expira.getTime() - 5 * 60_000 - ahora.getTime()
     despachar({ tipo: 'renovar_ok', expiraAccesoUtc: expira, sesionVenceUtc: sesionVence, desfaseMs })
     return expira
-  }, [])
+  }, [reloj])
 
-  const { renovarSesion } = crearRenovador(llamarRenovar)
+  const { renovarSesion } = useMemo(() => crearRenovador(llamarRenovar), [llamarRenovar])
 
   const programarRenovacion = useCallback((expira: Date) => {
     if (timerId.current) clearTimeout(timerId.current)
-    const ms = msDeltaRenovacion(expira, new Date())
+    const ms = msDeltaRenovacion(expira, reloj.ahora())
     timerId.current = setTimeout(() => void renovarSesion(), ms)
-  }, [renovarSesion])
+  }, [renovarSesion, reloj])
 
   useEffect(() => {
     void renovarSesion().then(programarRenovacion).catch(() => {})
     const { destruir } = crearCanalSesion(() => despachar({ tipo: 'salir' }))
     return () => { destruir(); if (timerId.current) clearTimeout(timerId.current) }
-  }, [])
+  }, [renovarSesion, programarRenovacion])
 
   const cerrarSesion = useCallback(async () => {
     await fetch(`${entorno.urlApi}/api/v1/auth/cerrar`, { method: 'POST', credentials: 'include' })

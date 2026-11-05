@@ -15,21 +15,25 @@ export function formatearRelativo(iso: string, ahora: Date): string {
   const diff = ahora.getTime() - ts.getTime()
 
   if (diff < UN_MIN) return 'ahora mismo'
-  if (diff < UNA_HORA) {
-    const min = Math.floor(diff / UN_MIN)
-    return `hace ${min} min`
-  }
-  if (diff < UN_DIA) {
+
+  // Comparar días de calendario en zona Lima antes que el umbral de horas
+  const diaTs = diaEnLima(ts)
+  const diaHoy = diaEnLima(ahora)
+  const diaAyer = diaEnLima(new Date(ahora.getTime() - UN_DIA))
+
+  if (diaTs === diaHoy) {
+    if (diff < UNA_HORA) {
+      const min = Math.floor(diff / UN_MIN)
+      return `hace ${min} min`
+    }
     const h = Math.floor(diff / UNA_HORA)
     return `hace ${h} h`
   }
 
-  const diaTs = diaEnLima(ts)
-  const diaAyer = diaEnLima(new Date(ahora.getTime() - UN_DIA))
-
   if (diaTs === diaAyer) {
     return `ayer a las ${formatearHoraLima(iso)}`
   }
+
   const dias = Math.floor(diff / UN_DIA)
   return `hace ${dias} d`
 }

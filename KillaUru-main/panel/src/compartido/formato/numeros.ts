@@ -1,14 +1,18 @@
 // T021 — formato numérico en español peruano
-const FMT_NUM = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 1 })
-const FMT_PCT = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 1 })
+// Usamos en-US (siempre disponible) + replace para obtener coma decimal
 const MENOS = '−' // minus tipográfico
 
+function conComa(n: number, maxDec: number): string {
+  return n.toLocaleString('en-US', { maximumFractionDigits: maxDec, useGrouping: false })
+    .replace('.', ',')
+}
+
 export function formatearNumero(n: number): string {
-  return FMT_NUM.format(n)
+  return conComa(n, 1)
 }
 
 export function formatearPorcentaje(n: number): string {
-  return `${FMT_PCT.format(n)} %`
+  return `${conComa(n, 1)} %`
 }
 
 export function formatearDelta(delta: number): string {

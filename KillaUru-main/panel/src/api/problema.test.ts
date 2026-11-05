@@ -25,9 +25,10 @@ describe('armarError', () => {
   })
 
   it('sin cuerpo legible → sin_conexion', async () => {
-    const r = new Response('', { status: 0 })
+    // status 0 no es constructible en JSDOM; usamos 500 sin body
+    const r = new Response('', { status: 500 })
     const e = await armarError(r)
-    expect(e.status).toBe(0)
+    expect(e.status).toBe(500)
     expect(e.codigo).toBe('sin_conexion')
   })
 

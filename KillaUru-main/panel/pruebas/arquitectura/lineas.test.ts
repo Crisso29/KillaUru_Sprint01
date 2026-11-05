@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { readdirSync, readFileSync, statSync } from 'fs'
+import { readdirSync, readFileSync } from 'fs'
 import { join, relative } from 'path'
 
 // T005: FR-047 — ningún archivo .ts/.tsx supera 199 líneas (excepto src/api/generado/)

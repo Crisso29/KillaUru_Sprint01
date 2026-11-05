@@ -3,6 +3,8 @@ import { crearRenovador } from './renovador'
 
 // T015 — 3 llamadas simultáneas → 1 renovación; renovación 401 → sesión terminada
 
+const EXPIRA = new Date('2026-11-05T10:05:00Z')
+
 describe('crearRenovador', () => {
   beforeEach(() => vi.clearAllMocks())
 
@@ -10,7 +12,7 @@ describe('crearRenovador', () => {
     const llamadas: number[] = []
     const renovar = vi.fn(async () => {
       llamadas.push(1)
-      return new Date()
+      return EXPIRA
     })
     const { renovarSesion } = crearRenovador(renovar)
 
@@ -25,7 +27,7 @@ describe('crearRenovador', () => {
   })
 
   it('renovación completada → siguiente llamada hace nuevo fetch', async () => {
-    const renovar = vi.fn(async () => new Date())
+    const renovar = vi.fn(async () => EXPIRA)
     const { renovarSesion } = crearRenovador(renovar)
     await renovarSesion()
     await renovarSesion()

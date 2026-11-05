@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { server } from '@/../pruebas/msw/servidor'
 import { http, HttpResponse } from 'msw'
 import { crearCliente } from './clientes'
@@ -9,11 +9,9 @@ import { crearCliente } from './clientes'
 const BASE = 'http://test-api'
 
 describe('middleware HTTP', () => {
-  let renovaciones = 0
   let onSesionTerminada: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
-    renovaciones = 0
     onSesionTerminada = vi.fn()
   })
 
