@@ -19,7 +19,7 @@ class VentanaDataset:
     severidad: int | None = None
     zona_gris: bool = False
     aumentada: bool = False
-    # NO lat, NO lon (FR-005)
+    recorrido: str = ""   # asignado en partir(); NO lat/lon (FR-005)
 
 
 def ventilar(
