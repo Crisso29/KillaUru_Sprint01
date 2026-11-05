@@ -14,8 +14,8 @@ export function useActores(ids: (string | null)[]): Record<string, string> {
         { credentials: 'include' },
       )
       if (!r.ok) return {}
-      const json = await r.json() as { items: Array<{ id: string; correo: string }> }
-      return Object.fromEntries(json.items.map(u => [u.id, u.correo]))
+      const json = await r.json() as { elementos: Array<{ id: string; correo: string }> }
+      return Object.fromEntries(json.elementos.map(u => [u.id, u.correo]))
     },
     staleTime: 10 * 60_000,
     enabled: limpios.length > 0,

@@ -83,7 +83,8 @@ describe('DetalleAnomalia', () => {
       http.get(`${BASE}/api/v1/usuarios`, ({ request }) => {
         idsCapturados = new URL(request.url).searchParams.get('ids') ?? ''
         return HttpResponse.json({
-          items: [{ id: ACTOR_ID, correo: 'admin@killauru.pe' }],
+          elementos: [{ id: ACTOR_ID, correo: 'admin@killauru.pe', rol: 'Administrador', estado: 'Activa', correoVerificado: true, fechaAltaUtc: '2026-01-01T00:00:00Z', ultimaSesionUtc: null }],
+          pagina: 1, tamano: 200, total: 1,
         })
       }),
     )
