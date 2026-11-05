@@ -1,0 +1,19 @@
+node_modules/
+dist/
+.env.local
+.env.*.local
+*.local
+
+# Cobertura
+coverage/
+playwright-report/
+test-results/
+
+# TypeScript
+*.tsbuildinfo
+
+# Vite
+*.js.map
+
+# MSW
+public/mockServiceWorker.js

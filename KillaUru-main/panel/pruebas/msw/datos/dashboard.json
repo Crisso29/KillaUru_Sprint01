@@ -1,0 +1,15 @@
+{
+  "total_senales": 1247,
+  "anomalias_activas": 23,
+  "pendientes_confirmacion": 8,
+  "resueltas_7d": 15,
+  "senales_por_dia": [
+    { "fecha": "2026-10-29", "total": 45 },
+    { "fecha": "2026-10-30", "total": 62 },
+    { "fecha": "2026-10-31", "total": 38 },
+    { "fecha": "2026-11-01", "total": 71 },
+    { "fecha": "2026-11-02", "total": 55 },
+    { "fecha": "2026-11-03", "total": 49 },
+    { "fecha": "2026-11-04", "total": 33 }
+  ]
+}

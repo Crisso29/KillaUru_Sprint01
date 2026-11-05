@@ -1,0 +1,22 @@
+{
+  "items": [
+    {
+      "id": "audit-0001",
+      "accion": "login",
+      "correo": "ops@killauru.pe",
+      "ip": "190.123.45.67",
+      "ts_utc": "2026-11-04T08:00:00Z"
+    },
+    {
+      "id": "audit-0002",
+      "accion": "cambio_estado_anomalia",
+      "correo": "ops@killauru.pe",
+      "ip": "190.123.45.67",
+      "ts_utc": "2026-11-04T08:15:00Z",
+      "detalle": { "anomalia_id": "a1b2c3d4-0000-0000-0000-000000000001", "estado_nuevo": "Resuelta" }
+    }
+  ],
+  "total": 2,
+  "pagina": 1,
+  "tamano": 50
+}

@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "id": "a1b2c3d4-0000-0000-0000-000000000001",
+      "estado": "Activa",
+      "severidad": 3,
+      "km": 285.5,
+      "tipo": "HuecoProfundo",
+      "creado_utc": "2026-10-01T12:00:00Z",
+      "coordenadas": [-73.5, -13.2]
+    },
+    {
+      "id": "a1b2c3d4-0000-0000-0000-000000000002",
+      "estado": "PendienteConfirmacion",
+      "severidad": 5,
+      "km": 310.0,
+      "tipo": "Derrumbe",
+      "creado_utc": "2026-10-02T08:30:00Z",
+      "coordenadas": [-73.6, -13.3]
+    }
+  ],
+  "total": 2,
+  "pagina": 1,
+  "tamano": 50
+}

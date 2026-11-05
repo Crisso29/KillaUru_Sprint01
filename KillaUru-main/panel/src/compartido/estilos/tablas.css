@@ -1,0 +1,41 @@
+/* Tablas de datos */
+.tabla-datos {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-16);
+}
+
+.tabla-datos th {
+  background-color: var(--sunken);
+  color: var(--ink-2);
+  font-family: var(--f-display);
+  font-size: var(--t-13);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: var(--s-8) var(--s-13);
+  text-align: left;
+  border-bottom: 2px solid var(--line-2);
+  white-space: nowrap;
+}
+
+.tabla-datos td {
+  padding: var(--s-8) var(--s-13);
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+
+.tabla-datos tr:hover td { background-color: var(--hover); }
+
+.tabla-datos--compacta th,
+.tabla-datos--compacta td {
+  padding: var(--s-5) var(--s-8);
+  font-size: var(--t-13);
+}
+
+/* Celda numérica */
+.tabla-datos td.num,
+.tabla-datos th.num {
+  text-align: right;
+  font-family: var(--f-data);
+}
