@@ -1,0 +1,21 @@
+complexity:
+  LongMethod:
+    active: true
+    allowedLines: 20
+  LargeClass:
+    active: true
+    allowedLines: 199
+style:
+  MagicNumber:
+    active: false
+  ForbiddenMethodCall:
+    active: true
+    excludes: ['**/RelojSistema.kt']
+    methods:
+      - 'java.lang.System.currentTimeMillis'
+      - 'java.time.Instant.now'
+      - 'java.time.Clock.systemUTC'
+      - 'java.time.LocalDateTime.now'
+      - 'java.util.Date.<init>'
+      - 'androidx.room.RoomDatabase.Builder.fallbackToDestructiveMigration'
+      - 'androidx.room.RoomDatabase.Builder.fallbackToDestructiveMigrationOnDowngrade'
