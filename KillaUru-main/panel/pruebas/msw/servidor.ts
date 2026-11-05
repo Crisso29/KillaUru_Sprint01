@@ -5,6 +5,7 @@ import { manejadoresMapa } from './manejadores/mapa'
 import { manejadoresAnomalias } from './manejadores/anomalias'
 import { manejadoresDashboard } from './manejadores/dashboard'
 import { manejadoresAuditoria } from './manejadores/auditoria'
+import { manejadoresUsuarios } from './manejadores/usuarios'
 
 export const server = setupServer(
   ...manejadoresIdentidad,
@@ -12,4 +13,5 @@ export const server = setupServer(
   ...manejadoresAnomalias,
   ...manejadoresDashboard,
   ...manejadoresAuditoria,
+  ...manejadoresUsuarios,
 )

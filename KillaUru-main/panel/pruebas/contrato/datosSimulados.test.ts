@@ -5,19 +5,22 @@ import datosAuditoria from '../msw/datos/auditoria.json'
 
 // T011: los datos simulados tienen la forma esperada por el panel
 describe('Datos simulados MSW — forma básica', () => {
-  it('anomalias tiene items y total', () => {
-    expect(datosAnomalias).toHaveProperty('items')
-    expect(datosAnomalias).toHaveProperty('total')
-    expect(Array.isArray(datosAnomalias.items)).toBe(true)
+  it('anomalias es una FeatureCollection GeoJSON', () => {
+    expect(datosAnomalias.type).toBe('FeatureCollection')
+    expect(Array.isArray(datosAnomalias.features)).toBe(true)
+    expect(datosAnomalias.features.length).toBeGreaterThan(0)
   })
 
-  it('cada anomalía tiene campos requeridos', () => {
-    for (const a of datosAnomalias.items) {
-      expect(a).toHaveProperty('id')
-      expect(a).toHaveProperty('estado')
-      expect(a).toHaveProperty('severidad')
-      expect(a['severidad']).toBeGreaterThanOrEqual(1)
-      expect(a['severidad']).toBeLessThanOrEqual(5)
+  it('cada feature tiene propiedades requeridas', () => {
+    for (const f of datosAnomalias.features) {
+      expect(f.type).toBe('Feature')
+      expect(f.properties).toHaveProperty('id')
+      expect(f.properties).toHaveProperty('estado')
+      expect(f.properties).toHaveProperty('severidad')
+      expect(f.properties.severidad).toBeGreaterThanOrEqual(1)
+      expect(f.properties.severidad).toBeLessThanOrEqual(5)
+      expect(f.properties).toHaveProperty('kmVia')
+      expect(f.properties).toHaveProperty('tipo')
     }
   })
 

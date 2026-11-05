@@ -4,7 +4,7 @@ import datosAnomalias from '../datos/anomalias.json'
 const BASE = import.meta.env?.VITE_URL_API ?? 'https://api.killauru.pe'
 
 export const manejadoresMapa = [
-  http.get(`${BASE}/api/v1/mapa/anomalias`, () =>
+  http.get(`${BASE}/api/v1/anomalies`, () =>
     HttpResponse.json(datosAnomalias),
   ),
 ]

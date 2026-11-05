@@ -1,18 +1,18 @@
 import { http, HttpResponse } from 'msw'
 import datosAnomalias from '../datos/anomalias.json'
+import datosDetalle from '../datos/detalle_anomalia.json'
 
 const BASE = import.meta.env?.VITE_URL_API ?? 'https://api.killauru.pe'
 
 export const manejadoresAnomalias = [
-  http.get(`${BASE}/api/v1/anomalias`, () =>
-    HttpResponse.json(datosAnomalias),
-  ),
+  http.get(`${BASE}/api/v1/anomalies/:id`, ({ params }) => {
+    if (params['id'] === datosDetalle.id) return HttpResponse.json(datosDetalle)
+    const feature = datosAnomalias.features.find(f => f.properties.id === params['id'])
+    if (!feature) return HttpResponse.json({ codigo: 'no_encontrado' }, { status: 404 })
+    return HttpResponse.json(feature.properties)
+  }),
 
-  http.get(`${BASE}/api/v1/anomalias/:id`, ({ params }) =>
-    HttpResponse.json(datosAnomalias.items?.find((a: Record<string, unknown>) => a['id'] === params['id']) ?? null),
-  ),
-
-  http.patch(`${BASE}/api/v1/anomalias/:id/estado`, () =>
+  http.patch(`${BASE}/api/v1/anomalies/:id/estado`, () =>
     HttpResponse.json({ ok: true }),
   ),
 ]
