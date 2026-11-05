@@ -1,0 +1,16 @@
+# Partición del dataset — congelar antes de entrenar (FR-013)
+Version: ds-1
+Semilla: 2828                     # RF-seed-global
+FraccionPrueba: 0.15
+FraccionValidacion: 0.15
+VentanasPruebaMinimasPorClase: 200 # config/entrenamiento.yaml §VentanasPruebaMinimasPorClase
+Clases:
+  - Normal
+  - Bache
+  - Hundimiento
+
+# Estado: borrador → congelado tras completar T032 (campaña de grabación)
+Estado: borrador
+
+# Recorridos incluidos (rellenar después de T022)
+Recorridos: []

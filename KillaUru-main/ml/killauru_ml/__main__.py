@@ -60,6 +60,14 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{fila.grabacion_id}: {fila.estado} {fila.motivo}")
         return 0 if fila.estado == "Apta" else 1
 
+    if args.etapa == "particion":
+        import pathlib
+        from killauru_ml.comun.config import leer_yaml
+        from killauru_ml.particion.no_fuga import verificar_no_fuga, FugaError
+        cfg = leer_yaml(pathlib.Path("config/particion.yaml"), ["Version", "Estado"])
+        print(f"Dataset {cfg['Version']} — estado: {cfg['Estado']}")
+        return 0
+
     if args.etapa == "validar-etiquetas":
         import json
         import pathlib
