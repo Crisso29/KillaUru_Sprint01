@@ -4,7 +4,7 @@ package pe.killauru.app.deteccion.datos
 internal class NormalizadorEntrada(
     private val media: Float,
     private val desviacion: Float,
-    private val longitudEsperada: Int,
+    internal val longitudEsperada: Int,
 ) {
     fun normalizar(muestras: List<FloatArray>): FloatArray {
         val salida = FloatArray(longitudEsperada)

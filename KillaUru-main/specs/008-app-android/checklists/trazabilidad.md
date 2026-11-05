@@ -7,9 +7,9 @@
 ## Historias
 
 - [x] CHK001 HU-01 · detección automática con 0 toques, RN-03, Liviano, «Detectando» → FR-009, FR-010, FR-016 → T036, T037, T051…T053
-- [ ] CHK002 HU-02 · tipo, severidad y confidence en < 50 ms → FR-011, FR-012, FR-015 → T039, T044, T050, T122
+- [x] CHK002 HU-02 · tipo, severidad y confidence en < 50 ms → FR-011, FR-012, FR-015 → T039, T044, T050, T122
 - [x] CHK003 HU-26 · categoría en el primer uso, soporte y cargador, solo en el celular → FR-004 → T027, T029…T031
-- [ ] CHK004 HU-03 · 5 h sin señal, 100 % `PENDING`, mapa y alertas → FR-019, FR-025, FR-059 → T065, T123
+- [x] CHK004 HU-03 · 5 h sin señal, 100 % `PENDING`, mapa y alertas → FR-019, FR-025, FR-059 → T065, T123
 - [x] CHK005 HU-04 · mismos `eventoId`, `SYNCED` solo tras 200, reanudar ≤ 60 s → FR-028…FR-038 → T054…T072
 - [x] CHK006 HU-07 · demo, zona sombreada, aviso una vez por viaje → FR-045, FR-049 → T081, T083, T085, T096
 - [x] CHK007 HU-08 · 335.073 km, severidad, tiempo relativo, sin señal → FR-041…FR-044, FR-047, FR-050 → T082, T086, T089, T094, T096

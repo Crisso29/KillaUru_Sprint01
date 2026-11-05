@@ -32,10 +32,15 @@ internal class ClasificadorLiteRt(
         Array(1) { FloatArray(etiquetas.size * nSeveridades) }
     }
 
+    // pre-alocado una sola vez; se reutiliza en cada ventana (FR-011 p95 < 50 ms)
+    private val inputBuffer: ByteBuffer by lazy {
+        ByteBuffer.allocateDirect(normalizador.longitudEsperada * 4)
+            .order(ByteOrder.nativeOrder())
+    }
+
     override fun clasificar(ventana: Ventana): Clasificacion {
         val entrada = normalizador.normalizar(ventana.muestras)
-        val inputBuffer = ByteBuffer.allocateDirect(entrada.size * 4)
-            .order(ByteOrder.nativeOrder())
+        inputBuffer.clear()
         entrada.forEach { inputBuffer.putFloat(it) }
         inputBuffer.rewind()
         interpreter.run(inputBuffer, outputBuffer)
