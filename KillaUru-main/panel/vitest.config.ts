@@ -10,7 +10,16 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    exclude: ['**/node_modules/**', '**/pruebas/e2e/**'],
     setupFiles: ['./pruebas/configuracion.ts'],
+    env: {
+      VITE_URL_API: 'https://api.killauru.pe',
+      VITE_URL_ESTILO_MAPA: 'https://cdn.killauru.pe/estilo.json',
+      VITE_URL_PMTILES: 'https://cdn.killauru.pe/mapa.pmtiles',
+      VITE_TURNSTILE_SITEKEY: '1x00000000000000000000AA',
+      VITE_URL_ESTADO: 'https://estado.killauru.pe',
+      VITE_ENTORNO: 'desarrollo',
+    },
     coverage: {
       provider: 'v8',
       include: ['src/**'],

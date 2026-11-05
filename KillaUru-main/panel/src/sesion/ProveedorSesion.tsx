@@ -11,6 +11,7 @@ import type { Reloj } from '@/compartido/reloj'
 interface ContextoSesionVal {
   sesion: EstadoSesion
   cerrarSesion: () => Promise<void>
+  notificarLogin: (expiraAccesoUtc: Date) => void
 }
 
 export const ContextoSesion = createContext<ContextoSesionVal | null>(null)
@@ -63,8 +64,16 @@ export function ProveedorSesion({
     despachar({ tipo: 'salir' })
   }, [])
 
+  const notificarLogin = useCallback((expiraAccesoUtc: Date) => {
+    const ahora = reloj.ahora()
+    const desfaseMs = expiraAccesoUtc.getTime() - 5 * 60_000 - ahora.getTime()
+    const sesionVenceUtc = new Date(ahora.getTime() + 8 * 3600_000)
+    despachar({ tipo: 'login_ok', expiraAccesoUtc, sesionVenceUtc, desfaseMs })
+    programarRenovacion(expiraAccesoUtc)
+  }, [reloj, programarRenovacion])
+
   return (
-    <ContextoSesion.Provider value={{ sesion, cerrarSesion }}>
+    <ContextoSesion.Provider value={{ sesion, cerrarSesion, notificarLogin }}>
       {children}
     </ContextoSesion.Provider>
   )

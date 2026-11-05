@@ -23,15 +23,41 @@ module.exports = {
       from: { path: 'src/api/' },
       to: { path: 'src/.*/ui/' },
     },
-    // Funcionalidades solo via index.ts
+    // Código fuera de funcionalidades solo puede importar su index.ts
     {
       name: 'funcionalidades-solo-via-index',
       severity: 'error',
-      comment: 'importar funcionalidades solo desde su index.ts',
-      from: { path: 'src/', pathNot: 'src/funcionalidades/[^/]+/index\\.ts' },
+      comment: 'código externo a funcionalidades importa solo su index.ts',
+      from: {
+        path: '^src/',
+        pathNot: [
+          'src/funcionalidades/',          // archivos dentro de cualquier funcionalidad
+          'src/api/generado/',
+        ],
+      },
       to: {
         path: 'src/funcionalidades/[^/]+/',
         pathNot: 'src/funcionalidades/[^/]+/index\\.ts',
+      },
+    },
+    // Una funcionalidad solo importa internals de otra via su index.ts
+    {
+      name: 'funcionalidades-cruzadas-via-index',
+      severity: 'error',
+      comment: 'una funcionalidad no importa los internals de otra',
+      from: { path: '^src/funcionalidades/login/' },
+      to: {
+        path: '^src/funcionalidades/(mapa|resumen|moderacion|usuarios|auditoria|exportacion|cuenta)/',
+        pathNot: 'index\\.ts$',
+      },
+    },
+    {
+      name: 'funcionalidades-cruzadas-via-index-mapa',
+      severity: 'error',
+      from: { path: '^src/funcionalidades/mapa/' },
+      to: {
+        path: '^src/funcionalidades/(login|resumen|moderacion|usuarios|auditoria|exportacion|cuenta)/',
+        pathNot: 'index\\.ts$',
       },
     },
     // Sin ciclos
