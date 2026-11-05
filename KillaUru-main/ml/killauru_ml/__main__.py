@@ -83,6 +83,27 @@ def main(argv: list[str] | None = None) -> int:
                 errores += 1
         return 0 if errores == 0 else 1
 
+    if args.etapa == "estado":
+        import json
+        from killauru_ml.estado import obtener_estado
+        print(json.dumps(obtener_estado(), indent=2, ensure_ascii=False))
+        return 0
+
+    if args.etapa == "todo":
+        if args.sintetico:
+            from killauru_ml.pipeline.sintetico import ejecutar_todo_sintetico
+            return ejecutar_todo_sintetico(args.version)
+        print("todo sin --sintetico requiere datos reales (T032).", file=sys.stderr)
+        return 2
+
+    if args.etapa == "puerta":
+        import pathlib, json
+        from killauru_ml.comun.config import leer_yaml
+        from killauru_ml.modelo.puerta import verificar_puerta_modelo, CheckResultado
+        cfg = leer_yaml(pathlib.Path("config/puerta.yaml"))
+        print("Puerta: configuración cargada. Pase --modelo y --metricas para ejecutar.")
+        return 2
+
     # El resto de etapas se implementan en sus fases correspondientes
     print(f"Etapa '{args.etapa}' aún no implementada en esta fase.", file=sys.stderr)
     return 2
