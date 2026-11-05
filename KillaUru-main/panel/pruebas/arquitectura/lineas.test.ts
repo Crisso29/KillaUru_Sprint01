@@ -4,7 +4,9 @@ import { join, relative } from 'path'
 
 // T005: FR-047 — ningún archivo .ts/.tsx supera 199 líneas (excepto src/api/generado/)
 const LIMITE = 199
-const SRC = join(__dirname, '../../src')
+const RAIZ = join(__dirname, '../..')
+const SRC = join(RAIZ, 'src')
+const PRUEBAS = join(RAIZ, 'pruebas')
 
 function listarArchivos(dir: string): string[] {
   const entradas = readdirSync(dir, { withFileTypes: true })
@@ -17,15 +19,18 @@ function listarArchivos(dir: string): string[] {
 }
 
 describe('FR-047: límite de líneas por archivo', () => {
-  it(`ningún archivo .ts/.tsx en src/ supera ${LIMITE} líneas`, () => {
-    const archivos = listarArchivos(SRC).filter(
+  it(`ningún .ts/.tsx en src/ o pruebas/ supera ${LIMITE} líneas`, () => {
+    const archivos = [
+      ...listarArchivos(SRC),
+      ...listarArchivos(PRUEBAS),
+    ].filter(
       (f) => !f.includes('/api/generado/') && !f.includes('\\api\\generado\\'),
     )
 
     const infractores = archivos
       .map((ruta) => {
         const lineas = readFileSync(ruta, 'utf-8').split('\n').length
-        return { ruta: relative(SRC, ruta), lineas }
+        return { ruta: relative(RAIZ, ruta), lineas }
       })
       .filter(({ lineas }) => lineas > LIMITE)
 

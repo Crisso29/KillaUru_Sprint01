@@ -1,4 +1,21 @@
-// Fase 1: raíz mínima — las rutas y el marco se implementan en Fase 2 (T013-T027)
+import { BrowserRouter } from 'react-router'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ProveedorSesion } from '@/sesion/ProveedorSesion'
+import { ProveedorAvisos } from '@/compartido/ui'
+import { Rutas } from './rutas'
+
+const queryClient = new QueryClient()
+
 export function App() {
-  return <div id="app">KillaUru Ops — cargando…</div>
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ProveedorSesion>
+        <ProveedorAvisos>
+          <BrowserRouter>
+            <Rutas />
+          </BrowserRouter>
+        </ProveedorAvisos>
+      </ProveedorSesion>
+    </QueryClientProvider>
+  )
 }
