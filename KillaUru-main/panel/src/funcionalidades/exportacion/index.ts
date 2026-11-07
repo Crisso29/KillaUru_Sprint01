@@ -1,2 +1,6 @@
-// Fase 2 stub — implementado en Fase 10 (T084)
-export function PaginaExportacion() { return null }
+// T084 — API pública del módulo exportación
+export { useExportar } from './api/useExportar'
+export { useRecientes } from './api/useRecientes'
+export { aDesdeUtc, aHastaUtc, construirSolicitud } from './modelo/solicitud'
+export { nombreArchivo, iniciarDescarga } from './modelo/descarga'
+export { PaginaExportacion } from './ui/PaginaExportacion'

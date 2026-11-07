@@ -6,6 +6,9 @@ import { manejadoresAnomalias } from './manejadores/anomalias'
 import { manejadoresDashboard } from './manejadores/dashboard'
 import { manejadoresAuditoria } from './manejadores/auditoria'
 import { manejadoresUsuarios } from './manejadores/usuarios'
+import { manejadoresMoederacion } from './manejadores/moderacion'
+import { manejadoresCuenta } from './manejadores/cuenta'
+import { manejadoresExportacion } from './manejadores/exportacion'
 
 export const server = setupServer(
   ...manejadoresIdentidad,
@@ -14,4 +17,7 @@ export const server = setupServer(
   ...manejadoresDashboard,
   ...manejadoresAuditoria,
   ...manejadoresUsuarios,
+  ...manejadoresMoederacion,
+  ...manejadoresCuenta,
+  ...manejadoresExportacion,
 )
