@@ -15,7 +15,7 @@ internal sealed class ColaLotesChannel : IColaLotes
     private readonly Channel<LoteRecibido> _channel;
     private readonly int _capacidad;
 
-    internal ColaLotesChannel(IOptions<Application.IngestaOptions> opciones, IMetricas metricas)
+    public ColaLotesChannel(IOptions<Application.IngestaOptions> opciones, IMetricas metricas)
     {
         _capacidad = opciones.Value.CapacidadCola;
         _channel = Channel.CreateBounded<LoteRecibido>(

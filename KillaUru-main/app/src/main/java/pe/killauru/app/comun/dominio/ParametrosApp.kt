@@ -1,0 +1,33 @@
+package pe.killauru.app.comun.dominio
+
+/** Constitucion III: configuracion explicita; ninguna regla tiene valores por defecto. */
+internal data class ParametrosApp(
+    val velocidadMinimaKmh: Int,
+    val duracionSostenidaSegundos: Int,
+    val confidenceMinimo: Double,
+    val categoriasQueDetectan: List<String>,
+    val tiempoAvisoSegundos: Int,
+    val distanciaAvisoMinimaMetros: Int,
+    val tiempoAvisoPesadoSegundos: Int,
+    val distanciaAvisoMinimaPesadoMetros: Int,
+    val distanciaFinPasadaMetros: Int,
+    val distanciaMaximaViaMetros: Int,
+    val bateriaMinimaPorcentaje: Int,
+    val duracionPermisoLocalDias: Int,
+    val paradaFinViajeMinutos: Int,
+    val rotacionSeudonimoDias: Int,
+    val antiguedadMaximaEnvioHoras: Int,
+    val purgaEstadosFinalesDias: Int,
+    val maxEventosPorLote: Int,
+    val backoffSegundos: List<Long>,
+    val jitterPorcentaje: Int,
+    val reanudarSincronizacionSegundosMax: Int,
+    val retencionHistorialMeses: Int,
+    val purgaAnomaliasVencidasDias: Int,
+    val frecuenciaSensoresHz: Int,
+    val latenciaLoteSensoresMs: Int,
+    val antiguedadMaximaFixMs: Int,
+    val fusionVentanasMs: Int,
+    val intervaloActualizacionAnomaliasMin: Int,
+    val contrasenaMinima: Int,
+)

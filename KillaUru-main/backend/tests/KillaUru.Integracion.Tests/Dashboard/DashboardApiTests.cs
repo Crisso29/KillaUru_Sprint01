@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using KillaUru.Integracion.Tests.Infraestructura;
+using KillaUru.Shared.Domain;
 
 namespace KillaUru.Integracion.Tests.Dashboard;
 
@@ -30,7 +31,7 @@ public sealed class DashboardApiTests(BaseDatosPrueba bd)
         using var api = new FabricaApi(bd);
         var cliente   = api.CreateClient();
         cliente.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", Tokens.Emitir("Conductor"));
+            new AuthenticationHeaderValue("Bearer", Tokens.Emitir(Roles.ConductorRegistrado));
 
         // Act
         var r = await cliente.GetAsync($"{Ruta}?dias=7", EscenarioDashboard.Ct);

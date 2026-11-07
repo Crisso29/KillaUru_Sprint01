@@ -1,0 +1,13 @@
+{
+  "VelocidadMinimaKmh": 5, "DuracionSostenidaSegundos": 10, "ConfidenceMinimo": 0.75,
+  "CategoriasQueDetectan": ["LIVIANO"],
+  "TiempoAvisoSegundos": 8, "DistanciaAvisoMinimaMetros": 100,
+  "TiempoAvisoPesadoSegundos": 12, "DistanciaAvisoMinimaPesadoMetros": 150,
+  "DistanciaFinPasadaMetros": 500, "DistanciaMaximaViaMetros": 50,
+  "BateriaMinimaPorcentaje": 15, "DuracionPermisoLocalDias": 30, "ParadaFinViajeMinutos": 30,
+  "RotacionSeudonimoDias": 30, "AntiguedadMaximaEnvioHoras": 168, "PurgaEstadosFinalesDias": 7,
+  "MaxEventosPorLote": 50, "BackoffSegundos": [30, 120, 600, 1800, 7200], "JitterPorcentaje": 25,
+  "ReanudarSincronizacionSegundosMax": 60, "RetencionHistorialMeses": 6, "PurgaAnomaliasVencidasDias": 7,
+  "FrecuenciaSensoresHz": 50, "LatenciaLoteSensoresMs": 1000, "AntiguedadMaximaFixMs": 2000,
+  "FusionVentanasMs": 1000, "IntervaloActualizacionAnomaliasMin": 15, "ContrasenaMinima": 10
+}

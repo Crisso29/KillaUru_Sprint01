@@ -17,7 +17,7 @@ internal sealed class TareaIndicadoresDiarios : BackgroundService
     private static readonly Action<ILogger, Exception?> _logError =
         LoggerMessage.Define(LogLevel.Error, default, "Error calculando indicadores diarios");
 
-    internal TareaIndicadoresDiarios(IServiceScopeFactory scopes, TimeProvider reloj,
+    public TareaIndicadoresDiarios(IServiceScopeFactory scopes, TimeProvider reloj,
         IOptions<DashboardOptions> opciones, ILogger<TareaIndicadoresDiarios> log)
     {
         _scopes    = scopes;

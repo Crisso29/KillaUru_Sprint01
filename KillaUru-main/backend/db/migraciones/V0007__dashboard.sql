@@ -1,6 +1,8 @@
 -- Dashboard: tabla de indicadores diarios.
 -- RN-17: solo cifras; sin IDs, seudónimos ni correos en este esquema.
-CREATE SCHEMA IF NOT EXISTS dashboard;
+-- V0000 ya crea el esquema con killauru_migrador como dueño (T-BD01).
+-- Recrearlo exige CREATE en la base incluso con IF NOT EXISTS; ese permiso
+-- no corresponde al migrador, que solo administra los esquemas existentes.
 
 CREATE TABLE dashboard.indicador_diario (
     dia        date     NOT NULL,

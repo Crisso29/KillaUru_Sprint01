@@ -9,7 +9,7 @@ internal sealed class MetricasMapa : IMetricasMapa, IDisposable
     private readonly Meter _meter = new("KillaUru.Mapa");
     private readonly Counter<long> _cacheCounter;
 
-    internal MetricasMapa()
+    public MetricasMapa()
     {
         _cacheCounter = _meter.CreateCounter<long>("killauru.mapa.cache",
             description: "Peticiones al mapa resueltas por caché (acierto/fallo/no_modificado).");

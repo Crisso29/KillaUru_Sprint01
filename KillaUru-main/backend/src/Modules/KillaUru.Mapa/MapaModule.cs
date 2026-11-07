@@ -44,19 +44,20 @@ public static class MapaModule
         services.AddSingleton<MetricasMapa>();
         services.AddSingleton<IMetricasMapa>(sp => sp.GetRequiredService<MetricasMapa>());
 
-        services.AddSingleton<CorredorMapa>();
+        // Los lectores del contrato de Anomalías comparten el scope de su DbContext.
+        services.AddScoped<CorredorMapa>();
         services.AddSingleton<CalculadorETag>();
 
         // Infraestructura
-        services.AddSingleton<FuenteCeldasAnomalias>();
-        services.AddSingleton<FuenteCeldasCacheada>();
-        services.AddSingleton<IFuenteCeldas>(sp => sp.GetRequiredService<FuenteCeldasCacheada>());
+        services.AddScoped<FuenteCeldasAnomalias>();
+        services.AddScoped<FuenteCeldasCacheada>();
+        services.AddScoped<IFuenteCeldas>(sp => sp.GetRequiredService<FuenteCeldasCacheada>());
         services.AddSingleton<VersionesCelda>(sp =>
             (VersionesCelda)sp.GetRequiredService<IVersionesCelda>());
 
         // Invalidación de caché (Observer)
-        services.AddSingleton<InvalidarCeldasMapa>();
-        services.AddSingleton<IManejador<AnomaliaCambiada>>(sp =>
+        services.AddScoped<InvalidarCeldasMapa>();
+        services.AddScoped<IManejador<AnomaliaCambiada>>(sp =>
             sp.GetRequiredService<InvalidarCeldasMapa>());
 
         // Use cases (transient — sin estado)

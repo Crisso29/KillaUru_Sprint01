@@ -1,4 +1,5 @@
 using KillaUru.Ingesta.Application.Puertos;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 
@@ -9,7 +10,7 @@ namespace KillaUru.Ingesta.Infrastructure;
 /// Usa caché de 5 s para no consultar la BD en cada petición de salud.
 /// </summary>
 internal sealed class ChequeoColaIngesta(
-    IBarridoPendientes barrido,
+    IServiceScopeFactory scopes,
     TimeProvider reloj,
     IOptions<Application.IngestaOptions> opciones) : IHealthCheck
 {
@@ -22,6 +23,9 @@ internal sealed class ChequeoColaIngesta(
         var ahora = reloj.GetUtcNow();
         if (_cache.HasValue && ahora - _ultimaConsulta < TtlCache) return _cache.Value;
 
+        // El chequeo conserva su caché, pero el DbContext pertenece solo a esta consulta.
+        await using var scope = scopes.CreateAsyncScope();
+        var barrido = scope.ServiceProvider.GetRequiredService<IBarridoPendientes>();
         var masAntiguo = await barrido.MasAntiguoPendienteAsync(ct);
         var umbral = TimeSpan.FromMinutes(opciones.Value.AntiguedadMaximaColaMinutos);
 
