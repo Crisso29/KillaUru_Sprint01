@@ -24,15 +24,15 @@ describe('Datos simulados MSW — forma básica', () => {
     }
   })
 
-  it('dashboard tiene total_senales y senales_por_dia', () => {
-    expect(datosDashboard).toHaveProperty('total_senales')
-    expect(Array.isArray(datosDashboard.senales_por_dia)).toBe(true)
+  it('dashboard tiene indicadores y eventosPorDia', () => {
+    expect(datosDashboard).toHaveProperty('indicadores')
+    expect(Array.isArray((datosDashboard as { eventosPorDia?: unknown[] }).eventosPorDia)).toBe(true)
   })
 
-  it('auditoria tiene items con ts_utc en ISO 8601', () => {
-    for (const e of datosAuditoria.items) {
-      expect(e).toHaveProperty('ts_utc')
-      expect(() => new Date(e['ts_utc'])).not.toThrow()
+  it('auditoria tiene elementos con ocurridoUtc en ISO 8601', () => {
+    for (const e of (datosAuditoria as { elementos: Record<string, unknown>[] }).elementos) {
+      expect(e).toHaveProperty('ocurridoUtc')
+      expect(() => new Date(e['ocurridoUtc'] as string)).not.toThrow()
     }
   })
 })

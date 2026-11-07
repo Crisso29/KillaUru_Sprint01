@@ -5,6 +5,7 @@ import { manejadoresMapa } from './manejadores/mapa'
 import { manejadoresAnomalias } from './manejadores/anomalias'
 import { manejadoresDashboard } from './manejadores/dashboard'
 import { manejadoresAuditoria } from './manejadores/auditoria'
+import { manejadoresCuenta } from './manejadores/cuenta'
 
 export const worker = setupWorker(
   ...manejadoresIdentidad,
@@ -12,4 +13,5 @@ export const worker = setupWorker(
   ...manejadoresAnomalias,
   ...manejadoresDashboard,
   ...manejadoresAuditoria,
+  ...manejadoresCuenta,
 )

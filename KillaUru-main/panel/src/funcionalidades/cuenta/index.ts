@@ -1,3 +1,3 @@
-// Fase 2 stub — implementado en Fase 6 (T061)
-export function PaginaVerificar() { return null }
-export function PaginaFijarContrasena() { return null }
+// T061 — módulo cuenta (US8: páginas de enlaces de correo)
+export { PaginaVerificar } from './ui/PaginaVerificar'
+export { PaginaFijarContrasena } from './ui/PaginaFijarContrasena'
