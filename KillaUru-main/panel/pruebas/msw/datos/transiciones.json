@@ -1,0 +1,29 @@
+[
+  {
+    "anomaliaId": "a1b2c3d4-0000-0000-0000-000000000001",
+    "tipo": "Bache",
+    "kmVia": 287.4,
+    "desde": null,
+    "hacia": "Activa",
+    "ocurridaUtc": "2026-11-01T10:00:00Z",
+    "actorId": null
+  },
+  {
+    "anomaliaId": "a1b2c3d4-0000-0000-0000-000000000002",
+    "tipo": "Hundimiento",
+    "kmVia": 300.1,
+    "desde": "Activa",
+    "hacia": "Reparada",
+    "ocurridaUtc": "2026-11-05T14:30:00Z",
+    "actorId": "a1a1a1a1-0000-0000-0000-000000000001"
+  },
+  {
+    "anomaliaId": "a1b2c3d4-0000-0000-0000-000000000003",
+    "tipo": "Bache",
+    "kmVia": 275.2,
+    "desde": "PendienteConfirmacion",
+    "hacia": "Activa",
+    "ocurridaUtc": "2026-11-06T09:15:00Z",
+    "actorId": null
+  }
+]

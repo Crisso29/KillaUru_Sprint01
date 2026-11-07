@@ -1,0 +1,10 @@
+{
+  "elementos": [
+    { "id": "a1a1a1a1-0000-0000-0000-000000000001", "correo": "admin@killauru.pe", "rol": "Administrador", "estado": "Activa", "correoVerificado": true, "fechaAltaUtc": "2026-01-15T00:00:00Z", "ultimaSesionUtc": "2026-11-04T10:00:00Z" },
+    { "id": "b2b2b2b2-0000-0000-0000-000000000001", "correo": "conductor@killauru.pe", "rol": "ConductorRegistrado", "estado": "Activa", "correoVerificado": true, "fechaAltaUtc": "2026-02-20T00:00:00Z", "ultimaSesionUtc": null },
+    { "id": "c3c3c3c3-0000-0000-0000-000000000001", "correo": "pendiente@killauru.pe", "rol": "ConductorRegistrado", "estado": "InvitacionPendiente", "correoVerificado": false, "fechaAltaUtc": "2026-11-01T00:00:00Z", "ultimaSesionUtc": null }
+  ],
+  "pagina": 1,
+  "tamano": 50,
+  "total": 3
+}

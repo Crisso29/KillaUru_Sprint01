@@ -1,0 +1,58 @@
+{
+  "ultimoDiaCerrado": "2026-11-06",
+  "calculadoUtc": "2026-11-07T05:30:00Z",
+  "urlPanelesTecnicos": "https://killauru.grafana.net/d/api",
+  "indicadores": {
+    "eventosDia": {
+      "valor": 321,
+      "comparacion": 297.0,
+      "variacion": 8.1,
+      "unidad": "eventos",
+      "serie": [250, 270, 260, 290, 276, 302, 321]
+    },
+    "conductoresActivos": {
+      "valor": 148,
+      "comparacion": 136.0,
+      "variacion": 12,
+      "unidad": "cuentas",
+      "serie": [120, 124, 129, 133, 138, 141, 148]
+    },
+    "dispositivosDia": {
+      "valor": 203,
+      "comparacion": 207.0,
+      "variacion": -4,
+      "unidad": "dispositivos",
+      "serie": [190, 214, 207, 199, 210, 207, 203]
+    },
+    "coberturaPct": {
+      "valor": 71.2,
+      "comparacion": 67.2,
+      "variacion": 4.0,
+      "unidad": "%",
+      "serie": [62.2, 63.1, 65.2, 66.1, 68.2, 69.1, 71.2]
+    },
+    "confirmacionPct": {
+      "valor": 64.0,
+      "comparacion": 63.0,
+      "variacion": 1.0,
+      "unidad": "%",
+      "serie": [60.0, 61.5, 63.0, 62.0, 63.4, 63.0, 64.0]
+    },
+    "reaparicionPct": {
+      "valor": 9.0,
+      "comparacion": 7.0,
+      "variacion": 2.0,
+      "unidad": "%",
+      "serie": [6.0, 7.1, 7.0, 8.3, 8.0, 8.0, 9.0]
+    }
+  },
+  "eventosPorDia": [
+    { "dia": "2026-11-01", "eventos": 298, "eventosPeriodoAnterior": 270 },
+    { "dia": "2026-11-02", "eventos": 310, "eventosPeriodoAnterior": 280 },
+    { "dia": "2026-11-03", "eventos": 285, "eventosPeriodoAnterior": 260 },
+    { "dia": "2026-11-04", "eventos": 295, "eventosPeriodoAnterior": 275 },
+    { "dia": "2026-11-05", "eventos": 305, "eventosPeriodoAnterior": 282 },
+    { "dia": "2026-11-06", "eventos": 315, "eventosPeriodoAnterior": 290 },
+    { "dia": "2026-11-07", "eventos": 321, "eventosPeriodoAnterior": 297 }
+  ]
+}

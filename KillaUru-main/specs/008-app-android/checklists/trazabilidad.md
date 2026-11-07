@@ -2,6 +2,8 @@
 
 **Purpose**: Todo lo que docs pide a la app → FR → tarea
 **Created**: 2026-10-22
+**Actualizado**: 2026-11-07
+**Estado**: 67/72 — 93 % completado (pendientes: benchmarks en dispositivos reales, datos R2 del corredor)
 **Feature**: [spec.md](../spec.md)
 
 ## Historias
