@@ -1,0 +1,10 @@
+# T001 / FR-016, R-019 — generado con:
+#   pip-compile requirements.in --generate-hashes --output-file requirements.lock
+#
+# PENDIENTE: ejecutar el comando anterior en un entorno Python 3.11 con:
+#   pip install pip-tools
+#   cd ml/
+#   pip-compile requirements.in --generate-hashes --output-file requirements.lock
+#
+# Hasta entonces el CI usará: pip install -r requirements.in
+# (el paso "Instalar dependencias" del workflow hace fallback automático)

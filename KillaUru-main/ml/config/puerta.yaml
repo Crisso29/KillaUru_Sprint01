@@ -1,0 +1,31 @@
+# T002 / FR-028, FR-029 — condiciones de la puerta de publicación (data-model §9)
+# IMPORTANTE: ConfidenceMinimo (RN-04) NO vive aquí ni en el modelo; es RN-04 de la app.
+
+# RNF-35 — precisión y recall mínimos por clase
+PrecisionMinimaPorClase: 0.90
+RecallMinimoPorClase: 0.90
+
+# RNF-35 — tolerancia de severidad
+SeveridadMasMenosUnoMinima: 0.80  # sobre las anomalías detectadas con tipo correcto
+
+# RNF-35 — tamaño del conjunto de prueba
+VentanasPruebaMinimasPorClase: 200
+CelularesMinimos: 3
+
+# RNF-04 — latencia en celulares de gama media
+LatenciaP95MaximaMs: 50.0
+CelularesBenchmarkMinimos: 3
+
+# ADR-004 — tamaño del modelo
+TamanoMaximoModeloMb: 5.0
+
+# FR-024 — equivalencia Python ↔ TFLite
+TipoIgualMinimo: 0.99
+DeltaConfidenceP99Maximo: 0.05
+SeveridadIgualMinima: 0.98
+
+# Clases válidas según RN-01
+ClasesRequeridas:
+  - Normal
+  - Bache
+  - Hundimiento
