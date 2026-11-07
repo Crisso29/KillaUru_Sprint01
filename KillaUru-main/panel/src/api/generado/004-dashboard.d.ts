@@ -1,22 +1,42 @@
 // GENERADO — no editar a mano. Ejecutar: npm run tipos
-// Fuente: specs/contratos/004-dashboard.yaml
+// Fuente: specs/contratos/007-dashboard.yaml
+
+export interface Indicador {
+  valor: number | null
+  comparacion: number | null
+  variacion: number | null
+  unidad: string
+  serie: Array<number | null>
+}
+
+export interface IndicadoresDashboard {
+  eventosDia: Indicador
+  conductoresActivos: Indicador
+  dispositivosDia: Indicador
+  coberturaPct: Indicador
+  confirmacionPct: Indicador
+  reaparicionPct: Indicador
+}
+
+export interface EventoPorDia {
+  dia: string
+  eventos: number | null
+  eventosPeriodoAnterior: number | null
+}
 
 export interface ResumenDashboard {
-  total_senales: number
-  anomalias_activas: number
-  pendientes_confirmacion: number
-  resueltas_7d: number
-  senales_por_dia: Array<{ fecha: string; total: number }>
+  ultimoDiaCerrado: string | null
+  calculadoUtc: string
+  urlPanelesTecnicos: string
+  indicadores: IndicadoresDashboard
+  eventosPorDia: EventoPorDia[]
 }
 
 export interface paths {
-  '/api/v1/dashboard/resumen': {
-    get: { responses: { 200: { content: { 'application/json': ResumenDashboard } } } }
-  }
-  '/api/v1/dashboard/senales-por-dia': {
+  '/api/v1/dashboard/indicadores': {
     get: {
-      parameters: { query?: { dias?: number } }
-      responses: { 200: { content: { 'application/json': Array<{ fecha: string; total: number }> } } }
+      parameters: { query?: { dias?: 7 | 14 | 30 } }
+      responses: { 200: { content: { 'application/json': ResumenDashboard } } }
     }
   }
 }

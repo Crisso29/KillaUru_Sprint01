@@ -1,12 +1,14 @@
-// T047 — DetalleAnomalia: panel completo con DatosAnomalia, ReportesPorDia e Historial
+// T047 / T067 — DetalleAnomalia con AccionesModeracion
+import { useState } from 'react'
 import { Esqueleto, EstadoError, Boton } from '@/compartido/ui'
-import { mensajeDeError } from '@/compartido/textos/errores'
 import type { ErrorApi } from '@/api/problema'
 import { useDetalleAnomalia } from '../api/useDetalleAnomalia'
 import { DatosAnomalia } from './DatosAnomalia'
 import { ReportesPorDia } from './ReportesPorDia'
 import { Historial } from './Historial'
 import { TEXTOS_DETALLE } from '../textos'
+import { AccionesModeracion } from '@/funcionalidades/moderacion'
+import type { DetalleAnomalia as TDetalle } from '@/api/generado/003-anomalias'
 
 interface Props {
   id: string
@@ -14,7 +16,9 @@ interface Props {
 }
 
 export function DetalleAnomalia({ id, onCerrar }: Props) {
-  const { data, isLoading, error } = useDetalleAnomalia(id)
+  const { data: queryData, isLoading, error } = useDetalleAnomalia(id)
+  const [localData, setLocalData] = useState<TDetalle | null>(null)
+  const data = localData ?? queryData
 
   if (isLoading) return <Esqueleto alto={300} />
 
@@ -43,6 +47,7 @@ export function DetalleAnomalia({ id, onCerrar }: Props) {
       <DatosAnomalia detalle={data} />
       <ReportesPorDia datos={data.reportesPorDia} />
       <Historial historial={data.historial} />
+      <AccionesModeracion detalle={data} onModerado={setLocalData} />
     </article>
   )
 }

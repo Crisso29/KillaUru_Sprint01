@@ -1,0 +1,20 @@
+[
+  {
+    "id": "e1e1e1e1-0000-0000-0000-000000000001",
+    "tipo": "Bache",
+    "kmVia": 275.3,
+    "severidadMostrada": 5,
+    "reportes": 3,
+    "primerReporteUtc": "2026-11-06T10:00:00Z",
+    "venceUtc": "2026-11-09T10:00:00Z"
+  },
+  {
+    "id": "e2e2e2e2-0000-0000-0000-000000000001",
+    "tipo": "Hundimiento",
+    "kmVia": 320.1,
+    "severidadMostrada": 2,
+    "reportes": 2,
+    "primerReporteUtc": "2026-11-07T06:00:00Z",
+    "venceUtc": "2026-11-10T06:00:00Z"
+  }
+]
