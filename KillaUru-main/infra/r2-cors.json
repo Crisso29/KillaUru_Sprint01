@@ -1,0 +1,9 @@
+[
+  {
+    "AllowedOrigins": ["https://panel.killauru.pe"],
+    "AllowedMethods": ["GET", "HEAD"],
+    "AllowedHeaders": ["Range"],
+    "ExposeHeaders": ["Content-Range", "ETag"],
+    "MaxAgeSeconds": 3600
+  }
+]

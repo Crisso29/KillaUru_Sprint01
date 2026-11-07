@@ -1,0 +1,33 @@
+# T002 / FR-016, FR-017, FR-018, FR-019 — parámetros del pipeline de entrenamiento
+
+# R-019 — reproducibilidad
+Semilla: 2828
+
+# FR-019 — arquitectura MLP (Normalization → 32 → 16 → dos cabezas)
+CapasOcultas: [32, 16]         # ≤ 2 capas ocultas (FR-019, R-011)
+Activacion: "relu"
+
+# Entrenamiento
+Epocas: 200
+TamanioLote: 64
+LearningRate: 0.001
+PacienciaParadaTemprana: 15    # parada temprana sobre val_loss
+
+# FR-018 — prefiltro de energía
+# umbralPrefiltro: se elige en entrenamiento para perder ≤ 1 % de anomalías (R-022)
+PerdidaMaximaPrefiltro: 0.01   # 1 % de las ventanas de anomalía como máximo
+
+# FR-014, R-020 — tamaños mínimos de la partición
+VentanasPruebaMinimasPorClase: 200
+VentanasValidacionMinimasPorClase: 100
+VentanasEntrenamientoMinimasAnomalia: 400
+CelularesMinimos: 3            # RNF-35
+
+# Aumento de datos — ± 200 ms solo en entrenamiento (FR-012)
+AumentoMs: 200
+
+# Orden de clases (FR-019) — Normal primero para los logits
+Clases:
+  - Normal
+  - Bache
+  - Hundimiento

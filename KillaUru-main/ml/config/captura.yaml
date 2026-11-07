@@ -1,0 +1,27 @@
+# T002 / FR-012, FR-017 — parámetros de captura; mismos que usa 008-app-android (R-007)
+
+# RF-01, diseño-interno §7.4
+FrecuenciaHz: 50               # 50 Hz pedidos al SensorManager
+SamplingPeriodUs: 20000        # 1 000 000 / 50 = 20 000 µs
+
+# diseño-interno §7.4
+LatenciaLoteUs: 1000000        # maxReportLatencyUs; entrega en lote ~1 s
+
+# RF-02
+VentanaMs: 500                 # 25 muestras a 50 Hz
+MuestrasVentana: 25            # VentanaMs / (1000 / FrecuenciaHz)
+
+# FR-017 — contexto de gravedad
+VentanaGravedadSegundos: 2     # media de los últimos 2 s = 100 muestras a 50 Hz
+
+# RN-03
+VelocidadMinimaKmh: 5.0        # > 5 km/h para activar la detección
+DuracionSostenidaSegundos: 10  # durante al menos 10 s continuos
+
+# FR-007 — control de calidad de la grabación
+FrecuenciaEfectivaMinimaHz: 45.0  # < 45 Hz efectivos → NoApta (FrecuenciaBaja)
+HuecoMaximoMs: 200                 # hueco > 200 ms cuenta para el porcentaje
+HuecosMaximoPct: 1.0               # > 1 % del tiempo en huecos → NoApta (Huecos)
+
+# Captura GPS
+FrecuenciaGpsHz: 1             # 1 Hz; LocationManagerCompat

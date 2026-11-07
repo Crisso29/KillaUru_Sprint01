@@ -1,0 +1,200 @@
+/* T008: tokens idénticos al prototipo — Artifact YZL35K3UNLrXECr4nzWaQ1 */
+:root {
+  /* Fondos */
+  --bg: #F2F5F5;
+  --surface: #FFFFFF;
+  --sunken: #E8EEEF;
+  --hover: #F5F8F8;
+  --frame: #0B2433;
+
+  /* Texto */
+  --ink: #0F1E24;
+  --ink-2: #3D4F57;
+  --ink-3: #63767E;
+
+  /* Bordes */
+  --line: #DCE4E6;
+  --line-2: #C3CFD2;
+
+  /* Marca Killa */
+  --killa: #0F5C70;
+  --killa-ink: #FFFFFF;
+  --killa-soft: #DCEFEF;
+  --killa-line: #9CCBCB;
+
+  /* Marca Uru */
+  --uru-2: #4D5EC2;
+  --uru-3: #7D8BDA;
+
+  /* Luna (acento dorado) */
+  --luna: #D4930F;
+  --luna-soft: #FBF0D6;
+
+  /* Carretera / mapa */
+  --road-fill: #F5C451;
+  --road-case: #9C6810;
+  --route: #0F5C70;
+
+  /* Severidades 1-5 */
+  --s1: #4E8E77;
+  --s2: #7E9A38;
+  --s3: #B8820E;
+  --s4: #E0642A;
+  --s5: #C42839;
+  --on-s13: #121829;
+  --on-s45: #FFFFFF;
+
+  /* Estados semánticos */
+  --ok: #1F7F55;
+  --ok-soft: #DFF2E8;
+  --warn: #A66508;
+  --warn-soft: #FCEFD6;
+  --bad: #C42839;
+  --bad-soft: #FBE3E6;
+  --info: #2763A6;
+  --info-soft: #E0ECF9;
+
+  /* Superposiciones */
+  --shade: rgba(18, 24, 41, 0.52);
+  --veil: rgba(255, 255, 255, 0.9);
+
+  /* Sombras */
+  --shadow: 0 1px 2px rgba(18, 24, 41, 0.06), 0 3px 8px rgba(18, 24, 41, 0.06);
+  --shadow-lg: 0 8px 21px rgba(18, 24, 41, 0.12), 0 21px 55px rgba(18, 24, 41, 0.12);
+
+  /* Tipografía — familias */
+  --f-display: "Overpass", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --f-data: "Overpass Mono", ui-monospace, "Cascadia Mono", monospace;
+
+  /* Tipografía — tamaños (escala φ) */
+  --t-13: 0.8125rem;
+  --t-16: 1rem;
+  --t-21: 1.3125rem;
+  --t-26: 1.625rem;
+  --t-34: 2.125rem;
+  --t-55: 3.4375rem;
+
+  /* Espaciado — serie Fibonacci */
+  --s-3: 3px;
+  --s-5: 5px;
+  --s-8: 8px;
+  --s-13: 13px;
+  --s-21: 21px;
+  --s-34: 34px;
+  --s-55: 55px;
+  --s-89: 89px;
+}
+
+/* Modo oscuro */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #08141A;
+    --surface: #0F1E26;
+    --sunken: #0B181F;
+    --hover: #142833;
+    --frame: #04161E;
+
+    --ink: #E6F0F2;
+    --ink-2: #A6BAC0;
+    --ink-3: #7A9098;
+
+    --line: #1E3440;
+    --line-2: #2C4654;
+
+    --killa: #74D3C6;
+    --killa-ink: #08141A;
+    --killa-soft: #12343A;
+    --killa-line: #2D6B70;
+
+    --uru-2: #7E91F0;
+    --uru-3: #6174D6;
+
+    --luna: #F2C14E;
+    --luna-soft: #3A2F17;
+
+    --road-fill: #E8B64A;
+    --road-case: #04161E;
+    --route: #74D3C6;
+
+    --s1: #62B293;
+    --s2: #A2C24E;
+    --s3: #F0BA3A;
+    --s4: #F57F45;
+    --s5: #F25B6E;
+    --on-s13: #08141A;
+    --on-s45: #08141A;
+
+    --ok: #4CC08A;
+    --ok-soft: #12301F;
+    --warn: #F0BA3A;
+    --warn-soft: #382A0F;
+    --bad: #F25B6E;
+    --bad-soft: #3B1820;
+    --info: #6EAAEA;
+    --info-soft: #132748;
+
+    --shade: rgba(3, 5, 12, 0.7);
+    --veil: rgba(19, 25, 41, 0.92);
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 3px 8px rgba(0, 0, 0, 0.25);
+    --shadow-lg: 0 8px 21px rgba(0, 0, 0, 0.4), 0 21px 55px rgba(0, 0, 0, 0.4);
+
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #08141A;
+  --surface: #0F1E26;
+  --sunken: #0B181F;
+  --hover: #142833;
+  --frame: #04161E;
+
+  --ink: #E6F0F2;
+  --ink-2: #A6BAC0;
+  --ink-3: #7A9098;
+
+  --line: #1E3440;
+  --line-2: #2C4654;
+
+  --killa: #74D3C6;
+  --killa-ink: #08141A;
+  --killa-soft: #12343A;
+  --killa-line: #2D6B70;
+
+  --uru-2: #7E91F0;
+  --uru-3: #6174D6;
+
+  --luna: #F2C14E;
+  --luna-soft: #3A2F17;
+
+  --road-fill: #E8B64A;
+  --road-case: #04161E;
+  --route: #74D3C6;
+
+  --s1: #62B293;
+  --s2: #A2C24E;
+  --s3: #F0BA3A;
+  --s4: #F57F45;
+  --s5: #F25B6E;
+  --on-s13: #08141A;
+  --on-s45: #08141A;
+
+  --ok: #4CC08A;
+  --ok-soft: #12301F;
+  --warn: #F0BA3A;
+  --warn-soft: #382A0F;
+  --bad: #F25B6E;
+  --bad-soft: #3B1820;
+  --info: #6EAAEA;
+  --info-soft: #132748;
+
+  --shade: rgba(3, 5, 12, 0.7);
+  --veil: rgba(19, 25, 41, 0.92);
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 3px 8px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 8px 21px rgba(0, 0, 0, 0.4), 0 21px 55px rgba(0, 0, 0, 0.4);
+
+  color-scheme: dark;
+}

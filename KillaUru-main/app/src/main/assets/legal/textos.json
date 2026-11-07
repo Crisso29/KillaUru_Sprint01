@@ -1,0 +1,10 @@
+{
+  "terminos": {
+    "version": "1.0",
+    "texto": "Al usar KillaUru aceptas compartir datos de aceleración y GPS anonimizados para detectar anomalías viales en la carretera PE-28A (Ayacucho-Pisco). Tus datos se envían con un seudónimo rotativo y no se asocian a tu identidad. Puedes usar la app sin cuenta y en modo anónimo."
+  },
+  "politica": {
+    "version": "1.0",
+    "texto": "Recogemos solo los datos necesarios para detectar baches y hundimientos. Los datos de aceleración y GPS se almacenan localmente hasta ser sincronizados. Los datos sincronizados se publican como datos abiertos sin identificadores personales. No vendemos ni compartimos tu información con terceros."
+  }
+}

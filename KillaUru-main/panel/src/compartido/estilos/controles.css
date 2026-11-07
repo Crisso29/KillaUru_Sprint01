@@ -1,0 +1,69 @@
+/* Botones, inputs, badges, chips — componentes de control */
+
+/* Botón base */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-8);
+  padding: var(--s-8) var(--s-21);
+  border-radius: var(--s-5);
+  border: 1px solid transparent;
+  font-family: var(--f-body);
+  font-size: var(--t-16);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.btn--primario {
+  background-color: var(--killa);
+  color: var(--killa-ink);
+  border-color: var(--killa);
+}
+.btn--primario:hover:not(:disabled) { filter: brightness(1.08); }
+
+.btn--secundario {
+  background-color: transparent;
+  color: var(--killa);
+  border-color: var(--killa-line);
+}
+.btn--secundario:hover:not(:disabled) { background-color: var(--killa-soft); }
+
+.btn--peligro {
+  background-color: var(--bad);
+  color: #fff;
+  border-color: var(--bad);
+}
+
+/* Input */
+.campo {
+  width: 100%;
+  padding: var(--s-8) var(--s-13);
+  border: 1px solid var(--line-2);
+  border-radius: var(--s-5);
+  background-color: var(--surface);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: var(--t-16);
+}
+.campo:focus { outline: none; border-color: var(--killa); box-shadow: 0 0 0 2px var(--killa-soft); }
+.campo--error { border-color: var(--bad); }
+
+/* Badge de severidad — NUNCA solo color (FR) */
+.severidad {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-5);
+  padding: var(--s-3) var(--s-8);
+  border-radius: var(--s-3);
+  font-size: var(--t-13);
+  font-weight: 700;
+  font-family: var(--f-data);
+}
+.severidad[data-nivel="1"] { background: var(--s1); color: var(--on-s13); }
+.severidad[data-nivel="2"] { background: var(--s2); color: var(--on-s13); }
+.severidad[data-nivel="3"] { background: var(--s3); color: var(--on-s13); }
+.severidad[data-nivel="4"] { background: var(--s4); color: var(--on-s45); outline: 2px solid var(--s4); }
+.severidad[data-nivel="5"] { background: var(--s5); color: var(--on-s45); outline: 2px solid var(--s5); }

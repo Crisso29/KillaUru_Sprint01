@@ -1,0 +1,20 @@
+[
+  {
+    "id": "d1d1d1d1-0000-0000-0000-000000000001",
+    "tipo": "Bache",
+    "kmVia": 290.5,
+    "severidadMostrada": 4,
+    "vehiculos7d": 5,
+    "reportes": 18,
+    "ultimaDeteccionUtc": "2026-11-06T12:00:00Z"
+  },
+  {
+    "id": "d2d2d2d2-0000-0000-0000-000000000001",
+    "tipo": "Hundimiento",
+    "kmVia": 310.0,
+    "severidadMostrada": 3,
+    "vehiculos7d": 4,
+    "reportes": 9,
+    "ultimaDeteccionUtc": "2026-11-05T08:00:00Z"
+  }
+]

@@ -1,0 +1,75 @@
+name: app-datos-r2
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Número de versión del corredor (entero)'
+        required: true
+        type: string
+      ensayo:
+        description: 'Modo ensayo (no sube a R2)'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  generar-y-publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar requisitos
+        run: pip install -r KillaUru-main/herramientas/corredor/requisitos.txt
+
+      - name: Generar corredor
+        run: |
+          python -I KillaUru-main/herramientas/corredor/generar_corredor.py \
+            KillaUru-main/backend/db/datos/corredor_pe28a.geojson \
+            ${{ inputs.version }} \
+            --salida KillaUru-main/herramientas/corredor/
+
+      - name: Verificar datos
+        run: |
+          python -I KillaUru-main/herramientas/corredor/verificar_datos.py \
+            KillaUru-main/herramientas/corredor/corredor_pe28a.v${{ inputs.version }}.json \
+            KillaUru-main/herramientas/mapa/tramo_demo.geojson \
+            KillaUru-main/herramientas/corredor/km_referencia.csv
+
+      - name: Generar manifiesto
+        run: |
+          python -I KillaUru-main/herramientas/corredor/generar_manifiesto.py \
+            KillaUru-main/herramientas/corredor/corredor_pe28a.v${{ inputs.version }}.json \
+            ${{ inputs.version }} \
+            --salida KillaUru-main/herramientas/mapa/manifiesto.json
+
+      - name: Subir archivos a R2 (versionados)
+        if: ${{ !inputs.ensayo }}
+        env:
+          KU_R2_ACCESS_KEY_ID: ${{ secrets.KU_R2_ACCESS_KEY_ID }}
+          KU_R2_SECRET_ACCESS_KEY: ${{ secrets.KU_R2_SECRET_ACCESS_KEY }}
+          KU_R2_ENDPOINT: ${{ secrets.KU_R2_ENDPOINT }}
+        run: |
+          aws s3 cp \
+            KillaUru-main/herramientas/corredor/corredor_pe28a.v${{ inputs.version }}.json \
+            s3://killauru-cdn/corredor/corredor_pe28a.v${{ inputs.version }}.json \
+            --endpoint-url "$KU_R2_ENDPOINT" \
+            --cache-control "public,max-age=31536000,immutable"
+
+      - name: Subir manifiesto a R2 (cache corta)
+        if: ${{ !inputs.ensayo }}
+        env:
+          KU_R2_ACCESS_KEY_ID: ${{ secrets.KU_R2_ACCESS_KEY_ID }}
+          KU_R2_SECRET_ACCESS_KEY: ${{ secrets.KU_R2_SECRET_ACCESS_KEY }}
+          KU_R2_ENDPOINT: ${{ secrets.KU_R2_ENDPOINT }}
+        run: |
+          aws s3 cp \
+            KillaUru-main/herramientas/mapa/manifiesto.json \
+            s3://killauru-cdn/mapa/manifiesto.json \
+            --endpoint-url "$KU_R2_ENDPOINT" \
+            --cache-control "public,max-age=300"

@@ -1,0 +1,29 @@
+/* Reset y base global */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: var(--f-body);
+  font-size: var(--t-16);
+  line-height: 1.5;
+  background-color: var(--bg);
+  color: var(--ink);
+  min-height: 100dvh;
+}
+
+a { color: var(--killa); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+img, svg { display: block; max-width: 100%; }
+
+/* Foco visible — accesibilidad */
+:focus-visible {
+  outline: 2px solid var(--killa);
+  outline-offset: 2px;
+}

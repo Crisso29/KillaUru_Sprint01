@@ -1,0 +1,36 @@
+/* Layout marco: sidebar + contenido principal */
+.marco {
+  display: grid;
+  grid-template-columns: var(--sidebar-w, 220px) 1fr;
+  grid-template-rows: auto 1fr;
+  min-height: 100dvh;
+}
+
+.marco__cabecera {
+  grid-column: 1 / -1;
+  background-color: var(--frame);
+  color: var(--killa-ink);
+  height: var(--s-55);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--s-21);
+  gap: var(--s-13);
+}
+
+.marco__lateral {
+  background-color: var(--surface);
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
+  padding: var(--s-13) 0;
+}
+
+.marco__contenido {
+  overflow-y: auto;
+  padding: var(--s-21);
+}
+
+@media (max-width: 768px) {
+  .marco { grid-template-columns: 1fr; }
+  .marco__lateral { display: none; }
+  .marco__lateral--abierto { display: block; }
+}

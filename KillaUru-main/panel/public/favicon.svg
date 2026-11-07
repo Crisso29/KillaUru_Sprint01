@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Luciérnaga "Señal" — logo KillaUru -->
+  <circle cx="16" cy="16" r="14" fill="#0F5C70"/>
+  <!-- Cuerpo luciérnaga -->
+  <ellipse cx="16" cy="17" rx="4" ry="6" fill="#74D3C6"/>
+  <!-- Señal luminosa -->
+  <circle cx="16" cy="13" r="3" fill="#D4930F" opacity="0.9"/>
+  <circle cx="16" cy="13" r="5" fill="#D4930F" opacity="0.3"/>
+</svg>
