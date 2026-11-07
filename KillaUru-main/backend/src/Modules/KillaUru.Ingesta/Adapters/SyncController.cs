@@ -49,27 +49,31 @@ internal sealed class SyncController(RecibirLoteEventosUseCase useCase) : Contro
         var lote = new LoteEntrante(dto.Eventos, conSesion, seudonimoCabecera);
         var resultado = await useCase.ProcesarAsync(lote, ct);
 
-        return resultado switch
-        {
-            ResultadoLote.Invalido => BadRequest(new { codigo = "lote_invalido" }),
-            ResultadoLote.Saturado s => RetryAfter(s),
-            ResultadoLote.Aceptado a => Ok(new RespuestaLoteDto
-            {
-                LoteId = a.LoteId,
-                Aceptados = a.Aceptados,
-                Duplicados = a.Duplicados,
-                Rechazados = a.Rechazados.Select(r => new RechazoDto
-                {
-                    Id = r.Id,
-                    Indice = r.Indice,
-                    Motivo = r.Motivo.ToString(),
-                }).ToList(),
-            }),
-            _ => StatusCode(StatusCodes.Status500InternalServerError),
-        };
+        return Responder(resultado);
     }
 
-    private ObjectResult RetryAfter(ResultadoLote.Saturado s)
+    private IActionResult Responder(ResultadoLote resultado) => resultado switch
+    {
+        ResultadoLoteInvalido => BadRequest(new { codigo = "lote_invalido" }),
+        ResultadoLoteSaturado s => RetryAfter(s),
+        ResultadoLoteAceptado a => Ok(CrearRespuesta(a)),
+        _ => StatusCode(StatusCodes.Status500InternalServerError),
+    };
+
+    private static RespuestaLoteDto CrearRespuesta(ResultadoLoteAceptado a) => new()
+    {
+        LoteId = a.LoteId,
+        Aceptados = a.Aceptados,
+        Duplicados = a.Duplicados,
+        Rechazados = a.Rechazados.Select(r => new RechazoDto
+        {
+            Id = r.Id,
+            Indice = r.Indice,
+            Motivo = r.Motivo.ToString(),
+        }).ToList(),
+    };
+
+    private ObjectResult RetryAfter(ResultadoLoteSaturado s)
     {
         Response.Headers["Retry-After"] = ((int)s.ReintentarEn.TotalSeconds).ToString();
         return StatusCode(StatusCodes.Status503ServiceUnavailable, new { codigo = "saturado" });

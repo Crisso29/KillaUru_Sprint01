@@ -45,7 +45,7 @@ public sealed class ConsultarFiltradoUseCaseTests
             [KillaUru.Anomalias.Contracts.EstadoAnomalia.Activa], recortarDemo: false, CancellationToken.None);
 
         // Assert
-        var contenido = Assert.IsType<ResultadoMapa.Contenido>(resultado);
+        var contenido = Assert.IsType<ResultadoMapaContenido>(resultado);
         Assert.Null(contenido.ETag);
         Assert.NotEmpty(contenido.Cuerpo);
     }
@@ -73,7 +73,7 @@ public sealed class ConsultarFiltradoUseCaseTests
             [KillaUru.Anomalias.Contracts.EstadoAnomalia.Activa], recortarDemo: true, CancellationToken.None);
 
         // Assert — solo la anomalía dentro del polígono
-        var contenido = Assert.IsType<ResultadoMapa.Contenido>(resultado);
+        var contenido = Assert.IsType<ResultadoMapaContenido>(resultado);
         var json = System.Text.Encoding.UTF8.GetString(contenido.Cuerpo);
         Assert.Contains(dentro.Id.ToString(), json);
         Assert.DoesNotContain(fuera.Id.ToString(), json);
@@ -93,7 +93,7 @@ public sealed class ConsultarFiltradoUseCaseTests
             [KillaUru.Anomalias.Contracts.EstadoAnomalia.Activa], recortarDemo: false, CancellationToken.None);
 
         // Assert
-        var contenido = Assert.IsType<ResultadoMapa.Contenido>(resultado);
+        var contenido = Assert.IsType<ResultadoMapaContenido>(resultado);
         var json = System.Text.Encoding.UTF8.GetString(contenido.Cuerpo);
         Assert.Contains("generadoUtc", json);
         Assert.Contains("FeatureCollection", json);

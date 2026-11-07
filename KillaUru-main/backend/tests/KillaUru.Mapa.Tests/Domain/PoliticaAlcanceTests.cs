@@ -1,4 +1,3 @@
-using KillaUru.Anomalias.Contracts;
 using KillaUru.Mapa.Domain;
 using KillaUru.Shared.Domain;
 
@@ -21,7 +20,7 @@ public sealed class PoliticaAlcanceTests
             hayUpdatedSince: false);
 
         // Assert
-        var porCeldas = Assert.IsType<PlanConsulta.PorCeldas>(plan);
+        var porCeldas = Assert.IsType<PlanConsultaPorCeldas>(plan);
         Assert.Equal(Alcance.Anonimo, porCeldas.Alcance);
     }
 
@@ -34,9 +33,9 @@ public sealed class PoliticaAlcanceTests
             hayUpdatedSince: false);
 
         // Assert
-        var filtrada = Assert.IsType<PlanConsulta.Filtrada>(plan);
+        var filtrada = Assert.IsType<PlanConsultaFiltrada>(plan);
         Assert.True(filtrada.RecortarDemo);
-        Assert.Contains(EstadoAnomalia.Activa, filtrada.Estados);
+        Assert.Contains(EstadoMapa.Activa, filtrada.Estados);
         Assert.Single(filtrada.Estados);
     }
 
@@ -49,7 +48,7 @@ public sealed class PoliticaAlcanceTests
             hayUpdatedSince: true);
 
         // Assert
-        var cambios = Assert.IsType<PlanConsulta.Cambios>(plan);
+        var cambios = Assert.IsType<PlanConsultaCambios>(plan);
         Assert.True(cambios.RecortarDemo);
     }
 
@@ -62,7 +61,7 @@ public sealed class PoliticaAlcanceTests
             hayUpdatedSince: false);
 
         // Assert
-        Assert.IsType<PlanConsulta.NoPermitido>(plan);
+        Assert.IsType<PlanConsultaNoPermitido>(plan);
     }
 
     // ── Conductor registrado ────────────────────────────────────────────────────
@@ -76,7 +75,7 @@ public sealed class PoliticaAlcanceTests
             hayEstado: false, hayUpdatedSince: false);
 
         // Assert
-        var porCeldas = Assert.IsType<PlanConsulta.PorCeldas>(plan);
+        var porCeldas = Assert.IsType<PlanConsultaPorCeldas>(plan);
         Assert.Equal(Alcance.Registrado, porCeldas.Alcance);
     }
 
@@ -89,10 +88,10 @@ public sealed class PoliticaAlcanceTests
             hayEstado: false, hayUpdatedSince: false);
 
         // Assert
-        var filtrada = Assert.IsType<PlanConsulta.Filtrada>(plan);
+        var filtrada = Assert.IsType<PlanConsultaFiltrada>(plan);
         Assert.False(filtrada.RecortarDemo);
         Assert.Single(filtrada.Estados);
-        Assert.Contains(EstadoAnomalia.Activa, filtrada.Estados);
+        Assert.Contains(EstadoMapa.Activa, filtrada.Estados);
     }
 
     /// <summary>Conductor con updatedSince → Cambios(recortarDemo=false).</summary>
@@ -104,7 +103,7 @@ public sealed class PoliticaAlcanceTests
             hayEstado: false, hayUpdatedSince: true);
 
         // Assert
-        var cambios = Assert.IsType<PlanConsulta.Cambios>(plan);
+        var cambios = Assert.IsType<PlanConsultaCambios>(plan);
         Assert.False(cambios.RecortarDemo);
     }
 
@@ -117,7 +116,7 @@ public sealed class PoliticaAlcanceTests
             hayEstado: true, hayUpdatedSince: false);
 
         // Assert
-        Assert.IsType<PlanConsulta.NoPermitido>(plan);
+        Assert.IsType<PlanConsultaNoPermitido>(plan);
     }
 
     // ── Administrador ───────────────────────────────────────────────────────────
@@ -131,7 +130,7 @@ public sealed class PoliticaAlcanceTests
             hayUpdatedSince: false);
 
         // Assert
-        var filtrada = Assert.IsType<PlanConsulta.Filtrada>(plan);
+        var filtrada = Assert.IsType<PlanConsultaFiltrada>(plan);
         Assert.False(filtrada.RecortarDemo);
         Assert.Equal(5, filtrada.Estados.Length);
     }
@@ -141,14 +140,14 @@ public sealed class PoliticaAlcanceTests
     public void Administrador_con_estados_usa_los_estados_pedidos()
     {
         // Arrange
-        var estados = new[] { EstadoAnomalia.Activa, EstadoAnomalia.PendienteConfirmacion };
+        var estados = new[] { EstadoMapa.Activa, EstadoMapa.PendienteConfirmacion };
 
         // Act
         var plan = PoliticaAlcance.Decidir(Roles.Administrador, hayFiltros: false, hayEstado: true,
             hayUpdatedSince: false, estados: estados);
 
         // Assert
-        var filtrada = Assert.IsType<PlanConsulta.Filtrada>(plan);
+        var filtrada = Assert.IsType<PlanConsultaFiltrada>(plan);
         Assert.Equal(estados, filtrada.Estados);
     }
 
@@ -161,7 +160,7 @@ public sealed class PoliticaAlcanceTests
             hayUpdatedSince: true);
 
         // Assert
-        var cambios = Assert.IsType<PlanConsulta.Cambios>(plan);
+        var cambios = Assert.IsType<PlanConsultaCambios>(plan);
         Assert.False(cambios.RecortarDemo);
     }
 }

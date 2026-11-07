@@ -1,6 +1,5 @@
 using KillaUru.Mapa.Adapters.Dtos;
 using KillaUru.Mapa.Application;
-using KillaUru.Mapa.Domain;
 using KillaUru.Shared.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,6 +28,17 @@ internal sealed class AnomaliasController(
     [ProducesResponseType(200), ProducesResponseType(304)]
     public async Task<IActionResult> ObtenerMapa([FromQuery] ParametrosMapaDto dto, CancellationToken ct)
     {
+        var error = ValidarParametros(dto);
+        if (error is not null) return error;
+        var consulta = ConsultaMapa.Crear(ObtenerRol(), dto.Bbox, dto.Tipo, dto.Severidades,
+            dto.Desde, dto.Hasta, dto.Estados, dto.UpdatedSince,
+            Request.Headers.IfNoneMatch.FirstOrDefault());
+        if (consulta is null) return Problema("datos_invalidos", 400);
+        return Responder(await useCase.EjecutarAsync(consulta, ct));
+    }
+
+    private ObjectResult? ValidarParametros(ParametrosMapaDto dto)
+    {
         bool hayFiltros = dto.Tipo.HasValue || (dto.Severidades is { Length: > 0 })
                           || dto.Desde.HasValue || dto.Hasta.HasValue;
 
@@ -38,24 +48,17 @@ internal sealed class AnomaliasController(
         if (dto.UpdatedSince.HasValue && dto.UpdatedSince.Value > reloj.GetUtcNow().AddMinutes(5))
             return Problema("datos_invalidos", 400);
 
-        if (!Bbox.TryParse(dto.Bbox, out var bbox))
-            return Problema("datos_invalidos", 400);
+        return null;
+    }
 
-        var consulta = new ConsultaMapa(ObtenerRol(), bbox, dto.Tipo, dto.Severidades,
-            dto.Desde, dto.Hasta, dto.Estados, dto.UpdatedSince,
-            Request.Headers.IfNoneMatch.FirstOrDefault());
-
-        var resultado = await useCase.EjecutarAsync(consulta, ct);
-
-        return resultado switch
+    private IActionResult Responder(ResultadoMapa resultado) => resultado switch
         {
-            ResultadoMapa.Prohibido   => Problema("sin_permiso", 403),
-            ResultadoMapa.Invalido  i => Problema(i.Codigo, 400),
-            ResultadoMapa.NoModificado nm => RespuestaSinCuerpo(nm.ETag),
-            ResultadoMapa.Contenido c => RespuestaConCuerpo(c),
+            ResultadoMapaProhibido   => Problema("sin_permiso", 403),
+            ResultadoMapaInvalido  i => Problema(i.Codigo, 400),
+            ResultadoMapaNoModificado nm => RespuestaSinCuerpo(nm.ETag),
+            ResultadoMapaContenido c => RespuestaConCuerpo(c),
             _ => StatusCode(500),
         };
-    }
 
     private string ObtenerRol()
     {
@@ -63,7 +66,7 @@ internal sealed class AnomaliasController(
         return User.FindFirst("rol")?.Value ?? Roles.Anonimo;
     }
 
-    private FileContentResult RespuestaConCuerpo(ResultadoMapa.Contenido c)
+    private FileContentResult RespuestaConCuerpo(ResultadoMapaContenido c)
     {
         if (c.ETag is not null) { Response.Headers.ETag = c.ETag; }
         Response.Headers.CacheControl = c.Publico

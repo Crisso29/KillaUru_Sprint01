@@ -3,7 +3,7 @@ using System.Text.Json;
 using KillaUru.Anomalias.Contracts;
 using KillaUru.Anomalias.Contracts.Lecturas;
 
-namespace KillaUru.Mapa.Infrastructure;
+namespace KillaUru.Mapa.Application;
 
 /// <summary>Serializa anomalías y colecciones en GeoJSON (data-model §2).</summary>
 internal static class SerializadorGeoJson
@@ -36,14 +36,7 @@ internal static class SerializadorGeoJson
         w.WritePropertyName("features");
         w.Flush();
         ms.WriteByte((byte)'[');
-        bool primero = true;
-        foreach (var frag in fragmentos)
-        {
-            if (frag.Length == 0) continue;
-            if (!primero) ms.WriteByte((byte)',');
-            ms.Write(frag);
-            primero = false;
-        }
+        EscribirFragmentos(ms, fragmentos);
         ms.WriteByte((byte)']');
         ms.WriteByte((byte)'}');
         return ms.ToArray();
@@ -133,5 +126,17 @@ internal static class SerializadorGeoJson
             w.WriteString("venceUtc", vence.Value.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ"));
         else
             w.WriteNull("venceUtc");
+    }
+
+    private static void EscribirFragmentos(MemoryStream ms, IEnumerable<byte[]> fragmentos)
+    {
+        bool primero = true;
+        foreach (var frag in fragmentos)
+        {
+            if (frag.Length == 0) continue;
+            if (!primero) ms.WriteByte((byte)',');
+            ms.Write(frag);
+            primero = false;
+        }
     }
 }

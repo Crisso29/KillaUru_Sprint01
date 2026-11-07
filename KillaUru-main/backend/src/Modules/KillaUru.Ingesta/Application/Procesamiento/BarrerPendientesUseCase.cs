@@ -1,7 +1,5 @@
 using KillaUru.Ingesta.Application.Puertos;
-
 namespace KillaUru.Ingesta.Application.Procesamiento;
-
 /// <summary>
 /// Encola todos los lotes con filas Recibido; respeta la capacidad de la cola y procesa
 /// en lotes de 100 loteIds para no cargar la BD de golpe (FR-016; R-011).
@@ -11,7 +9,6 @@ internal sealed class BarrerPendientesUseCase(
     IColaLotes cola)
 {
     private const int TamanoPagina = 100;
-
     /// <summary>Encola los lotes pendientes. <paramref name="anteriorA"/> null = todos (al arrancar).</summary>
     internal async Task EjecutarAsync(DateTimeOffset? anteriorA, CancellationToken ct)
     {
@@ -21,7 +18,6 @@ internal sealed class BarrerPendientesUseCase(
         {
             var lotes = await barrido.LotesPendientesAsync(desde, TamanoPagina, ct);
             if (lotes.Count == 0) break;
-
             foreach (var loteId in lotes)
             {
                 if (!cola.TryEscribir(new LoteRecibido(loteId)))
@@ -30,7 +26,6 @@ internal sealed class BarrerPendientesUseCase(
                     break;
                 }
             }
-
             desde = lotes.LastOrDefault(id => id.HasValue);
             if (lotes.Count < TamanoPagina) break;
         }

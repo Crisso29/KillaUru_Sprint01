@@ -49,13 +49,13 @@ public sealed class ConsultarPorCeldasUseCaseTests
         versiones.ObtenerVersion(CeldaId).Returns(0L);
 
         var primeraRespuesta = await uc.EjecutarAsync(Alcance.Registrado, null, null, CancellationToken.None);
-        var etag = ((ResultadoMapa.Contenido)primeraRespuesta).ETag!;
+        var etag = ((ResultadoMapaContenido)primeraRespuesta).ETag!;
 
         // Act
         var segunda = await uc.EjecutarAsync(Alcance.Registrado, null, etag, CancellationToken.None);
 
         // Assert
-        Assert.IsType<ResultadoMapa.NoModificado>(segunda);
+        Assert.IsType<ResultadoMapaNoModificado>(segunda);
         await fuente.Received(1).ObtenerAsync(Arg.Any<long>(), Arg.Any<Alcance>(), Arg.Any<CancellationToken>());
         metricas.Received().RegistrarCache("no_modificado");
     }
@@ -73,7 +73,7 @@ public sealed class ConsultarPorCeldasUseCaseTests
         var resultado = await uc.EjecutarAsync(Alcance.Registrado, null, null, CancellationToken.None);
 
         // Assert
-        var contenido = Assert.IsType<ResultadoMapa.Contenido>(resultado);
+        var contenido = Assert.IsType<ResultadoMapaContenido>(resultado);
         Assert.NotNull(contenido.ETag);
         Assert.NotEmpty(contenido.Cuerpo);
     }
@@ -91,7 +91,7 @@ public sealed class ConsultarPorCeldasUseCaseTests
         var resultado = await uc.EjecutarAsync(Alcance.Anonimo, null, null, CancellationToken.None);
 
         // Assert
-        var contenido = Assert.IsType<ResultadoMapa.Contenido>(resultado);
+        var contenido = Assert.IsType<ResultadoMapaContenido>(resultado);
         Assert.True(contenido.Publico);
     }
 
@@ -108,7 +108,7 @@ public sealed class ConsultarPorCeldasUseCaseTests
         var resultado = await uc.EjecutarAsync(Alcance.Registrado, null, null, CancellationToken.None);
 
         // Assert
-        var contenido = Assert.IsType<ResultadoMapa.Contenido>(resultado);
+        var contenido = Assert.IsType<ResultadoMapaContenido>(resultado);
         Assert.False(contenido.Publico);
     }
 
@@ -123,7 +123,7 @@ public sealed class ConsultarPorCeldasUseCaseTests
         var resultado = await uc.EjecutarAsync(Alcance.Registrado, null, null, CancellationToken.None);
 
         // Assert
-        var contenido = Assert.IsType<ResultadoMapa.Contenido>(resultado);
+        var contenido = Assert.IsType<ResultadoMapaContenido>(resultado);
         Assert.NotEmpty(contenido.Cuerpo);
     }
 }

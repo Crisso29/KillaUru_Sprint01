@@ -17,7 +17,7 @@ public sealed class RecibirLoteEventosUseCaseTests
         var (uc, _, recepcion, _, _) = RecibirLoteEventosTests_Setup.Crear();
         var lote = new LoteEntrante([], false, null);
         var resultado = await uc.ProcesarAsync(lote, CancellationToken.None);
-        Assert.IsType<ResultadoLote.Invalido>(resultado);
+        Assert.IsType<ResultadoLoteInvalido>(resultado);
         await recepcion.DidNotReceive().InsertarAsync(Arg.Any<LoteAceptado>(), Arg.Any<CancellationToken>());
     }
 
@@ -27,7 +27,7 @@ public sealed class RecibirLoteEventosUseCaseTests
         var (uc, _, recepcion, _, _) = RecibirLoteEventosTests_Setup.Crear();
         var lote = RecibirLoteEventosTests_Setup.LoteConN(51);
         var resultado = await uc.ProcesarAsync(lote, CancellationToken.None);
-        Assert.IsType<ResultadoLote.Invalido>(resultado);
+        Assert.IsType<ResultadoLoteInvalido>(resultado);
         await recepcion.DidNotReceive().InsertarAsync(Arg.Any<LoteAceptado>(), Arg.Any<CancellationToken>());
     }
 
@@ -37,7 +37,7 @@ public sealed class RecibirLoteEventosUseCaseTests
         var (uc, _, recepcion, _, _) = RecibirLoteEventosTests_Setup.Crear(hayCapacidad: false);
         var lote = RecibirLoteEventosTests_Setup.LoteConN(1);
         var resultado = await uc.ProcesarAsync(lote, CancellationToken.None);
-        Assert.IsType<ResultadoLote.Saturado>(resultado);
+        Assert.IsType<ResultadoLoteSaturado>(resultado);
         await recepcion.DidNotReceive().InsertarAsync(Arg.Any<LoteAceptado>(), Arg.Any<CancellationToken>());
     }
 
@@ -48,7 +48,7 @@ public sealed class RecibirLoteEventosUseCaseTests
         var (uc, _, _, _, _) = RecibirLoteEventosTests_Setup.Crear();
         var lote = RecibirLoteEventosTests_Setup.LoteConN(1);
         var resultado = await uc.ProcesarAsync(lote, CancellationToken.None);
-        var aceptado = Assert.IsType<ResultadoLote.Aceptado>(resultado);
+        var aceptado = Assert.IsType<ResultadoLoteAceptado>(resultado);
         Assert.NotEqual(Guid.Empty, aceptado.LoteId);
         var bytes = aceptado.LoteId.ToByteArray();
         var version = (bytes[7] >> 4) & 0xF;

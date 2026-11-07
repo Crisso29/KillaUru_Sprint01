@@ -35,7 +35,7 @@ public sealed class RecibirLoteEventosUseCaseTests_Procesamiento
             .Returns(new HashSet<Guid> { idBueno });
         var lote = new LoteEntrante(elementos, false, S);
         var resultado = await uc.ProcesarAsync(lote, CancellationToken.None);
-        var aceptado = Assert.IsType<ResultadoLote.Aceptado>(resultado);
+        var aceptado = Assert.IsType<ResultadoLoteAceptado>(resultado);
         var todosLosIds = aceptado.Aceptados.Union(aceptado.Duplicados)
             .Union(aceptado.Rechazados.Where(r => r.Id.HasValue).Select(r => r.Id!.Value))
             .ToList();
@@ -61,7 +61,7 @@ public sealed class RecibirLoteEventosUseCaseTests_Procesamiento
         var elementos = new List<JsonElement> { JsonDocument.Parse(json).RootElement };
         var lote = new LoteEntrante(elementos, false, S);
         var resultado = await uc.ProcesarAsync(lote, CancellationToken.None);
-        var aceptado = Assert.IsType<ResultadoLote.Aceptado>(resultado);
+        var aceptado = Assert.IsType<ResultadoLoteAceptado>(resultado);
         var rechazo = Assert.Single(aceptado.Rechazados);
         Assert.Null(rechazo.Id);
         Assert.Equal(0, rechazo.Indice);
@@ -79,7 +79,7 @@ public sealed class RecibirLoteEventosUseCaseTests_Procesamiento
         };
         var lote = new LoteEntrante(elementos, false, S);
         var resultado = await uc.ProcesarAsync(lote, CancellationToken.None);
-        var aceptado = Assert.IsType<ResultadoLote.Aceptado>(resultado);
+        var aceptado = Assert.IsType<ResultadoLoteAceptado>(resultado);
         var rechazo = Assert.Single(aceptado.Rechazados);
         Assert.Equal(MotivoDescarte.SeudonimoInconsistente, rechazo.Motivo);
     }
