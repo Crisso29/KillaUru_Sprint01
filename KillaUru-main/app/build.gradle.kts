@@ -62,7 +62,11 @@ tasks.matching { it.name.endsWith("UnitTestJavaRes") }.configureEach {
 tasks.withType<Test>().configureEach { dependsOn(copiarContratos) }
 
 kover.reports {
-    filters { includes { packages("pe.killauru.app.*.dominio", "pe.killauru.app.*.dominio.*") } }
+    filters {
+        includes { packages("pe.killauru.app.*.dominio", "pe.killauru.app.*.dominio.*") }
+        // Hilt genera estas factorias; no contienen reglas de negocio mantenidas.
+        excludes { classes("*_Factory", "*_MembersInjector") }
+    }
     verify { rule { minBound(90) } }
 }
 
