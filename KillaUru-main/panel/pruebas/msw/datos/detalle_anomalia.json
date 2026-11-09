@@ -1,0 +1,28 @@
+{
+  "id": "a1b2c3d4-0000-0000-0000-000000000001",
+  "tipo": "Bache",
+  "severidadMostrada": 3,
+  "estado": "Activa",
+  "persistencia": "Episodica",
+  "latitud": -13.2,
+  "longitud": -73.5,
+  "kmVia": 287.4,
+  "diasDistintos15d": 5,
+  "reportes": 12,
+  "ultimaDeteccionUtc": "2026-11-05T08:00:00Z",
+  "venceUtc": "2026-11-15T08:00:00Z",
+  "visibleConductores": true,
+  "porRevisar": false,
+  "vehiculosRevision": 0,
+  "reportesPorDia": [
+    { "dia": "2026-11-01", "cantidad": 2 },
+    { "dia": "2026-11-02", "cantidad": 3 },
+    { "dia": "2026-11-03", "cantidad": 1 },
+    { "dia": "2026-11-04", "cantidad": 4 },
+    { "dia": "2026-11-05", "cantidad": 2 }
+  ],
+  "historial": [
+    { "desde": null, "hacia": "Activa", "ocurridaUtc": "2026-10-01T10:00:00Z", "actorId": null },
+    { "desde": "Activa", "hacia": "PendienteConfirmacion", "ocurridaUtc": "2026-10-15T10:00:00Z", "actorId": "b2c3d4e5-0000-0000-0000-000000000001" }
+  ]
+}

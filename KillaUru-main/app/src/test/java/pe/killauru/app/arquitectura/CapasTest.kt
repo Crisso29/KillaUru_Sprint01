@@ -9,7 +9,7 @@ class CapasTest {
     @Test
     fun `dominio no conoce frameworks ni capas externas`() {
         // Arrange
-        val archivos = Konsist.scopeFromProject().files.filter { "/dominio/" in it.path }
+        val archivos = Konsist.scopeFromDirectory("src/main/java").files.filter { "/dominio/" in it.path.replace('\\', '/') }
         val prohibidos = listOf("android.", "androidx.", "retrofit2.", "okhttp3.",
             "org.maplibre.", "com.google.ai.edge.", "com.google.dagger.")
         // Act
@@ -23,11 +23,11 @@ class CapasTest {
     @Test
     fun `presentacion y datos no se importan mutuamente`() {
         // Arrange
-        val archivos = Konsist.scopeFromProject().files
+        val archivos = Konsist.scopeFromDirectory("src/main/java").files
         // Act
         val errores = archivos.flatMap { archivo -> archivo.imports.mapNotNull { dependencia ->
-            dependencia.name.takeIf { ("/ui/" in archivo.path && ".datos." in it) ||
-                ("/datos/" in archivo.path && ".ui." in it) }
+            dependencia.name.takeIf { ("/ui/" in archivo.path.replace('\\', '/') && ".datos." in it) ||
+                ("/datos/" in archivo.path.replace('\\', '/') && ".ui." in it) }
         } }
         // Assert
         assertTrue(errores.isEmpty(), errores.joinToString())

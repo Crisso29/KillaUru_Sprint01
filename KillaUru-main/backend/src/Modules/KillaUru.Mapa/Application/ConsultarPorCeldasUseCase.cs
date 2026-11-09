@@ -1,6 +1,5 @@
 using KillaUru.Mapa.Application.Puertos;
 using KillaUru.Mapa.Domain;
-using KillaUru.Mapa.Infrastructure;
 
 namespace KillaUru.Mapa.Application;
 
@@ -21,31 +20,29 @@ internal sealed class ConsultarPorCeldasUseCase(
         var celdas = alcance == Alcance.Anonimo
             ? corredor.CeldasDeAnonimo(bbox)
             : corredor.CeldasDeRegistrado(bbox);
-
         var celdasOrdenadas = celdas.Order().ToList();
         var etagActual = etag.Calcular(alcance, celdasOrdenadas);
-
         if (etagActual == ifNoneMatch)
         {
             metricas.RegistrarCache("no_modificado");
-            return new ResultadoMapa.NoModificado(etagActual);
+            return new ResultadoMapaNoModificado(etagActual);
         }
+        var fragmentos = await LeerFragmentosAsync(celdasOrdenadas, alcance, ct);
+        var generadoUtc = reloj.GetUtcNow();
+        var cuerpo = SerializadorGeoJson.EnsamblarColeccion(fragmentos, generadoUtc);
+        metricas.RegistrarCache("acierto");
+        return new ResultadoMapaContenido(cuerpo, etagActual, Publico: alcance == Alcance.Anonimo);
+    }
 
+    private async Task<List<byte[]>> LeerFragmentosAsync(List<long> celdasOrdenadas, Alcance alcance, CancellationToken ct)
+    {
         var fragmentos = new List<byte[]>(celdasOrdenadas.Count);
-        bool hayFallo = false;
         foreach (var celda in celdasOrdenadas)
         {
             var bytes = await fuente.ObtenerAsync(celda, alcance, ct);
             if (bytes.Length > 0) fragmentos.Add(bytes);
-            // fallo = no podemos distinguir aquí sin cambiar IFuenteCeldas;
-            // la infraestructura registra hits/misses directamente
         }
-        _ = hayFallo; // suprimido; la cache decorator registra sus propias métricas
+        return fragmentos;
 
-        var generadoUtc = reloj.GetUtcNow();
-        var cuerpo = SerializadorGeoJson.EnsamblarColeccion(fragmentos, generadoUtc);
-        metricas.RegistrarCache("acierto");
-
-        return new ResultadoMapa.Contenido(cuerpo, etagActual, Publico: alcance == Alcance.Anonimo);
     }
 }

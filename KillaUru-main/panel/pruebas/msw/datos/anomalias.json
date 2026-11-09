@@ -1,0 +1,36 @@
+{
+  "type": "FeatureCollection",
+  "generadoUtc": "2026-11-05T10:00:00Z",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "a1b2c3d4-0000-0000-0000-000000000001",
+      "geometry": { "type": "Point", "coordinates": [-73.5, -13.2] },
+      "properties": {
+        "id": "a1b2c3d4-0000-0000-0000-000000000001",
+        "kmVia": 287.4,
+        "tipo": "Bache",
+        "severidad": 3,
+        "persistencia": "Episodica",
+        "ultimaDeteccionUtc": "2026-11-05T08:00:00Z",
+        "venceUtc": "2026-11-15T08:00:00Z",
+        "estado": "Activa"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "a1b2c3d4-0000-0000-0000-000000000002",
+      "geometry": { "type": "Point", "coordinates": [-73.6, -13.3] },
+      "properties": {
+        "id": "a1b2c3d4-0000-0000-0000-000000000002",
+        "kmVia": 310.0,
+        "tipo": "Hundimiento",
+        "severidad": 5,
+        "persistencia": "Persistente",
+        "ultimaDeteccionUtc": "2026-11-05T06:00:00Z",
+        "venceUtc": null,
+        "estado": "PendienteConfirmacion"
+      }
+    }
+  ]
+}

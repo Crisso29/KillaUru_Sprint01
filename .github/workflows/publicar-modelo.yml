@@ -1,0 +1,93 @@
+# FR-030, FR-031 — publicación manual del modelo al CDN público.
+# Solo disparo manual con version; NUNCA sobreescribe una versión ya publicada.
+# Las credenciales R2 viven EXCLUSIVAMENTE en GitHub Secrets (RNF-34).
+
+name: publicar-modelo
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Versión a publicar (ej. 1.0.0)"
+        required: true
+        type: string
+
+env:
+  RUTA_MODELO: KillaUru-main/ml/modelos/${{ inputs.version }}
+  VERSION: ${{ inputs.version }}
+  CDN_BASE: cdn.killauru.pe/modelo
+
+permissions:
+  contents: read
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment: produccion
+    steps:
+      - name: Validar version
+        run: '[[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]'
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias ML
+        working-directory: KillaUru-main/ml
+        run: |
+          pip install --require-hashes -r requirements.lock
+          pip install -e . --no-deps
+
+      - name: Verificar que el modelo existe localmente
+        run: |
+          test -f "$RUTA_MODELO/killauru-${VERSION}.tflite" || \
+            (echo "ERROR: .tflite no encontrado en $RUTA_MODELO" && exit 1)
+
+      - name: Ejecutar puerta de calidad
+        working-directory: KillaUru-main/ml
+        run: python -m killauru_ml puerta
+        # Falla el workflow si la puerta no se aprueba
+
+      - name: Configurar rclone (R2 privado → CDN público)
+        env:
+          KU_R2_ACCESS_KEY_ID: ${{ secrets.KU_R2_MODELOS_ACCESS_KEY_ID }}
+          KU_R2_SECRET_ACCESS_KEY: ${{ secrets.KU_R2_MODELOS_SECRET_ACCESS_KEY }}
+          KU_R2_ENDPOINT: ${{ secrets.KU_R2_ENDPOINT }}
+        run: |
+          curl https://rclone.org/install.sh | sudo bash
+          mkdir -p ~/.config/rclone
+          cat > ~/.config/rclone/rclone.conf << EOF
+          [killauru-cdn]
+          type = s3
+          provider = Cloudflare
+          access_key_id = ${KU_R2_ACCESS_KEY_ID}
+          secret_access_key = ${KU_R2_SECRET_ACCESS_KEY}
+          endpoint = ${KU_R2_ENDPOINT}
+          acl = public-read
+          EOF
+
+      - name: Verificar que la versión NO existe en CDN (FR-031)
+        run: |
+          if rclone ls "killauru-cdn:$CDN_BASE/${VERSION}/" 2>/dev/null | grep -q ".tflite"; then
+            echo "ERROR: La versión ${VERSION} ya existe en el CDN."
+            echo "Las versiones publicadas NUNCA se sobreescriben (FR-031)."
+            exit 1
+          fi
+
+      - name: Publicar modelo al CDN
+        run: |
+          rclone copy \
+            "$RUTA_MODELO/" \
+            "killauru-cdn:$CDN_BASE/${VERSION}/" \
+            --include "killauru-*.tflite" \
+            --include "manifiesto.json" \
+            --checksum \
+            --progress
+
+      - name: Verificar publicación
+        run: |
+          rclone ls "killauru-cdn:$CDN_BASE/${VERSION}/"
+          echo "Modelo ${VERSION} publicado correctamente."

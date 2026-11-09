@@ -21,4 +21,13 @@ internal sealed record ConsultaMapa(
 
     internal bool HayEstado => Estados is { Length: > 0 };
     internal bool HayUpdatedSince => UpdatedSince.HasValue;
+
+    internal static ConsultaMapa? Crear(string rol, string? bboxTexto, TipoAnomalia? tipo,
+        int[]? severidades, DateTimeOffset? desde, DateTimeOffset? hasta,
+        EstadoAnomalia[]? estados, DateTimeOffset? updatedSince, string? etag)
+    {
+        return Bbox.TryParse(bboxTexto, out var bbox)
+            ? new ConsultaMapa(rol, bbox, tipo, severidades, desde, hasta, estados, updatedSince, etag)
+            : null;
+    }
 }

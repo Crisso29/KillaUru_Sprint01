@@ -1,0 +1,123 @@
+name: Panel CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["**"]
+    paths: ["KillaUru-main/panel/**", "KillaUru-main/specs/**/contracts/**", ".github/workflows/panel-ci.yml"]
+  pull_request:
+    paths:
+      - 'KillaUru-main/panel/**'
+      - 'KillaUru-main/specs/*/contracts/**'
+      - '.github/workflows/panel-ci.yml'
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: KillaUru-main/panel
+
+jobs:
+  tipos:
+    name: Tipos generados al día
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: KillaUru-main/panel/package-lock.json
+
+      - run: npm ci
+
+      - name: Regenerar tipos
+        run: node scripts/generar-tipos.mjs
+
+      - name: Verificar que no hay drift
+        run: git diff --exit-code src/api/generado/
+
+      - name: tsc --noEmit
+        run: npx tsc -b
+
+  lint:
+    name: ESLint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: KillaUru-main/panel/package-lock.json
+
+      - run: npm ci
+
+      - run: npm run lint
+      - run: npm run deps
+
+  test:
+    name: Vitest con cobertura
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: KillaUru-main/panel/package-lock.json
+
+      - run: npm ci
+
+      - run: npx vitest run --coverage
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: KillaUru-main/panel/package-lock.json
+
+      - run: npm ci
+
+      - name: Build producción
+        run: npm run build
+
+      - name: Verificar presupuesto JS
+        run: node scripts/verificar-presupuesto.mjs
+
+      - name: Build simulado
+        run: npm run build:simulado
+
+  e2e:
+    name: Playwright E2E simulado
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: KillaUru-main/panel/package-lock.json
+
+      - run: npm ci
+
+      - name: Instalar navegadores Playwright
+        run: npx playwright install --with-deps chromium firefox msedge
+
+      - name: Build simulado
+        run: npm run build:simulado
+
+      - name: E2E simulado (3 navegadores)
+        run: npx playwright test --project=chromium --project=firefox --project=msedge

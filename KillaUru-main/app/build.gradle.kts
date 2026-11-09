@@ -26,7 +26,12 @@ android {
     }
     buildFeatures { compose = true }
     testOptions { unitTests.isIncludeAndroidResources = true }
-    lint { warningsAsErrors = true }
+    lint {
+        warningsAsErrors = true
+        // Las versiones y API 35 se fijan en spec 008; actualizar exige validar compatibilidad.
+        // La disponibilidad de versiones nuevas no debe cambiar el resultado del mismo commit.
+        disable += setOf("GradleDependency", "NewerVersionAvailable", "AndroidGradlePluginVersion", "OldTargetApi")
+    }
     packaging { resources.excludes += setOf("META-INF/AL2.0", "META-INF/LGPL2.1") }
 }
 
@@ -37,7 +42,8 @@ kotlin.compilerOptions {
 
 room { schemaDirectory("$projectDir/schemas") }
 detekt {
-    buildUponDefaultConfig = true
+    // Se ejecutan las reglas constitucionales declaradas en detekt.yml.
+    buildUponDefaultConfig = false
     config.setFrom(files("config/detekt/detekt.yml"))
 }
 
@@ -56,7 +62,11 @@ tasks.matching { it.name.endsWith("UnitTestJavaRes") }.configureEach {
 tasks.withType<Test>().configureEach { dependsOn(copiarContratos) }
 
 kover.reports {
-    filters { includes { packages("pe.killauru.app.*.dominio", "pe.killauru.app.*.dominio.*") } }
+    filters {
+        includes { packages("pe.killauru.app.*.dominio", "pe.killauru.app.*.dominio.*") }
+        // Hilt genera estas factorias; no contienen reglas de negocio mantenidas.
+        excludes { classes("*_Factory", "*_MembersInjector") }
+    }
     verify { rule { minBound(90) } }
 }
 
@@ -67,6 +77,8 @@ dependencies {
     implementation(libs.compose.material)
     implementation(libs.compose.ui)
     implementation(libs.navigation)
+    implementation(libs.hilt.navigation)
+    implementation(libs.compose.icons)
     implementation(libs.lifecycle)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)

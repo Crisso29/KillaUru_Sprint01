@@ -43,16 +43,12 @@ internal sealed class PoligonoGeo
             return true;
         }
 
-        int n = _lats.Length;
-        for (int i = 0; i < n; i++)
-        {
-            if (_lats[i] >= minLat && _lats[i] <= maxLat &&
-                _lons[i] >= minLon && _lons[i] <= maxLon)
-            {
-                return true;
-            }
-        }
+        if (TieneVerticeDentro(minLat, minLon, maxLat, maxLon)) return true;
+        return CruzaBordes(minLat, minLon, maxLat, maxLon);
+    }
 
+    private bool CruzaBordes(double minLat, double minLon, double maxLat, double maxLon)
+    {
         (double x1, double y1, double x2, double y2)[] ladosBbox =
         [
             (minLon, minLat, maxLon, minLat),
@@ -61,19 +57,7 @@ internal sealed class PoligonoGeo
             (minLon, maxLat, minLon, minLat),
         ];
 
-        for (int i = 0; i < n; i++)
-        {
-            int j = (i + 1) % n;
-            foreach (var lado in ladosBbox)
-            {
-                if (SegmentosSeCortan(_lons[i], _lats[i], _lons[j], _lats[j],
-                                      lado.x1, lado.y1, lado.x2, lado.y2))
-                {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return CruzaLados(ladosBbox);
     }
 
     private static double Cruce(double ux, double uy, double vx, double vy) => ux * vy - uy * vx;
@@ -87,5 +71,37 @@ internal sealed class PoligonoGeo
         double d4 = Cruce(bx - ax, by - ay, dx - ax, dy - ay);
         return (d1 > 0 ? 1 : d1 < 0 ? -1 : 0) != (d2 > 0 ? 1 : d2 < 0 ? -1 : 0) &&
                (d3 > 0 ? 1 : d3 < 0 ? -1 : 0) != (d4 > 0 ? 1 : d4 < 0 ? -1 : 0);
+    }
+
+    private bool TieneVerticeDentro(double minLat, double minLon, double maxLat, double maxLon)
+    {
+        int n = _lats.Length;
+        for (int i = 0; i < n; i++)
+        {
+            if (_lats[i] >= minLat && _lats[i] <= maxLat &&
+                _lons[i] >= minLon && _lons[i] <= maxLon)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool CruzaLados((double x1, double y1, double x2, double y2)[] ladosBbox)
+    {
+        for (int i = 0; i < _lats.Length; i++)
+        {
+            int j = (i + 1) % _lats.Length;
+            foreach (var lado in ladosBbox)
+            {
+                if (SegmentosSeCortan(_lons[i], _lats[i], _lons[j], _lats[j],
+                                      lado.x1, lado.y1, lado.x2, lado.y2))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

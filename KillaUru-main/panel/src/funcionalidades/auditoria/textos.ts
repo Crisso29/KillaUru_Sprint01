@@ -1,0 +1,32 @@
+export const TEXTOS_AUDITORIA = {
+  titulo: 'Auditoría',
+  insignia: 'Solo lectura',
+  contadorRetención: (n: number, _total: number) =>
+    `${n} registros · retención permanente`,
+  contadorTotal: (total: number) => `${total} registros · retención permanente`,
+  sistema: 'sistema',
+  sinCuenta: 'Actor no encontrado en el directorio',
+  cargando: 'Cargando…',
+  error: 'No se pudieron cargar los registros.',
+  vacia: 'No hay registros para los filtros seleccionados.',
+  expandir: 'Ver contexto',
+  contraer: 'Ocultar contexto',
+  filtros: {
+    desde: 'Desde (UTC)',
+    hasta: 'Hasta (UTC)',
+    categoria: 'Categoría',
+    accion: 'Acción',
+    actorId: 'Actor (correo o UUID)',
+    todasCategorias: 'Todas las categorías',
+    todasAcciones: 'Todas las acciones',
+    buscar: 'Buscar',
+    hora: 'Hora en UTC',
+  },
+  columnas: {
+    hora: 'Hora',
+    actor: 'Actor',
+    categoria: 'Categoría',
+    accion: 'Acción',
+    objetivo: 'Objetivo',
+  },
+} as const

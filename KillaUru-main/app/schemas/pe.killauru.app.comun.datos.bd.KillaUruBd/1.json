@@ -1,0 +1,336 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "killauru_v1",
+    "entities": [
+      {
+        "tableName": "evento",
+        "createSql": "CREATE TABLE IF NOT EXISTS `evento` (`eventoId` TEXT NOT NULL, `detectadoUtc` INTEGER NOT NULL, `lat` REAL NOT NULL, `lon` REAL NOT NULL, `precisionM` REAL NOT NULL, `tipo` INTEGER NOT NULL, `severidad` INTEGER NOT NULL, `confidence` REAL NOT NULL, `modeloVersion` TEXT NOT NULL, `seudonimo` TEXT NOT NULL, `estado` INTEGER NOT NULL, `estadoDesde` INTEGER NOT NULL, PRIMARY KEY(`eventoId`))",
+        "fields": [
+          {
+            "fieldPath": "eventoId",
+            "columnName": "eventoId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "detectadoUtc",
+            "columnName": "detectadoUtc",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lat",
+            "columnName": "lat",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lon",
+            "columnName": "lon",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "precisionM",
+            "columnName": "precisionM",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tipo",
+            "columnName": "tipo",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "severidad",
+            "columnName": "severidad",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "confidence",
+            "columnName": "confidence",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "modeloVersion",
+            "columnName": "modeloVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "seudonimo",
+            "columnName": "seudonimo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "estado",
+            "columnName": "estado",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "estadoDesde",
+            "columnName": "estadoDesde",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "eventoId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_evento_estado_detectadoUtc",
+            "unique": false,
+            "columnNames": [
+              "estado",
+              "detectadoUtc"
+            ],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_evento_estado_detectadoUtc` ON `${TABLE_NAME}` (`estado`, `detectadoUtc`)"
+          },
+          {
+            "name": "index_evento_estado_estadoDesde",
+            "unique": false,
+            "columnNames": [
+              "estado",
+              "estadoDesde"
+            ],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_evento_estado_estadoDesde` ON `${TABLE_NAME}` (`estado`, `estadoDesde`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "anomalia",
+        "createSql": "CREATE TABLE IF NOT EXISTS `anomalia` (`id` TEXT NOT NULL, `tipo` INTEGER NOT NULL, `severidad` INTEGER NOT NULL, `persistente` INTEGER NOT NULL, `lat` REAL NOT NULL, `lon` REAL NOT NULL, `km` REAL NOT NULL, `venceUtc` INTEGER NOT NULL, `ultimaDeteccionUtc` INTEGER NOT NULL, `enDemo` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tipo",
+            "columnName": "tipo",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "severidad",
+            "columnName": "severidad",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "persistente",
+            "columnName": "persistente",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lat",
+            "columnName": "lat",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lon",
+            "columnName": "lon",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "km",
+            "columnName": "km",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "venceUtc",
+            "columnName": "venceUtc",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ultimaDeteccionUtc",
+            "columnName": "ultimaDeteccionUtc",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "enDemo",
+            "columnName": "enDemo",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_anomalia_km",
+            "unique": false,
+            "columnNames": [
+              "km"
+            ],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_anomalia_km` ON `${TABLE_NAME}` (`km`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "estado_copia",
+        "createSql": "CREATE TABLE IF NOT EXISTS `estado_copia` (`id` INTEGER NOT NULL, `alcance` INTEGER NOT NULL, `generadoUtc` INTEGER, `etag` TEXT, `verificadoUtc` INTEGER, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "alcance",
+            "columnName": "alcance",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "generadoUtc",
+            "columnName": "generadoUtc",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "etag",
+            "columnName": "etag",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "verificadoUtc",
+            "columnName": "verificadoUtc",
+            "affinity": "INTEGER",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "recorrido",
+        "createSql": "CREATE TABLE IF NOT EXISTS `recorrido` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `inicioUtc` INTEGER NOT NULL, `finUtc` INTEGER NOT NULL, `kmDesde` REAL NOT NULL, `kmHasta` REAL NOT NULL, `kmRecorridos` REAL NOT NULL, `eventos` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "inicioUtc",
+            "columnName": "inicioUtc",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "finUtc",
+            "columnName": "finUtc",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kmDesde",
+            "columnName": "kmDesde",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kmHasta",
+            "columnName": "kmHasta",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kmRecorridos",
+            "columnName": "kmRecorridos",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "eventos",
+            "columnName": "eventos",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_recorrido_finUtc",
+            "unique": false,
+            "columnNames": [
+              "finUtc"
+            ],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_recorrido_finUtc` ON `${TABLE_NAME}` (`finUtc`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "contador_local",
+        "createSql": "CREATE TABLE IF NOT EXISTS `contador_local` (`clave` TEXT NOT NULL, `valor` INTEGER NOT NULL, PRIMARY KEY(`clave`))",
+        "fields": [
+          {
+            "fieldPath": "clave",
+            "columnName": "clave",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "valor",
+            "columnName": "valor",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "clave"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'killauru_v1')"
+    ]
+  }
+}

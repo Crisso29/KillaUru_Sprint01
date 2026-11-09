@@ -4,10 +4,18 @@
 name: CI
 
 on:
+  workflow_dispatch:
   push:
     branches: ["**"]
   pull_request:
     branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
@@ -30,8 +38,8 @@ jobs:
       - name: Instalar .NET 10
         uses: actions/setup-dotnet@v4
         with:
-          # global.json pide 10.0.204 rollForward:latestFeature; cualquier 10.0.x lo satisface.
-          dotnet-version: "10.0.x"
+          # Respeta la versi�n m�nima y rollForward definidos por global.json.
+          global-json-file: KillaUru-main/backend/global.json
 
       - name: Caché de NuGet
         uses: actions/cache@v4
@@ -51,9 +59,9 @@ jobs:
       # Testcontainers (KillaUru.Integracion.Tests) necesita Docker → ubuntu-latest lo tiene.
       - name: Tests (arquitectura · unitarios · integración)
         run: |
-          dotnet test KillaUru.sln \
+          dotnet test --solution KillaUru.sln \
             --no-build -c Release \
-            -- --coverage --coverage-output-format cobertura
+            -- --coverage --coverage-output-format cobertura --results-directory TestResults
 
       - name: Instalar reportgenerator
         run: dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.3.11
@@ -63,28 +71,20 @@ jobs:
       - name: Generar reporte de cobertura
         run: |
           reportgenerator \
-            -reports:"tests/**/*.cobertura.xml" \
+            -reports:"TestResults/**/*.cobertura.xml" \
             -targetdir:"$GITHUB_WORKSPACE/coverage-report" \
             -reporttypes:"TextSummary;HtmlInline_AzurePipelines" \
-            -assemblyfilters:"-*.Tests;-KillaUru.Dashboard;-KillaUru.Ingesta;-KillaUru.Mapa"
+            -assemblyfilters:"-*.Tests"
 
-      - name: Verificar cobertura >= 90 % (CHK036 T070)
-        run: |
-          cat "$GITHUB_WORKSPACE/coverage-report/Summary.txt"
-          LINEA=$(grep -oP 'Line coverage:\s*\K[\d.]+' "$GITHUB_WORKSPACE/coverage-report/Summary.txt")
-          echo "Cobertura de líneas: ${LINEA}%"
-          python3 -c "
-          c = float('${LINEA}')
-          if c < 90.0:
-              print(f'FAIL  cobertura {c}% < 90 % (CHK036 T070)')
-              exit(1)
-          print(f'OK    cobertura {c}% >= 90 %')
-          "
+      - name: Verificar cobertura >= 90 % por dominio (constituci�n VII)
+        run: python3 deploy/ci/cobertura_dominio.py 90 --informes TestResults
 
       - name: Publicar reporte de cobertura
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ github.run_id }}
-          path: coverage-report/
+          path: |
+            coverage-report/
+            KillaUru-main/backend/TestResults/
           retention-days: 30

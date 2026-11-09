@@ -1,0 +1,11 @@
+{
+  "version": "0.1.0",
+  "archivo": "modelo.tflite",
+  "esquema": 1,
+  "etiquetas": ["Normal", "Bache", "Hundimiento"],
+  "severidades": 5,
+  "versionMinimaApp": "1.0.0",
+  "entradaLongitud": 300,
+  "mediaAceleracion": 9.8,
+  "desviacionAceleracion": 2.5
+}

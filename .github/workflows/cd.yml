@@ -22,11 +22,40 @@ on:
 env:
   REGISTRY: ghcr.io
 
+permissions:
+  contents: read
+
+concurrency:
+  group: despliegue-backend
+  cancel-in-progress: false
+
 jobs:
+  configuracion:
+    runs-on: ubuntu-latest
+    environment: produccion
+    outputs:
+      lista: ${{ steps.validar.outputs.lista }}
+    steps:
+      - id: validar
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          VM_HOSTNAME: ${{ secrets.VM_HOSTNAME }}
+          VM_USER: ${{ secrets.VM_USER }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+        run: |
+          lista=true
+          for nombre in SSH_PRIVATE_KEY VM_HOSTNAME VM_USER CF_ACCESS_CLIENT_ID CF_ACCESS_CLIENT_SECRET; do
+            if [ -z "${!nombre}" ]; then
+              echo "Falta configurar $nombre en produccion; despliegue omitido." >> "$GITHUB_STEP_SUMMARY"
+              lista=false
+            fi
+          done
+          echo "lista=$lista" >> "$GITHUB_OUTPUT"
   publicar:
     name: Imagen arm64 → GHCR
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success'
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_repository.full_name == github.repository
 
     outputs:
       sha: ${{ steps.vars.outputs.sha }}
@@ -85,7 +114,8 @@ jobs:
   desplegar:
     name: Desplegar en Oracle A1
     runs-on: ubuntu-latest
-    needs: publicar
+    needs: [publicar, configuracion]
+    if: needs.configuracion.outputs.lista == 'true'
     # El entorno "produccion" puede configurarse con revisores manuales en Settings → Environments.
     environment: produccion
 
@@ -118,7 +148,8 @@ jobs:
           SHA="${{ needs.publicar.outputs.sha }}"
           ssh ${{ secrets.VM_USER }}@${{ secrets.VM_HOSTNAME }} "
             set -euo pipefail
-            git -C /opt/killauru pull
+            git -C /opt/killauru fetch origin main
+            git -C /opt/killauru checkout --detach ${SHA}
             cd /opt/killauru/KillaUru-main/backend/deploy
             ./desplegar.sh ${SHA}
           "

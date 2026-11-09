@@ -53,7 +53,7 @@ internal data class ParametrosDto(
         confidenceMinimo <= 1 && maxEventosPorLote <= MAXIMO_LOTE_CONTRATO && jitterPorcentaje <= 100
 
     private fun numerosValidos(): Boolean = listOf(
-        velocidadMinimaKmh.toDouble(), duracionSostenidaSegundos.toDouble(), confidenceMinimo.toDouble(),
+        velocidadMinimaKmh.toDouble(), duracionSostenidaSegundos.toDouble(), confidenceMinimo,
         tiempoAvisoSegundos.toDouble(), distanciaAvisoMinimaMetros.toDouble(), tiempoAvisoPesadoSegundos.toDouble(),
         distanciaAvisoMinimaPesadoMetros.toDouble(), distanciaFinPasadaMetros.toDouble(), distanciaMaximaViaMetros.toDouble(),
         bateriaMinimaPorcentaje.toDouble(), duracionPermisoLocalDias.toDouble(), paradaFinViajeMinutos.toDouble(),

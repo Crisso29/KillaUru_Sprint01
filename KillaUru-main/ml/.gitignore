@@ -1,0 +1,21 @@
+# Datos crudos — nunca al repo (FR-005, R-004)
+crudos/
+*.mp4
+*.tar
+
+# Caché regenerable
+.cache/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+
+# Entorno Python
+.venv/
+venv/
+*.egg-info/
+
+# Modelos grandes (solo el lock y el manifiesto van al repo)
+modelos/*/killauru-*.tflite
+modelos/*/vectores-prueba.json

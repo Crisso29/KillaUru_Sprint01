@@ -43,7 +43,7 @@ public sealed class ConsultarCambiosUseCaseTests
         var resultado = await uc.EjecutarAsync(Since, recortarDemo: false, esAdmin: false, CancellationToken.None);
 
         // Assert
-        var contenido = Assert.IsType<ResultadoMapa.Contenido>(resultado);
+        var contenido = Assert.IsType<ResultadoMapaContenido>(resultado);
         var json = System.Text.Encoding.UTF8.GetString(contenido.Cuerpo);
         Assert.Contains(cambio.Id.ToString(), json);
         Assert.DoesNotContain("eliminada", json);
@@ -62,7 +62,7 @@ public sealed class ConsultarCambiosUseCaseTests
         var resultado = await uc.EjecutarAsync(Since, recortarDemo: false, esAdmin: false, CancellationToken.None);
 
         // Assert
-        var contenido = Assert.IsType<ResultadoMapa.Contenido>(resultado);
+        var contenido = Assert.IsType<ResultadoMapaContenido>(resultado);
         var json = System.Text.Encoding.UTF8.GetString(contenido.Cuerpo);
         Assert.Contains(cambio.Id.ToString(), json);
         Assert.Contains("\"eliminada\":true", json);
@@ -83,7 +83,7 @@ public sealed class ConsultarCambiosUseCaseTests
         var resultado = await uc.EjecutarAsync(Since, recortarDemo: true, esAdmin: false, CancellationToken.None);
 
         // Assert
-        var contenido = Assert.IsType<ResultadoMapa.Contenido>(resultado);
+        var contenido = Assert.IsType<ResultadoMapaContenido>(resultado);
         var json = System.Text.Encoding.UTF8.GetString(contenido.Cuerpo);
         Assert.DoesNotContain(bajaFuera.Id.ToString(), json);
     }
@@ -100,7 +100,7 @@ public sealed class ConsultarCambiosUseCaseTests
         var resultado = await uc.EjecutarAsync(Since, recortarDemo: false, esAdmin: false, CancellationToken.None);
 
         // Assert
-        var contenido = Assert.IsType<ResultadoMapa.Contenido>(resultado);
+        var contenido = Assert.IsType<ResultadoMapaContenido>(resultado);
         var json = System.Text.Encoding.UTF8.GetString(contenido.Cuerpo);
         Assert.Contains("generadoUtc", json);
     }
@@ -119,7 +119,7 @@ public sealed class ConsultarCambiosUseCaseTests
         var resultado = await uc.EjecutarAsync(Since, recortarDemo: false, esAdmin: true, CancellationToken.None);
 
         // Assert
-        var contenido = Assert.IsType<ResultadoMapa.Contenido>(resultado);
+        var contenido = Assert.IsType<ResultadoMapaContenido>(resultado);
         var json = System.Text.Encoding.UTF8.GetString(contenido.Cuerpo);
         Assert.Contains(activa.Id.ToString(), json);
         Assert.Contains(expirada.Id.ToString(), json);

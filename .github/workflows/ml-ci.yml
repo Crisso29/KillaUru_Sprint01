@@ -1,0 +1,71 @@
+# T004 / FR-016, FR-033, D10 — CI del pipeline ML (PRs que tocan ml/**)
+# Corre: ruff, pytest, límite de 199 líneas y humo de punta a punta dos veces.
+name: ML CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["**"]
+    paths: ["KillaUru-main/ml/**", ".github/workflows/ml-ci.yml"]
+  pull_request:
+    branches: [main]
+    paths: ["KillaUru-main/ml/**", ".github/workflows/ml-ci.yml"]
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: KillaUru-main/ml
+
+jobs:
+  ml-ci:
+    name: Lint · Test · Límite de líneas · Humo
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: KillaUru-main/ml/requirements.lock
+
+      - name: Instalar dependencias verificadas
+        run: pip install --require-hashes -r requirements.lock
+
+      # Instalar el paquete en modo editable para que pytest lo encuentre
+      - name: Instalar killauru_ml
+        run: pip install -e . --no-deps
+
+      - name: Ruff — lint y formato
+        run: ruff check killauru_ml/ tests/
+
+      - name: Pytest — suite completa
+        run: pytest tests/ -v
+
+      # FR-033 — ningún .py ni .kt > 199 líneas (redundante con test_limite_lineas pero falla el CI rápido)
+      - name: Verificar límite de 199 líneas
+        run: |
+          python - <<'EOF'
+          import pathlib, sys
+          raiz = pathlib.Path(".")
+          violaciones = [
+              (p, sum(1 for _ in p.open(encoding="utf-8")))
+              for ext in (".py", ".kt", ".kts")
+              for p in raiz.rglob(f"*{ext}")
+              if ".cache" not in p.parts
+              and not any(x in p.parts for x in (".venv", "build", ".gradle"))
+              and sum(1 for _ in p.open(encoding="utf-8")) > 199
+          ]
+          if violaciones:
+              for p, n in violaciones:
+                  print(f"EXCEDE {n} líneas: {p}")
+              sys.exit(1)
+          EOF
+
+      # D10 — corrida de humo dos veces; las huellas de pesos deben coincidir (SC-003)
+      - name: Humo reproducible en dos procesos aislados
+        run: python scripts/verificar_reproducibilidad.py

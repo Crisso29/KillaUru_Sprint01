@@ -1,0 +1,56 @@
+/* Tarjetas KPI y gráficos del resumen */
+.kpi-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--s-21);
+}
+
+.kpi-tarjeta {
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--s-8);
+  padding: var(--s-21);
+  box-shadow: var(--shadow);
+}
+
+.kpi-tarjeta__etiqueta {
+  font-family: var(--f-display);
+  font-size: var(--t-13);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+  margin-bottom: var(--s-8);
+}
+
+.kpi-tarjeta__valor {
+  font-family: var(--f-data);
+  font-size: var(--t-34);
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.1;
+}
+
+.kpi-tarjeta__delta {
+  font-size: var(--t-13);
+  margin-top: var(--s-5);
+}
+.kpi-tarjeta__delta--sube { color: var(--ok); }
+.kpi-tarjeta__delta--baja { color: var(--bad); }
+
+/* Área de gráfico */
+.grafico-contenedor {
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--s-8);
+  padding: var(--s-21);
+  box-shadow: var(--shadow);
+}
+
+.grafico-titulo {
+  font-family: var(--f-display);
+  font-size: var(--t-21);
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: var(--s-13);
+}

@@ -1,0 +1,36 @@
+# T002 / FR-009, FR-011, FR-012 — parámetros del etiquetado y ventaneo
+
+# FR-012, R-007 — zona gris alrededor de un evento
+ZonaGrisMs: 250                # ventanas vecinas a < 250 ms del pico → excluidas
+
+# FR-008 — candidatos
+UmbralCandidatoMs2: 2.0        # pico a pico vertical > 2 m/s² → candidato
+
+# FR-011, R-005 — acuerdo entre etiquetadores
+KappaMinimo: 0.80              # κ de Cohen del tipo
+AcuerdoSeveridadMinimo: 0.90   # severidad ± 1 en ≥ 90 % de los eventos
+FraccionDobleEtiquetado: 0.10  # al menos el 10 % etiquetado dos veces
+
+# Emparejamiento de doble etiquetado
+EmparejamientoMs: 250          # ± 250 ms para considerar el mismo evento (data-model §3)
+
+# Tipos válidos (RN-01)
+TiposValidos:
+  - Bache
+  - Hundimiento
+  - Normal
+
+# Subtipos válidos solo para Normal (RS-07)
+SubtiposNormal:
+  - Rompemuelles
+  - Junta
+  - Baden
+  - Riel
+  - Ripio
+  - CambioPavimento
+
+# Fuentes válidas (FR-009)
+FuentesValidas:
+  - video
+  - copiloto
+  - patron
