@@ -2,7 +2,6 @@ package pe.killauru.app.comun.datos.bd
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import androidx.room.TypeConverters
 import pe.killauru.app.deteccion.datos.EventoDao
 import pe.killauru.app.deteccion.datos.EventoEntity
 import pe.killauru.app.historial.datos.RecorridoDao
@@ -24,7 +23,6 @@ import pe.killauru.app.mapa.datos.EstadoCopiaEntity
     version = 1,
     exportSchema = true,
 )
-@TypeConverters(Convertidores::class)
 internal abstract class KillaUruBd : RoomDatabase() {
     abstract fun purgaDao(): PurgaDao
     abstract fun contadorDao(): ContadorDao

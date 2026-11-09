@@ -6,6 +6,9 @@ import { manejadoresAnomalias } from './manejadores/anomalias'
 import { manejadoresDashboard } from './manejadores/dashboard'
 import { manejadoresAuditoria } from './manejadores/auditoria'
 import { manejadoresCuenta } from './manejadores/cuenta'
+import { manejadoresUsuarios } from './manejadores/usuarios'
+import { manejadoresMoederacion } from './manejadores/moderacion'
+import { manejadoresExportacion } from './manejadores/exportacion'
 
 export const worker = setupWorker(
   ...manejadoresIdentidad,
@@ -14,4 +17,7 @@ export const worker = setupWorker(
   ...manejadoresDashboard,
   ...manejadoresAuditoria,
   ...manejadoresCuenta,
+  ...manejadoresUsuarios,
+  ...manejadoresMoederacion,
+  ...manejadoresExportacion,
 )

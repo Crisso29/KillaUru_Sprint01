@@ -1,9 +1,10 @@
 """T048 / FR-019, RNF-35 — métricas por clase: precisión y recall ≥ 0.90."""
 import pytest
+
 from killauru_ml.evaluacion.metricas import (
+    MetricaError,
     calcular_metricas,
     verificar_puerta_metricas,
-    MetricaError,
 )
 
 _CLASES = ["Normal", "Bache", "Hundimiento"]

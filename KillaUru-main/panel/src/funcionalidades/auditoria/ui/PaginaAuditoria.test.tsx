@@ -166,7 +166,7 @@ describe('PaginaAuditoria', () => {
       const botones = screen.getAllByRole('button', { name: /ver contexto/i })
       expect(botones.length).toBeGreaterThan(0)
     })
-    const boton = screen.getAllByRole('button', { name: /ver contexto/i })[0]
+    const boton = screen.getAllByRole('button', { name: /ver contexto/i })[0]!
     expect(boton.getAttribute('aria-expanded')).toBe('false')
     await user.click(boton)
     await waitFor(() => {

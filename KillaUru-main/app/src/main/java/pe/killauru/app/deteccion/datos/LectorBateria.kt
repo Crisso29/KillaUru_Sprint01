@@ -10,12 +10,12 @@ import kotlinx.coroutines.flow.StateFlow
 import pe.killauru.app.deteccion.dominio.PoliticaBateria
 
 /** FR-017, RN-22: escucha cambios de batería vía ACTION_BATTERY_CHANGED. */
-internal class LectorBateria(context: Context) {
+internal class LectorBateria(private val context: Context) {
 
     private val _estado = MutableStateFlow(false)
     val enAhorro: StateFlow<Boolean> = _estado
 
-    private val politica = PoliticaBateria(porcentajeMinimo = 15)
+    private val politica = PoliticaBateria(minimoPorcentaje = 15)
 
     private val receptor = object : BroadcastReceiver() {
         override fun onReceive(ctx: Context?, intent: Intent?) {

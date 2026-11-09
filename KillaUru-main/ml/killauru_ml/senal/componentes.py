@@ -38,4 +38,4 @@ def detectar_soporte_inestable(g_ant: np.ndarray, g_act: np.ndarray) -> bool:
     if norma_ant < 1e-6 or norma_act < 1e-6:
         return False
     cos_ang = np.clip(np.dot(g_ant, g_act) / (norma_ant * norma_act), -1.0, 1.0)
-    return float(np.arccos(cos_ang)) > _ANGULO_MAX_GIRO_RAD
+    return bool(float(np.arccos(cos_ang)) > _ANGULO_MAX_GIRO_RAD)

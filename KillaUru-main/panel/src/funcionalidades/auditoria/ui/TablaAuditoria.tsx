@@ -1,6 +1,6 @@
 import { TEXTOS_AUDITORIA } from '../textos'
 import { FilaAuditoria } from './FilaAuditoria'
-import type { RegistroAuditoria } from '@/api/generado/002-auditoria'
+import type { RegistroAuditoria } from '@/api/dtos/002-auditoria'
 
 interface Props {
   registros: RegistroAuditoria[]

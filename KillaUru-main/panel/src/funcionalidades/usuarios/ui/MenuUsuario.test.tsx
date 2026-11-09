@@ -6,7 +6,7 @@ import { renderizar } from '@/../pruebas/renderizar'
 import { server } from '@/../pruebas/msw/servidor'
 import { http, HttpResponse } from 'msw'
 import { MenuUsuario } from './MenuUsuario'
-import type { Usuario } from '@/api/generado/001-identidad'
+import type { Usuario } from '@/api/dtos/001-identidad'
 
 const BASE = import.meta.env.VITE_URL_API ?? 'https://api.killauru.pe'
 

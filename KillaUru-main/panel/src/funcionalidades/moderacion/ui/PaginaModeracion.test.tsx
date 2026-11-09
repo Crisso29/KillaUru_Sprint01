@@ -45,7 +45,7 @@ describe('PaginaModeracion', () => {
     await waitFor(() =>
       expect(screen.getAllByRole('button', { name: /mantener descartada/i }).length).toBeGreaterThan(0),
     )
-    await user.click(screen.getAllByRole('button', { name: /mantener descartada/i })[0])
+    await user.click(screen.getAllByRole('button', { name: /mantener descartada/i })[0]!)
     await waitFor(() => expect(llamado).toBe(true))
     expect(screen.queryByRole('dialog')).toBeNull()
   })
@@ -56,7 +56,7 @@ describe('PaginaModeracion', () => {
     await waitFor(() =>
       expect(screen.getAllByRole('button', { name: /reabrir/i }).length).toBeGreaterThan(0),
     )
-    await user.click(screen.getAllByRole('button', { name: /reabrir/i })[0])
+    await user.click(screen.getAllByRole('button', { name: /reabrir/i })[0]!)
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
   })
 

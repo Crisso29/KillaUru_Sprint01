@@ -1,5 +1,7 @@
 package pe.killauru.app.sesion.ui
 
+import pe.killauru.app.comun.ui.MarcoFormulario
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,31 +20,58 @@ internal fun AjustesPantalla(
 ) {
     val estado by viewModel.estado.collectAsState()
 
-    Surface(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-        ) {
+    MarcoFormulario() {
             Text("Ajustes", style = MaterialTheme.typography.headlineMedium)
             Spacer(Modifier.height(16.dp))
 
             Text("Vehículo", style = MaterialTheme.typography.labelLarge)
-            CategoriaVehiculo.entries.forEach { cat ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    RadioButton(
-                        selected = estado.categoria == cat,
-                        onClick = { viewModel.cambiarCategoria(cat) },
-                    )
-                    Text(cat.texto)
-                }
-            }
+            SelectorVehiculo(estado.categoria, viewModel::cambiarCategoria)
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
 
+            PreferenciasDeteccion(estado, viewModel)
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+            VersionesInstaladas(estado)
+            Spacer(Modifier.height(16.dp))
+            TextButton(onClick = onVerTerminos) { Text("Términos y condiciones") }
+            TextButton(onClick = onVerPerfil) { Text("Mi perfil") }
+    }
+}
+
+@Composable
+private fun PreferenciasDeteccion(estado: EstadoAjustes, viewModel: AjustesViewModel) {
+            ModoSoloMapa(estado, viewModel)
+            Spacer(Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("Usar datos móviles", style = MaterialTheme.typography.labelLarge)
+                Switch(
+                    checked = estado.usarDatosMoviles,
+                    onCheckedChange = { viewModel.cambiarUsarDatosMoviles(it) },
+                )
+            }
+
+}
+
+@Composable
+private fun VersionesInstaladas(estado: EstadoAjustes) {
+            estado.mapaVersion?.let {
+                Text("Mapa: versión $it", style = MaterialTheme.typography.bodySmall)
+            }
+            estado.modeloVersion?.let {
+                Text("Modelo: versión $it", style = MaterialTheme.typography.bodySmall)
+            }
+
+}
+
+@Composable
+private fun ModoSoloMapa(estado: EstadoAjustes, viewModel: AjustesViewModel) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -61,32 +90,4 @@ internal fun AjustesPantalla(
                 )
             }
 
-            Spacer(Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text("Usar datos móviles", style = MaterialTheme.typography.labelLarge)
-                Switch(
-                    checked = estado.usarDatosMoviles,
-                    onCheckedChange = { viewModel.cambiarUsarDatosMoviles(it) },
-                )
-            }
-
-            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-
-            estado.mapaVersion?.let {
-                Text("Mapa: versión $it", style = MaterialTheme.typography.bodySmall)
-            }
-            estado.modeloVersion?.let {
-                Text("Modelo: versión $it", style = MaterialTheme.typography.bodySmall)
-            }
-
-            Spacer(Modifier.height(16.dp))
-            TextButton(onClick = onVerTerminos) { Text("Términos y condiciones") }
-            TextButton(onClick = onVerPerfil) { Text("Mi perfil") }
-        }
-    }
 }

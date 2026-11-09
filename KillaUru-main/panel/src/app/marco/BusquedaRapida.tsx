@@ -1,7 +1,7 @@
 // T049 — BusquedaRapida: Ctrl+K, navega por id/km/correo (FR-040)
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { parsearBusqueda } from '@/funcionalidades/mapa/modelo/busqueda'
+import { parsearBusqueda } from '@/funcionalidades/mapa'
 
 export function BusquedaRapida() {
   const [abierto, setAbierto] = useState(false)

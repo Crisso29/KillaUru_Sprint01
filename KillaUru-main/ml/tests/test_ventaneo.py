@@ -1,8 +1,7 @@
 """T027 / FR-005, FR-012 — ventaneo: tamaño, zona gris, prioridad, exclusiones, privacidad."""
 import numpy as np
-import pytest
-from killauru_ml.ventanas.ventaneo import ventilar, VentanaDataset
 
+from killauru_ml.ventanas.ventaneo import ventilar
 
 _HZ = 50
 _MS_VENTANA = 500          # 25 muestras
@@ -48,7 +47,6 @@ def test_vecina_a_249_ms_es_zona_gris(tmp_path) -> None:
     t_ns, a_v, vel, km = _señal(4)
     pico_ns = t_ns[25]  # exactamente en el inicio de ventana 2
     # Vecina a 249 ms antes = ventana 1 (249 ms < 250 ms → zona gris)
-    vecina_ns = pico_ns - 249 * _NS_POR_MS
     etiquetas = [{"t_pico_ns": int(pico_ns), "tipo": "Bache", "severidad": 3}]
     # Act
     ventanas = ventilar(t_ns, a_v, vel, km, etiquetas=etiquetas, conjunto="entrenamiento")

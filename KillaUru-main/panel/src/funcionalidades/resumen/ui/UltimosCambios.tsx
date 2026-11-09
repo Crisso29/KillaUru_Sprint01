@@ -1,6 +1,6 @@
 // T076 — UltimosCambios: lista de transiciones con «Qué pasó» y «Quién» (FR-020)
 import { Link } from 'react-router'
-import type { TransicionReciente } from '@/api/generado/003-anomalias'
+import type { TransicionReciente } from '@/api/dtos/003-anomalias'
 import { textoQuePaso } from '../modelo/transicion'
 import { TEXTOS_RESUMEN } from '../textos'
 

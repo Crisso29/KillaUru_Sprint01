@@ -1,6 +1,8 @@
 """T052 / FR-029, RN-04 — manifiesto del modelo: campos y restricciones."""
 import json
+
 import pytest
+
 from killauru_ml.modelo.manifiesto import generar_manifiesto, guardar_manifiesto
 
 _CLASES = ["Normal", "Bache", "Hundimiento"]

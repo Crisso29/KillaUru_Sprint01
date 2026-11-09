@@ -19,20 +19,24 @@ internal class DescargaReanudable @Inject constructor(
         val inicio = if (parcial.exists()) parcial.length() else 0L
         val rango = if (inicio > 0) "bytes=$inicio-" else null
         val resp = api.descargar(url, rango)
-        if (resp.isSuccessful) {
-            resp.body()!!.byteStream().use { input ->
-                parcial.outputStream().use { output -> input.copyTo(output) }
+        check(resp.isSuccessful) { "HTTP ${resp.code()}" }
+        resp.body().use { body ->
+            requireNotNull(body).byteStream().use { input ->
+                java.io.FileOutputStream(parcial, resp.code() == 206 && inicio > 0).use { output -> input.copyTo(output) }
             }
         }
+        finalizar(parcial, nombre, sha256)
+    } catch (e: Exception) {
+        Resultado.Fallida(e)
+    }
+    private fun finalizar(parcial: File, nombre: String, sha256: String): Resultado {
         val destino = almacen.archivoMapa(nombre)
-        parcial.renameTo(destino)
-        if (verificador.verificar(destino, sha256)) {
+        check(parcial.renameTo(destino)) { "No se pudo mover la descarga" }
+        return if (verificador.verificar(destino, sha256)) {
             Resultado.Exitosa(destino)
         } else {
             destino.delete()
             Resultado.Fallida(IllegalStateException("SHA-256 no coincide"))
         }
-    } catch (e: Exception) {
-        Resultado.Fallida(e)
     }
 }

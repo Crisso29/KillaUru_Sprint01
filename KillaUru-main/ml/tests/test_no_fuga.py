@@ -1,8 +1,9 @@
 """T034 / FR-013 — verificación de no fuga entre conjuntos."""
 import numpy as np
 import pytest
+
+from killauru_ml.particion.no_fuga import FugaError, verificar_no_fuga
 from killauru_ml.ventanas.ventaneo import VentanaDataset
-from killauru_ml.particion.no_fuga import verificar_no_fuga, FugaError
 
 
 def _ventana(recorrido: str) -> VentanaDataset:

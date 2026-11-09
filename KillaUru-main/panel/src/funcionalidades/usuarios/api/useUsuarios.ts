@@ -1,7 +1,7 @@
 // T055 — useUsuarios: listado paginado con key ['usuarios', consulta] staleTime 10 min
 import { useQuery } from '@tanstack/react-query'
 import { entorno } from '@/config/entorno'
-import type { PaginaUsuarios } from '@/api/generado/001-identidad'
+import type { PaginaUsuarios } from '@/api/dtos/001-identidad'
 
 export function useUsuarios(consulta: URLSearchParams) {
   return useQuery<PaginaUsuarios>({

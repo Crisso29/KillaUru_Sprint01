@@ -7,13 +7,13 @@ from dataclasses import dataclass, field
 import numpy as np
 
 _HZ_MINIMO = 45.0
-_HUECO_MIN_NS = 201 * 1_000_000      # 201 ms en nanosegundos (> 200 ms cuenta)
+_HUECO_MIN_NS = 200 * 1_000_000      # FR-007: solo intervalos estrictamente > 200 ms
 _HUECOS_MAX_PCT = 1.0                 # ≤ 1 % del tiempo en huecos
 _GPS_PRECISION_MAX_M = 20.0           # > 20 m = mala precisión
 _GPS_MALA_MAX_PCT = 0.20              # > 20 % mala → SinGps
 
 
-class MotivoNoApta(str, enum.Enum):
+class MotivoNoApta(enum.StrEnum):
     FRECUENCIA_BAJA = "FrecuenciaBaja"
     HUECOS = "Huecos"
     SIN_GPS = "SinGps"
@@ -21,7 +21,7 @@ class MotivoNoApta(str, enum.Enum):
     SOPORTE_INESTABLE = "SoporteInestable"
 
 
-class EstadoIntegridad(str, enum.Enum):
+class EstadoIntegridad(enum.StrEnum):
     APTA = "Apta"
     NO_APTA = "NoApta"
 

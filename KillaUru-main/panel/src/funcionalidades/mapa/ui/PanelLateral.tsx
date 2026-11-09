@@ -1,7 +1,7 @@
 // T046 — PanelLateral: pestañas Detalle / Lista·N (FR-024)
 import { useState, useEffect } from 'react'
 import { Pestanas } from '@/compartido/ui'
-import type { AnomaliaFeature } from '@/api/generado/002-mapa'
+import type { AnomaliaFeature } from '@/api/dtos/002-mapa'
 import { ListaAnomalias } from './ListaAnomalias'
 import { DetalleAnomalia } from './DetalleAnomalia'
 import { TEXTOS_MAPA } from '../textos'

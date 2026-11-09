@@ -70,7 +70,7 @@ def verificar_severidad_puerta(
     """Verifica acuerdo de severidad ±1 (RNF-35)."""
     if not sev_true:
         return CheckResultado("severidad", 1.0, min_pct, True, "sin pares")
-    dentro = sum(1 for t, p in zip(sev_true, sev_pred) if abs(t - p) <= 1)
+    dentro = sum(1 for t, p in zip(sev_true, sev_pred, strict=True) if abs(t - p) <= 1)
     pct = dentro / len(sev_true)
     return CheckResultado(
         nombre="severidad_mas_menos_uno",

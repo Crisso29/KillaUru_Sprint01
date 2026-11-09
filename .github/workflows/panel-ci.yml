@@ -1,18 +1,22 @@
 name: Panel CI
 
 on:
+  workflow_dispatch:
   push:
-    branches:
-      - main
-      - worktree-spec-010-panel-admin
+    branches: ["**"]
+    paths: ["KillaUru-main/panel/**", "KillaUru-main/specs/**/contracts/**", ".github/workflows/panel-ci.yml"]
   pull_request:
     paths:
-      - 'panel/**'
-      - 'specs/*/contracts/**'
+      - 'KillaUru-main/panel/**'
+      - 'KillaUru-main/specs/*/contracts/**'
+      - '.github/workflows/panel-ci.yml'
+
+permissions:
+  contents: read
 
 defaults:
   run:
-    working-directory: panel
+    working-directory: KillaUru-main/panel
 
 jobs:
   tipos:
@@ -25,7 +29,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: panel/package-lock.json
+          cache-dependency-path: KillaUru-main/panel/package-lock.json
 
       - run: npm ci
 
@@ -36,7 +40,7 @@ jobs:
         run: git diff --exit-code src/api/generado/
 
       - name: tsc --noEmit
-        run: npx tsc --noEmit
+        run: npx tsc -b
 
   lint:
     name: ESLint
@@ -48,11 +52,12 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: panel/package-lock.json
+          cache-dependency-path: KillaUru-main/panel/package-lock.json
 
       - run: npm ci
 
-      - run: npx eslint . --max-warnings 0
+      - run: npm run lint
+      - run: npm run deps
 
   test:
     name: Vitest con cobertura
@@ -64,7 +69,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: panel/package-lock.json
+          cache-dependency-path: KillaUru-main/panel/package-lock.json
 
       - run: npm ci
 
@@ -80,18 +85,18 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: panel/package-lock.json
+          cache-dependency-path: KillaUru-main/panel/package-lock.json
 
       - run: npm ci
 
       - name: Build producción
         run: npm run build
 
+      - name: Verificar presupuesto JS
+        run: node scripts/verificar-presupuesto.mjs
+
       - name: Build simulado
         run: npm run build:simulado
-
-      - name: Verificar presupuesto JS
-        run: npx size-limit
 
   e2e:
     name: Playwright E2E simulado
@@ -104,7 +109,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: panel/package-lock.json
+          cache-dependency-path: KillaUru-main/panel/package-lock.json
 
       - run: npm ci
 

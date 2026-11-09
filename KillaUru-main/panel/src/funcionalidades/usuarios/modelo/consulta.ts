@@ -1,5 +1,5 @@
 // T055 — aConsulta: construye URLSearchParams a partir de texto, rol, estado y pagina
-import type { Rol, EstadoUsuario } from '@/api/generado/001-identidad'
+import type { Rol, EstadoUsuario } from '@/api/dtos/001-identidad'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 

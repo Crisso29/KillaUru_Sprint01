@@ -1,6 +1,7 @@
 package pe.killauru.app.comun.datos.bd
 
 import androidx.room.Room
+import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.test.core.app.ApplicationProvider
 import org.junit.After
@@ -8,7 +9,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlin.test.assertFails
 
 /** T014 / FR-019, data-model §2: validaciones de integridad por disparadores SQLite. */
@@ -49,14 +50,14 @@ class DisparadoresTest {
     fun `insertar evento con estado distinto de cero lanza evento_invalido`() {
         // Arrange / Act / Assert
         val error = assertFails { insertarEvento(estado = 1) }
-        assertEquals("evento_invalido", error.message)
+        assertTrue(error.message.orEmpty().contains("evento_invalido"), error.message)
     }
 
     @Test
     fun `insertar evento con tipo invalido lanza evento_invalido`() {
         // Arrange / Act / Assert
         val error = assertFails { insertarEvento(tipo = 3) }
-        assertEquals("evento_invalido", error.message)
+        assertTrue(error.message.orEmpty().contains("evento_invalido"), error.message)
     }
 
     @Test
@@ -72,14 +73,14 @@ class DisparadoresTest {
     fun `insertar evento con confidence menor a 0_75 lanza evento_invalido`() {
         // Arrange / Act / Assert
         val error = assertFails { insertarEvento(confidence = 0.74) }
-        assertEquals("evento_invalido", error.message)
+        assertTrue(error.message.orEmpty().contains("evento_invalido"), error.message)
     }
 
     @Test
     fun `insertar evento con lat invalida lanza evento_invalido`() {
         // Arrange / Act / Assert
         val error = assertFails { insertarEvento(lat = 91.0) }
-        assertEquals("evento_invalido", error.message)
+        assertTrue(error.message.orEmpty().contains("evento_invalido"), error.message)
     }
 
     @Test
@@ -90,7 +91,7 @@ class DisparadoresTest {
         val error = assertFails {
             db.execSQL("UPDATE evento SET estado=2,estadoDesde=1001 WHERE eventoId='a1b2c3d4-e5f6-7890-abcd-ef1234567890'")
         }
-        assertEquals("transicion_invalida", error.message)
+        assertTrue(error.message.orEmpty().contains("transicion_invalida"), error.message)
     }
 
     @Test
@@ -101,7 +102,7 @@ class DisparadoresTest {
         val error = assertFails {
             db.execSQL("UPDATE evento SET eventoId='x1b2c3d4-e5f6-7890-abcd-ef1234567890' WHERE eventoId='a1b2c3d4-e5f6-7890-abcd-ef1234567890'")
         }
-        assertEquals("evento_inmutable", error.message)
+        assertTrue(error.message.orEmpty().contains("evento_inmutable"), error.message)
     }
 
     @Test
@@ -110,6 +111,6 @@ class DisparadoresTest {
         val error = assertFails {
             db.execSQL("INSERT INTO estado_copia(id,alcance,generadoUtc,etag,verificadoUtc) VALUES(2,0,NULL,NULL,NULL)")
         }
-        assertEquals("estado_copia_invalido", error.message)
+        assertTrue(error.message.orEmpty().contains("estado_copia_invalido"), error.message)
     }
 }

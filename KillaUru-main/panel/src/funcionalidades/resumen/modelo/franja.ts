@@ -1,5 +1,5 @@
 // T074 — franja del corredor: tramo(k) = floor(min(km, 332.999) / 10) (data-model §5, FR-019)
-import type { AnomaliaFeature } from '@/api/generado/002-mapa'
+import type { AnomaliaFeature } from '@/api/dtos/002-mapa'
 
 const LIMITE_KM = 332.999
 const LARGO_TRAMO = 10

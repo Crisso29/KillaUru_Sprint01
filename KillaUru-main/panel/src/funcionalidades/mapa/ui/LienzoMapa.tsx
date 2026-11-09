@@ -3,12 +3,12 @@ import { useEffect, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import { Protocol } from 'pmtiles'
 import { entorno } from '@/config/entorno'
-import type { ColeccionAnomalias } from '@/api/generado/002-mapa'
+import type { ColeccionAnomalias } from '@/api/dtos/002-mapa'
 import { obtenerIconos } from './iconos'
 import { FUENTE_ANOMALIAS, capaAnomalias } from './capas'
 import { TEXTOS_MAPA } from '../textos'
 
-maplibregl.workerUrl = new URL('maplibre-gl/dist/maplibre-gl-csp-worker', import.meta.url).toString()
+maplibregl.setWorkerUrl(new URL('maplibre-gl/dist/maplibre-gl-csp-worker.js', import.meta.url).toString())
 
 interface Props {
   datos: ColeccionAnomalias | null | undefined

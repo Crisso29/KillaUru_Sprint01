@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { TEXTOS_AUDITORIA } from '../textos'
 import { textoDeAccion, textoDeCategoria } from '../modelo/textoAccion'
-import type { RegistroAuditoria } from '@/api/generado/002-auditoria'
+import type { RegistroAuditoria } from '@/api/dtos/002-auditoria'
 
 interface Props {
   registro: RegistroAuditoria

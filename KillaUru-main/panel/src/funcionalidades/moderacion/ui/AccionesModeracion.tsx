@@ -5,7 +5,7 @@ import { accionesDisponibles, esAccionDisponible, textoNoDisponible } from '../m
 import { useModerar } from '../api/useModerar'
 import { DialogoModeracion } from './DialogoModeracion'
 import { TEXTOS_MODERACION as T } from '../textos'
-import type { DetalleAnomalia, AccionModeracion } from '@/api/generado/003-anomalias'
+import type { DetalleAnomalia, AccionModeracion } from '@/api/dtos/003-anomalias'
 
 const TODAS_ACCIONES: AccionModeracion[] = ['MarcarReparada', 'Descartar', 'Reabrir', 'MantenerDescartada']
 

@@ -6,7 +6,7 @@ import android.net.NetworkCapabilities
 import javax.inject.Inject
 
 /** FR-036: comprueba conectividad antes de intentar sincronización. */
-internal class VigiaRed @Inject constructor(private val context: Context) {
+internal class VigiaRed @Inject constructor(@dagger.hilt.android.qualifiers.ApplicationContext private val context: Context) {
 
     fun hayConexion(): Boolean {
         val cm = context.getSystemService(ConnectivityManager::class.java) ?: return false

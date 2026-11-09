@@ -54,11 +54,12 @@ class SincronizarEventosUseCaseTest {
         override suspend fun aplicarEstados(cambios: Map<String, EstadoLocal>) = Unit
     }
 
-    private fun parametros(max: Int = 50) = ParametrosApp(
-        maxEventosPorLote = max,
-        confidenceMinimo = 0.75,
-        backoffSegundos = listOf(30, 120, 600, 1800, 7200),
-    )
+    private fun parametros(max: Int = 50) = requireNotNull(
+        pe.killauru.app.comun.datos.CargadorParametros.cargar(
+            java.io.File("src/main/assets/parametros.json").readText()
+        )
+    ).copy(maxEventosPorLote = max)
+
 
     private fun evento(id: String, seudonimo: String = "seu1") = Evento(
         eventoId = id,

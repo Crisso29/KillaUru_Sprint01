@@ -1,12 +1,10 @@
 """T050 / FR-028, puerta.yaml — verificación completa antes de publicar."""
-import numpy as np
-import pytest
 from killauru_ml.modelo.puerta import (
-    verificar_tamano,
+    CheckResultado,
+    ResultadoPuerta,
     verificar_metricas_puerta,
     verificar_severidad_puerta,
-    ResultadoPuerta,
-    CheckResultado,
+    verificar_tamano,
 )
 
 _CLASES = ["Normal", "Bache", "Hundimiento"]

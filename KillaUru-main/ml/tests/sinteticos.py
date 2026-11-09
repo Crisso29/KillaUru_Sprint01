@@ -7,8 +7,8 @@ from __future__ import annotations
 
 import json
 import pathlib
-import numpy as np
 
+import numpy as np
 
 _SEMILLA = 2828
 _HZ = 50

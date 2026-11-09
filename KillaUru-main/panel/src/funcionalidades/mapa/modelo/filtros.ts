@@ -1,11 +1,11 @@
 // T043 — FiltrosMapa: defecto, URL ↔ estado, grupo vacío (data-model §4)
-import type { EstadoAnomalia, TipoAnomalia } from '@/api/generado/002-mapa'
+import type { EstadoAnomalia, TipoAnomalia } from '@/api/dtos/002-mapa'
 
 export type Periodo = '24h' | '7d' | '30d'
 
 export interface FiltrosMapa {
-  estados: EstadoAnomalia[]
-  tipos: TipoAnomalia[]
+  estados: readonly EstadoAnomalia[]
+  tipos: readonly TipoAnomalia[]
   severidades: number[]
   periodo: Periodo
 }
@@ -26,12 +26,12 @@ export function filtrosDefecto(): FiltrosMapa {
 
 export function filtrosDeParams(params: URLSearchParams): FiltrosMapa {
   const estadoRaw = params.get('estado')
-  const estados: EstadoAnomalia[] = estadoRaw
+  const estados: readonly EstadoAnomalia[] = estadoRaw
     ? estadoRaw.split(',').filter((e): e is EstadoAnomalia => ESTADOS_VALIDOS.includes(e as EstadoAnomalia))
     : ['Activa', 'PendienteConfirmacion']
 
   const tipoRaw = params.get('tipo')
-  const tipos: TipoAnomalia[] = tipoRaw
+  const tipos: readonly TipoAnomalia[] = tipoRaw
     ? tipoRaw.split(',').filter((t): t is TipoAnomalia => TIPOS_VALIDOS.includes(t as TipoAnomalia))
     : ['Bache', 'Hundimiento']
 

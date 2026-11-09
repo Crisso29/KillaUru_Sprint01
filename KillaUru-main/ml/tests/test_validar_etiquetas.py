@@ -1,6 +1,7 @@
 """T025 / FR-009, FR-010 — validación de etiquetas: tipos, severidades y subtipos."""
 import pytest
-from killauru_ml.etiquetado.validar_etiquetas import validar_etiqueta, EtiquetaError
+
+from killauru_ml.etiquetado.validar_etiquetas import EtiquetaError, validar_etiqueta
 
 
 def _etiqueta(**kwargs):

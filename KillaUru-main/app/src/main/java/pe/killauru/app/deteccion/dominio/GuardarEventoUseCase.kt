@@ -25,8 +25,14 @@ internal class GuardarEventoUseCase(
         if (edadMs > maxEdadFixMs) return false
         val hora = fuentes.horaConfiable() ?: return false
         val seudonimo = fuentes.seudonimo(hora)
-        val evento = Evento(
-            eventoId = UuidV7.generar(),
+        val evento = crearEvento(clasificacion, lat, lon, precisionM, tipo, modeloVersion, seudonimo, hora)
+        repositorio.guardar(evento)
+        return true
+    }
+    private fun crearEvento(clasificacion: Clasificacion, lat: Double, lon: Double, precisionM: Double,
+        tipo: TipoAnomalia, modeloVersion: String, seudonimo: String, hora: Instant): Evento {
+        return Evento(
+            eventoId = UuidV7.de(hora, java.security.SecureRandom()).toString(),
             detectadoUtc = hora,
             lat = lat,
             lon = lon,
@@ -39,7 +45,5 @@ internal class GuardarEventoUseCase(
             estado = EstadoLocal.PENDING,
             estadoDesde = hora,
         )
-        repositorio.guardar(evento)
-        return true
     }
 }

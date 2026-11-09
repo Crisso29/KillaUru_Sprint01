@@ -6,7 +6,6 @@ import pathlib
 
 import numpy as np
 
-
 _CLASES = ["Normal", "Bache", "Hundimiento"]
 _N_TRAIN, _N_VAL, _N_TEST = 300, 60, 60
 _N_FEATURES = 20
@@ -19,14 +18,14 @@ def ejecutar_todo_sintetico(version: str) -> int:
 
     Retorna 0 si la puerta se aprueba, 2 si no (esperado con datos aleatorios).
     """
-    from killauru_ml.comun.semillas import fijar_semillas
     from killauru_ml.comun.huella import sha256_archivo
-    from killauru_ml.modelo.entrenar import entrenar
-    from killauru_ml.modelo.cuantizar import cuantizar
-    from killauru_ml.modelo.puerta import verificar_puerta_modelo
-    from killauru_ml.modelo.manifiesto import generar_manifiesto, guardar_manifiesto
+    from killauru_ml.comun.semillas import fijar_semillas
     from killauru_ml.evaluacion.metricas import calcular_metricas
     from killauru_ml.evaluacion.registro import RegistroEntrenamiento, guardar_registro
+    from killauru_ml.modelo.cuantizar import cuantizar
+    from killauru_ml.modelo.entrenar import entrenar
+    from killauru_ml.modelo.manifiesto import generar_manifiesto, guardar_manifiesto
+    from killauru_ml.modelo.puerta import verificar_puerta_modelo
 
     fijar_semillas(2828)
     rng = np.random.default_rng(2828)

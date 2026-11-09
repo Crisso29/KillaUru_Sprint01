@@ -1,4 +1,4 @@
-// GENERADO — no editar a mano. Ejecutar: npm run tipos
+// DTO DE PRESENTACION — no editar a mano. Ejecutar: npm run tipos
 // Fuente: specs/contratos/007-dashboard.yaml
 
 export interface Indicador {

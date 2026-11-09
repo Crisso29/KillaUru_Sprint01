@@ -16,10 +16,10 @@ describe('middleware HTTP', () => {
   })
 
   it('toda petición sale con credentials: include y sin Authorization', async () => {
-    let cabecerasCapturadas: Headers | null = null
+    const captura: { cabeceras: Headers | null } = { cabeceras: null }
     server.use(
       http.get(`${BASE}/recurso`, ({ request }) => {
-        cabecerasCapturadas = request.headers
+        captura.cabeceras = request.headers
         return HttpResponse.json({})
       }),
     )
@@ -29,7 +29,7 @@ describe('middleware HTTP', () => {
       onSesionTerminada,
     })
     await cliente.GET('/recurso' as never)
-    expect(cabecerasCapturadas?.get('authorization')).toBeNull()
+    expect(captura.cabeceras?.get('authorization')).toBeNull()
   })
 
   it('401 token_invalido → 1 renovación y 1 reintento', async () => {
@@ -72,7 +72,7 @@ describe('middleware HTTP', () => {
     )
     const renovar = vi.fn()
     const cliente = crearCliente({ urlBase: BASE, renovar, onSesionTerminada })
-    await expect(cliente.POST('/login' as never, {})).rejects.toBeDefined()
+    await expect(cliente.POST('/login' as never)).rejects.toBeDefined()
     expect(renovar).not.toHaveBeenCalled()
   })
 })

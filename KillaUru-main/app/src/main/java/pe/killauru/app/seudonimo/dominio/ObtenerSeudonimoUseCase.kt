@@ -13,7 +13,7 @@ internal class ObtenerSeudonimoUseCase(
         val actual = repositorio.obtener()
         val desdeMs = repositorio.obtenerDesdeUtcMs()
         return if (actual != null && desdeMs != null &&
-            !politica.debeRotar(desdeMs, horaConfiable)
+            !politica.debeRotar(Instant.ofEpochMilli(desdeMs), horaConfiable)
         ) {
             actual
         } else {

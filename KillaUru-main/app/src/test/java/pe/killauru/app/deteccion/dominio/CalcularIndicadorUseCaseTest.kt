@@ -10,14 +10,14 @@ import kotlin.test.assertEquals
 class CalcularIndicadorUseCaseTest {
 
     private class RepositorioFalso(private val pendientesN: Int = 0) : RepositorioEventos {
-        override suspend fun guardar(e: Evento) {}
+        override suspend fun guardar(evento: Evento) {}
         override fun pendientes(): Flow<List<Evento>> = flowOf(emptyList())
         override suspend fun contarPendientes() = pendientesN
         override suspend fun contarEnviando() = 0
-        override suspend fun tomarLote(s: String, m: Int) = emptyList<Evento>()
-        override suspend fun expirar(a: Long) {}
+        override suspend fun tomarLote(seudonimo: String, max: Int) = emptyList<Evento>()
+        override suspend fun expirar(anteriorAUtcMs: Long) {}
         override suspend fun recuperarEnviando() {}
-        override suspend fun aplicarEstados(c: Map<String, EstadoLocal>) {}
+        override suspend fun aplicarEstados(cambios: Map<String, EstadoLocal>) {}
     }
 
     private fun entrada(

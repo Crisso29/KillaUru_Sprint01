@@ -22,7 +22,7 @@ class CasosCuentaTest {
         var guardada: Sesion? = null
         var cerrada = false
         override suspend fun obtener() = guardada
-        override suspend fun guardar(s: Sesion) { guardada = s }
+        override suspend fun guardar(sesion: Sesion) { guardada = sesion }
         override suspend fun cerrar() { cerrada = true }
     }
 

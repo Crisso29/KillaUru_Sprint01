@@ -23,7 +23,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**'],
-      exclude: ['src/api/generado/**'],
+      exclude: ['src/api/generado/**', 'src/**/*.test.*', 'src/**/*.d.ts'],
       thresholds: {
         // cobertura ≥ 90% para modelos — T009
         'src/**/modelo/**': { statements: 90, branches: 90, functions: 90, lines: 90 },

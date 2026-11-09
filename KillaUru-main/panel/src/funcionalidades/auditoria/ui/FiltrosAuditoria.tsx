@@ -1,6 +1,5 @@
-import { useState } from 'react'
 import { TEXTOS_AUDITORIA } from '../textos'
-import type { CategoriaAuditoria, AccionAuditada } from '@/api/generado/002-auditoria'
+import type { CategoriaAuditoria, AccionAuditada } from '@/api/dtos/002-auditoria'
 
 const CATEGORIAS: CategoriaAuditoria[] = [
   'Usuarios', 'Sesion', 'CuentaDelTitular', 'Moderacion', 'Exportacion', 'AccesoADatos',

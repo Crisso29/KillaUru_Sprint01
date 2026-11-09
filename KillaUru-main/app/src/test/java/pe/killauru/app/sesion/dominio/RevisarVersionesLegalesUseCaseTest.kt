@@ -13,28 +13,28 @@ class RevisarVersionesLegalesUseCaseTest {
         private val politicaAceptada: String? = null,
     ) : RepositorioPreferencias {
         override suspend fun obtenerTerminosVersion() = terminosAceptado
-        override suspend fun guardarTerminosVersion(v: String) {}
+        override suspend fun guardarTerminosVersion(version: String) {}
         override suspend fun obtenerTerminosAceptadoUtc(): Long? = null
         override suspend fun guardarTerminosAceptadoUtc(utc: Long) {}
         override suspend fun obtenerPoliticaVersion() = politicaAceptada
-        override suspend fun guardarPoliticaVersion(v: String) {}
+        override suspend fun guardarPoliticaVersion(version: String) {}
         override suspend fun obtenerPoliticaAceptadoUtc(): Long? = null
         override suspend fun guardarPoliticaAceptadoUtc(utc: Long) {}
         override suspend fun obtenerCategoria(): CategoriaVehiculo? = null
-        override suspend fun guardarCategoria(c: CategoriaVehiculo) {}
+        override suspend fun guardarCategoria(categoria: CategoriaVehiculo) {}
         override suspend fun obtenerSoloVerMapa() = false
-        override suspend fun guardarSoloVerMapa(v: Boolean) {}
+        override suspend fun guardarSoloVerMapa(valor: Boolean) {}
         override suspend fun obtenerUsarDatosMoviles() = false
-        override suspend fun guardarUsarDatosMoviles(v: Boolean) {}
+        override suspend fun guardarUsarDatosMoviles(valor: Boolean) {}
         override suspend fun obtenerSeudonimo(): String? = null
-        override suspend fun guardarSeudonimo(s: String, d: Long) {}
+        override suspend fun guardarSeudonimo(seudonimo: String, desdeUtc: Long) {}
         override suspend fun obtenerSeudonimoDesdeUtc(): Long? = null
         override suspend fun obtenerBackoffPaso() = 0
-        override suspend fun guardarBackoffPaso(p: Int) {}
+        override suspend fun guardarBackoffPaso(paso: Int) {}
         override suspend fun obtenerMapaVersion(): String? = null
-        override suspend fun guardarMapaVersion(v: String) {}
+        override suspend fun guardarMapaVersion(version: String) {}
         override suspend fun obtenerModeloVersion(): String? = null
-        override suspend fun guardarModeloVersion(v: String) {}
+        override suspend fun guardarModeloVersion(version: String) {}
         override suspend fun limpiarSesion() {}
     }
 

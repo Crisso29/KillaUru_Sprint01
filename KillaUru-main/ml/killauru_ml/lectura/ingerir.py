@@ -5,13 +5,13 @@ import pathlib
 import tarfile
 import tempfile
 
+import numpy as np
+import pandas as pd
+
 from killauru_ml.comun.huella import sha256_archivo
 from killauru_ml.lectura.catalogo import FilaCatalogo, agregar_fila
 from killauru_ml.lectura.grabacion import GrabacionError, leer_grabacion
-from killauru_ml.lectura.integridad import EstadoIntegridad, verificar_integridad
-
-import numpy as np
-import pandas as pd
+from killauru_ml.lectura.integridad import verificar_integridad
 
 
 def _horas_en_marcha(gps: pd.DataFrame) -> float:

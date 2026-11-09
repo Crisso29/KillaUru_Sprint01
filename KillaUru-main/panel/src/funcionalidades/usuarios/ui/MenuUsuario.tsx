@@ -1,6 +1,6 @@
 // T056 — MenuUsuario: acciones por estado; fila propia sin Cambiar rol ni Desactivar
 import { useState } from 'react'
-import type { Usuario } from '@/api/generado/001-identidad'
+import type { Usuario } from '@/api/dtos/001-identidad'
 import { useActivarUsuario, useReenviarCorreo } from '../api/useAccionesUsuario'
 import { DialogoRol } from './DialogoRol'
 import { DialogoDesactivar } from './DialogoDesactivar'

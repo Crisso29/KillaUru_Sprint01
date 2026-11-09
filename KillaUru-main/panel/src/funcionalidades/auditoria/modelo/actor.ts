@@ -1,4 +1,4 @@
-import type { Usuario } from '@/api/generado/001-identidad'
+import type { Usuario } from '@/api/dtos/001-identidad'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const CORREO_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -17,6 +17,6 @@ export function detectarTipoActor(texto: string): TipoActor {
 export function elegirCuenta(busqueda: string, usuarios: Usuario[]): Usuario | null {
   const normalizado = busqueda.toLowerCase()
   const exactos = usuarios.filter(u => u.correo.toLowerCase() === normalizado)
-  if (exactos.length === 1) return exactos[0]
+  if (exactos.length === 1) return exactos[0] ?? null
   return null
 }

@@ -1,7 +1,7 @@
 // T055 — useRevision: estado actual + mutación registrar (key ['revision'] staleTime 10 min)
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { entorno } from '@/config/entorno'
-import type { EstadoRevision } from '@/api/generado/001-identidad'
+import type { EstadoRevision } from '@/api/dtos/001-identidad'
 
 export function useRevision() {
   return useQuery<EstadoRevision>({

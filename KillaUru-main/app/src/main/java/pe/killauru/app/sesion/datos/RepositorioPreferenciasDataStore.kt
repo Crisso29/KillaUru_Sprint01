@@ -16,8 +16,8 @@ internal class RepositorioPreferenciasDataStore @Inject constructor(
     override suspend fun obtenerTerminosVersion() =
         ds.leer(PreferenciasDataStore.K_TERMINOS_VERSION).first()
 
-    override suspend fun guardarTerminosVersion(v: String) =
-        ds.guardar(PreferenciasDataStore.K_TERMINOS_VERSION, v)
+    override suspend fun guardarTerminosVersion(version: String) =
+        ds.guardar(PreferenciasDataStore.K_TERMINOS_VERSION, version)
 
     override suspend fun obtenerTerminosAceptadoUtc() =
         ds.leer(PreferenciasDataStore.K_TERMINOS_ACEPTADO).first()
@@ -28,8 +28,8 @@ internal class RepositorioPreferenciasDataStore @Inject constructor(
     override suspend fun obtenerPoliticaVersion() =
         ds.leer(PreferenciasDataStore.K_POLITICA_VERSION).first()
 
-    override suspend fun guardarPoliticaVersion(v: String) =
-        ds.guardar(PreferenciasDataStore.K_POLITICA_VERSION, v)
+    override suspend fun guardarPoliticaVersion(version: String) =
+        ds.guardar(PreferenciasDataStore.K_POLITICA_VERSION, version)
 
     override suspend fun obtenerPoliticaAceptadoUtc() =
         ds.leer(PreferenciasDataStore.K_POLITICA_ACEPTADO).first()
@@ -41,27 +41,27 @@ internal class RepositorioPreferenciasDataStore @Inject constructor(
         ds.leer(PreferenciasDataStore.K_CATEGORIA).first()
             ?.let { CategoriaVehiculo.deTexto(it) }
 
-    override suspend fun guardarCategoria(c: CategoriaVehiculo) =
-        ds.guardar(PreferenciasDataStore.K_CATEGORIA, c.texto)
+    override suspend fun guardarCategoria(categoria: CategoriaVehiculo) =
+        ds.guardar(PreferenciasDataStore.K_CATEGORIA, categoria.texto)
 
     override suspend fun obtenerSoloVerMapa() =
         ds.leer(PreferenciasDataStore.K_SOLO_MAPA).first() ?: false
 
-    override suspend fun guardarSoloVerMapa(v: Boolean) =
-        ds.guardar(PreferenciasDataStore.K_SOLO_MAPA, v)
+    override suspend fun guardarSoloVerMapa(valor: Boolean) =
+        ds.guardar(PreferenciasDataStore.K_SOLO_MAPA, valor)
 
     override suspend fun obtenerUsarDatosMoviles() =
         ds.leer(PreferenciasDataStore.K_DATOS_MOVILES).first() ?: false
 
-    override suspend fun guardarUsarDatosMoviles(v: Boolean) =
-        ds.guardar(PreferenciasDataStore.K_DATOS_MOVILES, v)
+    override suspend fun guardarUsarDatosMoviles(valor: Boolean) =
+        ds.guardar(PreferenciasDataStore.K_DATOS_MOVILES, valor)
 
     override suspend fun obtenerSeudonimo() =
         ds.leer(PreferenciasDataStore.K_SEUDONIMO).first()
 
-    override suspend fun guardarSeudonimo(s: String, d: Long) {
-        ds.guardar(PreferenciasDataStore.K_SEUDONIMO, s)
-        ds.guardar(PreferenciasDataStore.K_SEUDONIMO_DESDE, d)
+    override suspend fun guardarSeudonimo(seudonimo: String, desdeUtc: Long) {
+        ds.guardar(PreferenciasDataStore.K_SEUDONIMO, seudonimo)
+        ds.guardar(PreferenciasDataStore.K_SEUDONIMO_DESDE, desdeUtc)
     }
 
     override suspend fun obtenerSeudonimoDesdeUtc() =
@@ -70,20 +70,20 @@ internal class RepositorioPreferenciasDataStore @Inject constructor(
     override suspend fun obtenerBackoffPaso() =
         ds.leer(PreferenciasDataStore.K_BACKOFF_PASO).first() ?: 0
 
-    override suspend fun guardarBackoffPaso(p: Int) =
-        ds.guardar(PreferenciasDataStore.K_BACKOFF_PASO, p)
+    override suspend fun guardarBackoffPaso(paso: Int) =
+        ds.guardar(PreferenciasDataStore.K_BACKOFF_PASO, paso)
 
     override suspend fun obtenerMapaVersion() =
         ds.leer(PreferenciasDataStore.K_MAPA_VERSION).first()
 
-    override suspend fun guardarMapaVersion(v: String) =
-        ds.guardar(PreferenciasDataStore.K_MAPA_VERSION, v)
+    override suspend fun guardarMapaVersion(version: String) =
+        ds.guardar(PreferenciasDataStore.K_MAPA_VERSION, version)
 
     override suspend fun obtenerModeloVersion() =
         ds.leer(PreferenciasDataStore.K_MODELO_VERSION).first()
 
-    override suspend fun guardarModeloVersion(v: String) =
-        ds.guardar(PreferenciasDataStore.K_MODELO_VERSION, v)
+    override suspend fun guardarModeloVersion(version: String) =
+        ds.guardar(PreferenciasDataStore.K_MODELO_VERSION, version)
 
     override suspend fun limpiarSesion() = ds.limpiar()
 }

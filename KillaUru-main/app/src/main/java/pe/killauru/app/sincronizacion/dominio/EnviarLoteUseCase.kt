@@ -12,29 +12,20 @@ internal class EnviarLoteUseCase @Inject constructor(
     private val repositorio: RepositorioEventos,
 ) {
     suspend fun ejecutar(seudonimo: String, ids: List<String>, eventos: List<Evento>) {
-        val lote = Lote(loteId = UuidV7.generar(), seudonimo = seudonimo, eventos = eventos)
+        if (eventos.isEmpty()) return
+        val lote = Lote(loteId = UuidV7.de(eventos.first().detectadoUtc, java.security.SecureRandom()).toString(), seudonimo = seudonimo, eventos = eventos)
         repositorio.aplicarEstados(ids.associateWith { EstadoLocal.ENVIANDO })
 
-        when (val resp = api.enviar(lote)) {
-            is RespuestaLoteApi.Exitosa -> {
-                val acciones = InterpretarRespuestaLote().interpretar(ids, resp.dto)
-                repositorio.aplicarEstados(acciones.mapValues {
-                    when (it.value) {
-                        AccionEvento.SYNCED -> EstadoLocal.SYNCED
-                        AccionEvento.REJECTED_LOCAL -> EstadoLocal.REJECTED_LOCAL
-                        AccionEvento.PENDING -> EstadoLocal.PENDING
-                    }
-                })
-            }
-            is RespuestaLoteApi.Error401, is RespuestaLoteApi.Error403 -> {
-                repositorio.aplicarEstados(ids.associateWith { EstadoLocal.PENDING })
-            }
-            is RespuestaLoteApi.ErrorRed -> {
-                repositorio.aplicarEstados(ids.associateWith { EstadoLocal.PENDING })
-            }
-            else -> {
-                repositorio.aplicarEstados(ids.associateWith { EstadoLocal.PENDING })
-            }
-        }
+        val resp = api.enviar(lote)
+        val estados = if (resp is RespuestaLoteApi.Exitosa) {
+            InterpretarRespuestaLote().interpretar(ids, resp.dto).mapValues { estado(it.value) }
+        } else ids.associateWith { EstadoLocal.PENDING }
+        repositorio.aplicarEstados(estados)
+    }
+
+    private fun estado(accion: AccionEvento): EstadoLocal = when (accion) {
+        AccionEvento.SYNCED -> EstadoLocal.SYNCED
+        AccionEvento.REJECTED_LOCAL -> EstadoLocal.REJECTED_LOCAL
+        AccionEvento.PENDING -> EstadoLocal.PENDING
     }
 }

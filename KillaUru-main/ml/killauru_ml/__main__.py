@@ -54,6 +54,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.etapa == "ingerir":
         import pathlib
+
         from killauru_ml.lectura.ingerir import ingerir
         ruta_cat = pathlib.Path(args.catalogo) if args.catalogo else None
         fila = ingerir(pathlib.Path(args.carpeta), ruta_catalogo=ruta_cat, subir=args.subir)
@@ -62,8 +63,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.etapa == "particion":
         import pathlib
+
         from killauru_ml.comun.config import leer_yaml
-        from killauru_ml.particion.no_fuga import verificar_no_fuga, FugaError
         cfg = leer_yaml(pathlib.Path("config/particion.yaml"), ["Version", "Estado"])
         print(f"Dataset {cfg['Version']} — estado: {cfg['Estado']}")
         return 0
@@ -71,7 +72,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.etapa == "validar-etiquetas":
         import json
         import pathlib
-        from killauru_ml.etiquetado.validar_etiquetas import validar_etiqueta, EtiquetaError
+
+        from killauru_ml.etiquetado.validar_etiquetas import EtiquetaError, validar_etiqueta
         ruta = pathlib.Path(vars(args).get("archivo", ""))
         etiquetas = json.loads(ruta.read_text()) if ruta.exists() else []
         errores = 0
@@ -85,6 +87,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.etapa == "estado":
         import json
+
         from killauru_ml.estado import obtener_estado
         print(json.dumps(obtener_estado(), indent=2, ensure_ascii=False))
         return 0
@@ -97,9 +100,10 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     if args.etapa == "puerta":
-        import pathlib, json
+        import json
+        import pathlib
+
         from killauru_ml.comun.config import leer_yaml
-        from killauru_ml.modelo.puerta import verificar_puerta_modelo, CheckResultado
         cfg = leer_yaml(pathlib.Path("config/puerta.yaml"))
         print("Puerta: configuración cargada. Pase --modelo y --metricas para ejecutar.")
         return 2

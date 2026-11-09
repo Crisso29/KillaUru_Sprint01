@@ -1,5 +1,5 @@
 // T076 — FranjaCorredor: barras por tramo + tabla oculta (FR-019, FR-043)
-import type { AnomaliaFeature } from '@/api/generado/002-mapa'
+import type { AnomaliaFeature } from '@/api/dtos/002-mapa'
 import { agruparEnFranja } from '../modelo/franja'
 import { TEXTOS_RESUMEN } from '../textos'
 

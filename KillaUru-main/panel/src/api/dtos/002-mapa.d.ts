@@ -1,4 +1,4 @@
-// GENERADO — no editar a mano. Ejecutar: npm run tipos
+// DTO DE PRESENTACION — no editar a mano. Ejecutar: npm run tipos
 // Fuente: specs/contratos/006-mapa.openapi.yaml
 
 export type EstadoAnomalia = 'Activa' | 'PendienteConfirmacion' | 'Expirada' | 'Reparada' | 'Descartada'

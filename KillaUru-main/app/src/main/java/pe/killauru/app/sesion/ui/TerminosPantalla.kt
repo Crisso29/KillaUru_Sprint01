@@ -1,5 +1,7 @@
 package pe.killauru.app.sesion.ui
 
+import pe.killauru.app.comun.ui.MarcoFormulario
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -19,31 +21,10 @@ internal fun TerminosPantalla(
     var politicaMarcada by remember { mutableStateOf(false) }
     val puedeAceptar = terminosMarcado && politicaMarcada
 
-    Surface(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
-        ) {
-            Text("Términos y condiciones", style = MaterialTheme.typography.headlineSmall)
-            Spacer(Modifier.height(8.dp))
-            Text(terminosTexto, style = MaterialTheme.typography.bodyMedium)
-            Spacer(Modifier.height(16.dp))
-            Text("Política de privacidad", style = MaterialTheme.typography.headlineSmall)
-            Spacer(Modifier.height(8.dp))
-            Text(politicaTexto, style = MaterialTheme.typography.bodyMedium)
-            Spacer(Modifier.height(24.dp))
-            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                Checkbox(checked = terminosMarcado, onCheckedChange = { terminosMarcado = it })
-                Spacer(Modifier.width(8.dp))
-                Text("Acepto los términos y condiciones")
-            }
-            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                Checkbox(checked = politicaMarcada, onCheckedChange = { politicaMarcada = it })
-                Spacer(Modifier.width(8.dp))
-                Text("Acepto la política de privacidad")
-            }
+    MarcoFormulario(desplazable = true) {
+            TextosLegales(terminosTexto, politicaTexto)
+            AceptacionLegal(terminosMarcado, { terminosMarcado = it }, "Acepto los términos y condiciones")
+            AceptacionLegal(politicaMarcada, { politicaMarcada = it }, "Acepto la política de privacidad")
             Spacer(Modifier.height(24.dp))
             Button(
                 onClick = onAceptar,
@@ -52,6 +33,26 @@ internal fun TerminosPantalla(
             ) {
                 Text("Continuar")
             }
-        }
+    }
+}
+
+@Composable
+private fun TextosLegales(terminosTexto: String, politicaTexto: String) {
+            Text("Términos y condiciones", style = MaterialTheme.typography.headlineSmall)
+            Spacer(Modifier.height(8.dp))
+            Text(terminosTexto, style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.height(16.dp))
+            Text("Política de privacidad", style = MaterialTheme.typography.headlineSmall)
+            Spacer(Modifier.height(8.dp))
+            Text(politicaTexto, style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.height(24.dp))
+}
+
+@Composable
+private fun AceptacionLegal(marcado: Boolean, onCambio: (Boolean) -> Unit, texto: String) {
+    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+        Checkbox(checked = marcado, onCheckedChange = onCambio)
+        Spacer(Modifier.width(8.dp))
+        Text(texto)
     }
 }

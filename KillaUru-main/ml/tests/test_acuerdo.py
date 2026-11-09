@@ -1,6 +1,5 @@
 """T026 / FR-011 — acuerdo entre etiquetadores: κ de Cohen y severidad ± 1."""
-import pytest
-from killauru_ml.etiquetado.acuerdo import calcular_acuerdo, AcuerdoError
+from killauru_ml.etiquetado.acuerdo import calcular_acuerdo
 
 
 def _evento(t_ns: int, tipo: str, severidad: int | None = None):
@@ -45,8 +44,8 @@ def test_kappa_100_pasa() -> None:
     # Arrange — acuerdo perfecto
     tipos = ["Bache", "Hundimiento", "Normal", "Bache", "Normal"]
     sevs = [2, 3, None, 1, None]
-    e1 = [_evento(i * 1_000_000_000, t, s) for i, (t, s) in enumerate(zip(tipos, sevs))]
-    e2 = [_evento(i * 1_000_000_000, t, s) for i, (t, s) in enumerate(zip(tipos, sevs))]
+    e1 = [_evento(i * 1_000_000_000, t, s) for i, (t, s) in enumerate(zip(tipos, sevs, strict=True))]
+    e2 = [_evento(i * 1_000_000_000, t, s) for i, (t, s) in enumerate(zip(tipos, sevs, strict=True))]
     resultado = calcular_acuerdo(e1, e2)
     # Assert
     assert resultado.kappa >= 0.80
@@ -60,8 +59,8 @@ def test_severidad_89_pct_falla() -> None:
     tipos = ["Bache"] * 100
     sev1 = [3] * 100
     sev2 = [3] * 89 + [5] * 11  # 11 % fuera de ± 1
-    e1 = [_evento(i * 1_000_000_000, t, s) for i, (t, s) in enumerate(zip(tipos, sev1))]
-    e2 = [_evento(i * 1_000_000_000, t, s) for i, (t, s) in enumerate(zip(tipos, sev2))]
+    e1 = [_evento(i * 1_000_000_000, t, s) for i, (t, s) in enumerate(zip(tipos, sev1, strict=True))]
+    e2 = [_evento(i * 1_000_000_000, t, s) for i, (t, s) in enumerate(zip(tipos, sev2, strict=True))]
     resultado = calcular_acuerdo(e1, e2)
     # Assert
     assert resultado.acuerdo_severidad < 0.90
@@ -73,8 +72,8 @@ def test_severidad_90_pct_pasa() -> None:
     tipos = ["Bache"] * 100
     sev1 = [3] * 100
     sev2 = [3] * 90 + [5] * 10  # 10 % fuera de ± 1
-    e1 = [_evento(i * 1_000_000_000, t, s) for i, (t, s) in enumerate(zip(tipos, sev1))]
-    e2 = [_evento(i * 1_000_000_000, t, s) for i, (t, s) in enumerate(zip(tipos, sev2))]
+    e1 = [_evento(i * 1_000_000_000, t, s) for i, (t, s) in enumerate(zip(tipos, sev1, strict=True))]
+    e2 = [_evento(i * 1_000_000_000, t, s) for i, (t, s) in enumerate(zip(tipos, sev2, strict=True))]
     resultado = calcular_acuerdo(e1, e2)
     # Assert
     assert resultado.acuerdo_severidad >= 0.90

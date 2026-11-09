@@ -1,6 +1,6 @@
 """T055 / FR-034 — estado del pipeline: grabaciones, aptas, partición."""
 import pathlib
-import pytest
+
 from killauru_ml.estado import obtener_estado
 
 _CABECERA = "grabacion_id,recorrido,celular,vehiculo,sentido,horas,hz_efectivo,huecos_pct,sha256,estado,motivo\n"
@@ -52,7 +52,6 @@ def test_sin_catalogo_grabaciones_cero() -> None:
 
 def test_particion_borrador_en_estado(tmp_path) -> None:
     # Arrange — crear particion.yaml mínimo
-    import yaml  # noqa: PLC0415
     cfg = tmp_path / "particion.yaml"
     cfg.write_text("Version: ds-1\nEstado: borrador\n")
     # Act

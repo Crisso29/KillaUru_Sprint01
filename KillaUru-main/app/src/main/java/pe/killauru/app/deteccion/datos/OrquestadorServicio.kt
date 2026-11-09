@@ -12,7 +12,7 @@ import javax.inject.Inject
 
 /** FR-009, FR-010, R-020: conecta sensores, GPS, clasificador y casos de uso. */
 internal class OrquestadorServicio @Inject constructor(
-    private val context: Context,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: Context,
     private val procesarVentana: ProcesarVentanaUseCase,
     private val detectarViaje: DetectorViaje,
     private val politicaDeteccion: PoliticaDeteccion,
@@ -40,7 +40,7 @@ internal class OrquestadorServicio @Inject constructor(
         })
         buffer = buf
         lectorSensores = LectorSensores(context) { muestra ->
-            scope.launch { buf.agregar(muestra, reloj.horaConfiable() ?: Instant.EPOCH) }
+            scope.launch { buf.agregar(muestra, reloj.ahoraConfiable() ?: Instant.EPOCH) }
         }.also { it.iniciar() }
         lectorGps = LectorGps(context) { loc ->
             ultimaUbicacion = loc
@@ -62,7 +62,7 @@ internal class OrquestadorServicio @Inject constructor(
         )
         if (!politicaDeteccion.puedeDetectar(estado)) return
         val fixUtc = Instant.ofEpochMilli(loc.time)
-        val ahoraUtc = reloj.horaConfiable() ?: return
+        val ahoraUtc = reloj.ahoraConfiable() ?: return
         procesarVentana.procesar(
             ventana, loc.latitude, loc.longitude,
             loc.accuracy.toDouble(), fixUtc, ahoraUtc,

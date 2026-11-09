@@ -13,13 +13,20 @@ on:
         type: string
 
 env:
-  RUTA_MODELO: KillaUru-main/ml/modelos/${{ github.event.inputs.version }}
+  RUTA_MODELO: KillaUru-main/ml/modelos/${{ inputs.version }}
+  VERSION: ${{ inputs.version }}
   CDN_BASE: cdn.killauru.pe/modelo
+
+permissions:
+  contents: read
 
 jobs:
   publicar:
     runs-on: ubuntu-latest
+    environment: produccion
     steps:
+      - name: Validar version
+        run: '[[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]'
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -31,16 +38,12 @@ jobs:
       - name: Instalar dependencias ML
         working-directory: KillaUru-main/ml
         run: |
-          if grep -q "tensorflow" requirements.lock 2>/dev/null; then
-            pip install -r requirements.lock
-          else
-            pip install -r requirements.in
-          fi
+          pip install --require-hashes -r requirements.lock
           pip install -e . --no-deps
 
       - name: Verificar que el modelo existe localmente
         run: |
-          test -f "$RUTA_MODELO/killauru-${{ github.event.inputs.version }}.tflite" || \
+          test -f "$RUTA_MODELO/killauru-${VERSION}.tflite" || \
             (echo "ERROR: .tflite no encontrado en $RUTA_MODELO" && exit 1)
 
       - name: Ejecutar puerta de calidad
@@ -68,8 +71,8 @@ jobs:
 
       - name: Verificar que la versión NO existe en CDN (FR-031)
         run: |
-          if rclone ls "killauru-cdn:$CDN_BASE/${{ github.event.inputs.version }}/" 2>/dev/null | grep -q ".tflite"; then
-            echo "ERROR: La versión ${{ github.event.inputs.version }} ya existe en el CDN."
+          if rclone ls "killauru-cdn:$CDN_BASE/${VERSION}/" 2>/dev/null | grep -q ".tflite"; then
+            echo "ERROR: La versión ${VERSION} ya existe en el CDN."
             echo "Las versiones publicadas NUNCA se sobreescriben (FR-031)."
             exit 1
           fi
@@ -78,7 +81,7 @@ jobs:
         run: |
           rclone copy \
             "$RUTA_MODELO/" \
-            "killauru-cdn:$CDN_BASE/${{ github.event.inputs.version }}/" \
+            "killauru-cdn:$CDN_BASE/${VERSION}/" \
             --include "killauru-*.tflite" \
             --include "manifiesto.json" \
             --checksum \
@@ -86,5 +89,5 @@ jobs:
 
       - name: Verificar publicación
         run: |
-          rclone ls "killauru-cdn:$CDN_BASE/${{ github.event.inputs.version }}/"
-          echo "Modelo ${{ github.event.inputs.version }} publicado correctamente."
+          rclone ls "killauru-cdn:$CDN_BASE/${VERSION}/"
+          echo "Modelo ${VERSION} publicado correctamente."

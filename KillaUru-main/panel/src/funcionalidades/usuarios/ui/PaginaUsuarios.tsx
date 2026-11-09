@@ -1,6 +1,6 @@
 // T056 — PaginaUsuarios: tabla de usuarios con filtros, paginación y revisión (FR-031-FR-034)
 import { useState, useCallback, useRef } from 'react'
-import type { Rol, EstadoUsuario } from '@/api/generado/001-identidad'
+import type { Rol, EstadoUsuario } from '@/api/dtos/001-identidad'
 import { useUsuarios } from '../api/useUsuarios'
 import { useRevision } from '../api/useRevision'
 import { aConsulta } from '../modelo/consulta'

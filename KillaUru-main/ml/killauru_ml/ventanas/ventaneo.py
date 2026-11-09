@@ -1,7 +1,7 @@
 """FR-005, FR-012 — ventaneo: corte de señal en ventanas de 25 muestras."""
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import numpy as np
 

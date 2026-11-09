@@ -15,7 +15,23 @@ internal class ClienteLotesHttp @Inject constructor(
 ) : ApiLotes {
 
     override suspend fun enviar(lote: Lote): RespuestaLoteApi = try {
-        val request = LoteRequestDto(
+        val request = crearPeticion(lote)
+        val resp = api.enviarLote(request)
+        when (resp.code()) {
+            200 -> respuestaExitosa(resp.body()!!)
+            400 -> RespuestaLoteApi.Error400(resp.code().toString())
+            401 -> RespuestaLoteApi.Error401(resp.code().toString())
+            403 -> RespuestaLoteApi.Error403(resp.code().toString())
+            413 -> RespuestaLoteApi.Error413(resp.code().toString())
+            429 -> RespuestaLoteApi.Error429(60_000L)
+            503 -> RespuestaLoteApi.Error503(null)
+            else -> RespuestaLoteApi.ErrorRed(RuntimeException("HTTP ${resp.code()}"))
+        }
+    } catch (e: Exception) {
+        RespuestaLoteApi.ErrorRed(e)
+    }
+    private fun crearPeticion(lote: Lote): LoteRequestDto {
+        return LoteRequestDto(
             seudonimo = lote.seudonimo,
             eventos = lote.eventos.map { e ->
                 EventoDto(
@@ -31,27 +47,17 @@ internal class ClienteLotesHttp @Inject constructor(
                 )
             },
         )
-        val resp = api.enviarLote(request)
-        when (resp.code()) {
-            200 -> {
-                val body = resp.body()!!
-                RespuestaLoteApi.Exitosa(
+    }
+
+    private fun respuestaExitosa(body: LoteResponseDto): RespuestaLoteApi {
+                return RespuestaLoteApi.Exitosa(
                     RespuestaLoteDto(
                         aceptados = body.aceptados,
-                        rechazados = body.rechazados.mapNotNull { it.id },
+                        rechazados = body.rechazados.map {
+                            pe.killauru.app.sincronizacion.dominio.RechazoDto(it.id, it.indice)
+                        },
                         pendientes = body.pendientes,
                     )
                 )
-            }
-            400 -> RespuestaLoteApi.Error400(resp.code().toString())
-            401 -> RespuestaLoteApi.Error401(resp.code().toString())
-            403 -> RespuestaLoteApi.Error403(resp.code().toString())
-            413 -> RespuestaLoteApi.Error413(resp.code().toString())
-            429 -> RespuestaLoteApi.Error429(60_000L)
-            503 -> RespuestaLoteApi.Error503(null)
-            else -> RespuestaLoteApi.ErrorRed(RuntimeException("HTTP ${resp.code()}"))
-        }
-    } catch (e: Exception) {
-        RespuestaLoteApi.ErrorRed(e)
     }
 }

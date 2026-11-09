@@ -1,7 +1,7 @@
 // T076 — RequiereAtencion: 4 filas (FR-018, data-model §5)
 import { Link } from 'react-router'
-import type { ElementoPorRevisar, ElementoPendiente } from '@/api/generado/003-anomalias'
-import type { EstadoRevision } from '@/api/generado/001-identidad'
+import type { ElementoPorRevisar, ElementoPendiente } from '@/api/dtos/003-anomalias'
+import type { EstadoRevision } from '@/api/dtos/001-identidad'
 import { contarTemas, primerPendiente } from '../modelo/atencion'
 import { TEXTOS_RESUMEN } from '../textos'
 import { entorno } from '@/config/entorno'

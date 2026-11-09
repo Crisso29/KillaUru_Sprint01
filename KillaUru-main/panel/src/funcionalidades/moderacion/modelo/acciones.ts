@@ -1,5 +1,5 @@
 // T066 — acciones del administrador según RN-07
-import type { AccionModeracion, EstadoAnomalia } from '@/api/generado/003-anomalias'
+import type { AccionModeracion, EstadoAnomalia } from '@/api/dtos/003-anomalias'
 
 const MAPA_ACCIONES: Record<EstadoAnomalia, AccionModeracion[]> = {
   Activa: ['MarcarReparada', 'Descartar'],

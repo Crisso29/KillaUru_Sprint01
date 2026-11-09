@@ -1,8 +1,8 @@
 """T033 / FR-013 — partición por recorrido: tres conjuntos, sin fuga."""
 import numpy as np
-import pytest
-from killauru_ml.ventanas.ventaneo import VentanaDataset
+
 from killauru_ml.particion.particion import partir
+from killauru_ml.ventanas.ventaneo import VentanaDataset
 
 
 def _ventana(recorrido: str = "R01") -> VentanaDataset:

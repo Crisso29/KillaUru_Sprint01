@@ -15,29 +15,11 @@ interface Props {
 }
 
 export function BarraFiltros({ filtros, onChange }: Props) {
-  function toggleEstado(estado: string) {
-    const hay = filtros.estados.includes(estado as never)
-    const estados = hay ? filtros.estados.filter(e => e !== estado) : [...filtros.estados, estado as never]
-    onChange({ ...filtros, estados })
-  }
-
-  function toggleTipo(tipo: string) {
-    const hay = filtros.tipos.includes(tipo as never)
-    const tipos = hay ? filtros.tipos.filter(t => t !== tipo) : [...filtros.tipos, tipo as never]
-    onChange({ ...filtros, tipos })
-  }
-
-  function toggleSev(sev: number) {
-    const hay = filtros.severidades.includes(sev)
-    const severidades = hay ? filtros.severidades.filter(s => s !== sev) : [...filtros.severidades, sev].sort((a, b) => a - b)
-    onChange({ ...filtros, severidades })
-  }
-
   return (
     <div style={{ display: 'flex', gap: 'var(--s-13)', alignItems: 'center', padding: 'var(--s-5) var(--s-21)' }}>
-      <MenuFiltro etiqueta={TEXTOS_MAPA.estadoLabel} opciones={ESTADOS_OPTS.map(e => ({ valor: e, seleccionado: filtros.estados.includes(e as never), onToggle: () => toggleEstado(e) }))} />
-      <MenuFiltro etiqueta={TEXTOS_MAPA.tipoLabel} opciones={TIPOS_OPTS.map(t => ({ valor: t, seleccionado: filtros.tipos.includes(t as never), onToggle: () => toggleTipo(t) }))} />
-      <MenuFiltro etiqueta={TEXTOS_MAPA.severidadLabel} opciones={SEVERIDADES_OPTS.map(s => ({ valor: String(s), seleccionado: filtros.severidades.includes(s), onToggle: () => toggleSev(s) }))} />
+      <MenuFiltro etiqueta={TEXTOS_MAPA.estadoLabel} opciones={ESTADOS_OPTS.map(e => ({ valor: e, etiqueta: e }))} seleccionadas={[...filtros.estados]} onChange={vals => onChange({ ...filtros, estados: ESTADOS_OPTS.filter(e => vals.includes(e)) })} />
+      <MenuFiltro etiqueta={TEXTOS_MAPA.tipoLabel} opciones={TIPOS_OPTS.map(t => ({ valor: t, etiqueta: t }))} seleccionadas={[...filtros.tipos]} onChange={vals => onChange({ ...filtros, tipos: TIPOS_OPTS.filter(t => vals.includes(t)) })} />
+      <MenuFiltro etiqueta={TEXTOS_MAPA.severidadLabel} opciones={SEVERIDADES_OPTS.map(s => ({ valor: String(s), etiqueta: String(s) }))} seleccionadas={filtros.severidades.map(String)} onChange={vals => onChange({ ...filtros, severidades: vals.map(Number) })} />
       <select
         aria-label={TEXTOS_MAPA.periodoLabel}
         value={filtros.periodo}

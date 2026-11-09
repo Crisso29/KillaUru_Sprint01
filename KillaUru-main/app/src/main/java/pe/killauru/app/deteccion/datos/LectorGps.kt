@@ -31,6 +31,12 @@ internal class LectorGps(
     }
 
     fun detener() {
-        LocationManagerCompat.removeUpdates(locationManager, listener)
+        try {
+            LocationManagerCompat.removeUpdates(locationManager, listener)
+        } catch (_: SecurityException) {
+            // El permiso pudo ser revocado mientras el servicio estaba activo.
+        } finally {
+            executor.shutdown()
+        }
     }
 }

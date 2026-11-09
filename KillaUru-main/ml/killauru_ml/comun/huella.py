@@ -2,7 +2,6 @@
 import hashlib
 import pathlib
 
-
 _BLOQUE = 65536  # 64 KiB por lectura
 
 

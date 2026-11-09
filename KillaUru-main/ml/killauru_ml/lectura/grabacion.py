@@ -5,7 +5,6 @@ import json
 import pathlib
 from dataclasses import dataclass, field
 
-import numpy as np
 import pandas as pd
 
 _ARCHIVOS_REQUERIDOS = ["meta.json", "acelerometro.csv", "giroscopio.csv", "gps.csv", "marcas.csv"]

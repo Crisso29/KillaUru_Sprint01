@@ -1,5 +1,7 @@
 package pe.killauru.app.sesion.ui
 
+import pe.killauru.app.comun.ui.MarcoFormulario
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -15,11 +17,7 @@ internal fun PerfilPantalla(
     onEliminarCuenta: () -> Unit = {},
     onVolver: () -> Unit = {},
 ) {
-    Surface(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
+    MarcoFormulario(alineado = true) {
             Spacer(Modifier.height(32.dp))
             Text("Mi perfil", style = MaterialTheme.typography.titleLarge)
             Spacer(Modifier.height(16.dp))
@@ -35,6 +33,5 @@ internal fun PerfilPantalla(
             TextButton(onClick = onEliminarCuenta) { Text("Eliminar cuenta") }
             Spacer(Modifier.height(8.dp))
             TextButton(onClick = onVolver) { Text("Volver") }
-        }
     }
 }

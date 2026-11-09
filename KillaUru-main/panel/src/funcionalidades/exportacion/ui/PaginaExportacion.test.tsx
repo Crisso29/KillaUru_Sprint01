@@ -10,8 +10,8 @@ import { PaginaExportacion } from './PaginaExportacion'
 const BASE = import.meta.env.VITE_URL_API ?? 'https://api.killauru.pe'
 const CORREO_ACTUAL = 'admin@killauru.pe'
 
-let createObjectURLSpy: ReturnType<typeof vi.spyOn>
-let revokeObjectURLSpy: ReturnType<typeof vi.spyOn>
+let createObjectURLSpy: import('vitest').MockInstance<typeof URL.createObjectURL>
+let revokeObjectURLSpy: import('vitest').MockInstance<typeof URL.revokeObjectURL>
 
 beforeAll(() => {
   if (!URL.createObjectURL) {

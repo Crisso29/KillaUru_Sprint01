@@ -8,6 +8,7 @@ import java.time.Duration
  * RelojProhibidoTest (Konsist) verifica que ningún otro archivo acceda a System.currentTimeMillis.
  */
 internal object RelojSistema {
+    fun utcMs(): Long = System.currentTimeMillis()
     /** Tiempo transcurrido desde el arranque en ms (monotónico, no afectado por NTP). */
     fun elapsedRealtimeMs(): Long = SystemClock.elapsedRealtime()
 
@@ -15,5 +16,6 @@ internal object RelojSistema {
     fun elapsed(): Duration = Duration.ofMillis(elapsedRealtimeMs())
 
     /** Número de arranques del sistema (para detectar reinicio). */
-    fun bootCount(): Int = android.provider.Settings.Global.getInt(null, "boot_count", 0)
+    fun bootCount(resolver: android.content.ContentResolver): Int =
+        android.provider.Settings.Global.getInt(resolver, "boot_count", 0)
 }

@@ -15,22 +15,26 @@ internal class FusionVentanas(private val ventanaMsFusion: Long = 1_000L) {
         var pendiente: Pair<Ventana, Clasificacion>? = null
 
         for (par in clasificaciones) {
-            val (ventana, clasificacion) = par
+            val clasificacion = par.second
             if (clasificacion.tipo == null) continue
             val p = pendiente
             if (p == null) {
                 pendiente = par
             } else {
-                val diffMs = ChronoUnit.MILLIS.between(p.first.inicioUtc, ventana.inicioUtc)
-                pendiente = if (diffMs <= ventanaMsFusion) {
-                    if (clasificacion.confidence >= p.second.confidence) par else p
-                } else {
-                    resultado.add(p)
-                    par
-                }
+                pendiente = fusionarPendiente(p, par, resultado)
             }
         }
         pendiente?.let { resultado.add(it) }
         return resultado
+    }
+    private fun fusionarPendiente(p: Pair<Ventana, Clasificacion>, par: Pair<Ventana, Clasificacion>,
+        resultado: MutableList<Pair<Ventana, Clasificacion>>): Pair<Ventana, Clasificacion> {
+                val diffMs = ChronoUnit.MILLIS.between(p.first.inicioUtc, par.first.inicioUtc)
+                return if (diffMs <= ventanaMsFusion) {
+                    if (par.second.confidence >= p.second.confidence) par else p
+                } else {
+                    resultado.add(p)
+                    par
+                }
     }
 }

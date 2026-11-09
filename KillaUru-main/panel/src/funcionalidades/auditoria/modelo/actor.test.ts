@@ -1,7 +1,7 @@
 // T078 — detectarTipoActor y elegirCuenta
 import { describe, it, expect } from 'vitest'
 import { detectarTipoActor, elegirCuenta } from './actor'
-import type { Usuario } from '@/api/generado/001-identidad'
+import type { Usuario } from '@/api/dtos/001-identidad'
 
 const UUID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
 

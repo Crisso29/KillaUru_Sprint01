@@ -1,5 +1,7 @@
 package pe.killauru.app.sesion.ui
 
+import pe.killauru.app.comun.ui.MarcoFormulario
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -19,27 +21,10 @@ internal fun LoginPantalla(
 ) {
     var correo by remember { mutableStateOf("") }
     var contrasena by remember { mutableStateOf("") }
-    Surface(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
+    MarcoFormulario(centrado = true, alineado = true) {
             Text("Iniciar sesión", style = MaterialTheme.typography.titleLarge)
             Spacer(Modifier.height(16.dp))
-            OutlinedTextField(
-                value = correo, onValueChange = { correo = it },
-                label = { Text("Correo") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(Modifier.height(8.dp))
-            OutlinedTextField(
-                value = contrasena, onValueChange = { contrasena = it },
-                label = { Text("Contraseña") },
-                visualTransformation = PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth(),
-            )
+            CamposCredenciales(correo, contrasena, { correo = it }, { contrasena = it }, "Correo")
             Spacer(Modifier.height(16.dp))
             Button(
                 onClick = { onLogin(correo, contrasena) },
@@ -48,6 +33,5 @@ internal fun LoginPantalla(
             ) { Text("Ingresar") }
             TextButton(onClick = onOlvideContrasena) { Text("Olvidé mi contraseña") }
             TextButton(onClick = onCrearCuenta) { Text("Crear cuenta") }
-        }
     }
 }

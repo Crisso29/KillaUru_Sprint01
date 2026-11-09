@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build:simulado": "tsc -b && vite build --mode simulado",
+    "build:simulado": "msw init public --save && tsc -b && vite build --mode simulado",
     "tipos": "node scripts/generar-tipos.mjs",
     "test": "vitest run",
     "cobertura": "vitest run --coverage",
@@ -57,5 +57,10 @@
     "@vitest/coverage-v8": "2.1.1",
     "vitest-axe": "0.1.0",
     "wrangler": "3.78.7"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }

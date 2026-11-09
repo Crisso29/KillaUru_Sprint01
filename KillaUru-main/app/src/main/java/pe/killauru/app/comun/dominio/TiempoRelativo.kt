@@ -25,7 +25,7 @@ internal object TiempoRelativo {
         return when (local.toLocalDate()) {
             hoy -> "hace $horas ${if (horas == 1L) "hora" else "horas"}"
             hoy.minusDays(1) -> "ayer a las ${hora.format(local)}"
-            else -> "el ${fecha.format(local)} a las ${hora.format(local)}"
+            else -> "el ${fecha.format(local).replace(".", "")} a las ${hora.format(local)}"
         }
     }
 }

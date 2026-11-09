@@ -1,7 +1,7 @@
 // T066 — listas de moderación: por-revisar y pendientes (FR-028, FR-029)
 import { useQuery } from '@tanstack/react-query'
 import { entorno } from '@/config/entorno'
-import type { ElementoPorRevisar, ElementoPendiente } from '@/api/generado/003-anomalias'
+import type { ElementoPorRevisar, ElementoPendiente } from '@/api/dtos/003-anomalias'
 
 export function usePorRevisar() {
   return useQuery<ElementoPorRevisar[]>({

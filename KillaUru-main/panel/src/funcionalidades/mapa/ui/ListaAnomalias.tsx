@@ -4,7 +4,7 @@ import { formatearKm } from '@/compartido/formato/km'
 import { formatearRelativo } from '@/compartido/formato/relativo'
 import { idCorto } from '@/compartido/formato/ids'
 import { EstadoVacio } from '@/compartido/ui'
-import type { AnomaliaFeature } from '@/api/generado/002-mapa'
+import type { AnomaliaFeature } from '@/api/dtos/002-mapa'
 import { TEXTOS_MAPA } from '../textos'
 
 interface Props {

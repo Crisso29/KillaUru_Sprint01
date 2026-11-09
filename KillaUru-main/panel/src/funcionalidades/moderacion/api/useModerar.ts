@@ -1,7 +1,7 @@
 // T066 — moderarAnomalia: POST /anomalies/{id}/moderacion + invalidaciones (FR-030)
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { entorno } from '@/config/entorno'
-import type { AccionModeracion, DetalleAnomalia } from '@/api/generado/003-anomalias'
+import type { AccionModeracion, DetalleAnomalia } from '@/api/dtos/003-anomalias'
 
 interface Params {
   id: string

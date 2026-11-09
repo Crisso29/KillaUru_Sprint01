@@ -14,7 +14,7 @@ def _archivos_fuente() -> list[pathlib.Path]:
     return [
         p for ext in _EXTENSIONES
         for p in _RAIZ_ML.rglob(f"*{ext}")
-        if ".cache" not in p.parts
+        if not any(parte in p.parts for parte in (".cache", ".venv", "build", ".gradle"))
     ]
 
 

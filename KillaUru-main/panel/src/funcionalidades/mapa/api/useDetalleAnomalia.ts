@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { entorno } from '@/config/entorno'
 import { armarError } from '@/api/problema'
-import type { DetalleAnomalia } from '@/api/generado/002-mapa'
+import type { DetalleAnomalia } from '@/api/dtos/002-mapa'
 
 export function useDetalleAnomalia(id: string | null) {
   return useQuery({

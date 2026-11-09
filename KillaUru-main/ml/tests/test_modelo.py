@@ -1,6 +1,6 @@
 """T042 / FR-017 — arquitectura MLP: forma, capas, softmax."""
 import numpy as np
-import pytest
+
 from killauru_ml.modelo.arquitectura import construir_modelo
 
 _N_FEATURES = 20
@@ -38,8 +38,8 @@ def test_capas_ocultas_config_32_16() -> None:
     modelo = construir_modelo(_N_CLASES, capas_ocultas=[32, 16])
     # Assert — hay capas Dense con 32 y 16 unidades (ocultas)
     unidades_ocultas = [
-        l.units for l in modelo.layers
-        if hasattr(l, "units") and l.units != _N_CLASES
+        capa.units for capa in modelo.layers
+        if hasattr(capa, "units") and capa.units != _N_CLASES
     ]
     assert 32 in unidades_ocultas
     assert 16 in unidades_ocultas
@@ -49,5 +49,5 @@ def test_capas_ocultas_personalizadas() -> None:
     # Arrange + Act
     modelo = construir_modelo(2, capas_ocultas=[64, 32, 16])
     # Assert — 3 capas ocultas
-    ocultas = [l for l in modelo.layers if hasattr(l, "units") and l.units != 2]
+    ocultas = [capa for capa in modelo.layers if hasattr(capa, "units") and capa.units != 2]
     assert len(ocultas) == 3

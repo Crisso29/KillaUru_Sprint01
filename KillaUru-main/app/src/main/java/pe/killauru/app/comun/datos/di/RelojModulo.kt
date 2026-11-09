@@ -20,6 +20,10 @@ private val Context.preferenciasStore: DataStore<Preferences> by preferencesData
 @Module
 @InstallIn(SingletonComponent::class)
 internal object RelojModulo {
+    @Provides fun ahoraMs(): () -> Long = pe.killauru.app.comun.datos.RelojSistema::utcMs
+    @Provides @Singleton
+    fun preferencias(store: DataStore<Preferences>) = pe.killauru.app.comun.datos.almacen.PreferenciasDataStore(store)
+
     @Provides
     @Singleton
     fun proveerDataStore(@ApplicationContext ctx: Context): DataStore<Preferences> =

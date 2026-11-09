@@ -11,20 +11,17 @@ test.describe('Resumen', () => {
     await expect(page.getByText('Conductores activos')).toBeVisible()
     await expect(page.getByText('Dispositivos 24 h')).toBeVisible()
     await expect(page.getByText('Cobertura')).toBeVisible()
-    await expect(page.getByText('Confirmación')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Confirmación', exact: true })).toBeVisible()
     await expect(page.getByText('Reaparición')).toBeVisible()
   })
 
   test('selector de periodo envía dias=7 al cambiar a 7 d', async ({ page }) => {
-    let diasEnviado = ''
-    await page.route('**/api/v1/dashboard/indicadores*', (route) => {
-      const url = new URL(route.request().url())
-      diasEnviado = url.searchParams.get('dias') ?? ''
-      void route.continue()
-    })
+    // MSW responde desde el service worker; page.route no intercepta esas respuestas.
+    const peticion = page.waitForRequest(r =>
+      r.url().includes('/api/v1/dashboard/indicadores?dias=7'))
     await page.getByLabel('7 días').click()
+    expect(new URL((await peticion).url()).searchParams.get('dias')).toBe('7')
     await expect(page.getByText('Eventos válidos (ayer)')).toBeVisible()
-    expect(diasEnviado).toBe('7')
   })
 
   test('«Paneles técnicos» abre en nueva pestaña', async ({ page, context }) => {

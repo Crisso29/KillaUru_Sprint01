@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { entorno } from '@/config/entorno'
 import { armarError } from '@/api/problema'
-import type { ColeccionAnomalias } from '@/api/generado/002-mapa'
+import type { ColeccionAnomalias } from '@/api/dtos/002-mapa'
 
 export function useMapaAdmin(consulta: URLSearchParams | null) {
   return useQuery({

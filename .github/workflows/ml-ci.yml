@@ -3,12 +3,16 @@
 name: ML CI
 
 on:
+  workflow_dispatch:
   push:
     branches: ["**"]
-    paths: ["KillaUru-main/ml/**"]
+    paths: ["KillaUru-main/ml/**", ".github/workflows/ml-ci.yml"]
   pull_request:
     branches: [main]
-    paths: ["KillaUru-main/ml/**"]
+    paths: ["KillaUru-main/ml/**", ".github/workflows/ml-ci.yml"]
+
+permissions:
+  contents: read
 
 defaults:
   run:
@@ -29,14 +33,8 @@ jobs:
           cache: pip
           cache-dependency-path: KillaUru-main/ml/requirements.lock
 
-      # Instalar desde el lock con hashes si está generado; si no, desde requirements.in (FR-016, R-019)
-      - name: Instalar dependencias
-        run: |
-          if grep -q "^tensorflow" requirements.lock 2>/dev/null; then
-            pip install --require-hashes -r requirements.lock
-          else
-            pip install -r requirements.in
-          fi
+      - name: Instalar dependencias verificadas
+        run: pip install --require-hashes -r requirements.lock
 
       # Instalar el paquete en modo editable para que pytest lo encuentre
       - name: Instalar killauru_ml
@@ -59,6 +57,7 @@ jobs:
               for ext in (".py", ".kt", ".kts")
               for p in raiz.rglob(f"*{ext}")
               if ".cache" not in p.parts
+              and not any(x in p.parts for x in (".venv", "build", ".gradle"))
               and sum(1 for _ in p.open(encoding="utf-8")) > 199
           ]
           if violaciones:
@@ -68,7 +67,5 @@ jobs:
           EOF
 
       # D10 — corrida de humo dos veces; las huellas de pesos deben coincidir (SC-003)
-      - name: Humo — todo dos veces con dataset sintético
-        run: |
-          python -m killauru_ml todo --version 0.0.1-ci --sintetico
-          python -m killauru_ml todo --version 0.0.1-ci --sintetico --verificar-huella
+      - name: Humo reproducible en dos procesos aislados
+        run: python scripts/verificar_reproducibilidad.py

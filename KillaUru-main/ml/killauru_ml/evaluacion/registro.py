@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 import pathlib
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -24,10 +24,10 @@ class RegistroEntrenamiento:
     notas: str = ""
 
     @staticmethod
-    def nueva(version: str, **kwargs) -> "RegistroEntrenamiento":
+    def nueva(version: str, **kwargs) -> RegistroEntrenamiento:
         return RegistroEntrenamiento(
             version=version,
-            timestamp_utc=datetime.now(timezone.utc).isoformat(),
+            timestamp_utc=datetime.now(UTC).isoformat(),
             **kwargs,
         )
 

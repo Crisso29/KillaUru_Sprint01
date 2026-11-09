@@ -1,6 +1,6 @@
 // T047 — ReportesPorDia: gráfico de barras con tabla oculta accesible (FR-025)
 import { TablaOculta } from '@/compartido/ui'
-import type { ReportePorDia } from '@/api/generado/002-mapa'
+import type { ReportePorDia } from '@/api/dtos/002-mapa'
 import { TEXTOS_DETALLE } from '../textos'
 
 interface Props { datos: ReportePorDia[] }
@@ -25,10 +25,10 @@ export function ReportesPorDia({ datos }: Props) {
           />
         ))}
       </div>
-      <TablaOculta
-        encabezados={['Día', 'Cantidad']}
-        filas={datos.map(d => [d.dia, String(d.cantidad)])}
-      />
+      <TablaOculta caption={TEXTOS_DETALLE.reportesPorDia}>
+        <thead><tr><th>Día</th><th>Cantidad</th></tr></thead>
+        <tbody>{datos.map(d => <tr key={d.dia}><td>{d.dia}</td><td>{d.cantidad}</td></tr>)}</tbody>
+      </TablaOculta>
     </figure>
   )
 }

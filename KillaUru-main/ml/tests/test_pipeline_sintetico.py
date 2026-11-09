@@ -1,7 +1,6 @@
 """T057 — pipeline completo con datos sintéticos (integración end-to-end)."""
 import os
 import pathlib
-import pytest
 
 
 def test_todo_sintetico_sale_sin_excepcion(tmp_path) -> None:

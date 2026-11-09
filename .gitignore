@@ -1,2 +1,14 @@
 .aider*
 .claude/
+
+# Entornos y salidas locales de ML y del grabador
+KillaUru-main/ml/.venv/
+KillaUru-main/ml/**/*.egg-info/
+KillaUru-main/ml/**/__pycache__/
+KillaUru-main/ml/.ruff_cache/
+KillaUru-main/ml/.pytest_cache/
+KillaUru-main/ml/grabador/**/.gradle/
+KillaUru-main/ml/grabador/**/build/
+
+# Artefactos sinteticos locales; publicar solo versiones verificadas.
+KillaUru-main/ml/modelos/

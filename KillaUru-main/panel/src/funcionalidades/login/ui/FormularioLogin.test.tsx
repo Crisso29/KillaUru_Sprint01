@@ -154,11 +154,11 @@ describe('FormularioLogin', () => {
   })
 
   it('botón desactivado mientras envía', async () => {
-    let resolver: (() => void) | null = null
+    const pendiente: { resolver?: () => void } = {}
     server.use(
       http.post(URL_LOGIN, () =>
         new Promise<Response>((res) => {
-          resolver = () => res(HttpResponse.json({ acceso_vence_utc: '2026-11-05T10:05:00Z' }))
+          pendiente.resolver = () => res(HttpResponse.json({ acceso_vence_utc: '2026-11-05T10:05:00Z' }))
         }),
       ),
     )
@@ -172,6 +172,6 @@ describe('FormularioLogin', () => {
       // Texto cambia a «Entrando…» mientras la mutación está pendiente
       expect(screen.getByRole('button', { name: /entrando/i })).toBeDisabled()
     })
-    resolver?.()
+    pendiente.resolver?.()
   })
 })

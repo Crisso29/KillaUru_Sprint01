@@ -1,6 +1,6 @@
 """T046 / FR-018 — cuantización int8: archivo creado, tamaño y equivalencia."""
 import numpy as np
-import pytest
+
 from killauru_ml.comun.semillas import fijar_semillas
 from killauru_ml.modelo.arquitectura import construir_modelo
 from killauru_ml.modelo.cuantizar import cuantizar, inferir_tflite

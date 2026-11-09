@@ -1,5 +1,5 @@
 // T075 — FranjaIndicadores: 6 tarjetas en fila (FR-015)
-import type { IndicadoresDashboard } from '@/api/generado/004-dashboard'
+import type { IndicadoresDashboard } from '@/api/dtos/004-dashboard'
 import type { ClaveIndicador } from '../modelo/indicadores'
 import { TarjetaIndicador } from './TarjetaIndicador'
 

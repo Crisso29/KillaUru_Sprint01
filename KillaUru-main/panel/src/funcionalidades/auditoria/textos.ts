@@ -1,7 +1,7 @@
 export const TEXTOS_AUDITORIA = {
   titulo: 'Auditoría',
   insignia: 'Solo lectura',
-  contadorRetención: (n: number, total: number) =>
+  contadorRetención: (n: number, _total: number) =>
     `${n} registros · retención permanente`,
   contadorTotal: (total: number) => `${total} registros · retención permanente`,
   sistema: 'sistema',

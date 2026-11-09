@@ -1,7 +1,5 @@
 """T010 / FR-012, FR-017 — pruebas de procesamiento de señal y kilometraje."""
 import numpy as np
-import pytest
-
 
 # ---------------------------------------------------------------------------
 # remuestreo lineal
@@ -99,11 +97,11 @@ def test_velocidad_49_kmh_no_activa_rn03() -> None:
     assert not cumple_rn03(velocidad_kmh=4.9, duracion_s=10)
 
 
-def test_velocidad_50_kmh_activa_rn03() -> None:
+def test_velocidad_50_kmh_no_activa_rn03() -> None:
     # Arrange
     from killauru_ml.senal.condicion_velocidad import cumple_rn03
     # Act + Assert
-    assert cumple_rn03(velocidad_kmh=5.0, duracion_s=10)
+    assert not cumple_rn03(velocidad_kmh=5.0, duracion_s=10)
 
 
 def test_duracion_9s_no_activa_rn03() -> None:

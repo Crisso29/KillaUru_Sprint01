@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 import pathlib
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 def generar_manifiesto(
@@ -21,7 +21,7 @@ def generar_manifiesto(
         "version": version,
         "sha256": sha256,
         "clases": clases,
-        "fecha_utc": fecha_utc or datetime.now(timezone.utc).isoformat(),
+        "fecha_utc": fecha_utc or datetime.now(UTC).isoformat(),
     }
 
 

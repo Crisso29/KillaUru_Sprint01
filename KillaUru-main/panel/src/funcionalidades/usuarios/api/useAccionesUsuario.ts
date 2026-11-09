@@ -1,7 +1,7 @@
 // T055 — mutaciones de gestión de usuarios con invalidaciones ['usuarios','revision','actores']
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { entorno } from '@/config/entorno'
-import type { Rol, Usuario } from '@/api/generado/001-identidad'
+import type { Rol, Usuario } from '@/api/dtos/001-identidad'
 
 const LLAVES_INVALIDAS = [
   { queryKey: ['usuarios'] },

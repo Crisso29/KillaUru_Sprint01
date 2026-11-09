@@ -1,6 +1,6 @@
 // T057 — DialogoRol: cambia rol de un usuario; maneja 409 ultimo_administrador
 import { useState } from 'react'
-import type { Rol } from '@/api/generado/001-identidad'
+import type { Rol } from '@/api/dtos/001-identidad'
 import { useCambiarRol } from '../api/useAccionesUsuario'
 import { TEXTOS_USUARIOS as T } from '../textos'
 

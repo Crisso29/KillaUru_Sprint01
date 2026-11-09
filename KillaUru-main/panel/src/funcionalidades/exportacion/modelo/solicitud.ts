@@ -1,5 +1,5 @@
 // T084 — conversión fecha Lima → UTC para SolicitudExportacion
-import type { TipoAnomalia, EstadoAnomalia } from '@/api/generado/003-anomalias'
+import type { TipoAnomalia, EstadoAnomalia } from '@/api/dtos/003-anomalias'
 
 export interface SolicitudExportacion {
   formato: 'CSV' | 'GeoJSON'
@@ -18,7 +18,7 @@ export function aDesdeUtc(fecha: string): string | null {
 // fin del día Lima = 04:59:59 UTC del día siguiente
 export function aHastaUtc(fecha: string): string | null {
   if (!fecha) return null
-  const [a, m, d] = fecha.split('-').map(Number)
+  const [a = 0, m = 1, d = 1] = fecha.split('-').map(Number)
   const sig = new Date(Date.UTC(a, m - 1, d + 1))
   const yyyy = sig.getUTCFullYear()
   const mm = String(sig.getUTCMonth() + 1).padStart(2, '0')

@@ -16,7 +16,8 @@ import javax.inject.Inject
 @AndroidEntryPoint
 internal class ServicioDeteccion : Service() {
 
-    @Inject lateinit var orquestador: OrquestadorServicio
+    @Inject lateinit var orquestador: dagger.Lazy<OrquestadorServicio>
+    private var iniciado = false
 
     private val notificacion by lazy { NotificacionEstado(this) }
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -27,7 +28,12 @@ internal class ServicioDeteccion : Service() {
             NotificacionEstado.NOTIF_ID,
             notificacion.construir(IndicadorEstado.SinGps, 0),
         )
-        orquestador.iniciar(scope)
+        if (!modeloDisponible()) {
+            stopSelf()
+            return
+        }
+        orquestador.get().iniciar(scope)
+        iniciado = true
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -38,12 +44,19 @@ internal class ServicioDeteccion : Service() {
     }
 
     override fun onDestroy() {
-        orquestador.detener()
+        if (iniciado) orquestador.get().detener()
         scope.cancel()
         super.onDestroy()
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
+
+    private fun modeloDisponible(): Boolean = runCatching {
+        val manifiesto = assets.open("modelo/manifiesto.json").bufferedReader()
+            .use { org.json.JSONObject(it.readText()) }
+        manifiesto.getDouble("umbralPrefiltro")
+        assets.open("modelo/" + manifiesto.getString("archivo")).use { it.read() != -1 }
+    }.getOrDefault(false)
 
     companion object {
         const val ACCION_DETENER = "pe.killauru.app.DETENER_DETECCION"

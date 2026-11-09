@@ -6,7 +6,7 @@ import { TablaAuditoria } from './TablaAuditoria'
 import { detectarTipoActor } from '../modelo/actor'
 import { useAuditoria } from '../api/useAuditoria'
 import { entorno } from '@/config/entorno'
-import type { PaginaUsuarios } from '@/api/generado/001-identidad'
+import type { PaginaUsuarios } from '@/api/dtos/001-identidad'
 
 const FILTROS_INICIALES: ValoresFiltros = {
   desde: '', hasta: '', categoria: '', accion: '', actor: '',

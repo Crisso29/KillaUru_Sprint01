@@ -1,0 +1,86 @@
+name: Panel Deploy
+
+on:
+  workflow_run:
+    workflows: [Panel CI]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+concurrency:
+  group: despliegue-panel
+  cancel-in-progress: false
+
+defaults:
+  run:
+    working-directory: KillaUru-main/panel
+
+jobs:
+  configuracion:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    environment: produccion
+    outputs:
+      lista: ${{ steps.validar.outputs.lista }}
+    steps:
+      - id: validar
+        working-directory: .
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          VITE_URL_API: ${{ vars.VITE_URL_API }}
+          VITE_URL_ESTILO_MAPA: ${{ vars.VITE_URL_ESTILO_MAPA }}
+          VITE_URL_PMTILES: ${{ vars.VITE_URL_PMTILES }}
+          VITE_URL_ESTADO: ${{ vars.VITE_URL_ESTADO }}
+          VITE_TURNSTILE_SITEKEY: ${{ vars.VITE_TURNSTILE_SITEKEY }}
+          VITE_URL_CDN: ${{ vars.VITE_URL_CDN }}
+          PANEL_URL: ${{ vars.PANEL_URL }}
+        run: |
+          lista=true
+          for nombre in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID VITE_URL_API VITE_URL_ESTILO_MAPA VITE_URL_PMTILES VITE_URL_ESTADO VITE_TURNSTILE_SITEKEY VITE_URL_CDN PANEL_URL; do
+            if [ -z "${!nombre}" ]; then
+              echo "Falta configurar $nombre en produccion; despliegue omitido." >> "$GITHUB_STEP_SUMMARY"
+              lista=false
+            fi
+          done
+          echo "lista=$lista" >> "$GITHUB_OUTPUT"
+  deploy:
+    needs: configuracion
+    if: needs.configuracion.outputs.lista == 'true'
+    name: Deploy a Cloudflare Pages
+    runs-on: ubuntu-latest
+    environment: produccion
+    env:
+      VITE_ENTORNO: produccion
+      VITE_URL_API: ${{ vars.VITE_URL_API }}
+      VITE_URL_ESTILO_MAPA: ${{ vars.VITE_URL_ESTILO_MAPA }}
+      VITE_URL_PMTILES: ${{ vars.VITE_URL_PMTILES }}
+      VITE_URL_ESTADO: ${{ vars.VITE_URL_ESTADO }}
+      VITE_TURNSTILE_SITEKEY: ${{ vars.VITE_TURNSTILE_SITEKEY }}
+      VITE_URL_CDN: ${{ vars.VITE_URL_CDN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: KillaUru-main/panel/package-lock.json
+      - run: npm ci
+      - name: Build con cabeceras de seguridad
+        run: |
+          npm run build
+          node scripts/generar-cabeceras.mjs
+      - name: Deploy a Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name killauru-panel --branch main
+          workingDirectory: KillaUru-main/panel
+      - name: Verificar cabeceras de seguridad
+        run: node scripts/verificar-cabeceras.mjs
+        env:
+          PANEL_URL: ${{ vars.PANEL_URL }}

@@ -9,7 +9,7 @@ import javax.inject.Inject
 
 /** FR-057: reproduce TTS/sonido al detectar proximidad a anomalía. */
 internal class AlertaSonoraAndroid @Inject constructor(
-    private val context: Context,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: Context,
 ) : AlertaSonora {
 
     private var soundPool: SoundPool? = null

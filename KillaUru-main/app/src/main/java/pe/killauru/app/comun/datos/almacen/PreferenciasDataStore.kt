@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 /** data-model §6: DataStore de preferencias no sensibles. */
-internal class PreferenciasDataStore(context: Context) {
+internal class PreferenciasDataStore(private val store: DataStore<Preferences>) {
     companion object {
         val K_CATEGORIA = stringPreferencesKey("categoria")
         val K_SOLO_MAPA = booleanPreferencesKey("soloVerMapa")
@@ -29,8 +29,6 @@ internal class PreferenciasDataStore(context: Context) {
         val K_AVISO_DEMO_VIAJE = stringPreferencesKey("aviso.demo.viajeId")
     }
 
-    private val Context.dataStore: DataStore<Preferences> by preferencesDataStore("preferencias")
-    private val store = context.dataStore
 
     fun <T> leer(clave: Preferences.Key<T>): Flow<T?> = store.data.map { it[clave] }
 

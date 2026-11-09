@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 /** FR-022: programa SincronizacionWorker y PurgaWorker periódicos con WorkManager. */
-internal class ProgramadorSync @Inject constructor(private val context: Context) {
+internal class ProgramadorSync @Inject constructor(@dagger.hilt.android.qualifiers.ApplicationContext private val context: Context) {
 
     private companion object {
         const val TRABAJO_SYNC = "killauru_sync"

@@ -1,6 +1,6 @@
 // T057 — DialogoInvitar: invita nuevo usuario; maneja 409 correo_en_uso
 import { useState } from 'react'
-import type { Rol } from '@/api/generado/001-identidad'
+import type { Rol } from '@/api/dtos/001-identidad'
 import { useCrearUsuario } from '../api/useAccionesUsuario'
 import { TEXTOS_USUARIOS as T } from '../textos'
 

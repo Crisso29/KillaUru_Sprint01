@@ -11,7 +11,7 @@ export function filtrosAConsulta(filtros: FiltrosMapa, ahora: Date): URLSearchPa
   p.set('estado', filtros.estados.join(','))
 
   if (filtros.tipos.length === 1) {
-    p.set('tipo', filtros.tipos[0])
+    p.set('tipo', filtros.tipos[0]!)
   }
 
   if (filtros.severidades.length < 5) {

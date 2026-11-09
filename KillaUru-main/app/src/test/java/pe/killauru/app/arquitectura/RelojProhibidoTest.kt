@@ -11,7 +11,7 @@ class RelojProhibidoTest {
         // Arrange
         val fuentes = File("src/main/java").walkTopDown()
             .filter { it.extension == "kt" && it.name != "RelojSistema.kt" }
-        val llamadas = Regex("(System\\.(currentTimeMillis|nanoTime)|" +
+        val llamadas = Regex("\\b(System\\.(currentTimeMillis|nanoTime)|" +
             "(Instant|LocalDateTime|LocalDate|OffsetDateTime|ZonedDateTime)\\.now|" +
             "Clock\\.system\\w*|SystemClock\\.(elapsedRealtime\\w*|uptimeMillis)|Date)\\s*\\(")
         // Act

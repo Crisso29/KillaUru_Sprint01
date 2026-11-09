@@ -1,5 +1,7 @@
 package pe.killauru.app.sesion.ui
 
+import pe.killauru.app.comun.ui.MarcoFormulario
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -10,14 +12,7 @@ import androidx.compose.ui.unit.dp
 /** FR-001, FR-008: pantalla de bienvenida del primer uso. */
 @Composable
 internal fun BienvenidaPantalla(onComenzar: () -> Unit) {
-    Surface(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
+    MarcoFormulario(centrado = true, alineado = true) {
             Text(
                 text = "KillaUru",
                 style = MaterialTheme.typography.displayMedium,
@@ -31,6 +26,5 @@ internal fun BienvenidaPantalla(onComenzar: () -> Unit) {
             Button(onClick = onComenzar, modifier = Modifier.fillMaxWidth()) {
                 Text("Comenzar")
             }
-        }
     }
 }

@@ -33,8 +33,8 @@ class TamanoBaseTest {
     fun crearBd() {
         db = Room.databaseBuilder(ctx, KillaUruBd::class.java, dbName)
             .addCallback(object : RoomDatabase.Callback() {
-                override fun onCreate(sqDb: SupportSQLiteDatabase) {
-                    TriggersValidacion.crear(sqDb)
+                override fun onCreate(db: SupportSQLiteDatabase) {
+                    TriggersValidacion.crear(db)
                 }
             })
             .allowMainThreadQueries()

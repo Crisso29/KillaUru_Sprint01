@@ -1,8 +1,8 @@
 """FR-017 — entrenamiento del MLP con early stopping y semilla fija."""
 from __future__ import annotations
 
-import numpy as np
 import keras
+import numpy as np
 
 from killauru_ml.modelo.arquitectura import construir_modelo
 

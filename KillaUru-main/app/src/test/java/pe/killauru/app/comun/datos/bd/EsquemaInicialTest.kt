@@ -1,6 +1,7 @@
 package pe.killauru.app.comun.datos.bd
 
 import androidx.room.Room
+import androidx.room.RoomDatabase
 import androidx.test.core.app.ApplicationProvider
 import org.junit.After
 import org.junit.Before

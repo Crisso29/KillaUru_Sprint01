@@ -1,6 +1,7 @@
 """T038 / data-model §4 — extracción de 20 features float32 por ventana."""
 import numpy as np
 import pytest
+
 from killauru_ml.features.features import extraer_features
 
 _N = 25  # muestras por ventana (500 ms a 50 Hz)

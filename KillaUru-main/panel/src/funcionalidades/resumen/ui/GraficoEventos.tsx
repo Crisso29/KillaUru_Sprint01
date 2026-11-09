@@ -1,5 +1,5 @@
 // T075 — GraficoEventos: barras + línea punteada + tabla oculta (FR-016, FR-043)
-import type { EventoPorDia } from '@/api/generado/004-dashboard'
+import type { EventoPorDia } from '@/api/dtos/004-dashboard'
 import { TEXTOS_RESUMEN } from '../textos'
 
 interface Props {

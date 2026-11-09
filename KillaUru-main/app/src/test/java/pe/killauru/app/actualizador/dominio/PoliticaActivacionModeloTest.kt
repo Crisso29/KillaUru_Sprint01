@@ -13,7 +13,7 @@ class PoliticaActivacionModeloTest {
         // Arrange
         val manifiesto = ManifiestoModelo(
             version = "0.2.0", archivo = "modelo.tflite", esquema = 1,
-            etiquetas = listOf("Normal", "Bache"), severidades = 5,
+            etiquetas = listOf("Normal", "Bache", "Hundimiento"), severidades = 5,
             versionMinimaApp = "1.0.0",
         )
         // Act / Assert
@@ -25,7 +25,7 @@ class PoliticaActivacionModeloTest {
         // Arrange
         val manifiesto = ManifiestoModelo(
             version = "0.3.0", archivo = "modelo.tflite", esquema = 1,
-            etiquetas = listOf("Normal", "Bache"), severidades = 5,
+            etiquetas = listOf("Normal", "Bache", "Hundimiento"), severidades = 5,
             versionMinimaApp = "2.0.0",
         )
         // Act / Assert
@@ -37,7 +37,7 @@ class PoliticaActivacionModeloTest {
         // Arrange
         val manifiesto = ManifiestoModelo(
             version = "0.2.0", archivo = "modelo.tflite", esquema = 2,
-            etiquetas = listOf("Normal", "Bache"), severidades = 5,
+            etiquetas = listOf("Normal", "Bache", "Hundimiento"), severidades = 5,
             versionMinimaApp = "1.0.0",
         )
         // Act / Assert

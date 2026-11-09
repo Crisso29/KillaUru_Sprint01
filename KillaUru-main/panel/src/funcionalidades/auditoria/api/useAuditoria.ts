@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import type { PaginaAuditoria } from '@/api/generado/002-auditoria'
+import type { PaginaAuditoria } from '@/api/dtos/002-auditoria'
 import { entorno } from '@/config/entorno'
 
 export interface FiltrosAuditoria {

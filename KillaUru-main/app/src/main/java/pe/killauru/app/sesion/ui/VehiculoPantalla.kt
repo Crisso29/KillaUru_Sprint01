@@ -1,5 +1,7 @@
 package pe.killauru.app.sesion.ui
 
+import pe.killauru.app.comun.ui.MarcoFormulario
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,32 +17,9 @@ internal fun VehiculoPantalla(
 ) {
     var seleccion by remember { mutableStateOf<CategoriaVehiculo?>(null) }
 
-    Surface(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-        ) {
-            Text("¿Qué tipo de vehículo usas?", style = MaterialTheme.typography.headlineSmall)
-            Spacer(Modifier.height(8.dp))
-            Text(
-                "Usamos esta información para ajustar la sensibilidad de la detección.",
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            Spacer(Modifier.height(24.dp))
-            CategoriaVehiculo.entries.forEach { cat ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                ) {
-                    RadioButton(
-                        selected = seleccion == cat,
-                        onClick = { seleccion = cat },
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(cat.texto, style = MaterialTheme.typography.bodyLarge)
-                }
-            }
+    MarcoFormulario() {
+            ExplicacionVehiculo()
+            SelectorVehiculo(seleccion) { seleccion = it }
             Spacer(Modifier.weight(1f))
             Button(
                 onClick = { seleccion?.let(onSeleccionar) },
@@ -49,6 +28,16 @@ internal fun VehiculoPantalla(
             ) {
                 Text("Continuar")
             }
-        }
     }
+}
+
+@Composable
+private fun ExplicacionVehiculo() {
+            Text("¿Qué tipo de vehículo usas?", style = MaterialTheme.typography.headlineSmall)
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "Usamos esta información para ajustar la sensibilidad de la detección.",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Spacer(Modifier.height(24.dp))
 }

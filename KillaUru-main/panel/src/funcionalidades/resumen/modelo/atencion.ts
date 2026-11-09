@@ -1,5 +1,5 @@
 // T074 — contarTemas y primerPendiente (data-model §5, FR-018)
-import type { ElementoPendiente } from '@/api/generado/003-anomalias'
+import type { ElementoPendiente } from '@/api/dtos/003-anomalias'
 
 interface EstadoRevisionMinimo {
   venceUtc: string
@@ -25,8 +25,8 @@ export function primerPendiente(
   pendientes: ElementoPendiente[],
   ahora: Date,
 ): string | null {
-  if (pendientes.length === 0) return null
   const primero = pendientes[0]
+  if (!primero) return null
   const idCorto = primero.id.slice(0, 8)
   const horasRestantes = Math.ceil(
     (new Date(primero.venceUtc).getTime() - ahora.getTime()) / (1000 * 60 * 60),

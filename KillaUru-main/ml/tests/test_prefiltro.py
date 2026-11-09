@@ -1,8 +1,8 @@
 """T040 / FR-016 — prefiltro de ventanas de baja varianza."""
 import numpy as np
-import pytest
-from killauru_ml.ventanas.ventaneo import VentanaDataset
+
 from killauru_ml.features.prefiltro import filtrar_prefiltro
+from killauru_ml.ventanas.ventaneo import VentanaDataset
 
 
 def _ventana(a_v: np.ndarray) -> VentanaDataset:

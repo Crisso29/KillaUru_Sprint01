@@ -1,7 +1,7 @@
 // T063 — acciones: tabla RN-07; MantenerDescartada solo con porRevisar; texto noDisponible
 import { describe, it, expect } from 'vitest'
 import { accionesDisponibles, esAccionDisponible, textoNoDisponible } from './acciones'
-import type { EstadoAnomalia } from '@/api/generado/003-anomalias'
+import type { EstadoAnomalia } from '@/api/dtos/003-anomalias'
 
 describe('accionesDisponibles (RN-07)', () => {
   it('Activa → MarcarReparada, Descartar', () => {

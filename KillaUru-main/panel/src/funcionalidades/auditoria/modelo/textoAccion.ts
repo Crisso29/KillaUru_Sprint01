@@ -1,4 +1,4 @@
-import type { AccionAuditada, CategoriaAuditoria } from '@/api/generado/002-auditoria'
+import type { AccionAuditada, CategoriaAuditoria } from '@/api/dtos/002-auditoria'
 
 const TEXTOS_ACCION: Record<AccionAuditada, string> = {
   UsuarioCreado: 'Usuario creado',

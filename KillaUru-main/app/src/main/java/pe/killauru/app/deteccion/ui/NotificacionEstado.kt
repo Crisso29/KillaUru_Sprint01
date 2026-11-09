@@ -30,15 +30,7 @@ internal class NotificacionEstado(private val context: Context) {
     }
 
     fun construir(indicador: IndicadorEstado, pendientes: Int): Notification {
-        val texto = when (indicador) {
-            IndicadorEstado.Detectando -> if (pendientes > 0) "$pendientes por enviar" else "Detectando…"
-            IndicadorEstado.EnPausa -> "En pausa"
-            IndicadorEstado.SinGps -> "Sin GPS"
-            IndicadorEstado.ModoAhorro -> "Ahorro de batería"
-            IndicadorEstado.SoloMapa -> "Solo ver el mapa"
-            IndicadorEstado.SinPermiso -> "Sin permiso de ubicación"
-            IndicadorEstado.SinServicio -> "Servicio detenido"
-        }
+        val texto = textoEstado(indicador, pendientes)
         val intent = PendingIntent.getActivity(
             context, 0,
             Intent(context, MainActivity::class.java),
@@ -51,5 +43,16 @@ internal class NotificacionEstado(private val context: Context) {
             .setContentIntent(intent)
             .setOngoing(true)
             .build()
+    }
+    private fun textoEstado(indicador: IndicadorEstado, pendientes: Int): String {
+        return when (indicador) {
+            IndicadorEstado.Detectando -> if (pendientes > 0) "$pendientes por enviar" else "Detectando…"
+            IndicadorEstado.EnPausa -> "En pausa"
+            IndicadorEstado.SinGps -> "Sin GPS"
+            IndicadorEstado.ModoAhorro -> "Ahorro de batería"
+            IndicadorEstado.SoloMapa -> "Solo ver el mapa"
+            IndicadorEstado.SinPermiso -> "Sin permiso de ubicación"
+            IndicadorEstado.SinServicio -> "Servicio detenido"
+        }
     }
 }

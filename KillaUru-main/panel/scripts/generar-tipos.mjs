@@ -1,27 +1,20 @@
-// T006: genera tipos TypeScript desde los contratos OpenAPI YAML
-// Ejecutar: npm run tipos
-import { execSync } from 'child_process'
-import { existsSync } from 'fs'
-import { join } from 'path'
+// Genera los contratos canonicos; los DTO de presentacion viven en src/api/dtos.
+import openapiTS, { astToString } from 'openapi-typescript'
+import { writeFileSync, mkdirSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
 
-const CONTRATOS = [
-  ['001-identidad', '../specs/contratos/001-identidad.yaml'],
-  ['002-mapa', '../specs/contratos/002-mapa.yaml'],
-  ['003-anomalias', '../specs/contratos/003-anomalias.yaml'],
-  ['004-dashboard', '../specs/contratos/004-dashboard.yaml'],
-  ['006-auditoria', '../specs/contratos/006-auditoria.yaml'],
-  ['007-exportacion', '../specs/contratos/007-exportacion.yaml'],
+const contratos = [
+  ['identidad', '003-modulo-identidad-accesos', 'identidad'],
+  ['mapa', '006-modulo-consulta-mapa', 'mapa'],
+  ['anomalias', '004-modulo-anomalias', 'anomalias'],
+  ['dashboard', '007-modulo-dashboard', 'dashboard'],
+  ['auditoria', '002-modulo-auditoria', 'auditoria'],
 ]
-
-const DESTINO = 'src/api/generado'
-
-for (const [nombre, origen] of CONTRATOS) {
-  const ruta = join(process.cwd(), origen)
-  if (!existsSync(ruta)) {
-    console.warn(`Contrato no encontrado (omitido): ${ruta}`)
-    continue
-  }
-  const salida = `${DESTINO}/${nombre}.d.ts`
-  execSync(`npx openapi-typescript "${ruta}" -o "${salida}"`, { stdio: 'inherit' })
-  console.log(`✓ ${nombre} → ${salida}`)
+const destino = resolve(import.meta.dirname, '../src/api/generado')
+mkdirSync(destino, { recursive: true })
+for (const [nombre, spec, contrato] of contratos) {
+  const ruta = resolve(import.meta.dirname, `../../specs/${spec}/contracts/${contrato}.openapi.yaml`)
+  const ast = await openapiTS(pathToFileURL(ruta))
+  writeFileSync(resolve(destino, `${nombre}.d.ts`), astToString(ast))
 }

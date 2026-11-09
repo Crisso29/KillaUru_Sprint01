@@ -1,4 +1,4 @@
-// GENERADO — no editar a mano. Ejecutar: npm run tipos
+// DTO DE PRESENTACION — no editar a mano. Ejecutar: npm run tipos
 // Fuente: specs/003-modulo-identidad-accesos/contracts/identidad.openapi.yaml
 
 export type Rol = 'ConductorRegistrado' | 'Administrador'

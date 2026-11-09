@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+
 package pe.killauru.app.sesion.ui
 
 import androidx.compose.foundation.layout.Column
@@ -35,15 +37,9 @@ internal fun EliminarCuentaPantalla(
         Column(Modifier.padding(padding).padding(16.dp)) {
             Text("Esta acción es permanente. Se eliminarán todos tus datos del servidor.")
             Spacer(Modifier.height(8.dp))
-            OutlinedTextField(contrasena, { contrasena = it },
-                label = { Text("Contraseña") },
-                visualTransformation = PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth())
+            ContrasenaEliminar(contrasena) { contrasena = it }
             Spacer(Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(confirmado, { confirmado = it })
-                Text("Confirmo que quiero eliminar mi cuenta.")
-            }
+            ConfirmacionEliminar(confirmado) { confirmado = it }
             Spacer(Modifier.height(8.dp))
             Button(
                 onClick = { viewModel.eliminar(contrasena, onEliminada) },
@@ -52,4 +48,20 @@ internal fun EliminarCuentaPantalla(
             ) { Text("Eliminar definitivamente") }
         }
     }
+}
+
+@Composable
+private fun ConfirmacionEliminar(confirmado: Boolean, onConfirmar: (Boolean) -> Unit) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(confirmado, onConfirmar)
+                Text("Confirmo que quiero eliminar mi cuenta.")
+            }
+}
+
+@Composable
+private fun ContrasenaEliminar(contrasena: String, onCambio: (String) -> Unit) {
+            OutlinedTextField(contrasena, onCambio,
+                label = { Text("Contraseña") },
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth())
 }

@@ -17,6 +17,7 @@ import javax.inject.Singleton
 @Singleton
 internal class RepositorioSesionCifrado @Inject constructor(
     @Named("sesion") private val ds: DataStore<Preferences>,
+    private val cifrador: pe.killauru.app.comun.datos.almacen.SerializadorCifrado,
 ) : RepositorioSesion {
 
     companion object {
@@ -32,13 +33,13 @@ internal class RepositorioSesionCifrado @Inject constructor(
         val token = prefs[K_TOKEN] ?: return null
         val expira = prefs[K_EXPIRA] ?: return null
         val permiso = prefs[K_PERMISO]?.let { PermisoLocal(it) }
-        return Sesion(id, token, expira, permiso)
+        return Sesion(id, cifrador.descifrar(token), expira, permiso)
     }
 
     override suspend fun guardar(sesion: Sesion) {
         ds.edit { p ->
             p[K_ID] = sesion.usuarioId
-            p[K_TOKEN] = sesion.token
+            p[K_TOKEN] = cifrador.cifrar(sesion.token)
             p[K_EXPIRA] = sesion.tokenExpiraMs
             sesion.permiso?.let { p[K_PERMISO] = it.venceMs }
         }

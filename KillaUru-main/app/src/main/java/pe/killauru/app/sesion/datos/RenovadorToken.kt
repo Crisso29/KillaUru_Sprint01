@@ -30,29 +30,35 @@ internal class RenovadorToken @Inject constructor(
 
         return bloqueo.withLock {
             runBlocking {
-                val sesion = repoSesion.obtener() ?: return@runBlocking respuesta
+                renovar(chain, respuesta)
+            }
+        }
+    }
+    private suspend fun renovar(chain: Interceptor.Chain, respuesta: Response): Response {
+                val sesion = repoSesion.obtener() ?: return respuesta
                 val renovacion = try {
                     api.renovarToken(mapOf("token" to sesion.token))
                 } catch (_: Exception) {
-                    return@runBlocking respuesta
+                    return respuesta
                 }
-                if (renovacion.isSuccessful) {
-                    val body = renovacion.body()!!
+                return if (renovacion.isSuccessful) {
+                    reintentar(chain, respuesta, sesion, renovacion.body()!!)
+                } else {
+                    if (renovacion.code() == 401 || renovacion.code() == 403) {
+                        aplicarInvalida.ejecutar()
+                    }
+                    respuesta
+                }
+    }
+    private suspend fun reintentar(chain: Interceptor.Chain, respuesta: Response,
+        sesion: pe.killauru.app.sesion.dominio.Sesion, body: TokenResponseDto): Response {
                     val permiso = body.permisoVenceMs?.let { PermisoLocal(it) }
                     val nueva = sesion.copy(token = body.token, tokenExpiraMs = body.expiraMs,
                         permiso = permiso)
                     repoSesion.guardar(nueva)
                     respuesta.close()
-                    chain.proceed(chain.request().newBuilder()
+                    return chain.proceed(chain.request().newBuilder()
                         .header("Authorization", "Bearer ${body.token}")
                         .build())
-                } else {
-                    if (renovacion.code == 401 || renovacion.code == 403) {
-                        aplicarInvalida.ejecutar()
-                    }
-                    respuesta
-                }
-            }
-        }
     }
 }

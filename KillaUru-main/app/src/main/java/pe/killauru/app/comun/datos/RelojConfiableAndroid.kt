@@ -16,10 +16,11 @@ import pe.killauru.app.comun.dominio.Reloj
 @Singleton
 internal class RelojConfiableAndroid @Inject constructor(
     private val dataStore: AnclaTiempoDataStore,
+    @dagger.hilt.android.qualifiers.ApplicationContext context: android.content.Context,
 ) : Reloj {
     private val mutex = Mutex()
     private var anclaEnMemoria: AnclaTiempo? = null
-    private val bootCount: Int = RelojSistema.bootCount()
+    private val bootCount: Int = RelojSistema.bootCount(context.contentResolver)
 
     override fun ahoraConfiable(): Instant? {
         val ancla = anclaEnMemoria ?: return null

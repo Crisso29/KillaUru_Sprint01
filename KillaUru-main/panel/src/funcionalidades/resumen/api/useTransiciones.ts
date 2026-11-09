@@ -1,7 +1,7 @@
 // T074 — useTransiciones: ['transiciones', n], staleTime 30 s, refresco 60 s (data-model §3)
 import { useQuery } from '@tanstack/react-query'
 import { entorno } from '@/config/entorno'
-import type { TransicionReciente } from '@/api/generado/003-anomalias'
+import type { TransicionReciente } from '@/api/dtos/003-anomalias'
 
 export function useTransiciones(limite = 5) {
   return useQuery<TransicionReciente[]>({

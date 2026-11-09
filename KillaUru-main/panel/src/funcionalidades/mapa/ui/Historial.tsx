@@ -1,5 +1,5 @@
 // T047 — Historial: entradas con texto derivado de R-014 y actores resueltos (FR-039)
-import type { EntradaHistorial } from '@/api/generado/002-mapa'
+import type { EntradaHistorial } from '@/api/dtos/002-mapa'
 import { useActores } from '@/funcionalidades/usuarios'
 import { TEXTOS_DETALLE, TEXTOS_MAPA } from '../textos'
 

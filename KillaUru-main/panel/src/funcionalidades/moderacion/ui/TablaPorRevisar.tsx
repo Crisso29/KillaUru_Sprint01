@@ -4,7 +4,7 @@ import { Boton } from '@/compartido/ui'
 import { useModerar } from '../api/useModerar'
 import { DialogoModeracion } from './DialogoModeracion'
 import { TEXTOS_MODERACION as T } from '../textos'
-import type { ElementoPorRevisar } from '@/api/generado/003-anomalias'
+import type { ElementoPorRevisar } from '@/api/dtos/003-anomalias'
 
 interface Props {
   items: ElementoPorRevisar[]

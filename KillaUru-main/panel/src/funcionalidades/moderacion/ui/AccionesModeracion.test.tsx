@@ -6,7 +6,7 @@ import { renderizar } from '@/../pruebas/renderizar'
 import { server } from '@/../pruebas/msw/servidor'
 import { http, HttpResponse } from 'msw'
 import { AccionesModeracion } from './AccionesModeracion'
-import type { DetalleAnomalia } from '@/api/generado/003-anomalias'
+import type { DetalleAnomalia } from '@/api/dtos/003-anomalias'
 
 const BASE = import.meta.env.VITE_URL_API ?? 'https://api.killauru.pe'
 

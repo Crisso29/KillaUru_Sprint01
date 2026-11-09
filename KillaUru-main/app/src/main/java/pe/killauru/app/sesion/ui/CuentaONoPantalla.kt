@@ -1,5 +1,7 @@
 package pe.killauru.app.sesion.ui
 
+import pe.killauru.app.comun.ui.MarcoFormulario
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -14,14 +16,23 @@ internal fun CuentaONoPantalla(
     onCrearCuenta: () -> Unit,
     onContinuarSinCuenta: () -> Unit,
 ) {
-    Surface(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
+    MarcoFormulario(centrado = true, alineado = true) {
+            ExplicacionCuenta()
+            Button(onClick = onCrearCuenta, modifier = Modifier.fillMaxWidth()) {
+                Text("Crear cuenta")
+            }
+            Spacer(Modifier.height(12.dp))
+            OutlinedButton(
+                onClick = onContinuarSinCuenta,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Continuar sin cuenta")
+            }
+    }
+}
+
+@Composable
+private fun ExplicacionCuenta() {
             Text(
                 "¿Quieres crear una cuenta?",
                 style = MaterialTheme.typography.headlineSmall,
@@ -35,16 +46,4 @@ internal fun CuentaONoPantalla(
                 textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(32.dp))
-            Button(onClick = onCrearCuenta, modifier = Modifier.fillMaxWidth()) {
-                Text("Crear cuenta")
-            }
-            Spacer(Modifier.height(12.dp))
-            OutlinedButton(
-                onClick = onContinuarSinCuenta,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text("Continuar sin cuenta")
-            }
-        }
-    }
 }

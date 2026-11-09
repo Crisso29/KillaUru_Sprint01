@@ -13,18 +13,22 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <application android:allowBackup="false" android:fullBackupContent="false"
         android:dataExtractionRules="@xml/reglas_extraccion"
-        android:label="@string/app_name" android:supportsRtl="true"
+        android:label="@string/app_name" android:supportsRtl="true" android:icon="@drawable/ic_launcher"
         android:usesCleartextTraffic="false" tools:targetApi="s"
         android:name=".KillaUruApp">
         <activity android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
+            android:theme="@android:style/Theme.Material.Light.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:name="pe.killauru.app.deteccion.ui.ServicioDeteccion"
+        <provider android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup" android:exported="false" tools:node="merge">
+            <meta-data android:name="androidx.work.WorkManagerInitializer" tools:node="remove" />
+        </provider>
+        <service android:name="pe.killauru.app.deteccion.datos.ServicioDeteccion"
             android:foregroundServiceType="location"
             android:exported="false" />
     </application>

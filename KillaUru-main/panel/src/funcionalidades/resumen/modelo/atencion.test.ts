@@ -1,7 +1,7 @@
 // T071 — atencion: contarTemas y primerPendiente (data-model §5, FR-018)
 import { describe, it, expect } from 'vitest'
 import { contarTemas, primerPendiente } from './atencion'
-import type { ElementoPendiente } from '@/api/generado/003-anomalias'
+import type { ElementoPendiente } from '@/api/dtos/003-anomalias'
 
 function revision(venceUtc: string) {
   return {

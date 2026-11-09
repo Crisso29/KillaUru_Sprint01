@@ -1,6 +1,6 @@
 // T047 — DatosAnomalia: filas de los 15 campos escalares (FR-025)
 import { formatearKm } from '@/compartido/formato/km'
-import type { DetalleAnomalia } from '@/api/generado/002-mapa'
+import type { DetalleAnomalia } from '@/api/dtos/002-mapa'
 import { dentroDelTramo } from '../modelo/tramoDemo'
 import { TEXTOS_DETALLE, TEXTOS_MAPA } from '../textos'
 

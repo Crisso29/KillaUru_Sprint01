@@ -1,6 +1,6 @@
 """T044 / FR-017 — entrenamiento: seed, convergencia, historia."""
 import numpy as np
-import pytest
+
 from killauru_ml.comun.semillas import fijar_semillas
 from killauru_ml.modelo.entrenar import entrenar
 

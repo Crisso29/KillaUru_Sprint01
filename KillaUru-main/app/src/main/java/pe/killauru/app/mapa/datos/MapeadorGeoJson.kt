@@ -15,8 +15,8 @@ internal object MapeadorGeoJson {
                 severidad = f.properties.severidad,
                 persistente = f.properties.persistente,
                 coordenada = Coordenada(
-                    lat = f.geometry.coordinates[1],
-                    lon = f.geometry.coordinates[0],
+                    latitud = f.geometry.coordinates[1],
+                    longitud = f.geometry.coordinates[0],
                 ),
                 km = f.properties.km,
                 venceUtc = f.properties.venceUtc,

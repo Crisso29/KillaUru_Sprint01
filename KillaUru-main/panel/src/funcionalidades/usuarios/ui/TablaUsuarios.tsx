@@ -1,5 +1,5 @@
 // T056 — TablaUsuarios: lista de usuarios con MenuUsuario por fila
-import type { Usuario } from '@/api/generado/001-identidad'
+import type { Usuario } from '@/api/dtos/001-identidad'
 import { MenuUsuario } from './MenuUsuario'
 
 interface Props {

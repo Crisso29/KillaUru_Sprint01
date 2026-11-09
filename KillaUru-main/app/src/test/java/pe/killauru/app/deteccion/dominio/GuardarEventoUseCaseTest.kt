@@ -16,20 +16,20 @@ class GuardarEventoUseCaseTest {
     private val guardados = mutableListOf<Evento>()
 
     private inner class RepoFalso : RepositorioEventos {
-        override suspend fun guardar(e: Evento) { guardados.add(e) }
+        override suspend fun guardar(evento: Evento) { guardados.add(evento) }
         override fun pendientes(): Flow<List<Evento>> = flowOf(emptyList())
         override suspend fun contarPendientes() = 0
         override suspend fun contarEnviando() = 0
-        override suspend fun tomarLote(s: String, m: Int) = emptyList<Evento>()
-        override suspend fun expirar(a: Long) {}
+        override suspend fun tomarLote(seudonimo: String, max: Int) = emptyList<Evento>()
+        override suspend fun expirar(anteriorAUtcMs: Long) {}
         override suspend fun recuperarEnviando() {}
-        override suspend fun aplicarEstados(c: Map<String, EstadoLocal>) {}
+        override suspend fun aplicarEstados(cambios: Map<String, EstadoLocal>) {}
     }
 
     private val t0 = Instant.parse("2026-01-01T12:00:00Z")
 
     private inner class FuentesFalsas(private val hora: Instant? = t0) : Fuentes {
-        override suspend fun seudonimo(h: Instant?) = "uuid-seudonimo"
+        override suspend fun seudonimo(horaConfiable: Instant?) = "uuid-seudonimo"
         override suspend fun categoria() = CategoriaVehiculo.LIVIANO
         override fun horaConfiable() = hora
         override fun km() = 100.0

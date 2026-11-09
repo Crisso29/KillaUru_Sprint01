@@ -18,7 +18,7 @@ internal class ProximidadUseCase @Inject constructor(
     ): List<Alerta> {
         val distAviso = parametros.distanciaAviso(categoria, velocidadKmh)
         return anomalias.mapNotNull { anomalia ->
-            val dist = Geodesia.distanciaM(posicion, anomalia.coordenada)
+            val dist = Geodesia.distanciaMetros(posicion, anomalia.coordenada)
             if (dist <= distAviso) Alerta(anomalia, dist, dist < distAviso / 2) else null
         }.sortedBy { it.distanciaM }
     }

@@ -6,7 +6,7 @@ import { renderizar } from '@/../pruebas/renderizar'
 import { server } from '@/../pruebas/msw/servidor'
 import { http, HttpResponse } from 'msw'
 import { DialogoRevision } from './DialogoRevision'
-import type { EstadoRevision } from '@/api/generado/001-identidad'
+import type { EstadoRevision } from '@/api/dtos/001-identidad'
 
 const BASE = import.meta.env.VITE_URL_API ?? 'https://api.killauru.pe'
 
@@ -44,8 +44,8 @@ describe('DialogoRevision', () => {
     await waitFor(() => expect(screen.getAllByRole('radio', { name: /confirmar/i }).length).toBeGreaterThan(0))
     const confirmar = screen.getAllByRole('radio', { name: /confirmar/i })
     const retirar = screen.getAllByRole('radio', { name: /retirar/i })
-    await user.click(confirmar[0])
-    await user.click(retirar[1])
+    await user.click(confirmar[0]!)
+    await user.click(retirar[1]!)
     await user.click(screen.getByRole('button', { name: /guardar/i }))
     await waitFor(() => {
       expect(cuerpo).toMatchObject({ confirmados: ['adm-1'], retirados: ['adm-2'] })
@@ -62,8 +62,8 @@ describe('DialogoRevision', () => {
     const user = userEvent.setup()
     await waitFor(() => expect(screen.getAllByRole('radio', { name: /confirmar/i }).length).toBeGreaterThan(0))
     const confirmar = screen.getAllByRole('radio', { name: /confirmar/i })
-    await user.click(confirmar[0])
-    await user.click(confirmar[1])
+    await user.click(confirmar[0]!)
+    await user.click(confirmar[1]!)
     await user.click(screen.getByRole('button', { name: /guardar/i }))
     await waitFor(() =>
       expect(screen.getByText(/debes tomar una decisión para cada administrador/i)).toBeTruthy(),

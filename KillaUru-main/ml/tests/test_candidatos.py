@@ -1,8 +1,5 @@
 """T024 / FR-008 — candidatos: ninguna pasada sobre un patrón queda fuera."""
 import numpy as np
-import pytest
-from tests.sinteticos import crear_grabacion
-from killauru_ml.lectura.grabacion import leer_grabacion
 
 
 def _accel_con_pico(n: int, pico_idx: int, magnitud: float = 15.0) -> np.ndarray:

@@ -1,6 +1,6 @@
 // T067 — TablaPendientes: solo lectura con Ver en el mapa (FR-029)
 import { TEXTOS_MODERACION as T } from '../textos'
-import type { ElementoPendiente } from '@/api/generado/003-anomalias'
+import type { ElementoPendiente } from '@/api/dtos/003-anomalias'
 
 interface Props {
   items: ElementoPendiente[]

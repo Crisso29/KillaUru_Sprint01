@@ -35,8 +35,8 @@ function dibujarForma(ctx: CanvasRenderingContext2D, estado: string, x: number, 
   } else {
     for (let i = 0; i < 6; i++) {
       const a = (Math.PI / 3) * i - Math.PI / 6
-      i === 0 ? ctx.moveTo(x + r * Math.cos(a), y + r * Math.sin(a))
-               : ctx.lineTo(x + r * Math.cos(a), y + r * Math.sin(a))
+      if (i === 0) ctx.moveTo(x + r * Math.cos(a), y + r * Math.sin(a))
+      else ctx.lineTo(x + r * Math.cos(a), y + r * Math.sin(a))
     }
     ctx.closePath()
   }

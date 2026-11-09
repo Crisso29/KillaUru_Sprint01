@@ -1,5 +1,5 @@
 // T075 — TarjetaIndicador: valor, variación y mini serie accesible (FR-015, FR-043)
-import type { Indicador } from '@/api/generado/004-dashboard'
+import type { Indicador } from '@/api/dtos/004-dashboard'
 import type { ClaveIndicador } from '../modelo/indicadores'
 import { INDICADORES_META, formatearVariacion, formatearValor } from '../modelo/indicadores'
 import { TEXTOS_RESUMEN } from '../textos'

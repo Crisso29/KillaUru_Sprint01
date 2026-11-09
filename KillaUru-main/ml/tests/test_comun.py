@@ -1,9 +1,8 @@
 """T005 / FR-016 — pruebas de los módulos comunes: config, semillas, huella, entorno."""
-import pathlib
 import hashlib
-import tempfile
-import pytest
+import pathlib
 
+import pytest
 
 # ---------------------------------------------------------------------------
 # comun.config
@@ -26,7 +25,7 @@ def test_leer_yaml_falla_si_falta_clave(tmp_path: pathlib.Path) -> None:
     # Arrange
     archivo = tmp_path / "captura.yaml"
     archivo.write_text("FrecuenciaHz: 50\n", encoding="utf-8")
-    from killauru_ml.comun.config import leer_yaml, ConfigError
+    from killauru_ml.comun.config import ConfigError, leer_yaml
     # Act + Assert
     with pytest.raises(ConfigError, match="VentanaMs"):
         leer_yaml(archivo, claves_requeridas=["FrecuenciaHz", "VentanaMs"])
@@ -46,8 +45,9 @@ def test_leer_yaml_falla_si_archivo_no_existe() -> None:
 
 def test_misma_semilla_produce_mismos_numeros() -> None:
     # Arrange
-    from killauru_ml.comun.semillas import fijar_semillas
     import numpy as np
+
+    from killauru_ml.comun.semillas import fijar_semillas
     # Act
     fijar_semillas(2828)
     a = np.random.rand(5).tolist()
@@ -59,8 +59,9 @@ def test_misma_semilla_produce_mismos_numeros() -> None:
 
 def test_semillas_distintas_producen_numeros_distintos() -> None:
     # Arrange
-    from killauru_ml.comun.semillas import fijar_semillas
     import numpy as np
+
+    from killauru_ml.comun.semillas import fijar_semillas
     # Act
     fijar_semillas(2828)
     a = np.random.rand(5).tolist()
@@ -106,6 +107,7 @@ def test_sha256_archivo_vacio(tmp_path: pathlib.Path) -> None:
 def test_entorno_devuelve_versiones_de_python_y_tensorflow() -> None:
     # Arrange
     import sys
+
     from killauru_ml.comun.entorno import versiones
     # Act
     env = versiones()
@@ -118,6 +120,7 @@ def test_entorno_devuelve_versiones_de_python_y_tensorflow() -> None:
 def test_entorno_devuelve_numpy() -> None:
     # Arrange
     import numpy as np
+
     from killauru_ml.comun.entorno import versiones
     # Act
     env = versiones()

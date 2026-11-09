@@ -19,23 +19,17 @@ internal fun BarraInferior(
     onAjustes: () -> Unit,
 ) {
     NavigationBar {
-        NavigationBarItem(
-            selected = rutaActual == Rutas.Mapa.ruta,
-            onClick = onMapa,
-            icon = { Icon(Icons.Default.LocationOn, contentDescription = "Mapa") },
-            label = { Text("Mapa") },
-        )
-        NavigationBarItem(
-            selected = rutaActual == Rutas.Historial.ruta,
-            onClick = onHistorial,
-            icon = { Icon(Icons.Default.History, contentDescription = "Mis viajes") },
-            label = { Text("Mis viajes") },
-        )
-        NavigationBarItem(
-            selected = rutaActual == Rutas.Ajustes.ruta,
-            onClick = onAjustes,
-            icon = { Icon(Icons.Default.Settings, contentDescription = "Ajustes") },
-            label = { Text("Ajustes") },
-        )
+        ElementoBarra(rutaActual == Rutas.Mapa.ruta, onMapa, Icons.Default.LocationOn, "Mapa")
+        ElementoBarra(rutaActual == Rutas.Historial.ruta, onHistorial, Icons.Default.History, "Mis viajes")
+        ElementoBarra(rutaActual == Rutas.Ajustes.ruta, onAjustes, Icons.Default.Settings, "Ajustes")
     }
+}
+
+@Composable
+private fun androidx.compose.foundation.layout.RowScope.ElementoBarra(
+    seleccionado: Boolean, onClick: () -> Unit,
+    icono: androidx.compose.ui.graphics.vector.ImageVector, texto: String,
+) {
+    NavigationBarItem(selected = seleccionado, onClick = onClick,
+        icon = { Icon(icono, contentDescription = texto) }, label = { Text(texto) })
 }

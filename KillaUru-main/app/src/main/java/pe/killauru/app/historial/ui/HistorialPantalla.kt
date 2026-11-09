@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+
 package pe.killauru.app.historial.ui
 
 import androidx.compose.foundation.layout.Column
@@ -23,6 +25,12 @@ internal fun HistorialPantalla(viewModel: HistorialViewModel = hiltViewModel()) 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Mis viajes") }) }
     ) { padding ->
+        ContenidoHistorial(state, padding)
+    }
+}
+
+@Composable
+private fun ContenidoHistorial(state: HistorialUiState, padding: androidx.compose.foundation.layout.PaddingValues) {
         if (!state.registrado) {
             Column(Modifier.padding(padding).padding(16.dp)) {
                 Text("Inicia sesión para guardar tu historial de viajes.")
@@ -34,15 +42,19 @@ internal fun HistorialPantalla(viewModel: HistorialViewModel = hiltViewModel()) 
                     style = MaterialTheme.typography.bodySmall)
             }
         } else {
+            Recorridos(state, padding)
+        }
+}
+
+@Composable
+private fun Recorridos(state: HistorialUiState, padding: androidx.compose.foundation.layout.PaddingValues) {
             LazyColumn(Modifier.fillMaxSize().padding(padding)) {
                 items(state.recorridos) { r ->
                     Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                        Text("${String.format("%.1f", r.kmRecorridos)} km recorridos")
+                        Text("${String.format(java.util.Locale.forLanguageTag("es-PE"), "%.1f", r.kmRecorridos)} km recorridos")
                         Text("${r.eventos} eventos detectados",
                             style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
-        }
-    }
 }

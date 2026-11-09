@@ -1,5 +1,5 @@
 // T056 — FiltrosUsuarios: búsqueda, rol y estado (FR-031)
-import type { Rol, EstadoUsuario } from '@/api/generado/001-identidad'
+import type { Rol, EstadoUsuario } from '@/api/dtos/001-identidad'
 import { TEXTOS_USUARIOS as T } from '../textos'
 
 interface Props {

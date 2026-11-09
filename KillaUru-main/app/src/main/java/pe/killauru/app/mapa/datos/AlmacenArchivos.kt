@@ -5,7 +5,7 @@ import java.io.File
 import javax.inject.Inject
 
 /** FR-044: gestiona el archivo PMTiles en almacenamiento interno de la app. */
-internal class AlmacenArchivos @Inject constructor(private val context: Context) {
+internal class AlmacenArchivos @Inject constructor(@dagger.hilt.android.qualifiers.ApplicationContext private val context: Context) {
 
     private val dir: File get() = File(context.filesDir, "mapa")
 

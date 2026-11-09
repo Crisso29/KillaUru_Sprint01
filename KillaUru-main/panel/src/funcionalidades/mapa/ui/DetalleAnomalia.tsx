@@ -8,7 +8,7 @@ import { ReportesPorDia } from './ReportesPorDia'
 import { Historial } from './Historial'
 import { TEXTOS_DETALLE } from '../textos'
 import { AccionesModeracion } from '@/funcionalidades/moderacion'
-import type { DetalleAnomalia as TDetalle } from '@/api/generado/003-anomalias'
+import type { DetalleAnomalia as TDetalle } from '@/api/dtos/003-anomalias'
 
 interface Props {
   id: string

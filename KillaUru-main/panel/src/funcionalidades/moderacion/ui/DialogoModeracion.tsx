@@ -1,7 +1,7 @@
 // T066 — DialogoModeracion: confirmación con texto del prototipo (FR-030)
 import { Boton } from '@/compartido/ui'
 import { TEXTOS_MODERACION as T } from '../textos'
-import type { AccionModeracion } from '@/api/generado/003-anomalias'
+import type { AccionModeracion } from '@/api/dtos/003-anomalias'
 
 interface Props {
   accion: AccionModeracion

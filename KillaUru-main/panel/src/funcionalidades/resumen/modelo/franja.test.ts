@@ -1,7 +1,7 @@
 // T070 — franja: tramo correcto y severidad máxima (data-model §5, FR-019, R-013)
 import { describe, it, expect } from 'vitest'
 import { calcularTramo, agruparEnFranja } from './franja'
-import type { AnomaliaFeature } from '@/api/generado/002-mapa'
+import type { AnomaliaFeature } from '@/api/dtos/002-mapa'
 
 function anomalia(kmVia: number, severidad: number): AnomaliaFeature {
   return {

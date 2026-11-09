@@ -1,6 +1,6 @@
 // T057 — DialogoRevision: confirmar/retirar cada admin; body {confirmados,retirados}
 import { useState } from 'react'
-import type { EstadoRevision } from '@/api/generado/001-identidad'
+import type { EstadoRevision } from '@/api/dtos/001-identidad'
 import { useRegistrarRevision } from '../api/useRevision'
 import type { DecisionRevision } from '../modelo/revision'
 import { armarRevision } from '../modelo/revision'
