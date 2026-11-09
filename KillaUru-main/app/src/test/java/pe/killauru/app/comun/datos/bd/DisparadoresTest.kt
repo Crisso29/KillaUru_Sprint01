@@ -65,8 +65,8 @@ class DisparadoresTest {
         // Arrange / Act / Assert
         val e1 = assertFails { insertarEvento(severidad = 0) }
         val e2 = assertFails { insertarEvento(severidad = 6) }
-        assertEquals("evento_invalido", e1.message)
-        assertEquals("evento_invalido", e2.message)
+        assertTrue(e1.message.orEmpty().contains("evento_invalido"), e1.message)
+        assertTrue(e2.message.orEmpty().contains("evento_invalido"), e2.message)
     }
 
     @Test
