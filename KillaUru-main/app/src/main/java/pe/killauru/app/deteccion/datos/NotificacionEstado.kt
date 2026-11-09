@@ -1,4 +1,4 @@
-package pe.killauru.app.deteccion.ui
+package pe.killauru.app.deteccion.datos
 
 import android.app.Notification
 import android.app.NotificationChannel

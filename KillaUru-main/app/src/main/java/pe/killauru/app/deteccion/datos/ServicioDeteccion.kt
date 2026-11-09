@@ -8,7 +8,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import pe.killauru.app.deteccion.ui.NotificacionEstado
 import pe.killauru.app.deteccion.dominio.IndicadorEstado
 import javax.inject.Inject
 
