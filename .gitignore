@@ -12,3 +12,10 @@ KillaUru-main/ml/grabador/**/build/
 
 # Artefactos sinteticos locales; publicar solo versiones verificadas.
 KillaUru-main/ml/modelos/
+
+# Logs y salidas de herramientas sueltas en la raíz de KillaUru-main
+KillaUru-main/*.log
+KillaUru-main/*.txt
+
+# Prototipo duplicado (canónico: KillaUru-main/referencia/prototipo/)
+docs/prototipo/

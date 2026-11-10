@@ -1,7 +1,6 @@
-# Auditoría de estado — KillaUru
+# Estado de implementación — KillaUru
 
-**Generado:** 2026-11-09  
-**Propósito:** Leer y borrar. Resumen de qué está hecho, qué falta y qué descrepancias hay.
+**Generado:** 2026-11-09
 
 ---
 
@@ -47,6 +46,7 @@ Los features 005, 006, 007, 009 y 010 muestran **0 % en tasks.md** pero:
 - 72 de 81 tareas tachadas.
 
 ### Pendiente (9 tareas — todas operacionales/externas)
+
 | Tarea | Descripción | Tipo |
 |-------|-------------|------|
 | T050 | Configurar Grafana Cloud (paneles, alertas, UptimeRobot) | Cuenta externa |
@@ -66,6 +66,7 @@ Los features 005, 006, 007, 009 y 010 muestran **0 % en tasks.md** pero:
 ## Feature 002 — Módulo Auditoría (92%)
 
 ### Pendiente (3 tareas)
+
 | Tarea | Descripción | Tipo |
 |-------|-------------|------|
 | T027 | Reglas de alerta en Grafana para acciones de riesgo | Cuenta externa |
@@ -83,6 +84,7 @@ Los features 005, 006, 007, 009 y 010 muestran **0 % en tasks.md** pero:
 ## Feature 004 — Módulo Anomalías (97%)
 
 ### Pendiente (2 tareas)
+
 | Tarea | Descripción | Tipo |
 |-------|-------------|------|
 | T053 | Medir p95 con 300 dispositivos (junto con 005) | Requiere 005 listo |
@@ -92,12 +94,9 @@ Los features 005, 006, 007, 009 y 010 muestran **0 % en tasks.md** pero:
 
 ## Feature 005 — Módulo Ingesta (⚠️ tasks.md sin marcar)
 
-**Código:** 46 archivos .cs de producción + 11 de test.  
-**Trazabilidad:** 31/33 completado (94%).  
+**Código:** 46 archivos .cs de producción + 11 de test.
+**Trazabilidad:** 31/33 completado (94%).
 **tasks.md:** 0/40 (sin marcar — hay que corregir esto).
-
-### Pendientes reales (de trazabilidad, 2 ítems)
-- Aún no determinados sin revisar trazabilidad en detalle — probablemente son operacionales.
 
 ### Acción
 1. Ir a `specs/005-modulo-ingesta/tasks.md` y marcar las 40 tareas según el estado real del código.
@@ -107,8 +106,8 @@ Los features 005, 006, 007, 009 y 010 muestran **0 % en tasks.md** pero:
 
 ## Feature 006 — Módulo Mapa/Consulta (⚠️ tasks.md sin marcar)
 
-**Código:** 37 archivos .cs de producción + 6 de test.  
-**Trazabilidad:** 29/31 completado (94%).  
+**Código:** 37 archivos .cs de producción + 6 de test.
+**Trazabilidad:** 29/31 completado (94%).
 **tasks.md:** 0/33 (sin marcar).
 
 ### Acción
@@ -118,8 +117,8 @@ Mismo proceso que 005: marcar tasks.md y revisar los 2 ítems pendientes en traz
 
 ## Feature 007 — Módulo Dashboard (⚠️ tasks.md sin marcar)
 
-**Código:** 25 archivos .cs de producción + 6 de test.  
-**Trazabilidad:** 23/23 completado (100%).  
+**Código:** 25 archivos .cs de producción + 6 de test.
+**Trazabilidad:** 23/23 completado (100%).
 **tasks.md:** 0/26 (sin marcar).
 
 **Probablemente completo.** Solo falta actualizar tasks.md.
@@ -128,7 +127,7 @@ Mismo proceso que 005: marcar tasks.md y revisar los 2 ítems pendientes en traz
 
 ## Feature 008 — App Android (72%)
 
-**Código:** 211 archivos .kt producción + 58 test.  
+**Código:** 211 archivos .kt producción + 58 test.
 **tasks.md:** 92/128 (72%). **36 pendientes.**
 
 ### Pendientes por categoría
@@ -153,7 +152,7 @@ Mismo proceso que 005: marcar tasks.md y revisar los 2 ítems pendientes en traz
 **Tests de alerta de proximidad:**
 - T100 `ProximidadTrayectoriasTest`, T101 `AlertaSonoraAndroidTest`
 
-**Tests de sesión (feature 006 de Android):**
+**Tests de sesión:**
 - T108 `RenovadorTokenTest`, T109 `ContratoIdentidadTest`, T110 `CuentaUiTest`
 
 **Tests de modelo ML en Android:**
@@ -173,36 +172,23 @@ Mismo proceso que 005: marcar tasks.md y revisar los 2 ítems pendientes en traz
 
 ## Feature 009 — Dataset y modelo ML (⚠️ tasks.md sin marcar)
 
-**Código Python:** 42 archivos producción + 24 test = **66 archivos** (en `ml/killauru_ml/` y `ml/tests/`).  
-**Trazabilidad:** 12/28 completado (43%).  
+**Código Python:** 42 archivos producción + 24 test = 66 archivos (en `ml/killauru_ml/` y `ml/tests/`).
+**Trazabilidad:** 12/28 completado (43%).
 **tasks.md:** 0/74 (sin marcar).
 
-### El código EXISTE y cubre:
-- `killauru_ml/comun/`: config, entorno, huella, semillas
-- `killauru_ml/etiquetado/`: acuerdo, candidatos, validar_etiquetas
-- `killauru_ml/evaluacion/`: métricas, registro
-- `killauru_ml/features/`: features, prefiltro
-- `killauru_ml/lectura/`: catálogo, grabación, ingerir, integridad
-- `killauru_ml/modelo/`: arquitectura, cuantizar, entrenar, manifiesto, puerta
-- `killauru_ml/particion/`: no_fuga, particion, tamaño
-- `killauru_ml/pipeline/`: sintético
-- `killauru_ml/senal/`: componentes, condicion_velocidad, gravedad, remuestreo
-- `killauru_ml/ventanas/`: ventaneo
-- 24 archivos de test en `ml/tests/`
-
 ### Pendiente real (trazabilidad: 16 ítems pendientes)
-Revisar `specs/009-dataset-y-modelo/checklists/trazabilidad.md` para ver cuáles son.  
+Revisar `specs/009-dataset-y-modelo/checklists/trazabilidad.md` para ver cuáles son.
 Probablemente son: grabaciones de campo reales, entrenamiento final, publicación del modelo `.tflite` y manifiesto.
 
 ---
 
 ## Feature 010 — Panel de administración (⚠️ tasks.md sin marcar)
 
-**Código:** 194 archivos .ts/.tsx producción + 30 test.  
-**Trazabilidad:** **50/50 completado (100%)**.  
+**Código:** 194 archivos .ts/.tsx producción + 30 test.
+**Trazabilidad:** 50/50 completado (100%).
 **tasks.md:** 0/94 (sin marcar).
 
-**Muy probablemente completo.** La trazabilidad dice 100%. El código existe. Solo falta:
+**Muy probablemente completo.** Solo falta:
 1. Actualizar las 94 casillas en tasks.md.
 2. Verificar si las tareas E2E (Playwright) están corriendo.
 
@@ -211,6 +197,7 @@ Probablemente son: grabaciones de campo reales, entrenamiento final, publicació
 ## Resumen de lo que REALMENTE falta
 
 ### Código aún no escrito
+
 | Área | Qué falta |
 |------|-----------|
 | Android | Módulo corredor (T090), dominio de mapa (T091), datos de mapa (T092), UI descarga (T095) |
@@ -240,11 +227,7 @@ Probablemente son: grabaciones de campo reales, entrenamiento final, publicació
 
 ## Prioridad recomendada
 
-1. **Inmediato (hoy):** Marcar tasks.md de 005, 006, 007, 010 según código existente — te quitarás la falsa sensación de tener el 50% cuando probablemente estás al 80%+.
+1. **Inmediato:** Marcar tasks.md de 005, 006, 007, 010 según código existente.
 2. **Corto plazo:** Terminar Android (módulo corredor + dominio/datos mapa + tests faltantes de sincronización y mapa).
 3. **Medio plazo:** Conseguir grabaciones de campo reales para ML; entrenar modelo final; publicar `.tflite`.
 4. **Cuando tengas entornos:** Simulacros, pruebas de carga, Grafana, GitHub protection, Cloudflare Access.
-
----
-
-*Puedes borrar este archivo cuando hayas leído lo que necesitas.*
