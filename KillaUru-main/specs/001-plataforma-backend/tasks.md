@@ -9,7 +9,7 @@ description: "Tareas de la plataforma base del backend"
 
 **Tests**: obligatorias (constitución VII). En cada historia, las pruebas se escriben primero y deben **fallar** antes de implementar.
 
-**Formato**: `- [ ] T### [P?] [US?] Descripción — ruta · (requisito)`. `[P]` = puede hacerse en paralelo (otro archivo, sin dependencia pendiente). Las rutas son relativas a `backend/`, salvo `.github/` (raíz del repositorio). **Ningún archivo de código (`.cs`, `.sql` de consultas, `.sh`, `.js`) puede pasar de 200 líneas.** Tareas T058+ agregadas en la revisión 2026-10-21.
+**Formato**: `- [ ] T### [P?] [US?] Descripción — ruta · (requisito)`. `[P]` = puede hacerse en paralelo (otro archivo, sin dependencia pendiente). Las rutas son relativas a `backend/`, salvo `.github/` (raíz del repositorio). **Ningún archivo de código (`.cs`, `.sql` de consultas, `.sh`, `.js`) puede llegar a 200 líneas (máximo 199).** Tareas T058+ agregadas en la revisión 2026-10-21.
 
 ## Phase 1: Setup (solución y proyectos)
 

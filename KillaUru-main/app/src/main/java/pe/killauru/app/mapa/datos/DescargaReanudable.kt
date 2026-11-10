@@ -19,10 +19,20 @@ internal class DescargaReanudable @Inject constructor(
         val inicio = if (parcial.exists()) parcial.length() else 0L
         val rango = if (inicio > 0) "bytes=$inicio-" else null
         val resp = api.descargar(url, rango)
+
+        // 416: el parcial es inválido (ya fue completo o el servidor reinició la secuencia).
+        // Borramos y hacemos una descarga completa desde cero.
+        if (resp.code() == 416) {
+            parcial.delete()
+            return descargar(url, nombre, sha256)
+        }
+
         check(resp.isSuccessful) { "HTTP ${resp.code()}" }
         resp.body().use { body ->
             requireNotNull(body).byteStream().use { input ->
-                java.io.FileOutputStream(parcial, resp.code() == 206 && inicio > 0).use { output -> input.copyTo(output) }
+                java.io.FileOutputStream(parcial, resp.code() == 206 && inicio > 0).use { output ->
+                    input.copyTo(output)
+                }
             }
         }
         finalizar(parcial, nombre, sha256)

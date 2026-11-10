@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-20
 
-**Status**: Draft
+**Status**: Implementado (9 tareas pendientes: configuración operacional, simulacros y T080 que espera 004–007)
 
 **Input**: User description: "Base común del backend de KillaUru: levantar todo con un comando, seguridad común a todas las peticiones, documentación viva de la API, salud y monitoreo, respaldo y vuelta atrás, y reglas de arquitectura (incluido el límite de 200 líneas por archivo) verificadas en cada compilación."
 
@@ -239,7 +239,7 @@ Como autor, quiero pruebas de carga combinada, picos, estrés, resistencia y cao
 - **FR-019**: Cada módulo MUST poder sumar su propia comprobación a `/health/ready` sin que el host conozca su interior. *(ADR-002)*
 - **FR-020**: El sistema MUST emitir métricas, trazas (muestreo ≤ 10 %) y logs JSON de nivel `Information` o superior con id de correlación, sin registrar `/health` y sin etiquetas de alta cardinalidad (seudónimo, IP, `eventoId`). *(RNF-21, RNF-32)*
 - **FR-021**: El sistema MUST **enviar** la telemetría a Grafana Cloud por OTLP, sin exponer `/metrics` ni abrir puertos. *(ADR-010)*
-- **FR-022**: El sistema MUST ofrecer a los módulos un puerto de métricas con: lotes, rechazos y descartes por motivo, retenidos por tope (RN-15a), duración del procesamiento, retraso de la cola (`RegistrarRetrasoCola`, histograma `killauru.ingesta.retraso_cola_s`, lo emite Ingesta), tamaño y antigüedad de la cola, última ejecución correcta de cada tarea y acciones de riesgo (emisor único: Auditoría, después del commit). *(RNF-22, RNF-23, RNF-29; D11, D15)*
+- **FR-022**: El sistema MUST ofrecer a los módulos un puerto de métricas con: lotes, rechazos y descartes por motivo, retenidos por tope (RN-15, feature 004), duración del procesamiento, retraso de la cola (`RegistrarRetrasoCola`, histograma `killauru.ingesta.retraso_cola_s`, lo emite Ingesta), tamaño y antigüedad de la cola, última ejecución correcta de cada tarea y acciones de riesgo (emisor único: Auditoría, después del commit). *(RNF-22, RNF-23, RNF-29; D11, D15)*
 - **FR-040**: El compose de producción MUST incluir un contenedor `alloy` (imagen oficial `grafana/alloy`, fija por versión) que **solo envía** a Grafana Cloud: disco, CPU y memoria de la VM, logs de Docker y la métrica del backup leída de un archivo `.prom` de un volumen compartido; alertas: disco > 80 % y tarea > 26 h; dentro del plan gratuito sin tarjeta. *(RNF-22, RNF-32, ADR-010; D12)*
 - **FR-041**: Cada servicio del compose MUST tener `restart: unless-stopped`, *healthcheck* (la API con `/health/live`) y rotación de logs (`json-file`, `max-size: 10m`, `max-file: 3`). *(RNF-22, EQ-09; T-OPS08, T-OPS09, D12)*
 - **FR-046**: Las alertas de p95 MUST ser por ruta: mapa > 250 ms y lote > 300 ms (docs); el resto de rutas, 250 ms como **meta SDD**, salvo las de sesión de 003 con su propia meta SDD de 500 ms; 5xx > 1 % se mantiene global. *(RNF-01, RNF-02, RNF-20; T-OPS17)*

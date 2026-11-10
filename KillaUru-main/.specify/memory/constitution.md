@@ -1,25 +1,40 @@
 <!--
 Sync Impact Report
-- Versión: 1.0.0 → 1.1.0 (2026-10-21, MENOR: se amplían reglas existentes, ningún principio se quita ni se redefine)
-- Principios modificados: II (regla Adapters → solo Application; Domain sin Contracts de otro módulo; pruebas de arquitectura con la tabla de capas completa),
-  VI (RegistrarAsync exige la transacción del que actúa; RegistrarLecturaAsync solo para lecturas sensibles),
-  VII (CI en cada PR con cobertura coverlet ≥ 90 % del dominio; carga, picos, estrés, resistencia y caos con k6 fuera de la VM),
-  VIII (la prueba de 200 líneas cubre .cs, .sql de consultas, .sh y .js, excepto migraciones V*.sql, generados y OpenAPI; BannedApiAnalyzers),
-  X (Grafana Alloy como agente que solo envía)
-- Restricciones: Despliegue (CI/CD con GitHub Actions + GHCR y despliegue automático al unir a main); Entorno de pruebas (admite carga y estrés con límites de CPU/RAM)
-- Origen: specs/revision/decisiones.md D4, D10, D11, D12, D15 y plan-de-cambios.md T-QA16, T-QA17; docs 02–04 revisados el 2026-10-21
-- Plantillas: sin cambios
+- Versión: 1.3.0 → 1.3.1 (2026-11-09, PARCHE: historial completo de enmiendas 1.2.0 y 1.3.0 incorporado al Sync Impact Report)
+- Principios modificados: ninguno
+- Secciones añadidas: ninguna
+- Secciones eliminadas: ninguna
+- Plantillas que requieren actualizaciones: ninguna ✅
 - Pendientes: ninguno
 -- Historial --
-- Versión: (plantilla) → 1.0.0 (primera ratificación)
-- Principios añadidos: I a X (todos nuevos)
-- Secciones añadidas: Restricciones de tecnología y operación · Flujo de trabajo SDD · Gobierno
-- Plantillas revisadas: plan-template.md ✅ (su «Constitution Check» se llena con la tabla de la sección «Puertas»)
-                        spec-template.md ✅ · tasks-template.md ✅ · checklist-template.md ✅ (sin cambios)
-- Pendientes: ninguno
+- Versión: 1.2.0 → 1.3.0 (2026-10-22, D19, MENOR):
+  Principio VIII ampliado: límite de archivo < 200 líneas; SRP un archivo = una clase; clases partial prohibidas.
+  Plantillas: sin cambios.
+- Versión: 1.1.0 → 1.2.0 (D18, MENOR):
+  Sección nueva «App, panel y ML»: reglas específicas para App Android (Kotlin/Konsist/Kover/detekt),
+  Panel (dependency-cruiser/ESLint/Vitest/Playwright/axe) y Dataset/modelo (pytest); el límite de 200 líneas
+  del principio VIII se extiende a .kt/.kts/.ts/.tsx/.py.
+  Plantillas: sin cambios.
+- Versión: 1.0.0 → 1.1.0 (2026-10-21, MENOR): se amplían reglas existentes; ningún principio se quita ni
+  redefine.
+  Principios modificados: II (regla Adapters → solo Application; Domain sin Contracts de otro módulo; pruebas
+  de arquitectura con la tabla de capas completa), VI (RegistrarAsync exige la transacción del que actúa;
+  RegistrarLecturaAsync solo para lecturas sensibles), VII (CI en cada PR con cobertura coverlet ≥ 90 % del
+  dominio; carga, picos, estrés, resistencia y caos con k6 fuera de la VM), VIII (la prueba de 200 líneas cubre
+  .cs, .sql de consultas, .sh y .js, excepto migraciones V*.sql, generados y OpenAPI; BannedApiAnalyzers),
+  X (Grafana Alloy como agente que solo envía).
+  Restricciones: Despliegue (CI/CD GitHub Actions + GHCR + despliegue automático al unir a main); Entorno de
+  pruebas (carga y estrés con límites de CPU/RAM).
+  Origen: specs/revision/decisiones.md D4, D10, D11, D12, D15 y plan-de-cambios.md T-QA16, T-QA17;
+  docs 02–04 revisados el 2026-10-21.
+  Plantillas revisadas: plan-template.md ✅ · spec-template.md ✅ · tasks-template.md ✅ ·
+  checklist-template.md ✅ (sin cambios).
+- Versión: (plantilla) → 1.0.0 (primera ratificación 2026-10-20):
+  Principios añadidos: I a X (todos nuevos).
+  Secciones añadidas: Restricciones de tecnología y operación · Flujo de trabajo SDD · Gobierno.
+  Pendientes: ninguno.
 -->
 
-<!-- 1.3.0 (2026-10-22, D19): límite de archivo < 200 líneas; SRP por archivo; sin clases partial. -->
 # Constitución de KillaUru
 
 > **Fuente de verdad del dominio y de la arquitectura:** `referencia/docs/` (copia de `docs/` del repositorio del curso, revisión 2026-10-21).
@@ -118,4 +133,4 @@ Sync Impact Report
 - Enmiendas: se documentan en el *Sync Impact Report* de este archivo con versión semántica (MAYOR: se quita o redefine un principio; MENOR: se agrega uno; PARCHE: redacción).
 - Toda revisión de código verifica los principios II, III, V, VI y VIII de forma explícita.
 
-**Version**: 1.3.0 | **Ratified**: 2026-10-20 | **Last Amended**: 2026-10-22
+**Version**: 1.3.1 | **Ratified**: 2026-10-20 | **Last Amended**: 2026-11-09
