@@ -1,5 +1,7 @@
 # Trazabilidad Checklist: Plataforma base del backend
 
+> Vigencia documental (2026-11-15): contrastar las marcas con [cierre.md](../cierre.md). Esta checklist de requisitos/trazabilidad no certifica ejecución ni producción.
+
 **Purpose**: Comprobar que todo lo que `referencia/docs` pide a esta feature está en un FR y en una tarea
 **Created**: 2026-10-20
 **Feature**: [spec.md](../spec.md)
@@ -50,7 +52,7 @@ Marcar `[x]` cuando la tarea esté hecha **y** su prueba pase. Actualizado el 20
 ## Pedidos del autor (no vienen de docs)
 
 - [x] CHK030 Archivos de código < 200 líneas → FR-029 → T007
-- [x] CHK031 API documentada y alineada con contratos → FR-015, FR-016 → T041…T044
+- [ ] CHK031 API documentada y alineada con contratos → FR-015, FR-016 → T041…T044
 
 ## Decisiones del autor y correcciones técnicas (revisión 2026-10-21)
 
@@ -58,8 +60,8 @@ Marcar `[x]` cuando la tarea esté hecha **y** su prueba pase. Actualizado el 20
 - [x] CHK033 D8 tope de 5 registros/h por IP (política `registro`) → FR-031 → T024, T038, T065
 - [x] CHK034 D4 tabla de capas en las pruebas de arquitectura → FR-035 → T008, T059
 - [ ] CHK035 D9 restauración: revocar sesiones, rotar clave JWT, purgas al arrancar, riesgo aceptado → FR-033 → T053, T054 · **pendiente: T054**
-- [x] CHK036 D10 CI (cobertura ≥ 90 % con Microsoft.Testing.Platform; `main` protegida) y CD (GHCR arm64, Cloudflare Access, `desplegar.sh`) → FR-037, FR-038, FR-005, FR-007 → T005, T064, T069…T072 · `.github/workflows/ci.yml` + `.github/workflows/cd.yml`
-- [x] CHK037 D11 pruebas de sistema (carga combinada, picos, estrés, resistencia, caos) y entorno de pruebas con límites; VM A1 4 OCPU / 24 GB → FR-039, FR-006 → T052, T073…T079 · `tests/carga/*.k6.js` + `comun.js` (tasa_429) + `caos.k6.js` (T079)
+- [ ] CHK036 D10 CI (cobertura ≥ 90 % con Microsoft.Testing.Platform; `main` protegida) y CD (GHCR arm64, Cloudflare Access, `desplegar.sh`) → FR-037, FR-038, FR-005, FR-007 → T005, T064, T069…T072 · `.github/workflows/ci.yml` + `.github/workflows/cd.yml`
+- [ ] CHK037 D11 pruebas de sistema (carga combinada, picos, estrés, resistencia, caos) y entorno de pruebas con límites; VM A1 4 OCPU / 24 GB → FR-039, FR-006 → T052, T073…T079 · `tests/carga/*.k6.js` + `comun.js` (tasa_429) + `caos.k6.js` (T079)
 - [x] CHK038 D11 métrica de retraso de cola (`RegistrarRetrasoCola`) → FR-022 → T019, T049
 - [x] CHK039 D12 Grafana Alloy, rotación de logs y métrica del backup `.prom` → FR-040, FR-041, FR-027 → T029, T051, T068
 - [x] CHK040 D15 `AlConfirmar` y liberación del contexto; Auditoría único emisor de acciones de riesgo → FR-025, FR-022 → T020, T060
@@ -73,7 +75,11 @@ Marcar `[x]` cuando la tarea esté hecha **y** su prueba pase. Actualizado el 20
 - [x] CHK048 T-QA17 límite de líneas para `.cs`, `.sql`, `.sh`, `.js` → FR-029 → T007
 - [x] CHK049 T-QA18 valores límite de cuotas y registro → FR-010, FR-030, FR-031 → T033, T065
 - [ ] CHK050 T-QA20 prueba de punta a punta → FR-044 → T080 · **pendiente: T080**
-- [x] CHK051 T-SEG03 logs y trazas sin datos personales → FR-034 → T047, T067
+- [ ] CHK051 T-SEG03 logs y trazas sin datos personales → FR-034 → T047, T067
 - [x] CHK052 T-SEG09 `ClockSkew = 0` (RNF-26) → FR-008 → T032, T035
-- [x] CHK053 T-SEG19/T-SEG20 429 en todas las operaciones y regla 401/403 → FR-016, FR-045 → T032, T036, T042, T044
+- [ ] CHK053 T-SEG19/T-SEG20 429 en todas las operaciones y regla 401/403 → FR-016, FR-045 → T032, T036, T042, T044
 - [x] CHK054 T-BD-CHK sin FK entre esquemas → FR-004 → T063
+
+## Conciliación de seguimiento (2026-11-15)
+
+Se reabrieron 5 marcas que referencian tareas todavía abiertas. Esto no elimina implementación: evita presentar un requisito completo mientras una de sus comprobaciones o entregables sigue pendiente. Véase [cierre.md](../cierre.md).

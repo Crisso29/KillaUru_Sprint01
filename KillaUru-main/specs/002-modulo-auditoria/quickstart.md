@@ -1,5 +1,7 @@
 # Quickstart: comprobar el módulo Auditoría
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 ## Requisitos previos
 
 Plataforma (001) funcionando; migraciones `V0001` y `V0002` aplicadas; un token de administrador de desarrollo (cuando exista 003, uno real; antes, uno firmado con la clave de desarrollo).

@@ -33,9 +33,34 @@ Proveer al panel web los indicadores consolidados del sistema:
 |---|---|---|---|
 | `/dashboard/indicadores?dias={7,14,30}` | GET | Administrador | Resumen de indicadores |
 
-## Verificación desde `backend/`
+## Cálculo y parámetros
+
+`TareaIndicadoresDiarios` intenta recuperar días faltantes al arrancar y después ejecuta
+según `Dashboard:HoraCalculoLocal` (00:30 Lima por defecto). `DiasRecuperables=2`,
+`RetencionDias=730`, `DiasConductorActivo=7` y `DesfaseHorarioHoras=-5` son valores
+de `DashboardOptions`; validar la configuración efectiva del despliegue.
+
+Eventos se compara mediante variación porcentual; conductores y dispositivos, por diferencia.
+Cobertura = tramos con reportes / tramos totales; confirmación = confirmaciones /
+(confirmaciones + pendientes expiradas); reaparición = renacimientos / expiraciones.
+Las tasas se expresan en porcentaje, se comparan por diferencia y usan `null` cuando falta
+una base válida. Conservar conteos permite recomponer tasas sin promediar porcentajes indebidamente.
+
+Ejemplo contra pruebas:
 
 ```powershell
-dotnet test tests/KillaUru.Dashboard.Tests
-dotnet test tests/KillaUru.Integracion.Tests --filter "FullyQualifiedName~Dashboard"
+curl.exe "$env:KU_URL_PRUEBAS/api/v1/dashboard/indicadores?dias=7" -H "Authorization: Bearer $env:KU_TOKEN_ADMIN"
 ```
+
+## Cómo se prueba
+
+Ejecutar desde `backend/`; integración requiere Docker:
+
+```powershell
+dotnet test --project tests/KillaUru.Dashboard.Tests
+dotnet test --project tests/KillaUru.Integracion.Tests
+```
+
+El contrato dedicado y el cierre de trazabilidad siguen pendientes.
+Consultar [pruebas](../../../../specs/007-modulo-dashboard/pruebas.md) y
+[cierre](../../../../specs/007-modulo-dashboard/cierre.md).

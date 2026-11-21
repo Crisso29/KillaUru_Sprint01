@@ -1,5 +1,7 @@
 # Feature Specification: App Android KillaUru
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 **Feature Branch**: `008-app-android`
 
 **Created**: 2026-10-22
@@ -37,8 +39,8 @@
 | Restricciones | R-01, R-08, S-02, S-06, S-07, RS-06, RS-08 | `05-restricciones.md` |
 | Diseño | Tres capas y principios de la app; componentes; stack | `enfoque-arquitectonico.md` §2, §9 · `componentes-arquitectonicos.md` §5 · `estilo-arquitectonico.md` (stack) |
 | Diseño | Estructura, Room, alertas a lo largo de la vía, batería, sincronización | `diseño-interno-de-modulos.md` §7 · `Nivel4-diagrama-de-codigo.md` §7 |
-| Decisiones del autor (2026-10-21) | D2 (un lote = un seudónimo), D3 (`loteId` del servidor), D5 (`id: null` + `indice`), D8 (correo verificado), D13 (contraseña 10, mensaje genérico, eliminar con contraseña, `kmVia`, «permanente»), D16 (R2), D17 | `specs/revision/decisiones.md` |
-| Hallazgos de la revisión | BD-A1…BD-A9, BD-15, BD-19 (DBA) · §7 (QA) · PO-16, PO-17 (producto) · 005 R-002 y docs01 (413) · 006 R-007 | `specs/revision/` |
+| Decisiones del autor (2026-10-21) | D2 (un lote = un seudónimo), D3 (`loteId` del servidor), D5 (`id: null` + `indice`), D8 (correo verificado), D13 (contraseña 10, mensaje genérico, eliminar con contraseña, `kmVia`, «permanente»), D16 (R2), D17 | `docs/historial/revision-arquitectura-2026-10-21/decisiones.md` |
+| Hallazgos de la revisión | BD-A1…BD-A9, BD-15, BD-19 (DBA) · §7 (QA) · PO-16, PO-17 (producto) · 005 R-002 y docs01 (413) · 006 R-007 | `docs/historial/revision-arquitectura-2026-10-21/` |
 
 ## User Scenarios & Testing *(mandatory)*
 

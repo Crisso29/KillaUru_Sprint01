@@ -1,5 +1,7 @@
 # Implementation Plan: Plataforma base del backend
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 **Branch**: `001-plataforma-backend` | **Date**: 2026-10-20 (revisado 2026-10-21) | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `/specs/001-plataforma-backend/spec.md`

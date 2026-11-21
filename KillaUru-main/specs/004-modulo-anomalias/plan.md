@@ -1,12 +1,14 @@
 # Implementation Plan: Módulo Anomalías
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 **Branch**: `004-modulo-anomalias` | **Date**: 2026-10-20 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `/specs/004-modulo-anomalias/spec.md`
 
 ## Summary
 
-Módulo de **dominio rico**: políticas puras (`ReglasCalidad`, `PoliticaPlausibilidad`, `PoliticaConfirmacion`, `ReglaPersistencia`), el agregado `Anomalia` con su tabla de transiciones, la polilínea `CorredorVia` en memoria, el caso de uso `ProcesarReporteUseCase` con transacción y bloqueo propios, 3 tareas programadas por reloj (caducidad `:05`, purga de seudónimos `:10`, purga histórica 03:30 local; todas corren también al arrancar), los casos de uso del administrador (moderación, listas, detalle, exportación) y las lecturas `IAnomaliaLectura` para Mapa y Dashboard. Sigue al pie de la letra `enfoque-arquitectonico.md` §5–§6 y `diseño-interno-de-modulos.md` §3, §5 y §6, con las decisiones del autor del 2026-10-21 (D1, D2, D3, D4, D7, D13, D14, D15) y las correcciones técnicas de `specs/revision/plan-de-cambios.md` §B.
+Módulo de **dominio rico**: políticas puras (`ReglasCalidad`, `PoliticaPlausibilidad`, `PoliticaConfirmacion`, `ReglaPersistencia`), el agregado `Anomalia` con su tabla de transiciones, la polilínea `CorredorVia` en memoria, el caso de uso `ProcesarReporteUseCase` con transacción y bloqueo propios, 3 tareas programadas por reloj (caducidad `:05`, purga de seudónimos `:10`, purga histórica 03:30 local; todas corren también al arrancar), los casos de uso del administrador (moderación, listas, detalle, exportación) y las lecturas `IAnomaliaLectura` para Mapa y Dashboard. Sigue al pie de la letra `enfoque-arquitectonico.md` §5–§6 y `diseño-interno-de-modulos.md` §3, §5 y §6, con las decisiones del autor del 2026-10-21 (D1, D2, D3, D4, D7, D13, D14, D15) y las correcciones técnicas de `docs/historial/revision-arquitectura-2026-10-21/plan-de-cambios.md` §B.
 
 ## Technical Context
 
@@ -121,7 +123,7 @@ backend/src/Modules/KillaUru.Anomalias/
 backend/db/migraciones/V0004__anomalias.sql
 backend/db/migraciones/V0005__corredor_via_datos.sql       # polilínea PE-28A (datos)
 backend/tests/KillaUru.Anomalias.Tests/          Domain/ · Application/
-backend/tests/KillaUru.Integracion.Tests/Anomalias/   Repositorio · Concurrencia · Tareas · Lecturas · ModeracionApi · ExportacionApi · Esquema
+backend/tests/KillaUru.Integracion.Tests/specs/004-modulo-anomalias/   Repositorio · Concurrencia · Tareas · Lecturas · ModeracionApi · ExportacionApi · Esquema
 ```
 
 **Structure Decision**: plantilla de `enfoque-arquitectonico.md` §4.1 («Anomalías: dominio rico…»). Los nombres de clases del dominio, del algoritmo y del repositorio son los de docs (`IAnomaliaRepository`, `AnomaliaRepositoryPostgis`, T-ARQ06); los demás repositorios usan el mismo sufijo `Repository` (término técnico en inglés). Cada lectura o escritura tiene su puerto en `Application/Puertos/` (T-ARQ07) y los repositorios se dividen en clases con una sola responsabilidad y puertos separados (ISP, sin `partial`) para respetar el límite de 200 líneas (T-ARQ08). Los tipos que cruzan al controlador viven en Application (D4).

@@ -1,5 +1,7 @@
 # Data Model: Módulo Auditoría
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 ## 1. Tabla `auditoria.registro` (`V0002__auditoria.sql`)
 
 Copiada de `diseño-interno-de-modulos.md` §3.4, con el `CHECK` del catálogo y el índice por acción.

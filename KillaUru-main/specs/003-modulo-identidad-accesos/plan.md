@@ -1,5 +1,7 @@
 # Implementation Plan: Módulo Identidad y Accesos
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 **Estado al 2026-10-24:** implementado y validado localmente. Rutas finales, evidencia, agrupación de pruebas y pendientes operativos en [revision-implementacion.md](revision-implementacion.md).
 
 **Branch**: `003-modulo-identidad-accesos` | **Date**: 2026-10-20 | **Spec**: [spec.md](spec.md)
@@ -124,7 +126,7 @@ backend/src/Modules/KillaUru.Identidad/
 
 backend/db/migraciones/V0003__identidad.sql
 backend/tests/KillaUru.Identidad.Tests/        Domain/ · Application/
-backend/tests/KillaUru.Integracion.Tests/Identidad/   Repositorios, AuditoriaEnLaMismaTransaccion, PurgaIdentidad, HorasGuardadas, Api (Sesion, Cuenta, Me, Usuarios, Revision)
+backend/tests/KillaUru.Integracion.Tests/specs/003-modulo-identidad-accesos/   Repositorios, AuditoriaEnLaMismaTransaccion, PurgaIdentidad, HorasGuardadas, Api (Sesion, Cuenta, Me, Usuarios, Revision)
 deploy/runbooks/restaurar.md · simulacros.md   # (de 001) sección «Identidad» y fila de la revisión mensual
 ```
 

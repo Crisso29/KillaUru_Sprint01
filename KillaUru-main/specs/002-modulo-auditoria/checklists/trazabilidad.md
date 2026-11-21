@@ -1,5 +1,7 @@
 # Trazabilidad Checklist: Módulo Auditoría
 
+> Vigencia documental (2026-11-15): contrastar las marcas con [cierre.md](../cierre.md). Esta checklist de requisitos/trazabilidad no certifica ejecución ni producción.
+
 **Purpose**: Todo lo que docs pide a Auditoría → FR → tarea
 **Created**: 2026-10-20
 **Feature**: [spec.md](../spec.md)

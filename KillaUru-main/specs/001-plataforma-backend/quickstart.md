@@ -1,5 +1,7 @@
 # Quickstart: comprobar la plataforma base
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 Guía de validación de punta a punta. No contiene código de implementación.
 
 ## Requisitos previos
@@ -12,7 +14,8 @@ Guía de validación de punta a punta. No contiene código de implementación.
 ```powershell
 cd backend
 dotnet build                       # sin advertencias; una llamada a DateTime.UtcNow rompe el build (BannedApiAnalyzers)
-dotnet test --collect:"XPlat Code Coverage"   # Shared, Arquitectura e Integracion en verde; Domain ≥ 90 %
+dotnet test --solution KillaUru.sln -- --coverage --coverage-output-format cobertura --results-directory TestResults
+python deploy/ci/cobertura_dominio.py 90 --informes TestResults
 ```
 
 **Esperado:** `LimiteDeLineasTests` en verde (ningún `.cs`, `.sql` de consultas, `.sh` o `.js` > 199 líneas); `ReglasDeCapasTests`, `ReglasDeDominioTests` y `ReglasDeModulosTests` en verde.
@@ -22,8 +25,8 @@ dotnet test --collect:"XPlat Code Coverage"   # Shared, Arquitectura e Integraci
 ```powershell
 cd backend/deploy
 docker compose up -d postgres                   # solo la BD
-./migrar.sh --arranque             # una sola vez, como superusuario (KU_PG_SUPERUSUARIO): V0000
-./migrar.sh                        # respaldo + V0001… con killauru_migrador (ON_ERROR_STOP, single-transaction)
+docker compose run --rm --entrypoint /killauru/deploy/migrar.sh migrador --arranque
+docker compose run --rm migrador   # respaldo + migraciones versionadas
 docker compose up -d               # api, postgres, cloudflared, backup, alloy
 docker compose exec api curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/health/live    # 200
 docker compose exec api curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/health/ready   # 200

@@ -1,5 +1,7 @@
 # Revisión de implementación · 001-plataforma-backend
 
+> Registro histórico: resultados y hallazgos de la fecha indicada, no del candidato actual. Consultar [cierre.md](cierre.md) para el estado vigente.
+
 Fecha local: 2026-10-22. Alcance: constitución 1.3.0, documentos de referencia, spec, plan, research, data-model, contratos, tareas, backend, despliegue y workflows de la raíz del repositorio.
 
 **Seguimiento 2026-10-23:** durante 002 se resolvieron R03/R04/R05, se reforzó R08 y se atendieron partes
@@ -41,7 +43,7 @@ P1 = resolver antes de usar la plataforma con datos reales o automatizar producc
 
 ### R01 · P1 · La protección de datos personales no cubre todas las salidas
 
-**Evidencia:** [FiltroDatosPersonales.cs](../../backend/src/KillaUru.Api/Observabilidad/FiltroDatosPersonales.cs), [ManejadorErrores.cs](../../backend/src/KillaUru.Api/Errores/ManejadorErrores.cs), [TelemetriaExtensions.cs](../../backend/src/KillaUru.Api/Observabilidad/TelemetriaExtensions.cs) y [FiltroDatosPersonalesTests.cs](../../backend/tests/KillaUru.Integracion.Tests/Observabilidad/FiltroDatosPersonalesTests.cs).
+**Evidencia:** [FiltroDatosPersonales.cs](../../backend/src/KillaUru.Api/Observabilidad/FiltroDatosPersonales.cs), [ManejadorErrores.cs](../../backend/src/KillaUru.Api/Errores/ManejadorErrores.cs), [TelemetriaExtensions.cs](../../backend/src/KillaUru.Api/Observabilidad/TelemetriaExtensions.cs) y [FiltroDatosPersonalesTests.cs](../../backend/tests/KillaUru.Integracion.Tests/specs/001-plataforma-backend/seguridad/FiltroDatosPersonalesTests.cs).
 
 El filtro elimina propiedades de primer nivel por nombre. Una propiedad `Detalle` que contenga un objeto con `Correo`, un mensaje con texto interpolado o una excepción con información personal no se sanea. El manejador registra la excepción completa. La instrumentación de trazas solo excluye `/health`; no tiene un procesador que elimine atributos personales. Las pruebas construyen eventos Serilog sintéticos y no capturan logs y trazas de peticiones reales.
 
@@ -79,7 +81,7 @@ La opción es la única condición. La prueba existente usa el valor false por d
 
 ### R06 · P2 · OpenAPI y su prueba de contrato están incompletos
 
-**Evidencia:** [TransformadorSeguridad.cs](../../backend/src/KillaUru.Api/Documentacion/TransformadorSeguridad.cs), [ContratoOpenApiTests.cs](../../backend/tests/KillaUru.Integracion.Tests/Contratos/ContratoOpenApiTests.cs) y [ContratoYaml.cs](../../backend/tests/KillaUru.Integracion.Tests/Contratos/ContratoYaml.cs).
+**Evidencia:** [TransformadorSeguridad.cs](../../backend/src/KillaUru.Api/Documentacion/TransformadorSeguridad.cs), [ContratoOpenApiTests.cs](../../backend/tests/KillaUru.Integracion.Tests/specs/001-plataforma-backend/contratos/ContratoOpenApiTests.cs) y [ContratoYaml.cs](../../backend/tests/KillaUru.Integracion.Tests/soporte/Contratos/ContratoYaml.cs).
 
 El transformador agrega texto y códigos, pero no genera los esquemas `tokenAcceso`/`cookieAcceso`, sus requisitos, el esquema común de errores ni la cabecera Retry-After. La prueba enumera manualmente un solo contrato y compara rutas, métodos y códigos; no comprueba propiedades requeridas, esquemas, ejemplos ni seguridad. La aserción `Superset` sí detecta códigos requeridos ausentes; no es el problema.
 

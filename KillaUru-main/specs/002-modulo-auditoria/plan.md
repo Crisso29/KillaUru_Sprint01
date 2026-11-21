@@ -1,5 +1,7 @@
 # Implementation Plan: Módulo Auditoría
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 **Branch**: `002-modulo-auditoria` | **Date**: 2026-10-20 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `/specs/002-modulo-auditoria/spec.md`
@@ -87,7 +89,7 @@ backend/src/Modules/KillaUru.Auditoria/
 
 backend/db/migraciones/V0002__auditoria.sql
 backend/tests/KillaUru.Auditoria.Tests/      Domain/ · Application/
-backend/tests/KillaUru.Integracion.Tests/Auditoria/   TransaccionCompartidaTests · InmutabilidadTests · AuditoriaApiTests
+backend/tests/KillaUru.Integracion.Tests/specs/002-modulo-auditoria/   TransaccionCompartidaTests · InmutabilidadTests · AuditoriaApiTests
 backend/deploy/runbooks/incidentes-datos-personales.md · deploy/runbooks/restaurar.md (sección RN-10)
 ```
 

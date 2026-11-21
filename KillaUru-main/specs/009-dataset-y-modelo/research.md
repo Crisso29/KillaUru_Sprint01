@@ -1,5 +1,7 @@
 # Research: Dataset y modelo de detección
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 > Docs fija el **qué** (HU-28, RF-01/02/03/33, RN-01…RN-04, RN-18, RNF-04, RNF-35, ADR-004, S-06) y algunas piezas del **cómo** (MLP cuantizado, LiteRT, prefiltro de energía, sensores en lote, manifiesto + SHA-256 en R2, modelo inicial en el APK). Todo lo demás es **Decisión SDD** y está aquí con sus alternativas.
 
 ## R-001 · Herramienta de grabación: APK aparte (Decisión SDD)
@@ -132,7 +134,7 @@
 > La constitución 1.1.0 está escrita para el backend .NET. No se edita aquí. Propuesta **MENOR → 1.2.0** (se amplían reglas, no se quita ninguna):
 
 1. **VII. Pruebas primero**: agregar «En `ml/`, la pirámide es pytest: funciones puras del pipeline (ventaneo, etiquetas, partición, métricas, puerta) con valores límite → integración con datos sintéticos → determinismo y equivalencia. `ml-ci.yml` corre en cada PR que toca `ml/`; sin verde no se une a `main`. Las métricas del modelo se prueban con la puerta, no con cobertura».
-2. **VIII. Código pequeño**: incluir `.py` y `.kt` (y `.kts` de Gradle) en el límite de 200 líneas, con la prueba `ml/tests/test_limite_lineas.py` (y la de 008 para `android/`); prohibir notebooks en el pipeline; equivalente a `BannedApiAnalyzers`: en `ml/`, prohibido `datetime.now()` en lógica (se pasa la fecha como argumento) y `random` sin semilla (regla de ruff + prueba).
+2. **VIII. Código pequeño**: incluir `.py` y `.kt` (y `.kts` de Gradle) en el límite de 200 líneas, con la prueba `ml/tests/arquitectura/test_limite_lineas.py` (y la de 008 para `android/`); prohibir notebooks en el pipeline; equivalente a `BannedApiAnalyzers`: en `ml/`, prohibido `datetime.now()` en lógica (se pasa la fecha como argumento) y `random` sin semilla (regla de ruff + prueba).
 3. **I. Docs manda**: «Un modelo solo se publica si su informe demuestra RNF-35 y RNF-04 (puerta); sus umbrales viven en `ml/config/puerta.yaml` citando la fuente».
 4. **Restricciones**: fila nueva «ML: Python 3.11 + TensorFlow 2.18 → LiteRT int8; dataset crudo en R2 privado; publicación manual con GitHub Actions (R-018)».
 5. **III**: aclarar que `TimeProvider` aplica al backend; en `ml/` y en la app rige el equivalente (fecha inyectada).
@@ -152,4 +154,4 @@
 
 ## Confirmados por el autor el 2026-10-22 (D18)
 
-Todos los «Pendientes de confirmar por el autor» de este archivo y la «Propuesta de enmienda a la constitución» quedaron aprobados tal como se recomendaron (`specs/revision/decisiones.md`, D18). La enmienda se aplicó en la constitución 1.2.0.
+Todos los «Pendientes de confirmar por el autor» de este archivo y la «Propuesta de enmienda a la constitución» quedaron aprobados tal como se recomendaron (`docs/historial/revision-arquitectura-2026-10-21/decisiones.md`, D18). La enmienda se aplicó en la constitución 1.2.0.

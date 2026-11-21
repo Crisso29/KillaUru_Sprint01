@@ -1,5 +1,7 @@
 # Implementation Plan: Módulo Consulta de Mapa
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 **Branch**: `006-modulo-consulta-mapa` | **Date**: 2026-10-21 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `/specs/006-modulo-consulta-mapa/spec.md`
@@ -90,7 +92,7 @@ backend/src/Modules/KillaUru.Mapa/
 
 backend/src/KillaUru.Shared/Domain/Celda.cs      # Limites() (definido en 001, R-002)
 backend/tests/KillaUru.Mapa.Tests/               Domain/ · Application/
-backend/tests/KillaUru.Integracion.Tests/Mapa/   RecorteRolApi · CacheEtagApi · CambiosApi · FiltrosApi
+backend/tests/KillaUru.Integracion.Tests/specs/006-modulo-consulta-mapa/   RecorteRolApi · CacheEtagApi · CambiosApi · FiltrosApi
 ```
 
 **Structure Decision**: plantilla de `enfoque-arquitectonico.md` §4.1 («Consulta de Mapa: recorte por rol»). El `ConsultarMapaUseCase` de docs se divide en un despachador y tres caminos para respetar las 200 líneas; el controlador conserva el nombre `AnomaliasController` de docs. `MapaOptions` va en `Application/` como dice `enfoque` §5.

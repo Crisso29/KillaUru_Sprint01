@@ -1,5 +1,7 @@
 # Feature Specification: Dataset y modelo de detección
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 **Feature Branch**: `009-dataset-y-modelo`
 
 **Created**: 2026-10-22
@@ -37,7 +39,7 @@
 | Escenarios | EQ-03 (rendimiento y precisión en móvil) | `08-escenarios-y-atributos-de-calidad.md` |
 | Diseño | Detector y Actualizador; R2 con modelos y manifiestos | `componentes-arquitectonicos.md` §5, `Nivel2`/`Nivel3` |
 | Diseño | Prefiltro de energía, sensores en lote, intérprete reutilizado | `diseño-interno-de-modulos.md` §7.4; `enfoque-arquitectonico.md` §9 |
-| Decisiones del autor | D1 (agregados también en docs), D10 (GitHub Actions), D16 (datos del corredor), D17 (orden de las specs) | `specs/revision/decisiones.md` |
+| Decisiones del autor | D1 (agregados también en docs), D10 (GitHub Actions), D16 (datos del corredor), D17 (orden de las specs) | `docs/historial/revision-arquitectura-2026-10-21/decisiones.md` |
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -226,7 +228,7 @@ Como única persona del equipo, quiero saber al día 7 y al día 11 si voy a lle
 
 **G. Código y riesgo**
 
-- **FR-033**: Ningún `.py` ni `.kt` de `ml/` MUST pasar de 200 líneas (lo comprueba `ml/tests/test_limite_lineas.py` en `ml-ci.yml`); las pruebas se escriben antes del código. *(Constitución VII, VIII; ver propuesta de enmienda en `research.md`)*
+- **FR-033**: Ningún `.py` ni `.kt` de `ml/` MUST pasar de 200 líneas (lo comprueba `ml/tests/arquitectura/test_limite_lineas.py` en `ml-ci.yml`); las pruebas se escriben antes del código. *(Constitución VII, VIII; ver propuesta de enmienda en `research.md`)*
 - **FR-034**: `estado` MUST mostrar horas grabadas, ventanas por clase y conjunto frente a las metas, y las últimas métricas de validación, para los puntos de control de los días 7 y 11. *(HU-28, R-10; R-020, R-021)*
 
 ### Reglas y parámetros (`ml/config/*.yaml`)

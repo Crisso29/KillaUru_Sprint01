@@ -1,5 +1,7 @@
 # Revisión de implementación 004 — 2026-10-26
 
+> Registro histórico: resultados y hallazgos de la fecha indicada, no del candidato actual. Consultar [cierre.md](cierre.md) para el estado vigente.
+
 **Implementación funcional local terminada; aceptación completa pendiente (56/58 tareas).** Se entregan dominio, procesamiento, caducidad, purgas, fachada de lectura, administración y exportación. T053 no alcanza el rendimiento requerido y T054 necesita la recepción/cola de 005. No se declara el spec cerrado al 100 % ni desplegado.
 
 ## Evidencia ejecutada

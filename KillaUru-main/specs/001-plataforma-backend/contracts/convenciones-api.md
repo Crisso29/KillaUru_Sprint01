@@ -62,4 +62,4 @@ Ningún contrato ni prueba dice «403 o 401»: cada escenario espera un solo có
 
 ## 7. Prueba de contrato
 
-`KillaUru.Integracion.Tests/Contratos/ContratoOpenApiTests` descarga `/openapi/v1.json` y verifica, para cada YAML de `specs/*/contracts/`: misma ruta y método, mismos códigos de respuesta y mismas propiedades requeridas en los cuerpos.
+El requisito es comparar todos los YAML de `specs/*/contracts/` con `/openapi/v1.json`, incluidas operaciones, respuestas y propiedades requeridas. Estado revisado el 2026-11-15: `tests/KillaUru.Integracion.Tests/specs/001-plataforma-backend/contratos/ContratoOpenApiTests.cs` enumera solamente 001, 002, 003 y 007 y comprueba rutas, métodos y presencia de códigos; no compara esquemas ni propiedades requeridas. Las suites específicas de 002/003/004 amplían algunos contratos. T042 permanece abierta hasta completar el alcance exigido; ver [cierre](../cierre.md).

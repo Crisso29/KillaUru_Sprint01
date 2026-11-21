@@ -1,5 +1,7 @@
 # Feature Specification: Panel de administración «KillaUru Ops»
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 **Feature Branch**: `010-panel-admin`
 
 **Created**: 2026-10-22
@@ -36,8 +38,8 @@
 | Escenarios | EQ-04 (acceso al panel sin token, expirado o por fuerza bruta) | `08-escenarios-y-atributos-de-calidad.md` |
 | Restricciones | R-05 (`panel.killauru.pe`), R-06 (Ley 29733) | `05-restricciones.md` |
 | Arquitectura | Panel = SPA sin reglas; pantallas y endpoints | `componentes-arquitectonicos.md` §5.1; `estilo-arquitectonico.md` (stack: React + MapLibre GL JS, Pages + R2); `arquitectura-inicial.md` (capa Navegador; zona Panel ↔ API: XSS/CSRF → cookie, CSP, HSTS; RN-08 del administrador) |
-| Decisiones del autor | D6 (filtro por defecto), D13 («Eventos válidos (ayer)», `kmVia`), D14 («eventos válidos»), D15 (lecturas auditadas), D16 (rutas de R2 en 008), D17 (orden) | `specs/revision/decisiones.md` |
-| Hallazgos | PO-09, PO-12, PO-19, PO-20, PO-21; SEG-07, SEG-21 | `specs/revision/revision-producto.md`, `revision-seguridad.md` |
+| Decisiones del autor | D6 (filtro por defecto), D13 («Eventos válidos (ayer)», `kmVia`), D14 («eventos válidos»), D15 (lecturas auditadas), D16 (rutas de R2 en 008), D17 (orden) | `docs/historial/revision-arquitectura-2026-10-21/decisiones.md` |
+| Hallazgos | PO-09, PO-12, PO-19, PO-20, PO-21; SEG-07, SEG-21 | `docs/historial/revision-arquitectura-2026-10-21/revision-producto.md`, `revision-seguridad.md` |
 
 ## User Scenarios & Testing *(mandatory)*
 

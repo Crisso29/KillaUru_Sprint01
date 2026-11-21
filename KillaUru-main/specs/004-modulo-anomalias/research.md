@@ -1,5 +1,7 @@
 # Research: Módulo Anomalías
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 ## R-001 · `ContextoReporte` necesita la hora de recepción — hueco en docs
 
 - **Problema**: docs define `ContextoReporte = (ConSesion, EventosEnLaHora)` y el esqueleto de `ProcesarReporteUseCase` revalida con `reloj.GetUtcNow()`. Pero RN-11 dice «antigüedad = hora de **recepción** − hora de detección», RN-09 purga a las 72 h **desde que se recibe** y `reporte_anomalia.recibido_utc` necesita ese dato. Si el procesamiento va atrasado (cola llena, reinicio), usar la hora actual descartaría eventos válidos y adelantaría la purga.

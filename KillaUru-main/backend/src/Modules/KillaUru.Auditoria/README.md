@@ -1,5 +1,7 @@
 # Auditoría
 
+Estado vigente y validaciones pendientes: [cierre de la spec](../../../../specs/002-modulo-auditoria/cierre.md).
+
 Registra hechos sensibles de forma permanente y permite consultarlos únicamente al administrador.
 Depende de Shared; no conoce Identidad ni Anomalías. Sus únicos tipos públicos son Contracts y AuditoriaModule.
 
@@ -62,7 +64,7 @@ curl.exe -s "http://localhost:8080/api/v1/auditoria?categoria=Sesion&tamano=20" 
 Respuestas: 200, 400 datos_invalidos, 401 token_invalido, 403 sin_permiso y 429 limite_excedido con Retry-After.
 Toda respuesta autenticada usa private, no-store. El contrato está en specs/002-modulo-auditoria/contracts/auditoria.openapi.yaml.
 
-## Verificación desde backend
+## Cómo se prueba
 
 ```powershell
 dotnet build KillaUru.sln
@@ -78,4 +80,4 @@ RendimientoConsultaTests mide 30 consultas HTTP tras calentamiento y escribe Tes
 
 Responsable de incidentes: CRISOLOGO; reemplazo: CRISSO. Procedimiento en deploy/runbooks/incidentes-datos-personales.md.
 Faltan activar y verificar las alertas en Grafana y ejecutar el simulacro EQ-13 en killauru-pruebas.
-La revisión de emisores en 003/004 se repite cuando esos módulos tengan implementación.
+003/004 ya tienen implementación. Revisar emisores y conservar la evidencia de las reglas de arquitectura; el cierre y el simulacro desplegado se controlan en la spec 002.

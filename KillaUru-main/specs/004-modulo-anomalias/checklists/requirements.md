@@ -1,5 +1,7 @@
 # Specification Quality Checklist: Módulo Anomalías
 
+> Vigencia documental (2026-11-15): contrastar las marcas con [cierre.md](../cierre.md). Esta checklist de requisitos/trazabilidad no certifica ejecución ni producción.
+
 **Purpose**: Validar que la spec está completa y clara antes de planificar
 **Created**: 2026-10-20
 **Feature**: [spec.md](../spec.md)
@@ -25,7 +27,7 @@
 
 ## Notes
 
-- Los pendientes de `research.md` (R-001, R-005, R-006, R-007, R-011, R-012) quedaron **confirmados por el autor el 2026-10-21** (D1); la revisión del 2026-10-21 suma D2, D3, D4, D7, D13, D14, D15 y las correcciones técnicas (FR-030…FR-034, R-013…R-017). Lo no aplicado está en `specs/revision/no-aplicado-004.md`.
+- Los pendientes de `research.md` (R-001, R-005, R-006, R-007, R-011, R-012) quedaron **confirmados por el autor el 2026-10-21** (D1); la revisión del 2026-10-21 suma D2, D3, D4, D7, D13, D14, D15 y las correcciones técnicas (FR-030…FR-034, R-013…R-017). Lo no aplicado está en `docs/historial/revision-arquitectura-2026-10-21/no-aplicado-004.md`.
 
 ## Verificación de implementación — 2026-10-26
 

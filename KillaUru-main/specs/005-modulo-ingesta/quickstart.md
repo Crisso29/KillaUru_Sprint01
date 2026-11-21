@@ -1,5 +1,7 @@
 # Quickstart: comprobar el módulo Ingesta
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 ## Requisitos previos
 
 001 y 004 funcionando (corredor cargado: `/health/ready` = 200); migración `V0006` aplicada. Los eventos de ejemplo están sobre la polilínea de la PE-28A (`db/semillas/lotes/`).
@@ -8,8 +10,8 @@
 
 ```powershell
 cd backend
-dotnet test tests/KillaUru.Ingesta.Tests
-dotnet test tests/KillaUru.Integracion.Tests --filter "FullyQualifiedName~Ingesta"
+dotnet test --project tests/KillaUru.Ingesta.Tests
+dotnet test --project tests/KillaUru.Integracion.Tests
 ```
 
 ## 2. Escenarios que deben pasar

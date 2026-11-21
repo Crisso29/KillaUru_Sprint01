@@ -1,5 +1,7 @@
 # Quickstart: comprobar el dataset y el modelo
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 ## Requisitos previos
 
 Python 3.11; `rclone` configurado con el *bucket* privado `killauru-datos` (solo para datos reales); Android Studio y `adb` para el grabador; 3 celulares de gama media; `backend/db/datos/corredor_pe28a.geojson` (004, D16).
@@ -14,13 +16,13 @@ pip install -e . --no-deps
 ## 1. Pruebas automáticas (sin datos reales)
 
 ```powershell
-pytest                                   # unitarias, no-fuga, límite de 200 líneas, determinismo, equivalencia
+python -m pytest                         # solo los casos implementados; equivalencia completa pendiente
 ruff check .
 python -m killauru_ml todo --version 0.0.1 --sintetico     # pipeline completo con el dataset sintético
 python -m killauru_ml todo --version 0.0.2 --sintetico     # misma semilla → mismas métricas y misma huella de pesos (SC-003)
 ```
 
-## 2. Escenarios que deben pasar
+## 2. Criterios de aceptación (incluye escenarios todavía pendientes)
 
 | # | Escenario | Esperado |
 |---|---|---|
@@ -40,29 +42,39 @@ python -m killauru_ml todo --version 0.0.2 --sintetico     # misma semilla → m
 | 14 | Publicar dos veces la misma versión | `publicar_r2.sh` falla sin tocar R2 |
 | 15 | Volver atrás a la versión anterior | el manifiesto vuelve; los archivos de ambas versiones siguen iguales |
 
-## 3. Con datos reales (orden de la campaña)
+## 3. Con datos reales: preparación y límites actuales
+
+El [README de ML](../../ml/README.md) enumera lo que despacha el CLI actual.
+Se puede ingerir una grabación y validar un archivo de etiquetas con:
 
 ```powershell
-# Grabador: Android Studio → ml/grabador → instalar por cable en los 3 celulares (no tiene internet)
-adb -s <celular> pull /sdcard/Android/data/pe.killauru.grabador/files/<grabacion> crudos/
-python -m killauru_ml ingerir crudos/20261026-R03-C2          # verifica, catálogo, sube a R2 privado
-python -m killauru_ml candidatos 20261026-R03-C2               # hoja para etiquetar con el video
-python -m killauru_ml validar-etiquetas; python -m killauru_ml acuerdo
-python -m killauru_ml estado                                   # controles de los días 7 y 11
-python -m killauru_ml particion --verificar                    # luego congelar ds-1
-python -m killauru_ml todo --version 1.0.0                     # usa la prueba una sola vez
-# Benchmark: adb push modelos/1.0.0/killauru-1.0.0.tflite y vectores-prueba.json → pantalla Benchmark → adb pull del JSON
-python -m killauru_ml puerta --version 1.0.0                   # código 0 → manifiesto.json
+python -m killauru_ml ingerir crudos/mi-grabacion
+python -m killauru_ml validar-etiquetas datos/etiquetas/mi-grabacion.json
+python -m killauru_ml estado
+python -m killauru_ml particion
 ```
 
-## 4. Publicar (manual)
+Usar archivos reales existentes y mantenerlos fuera de informes públicos.
+`ingerir` solo solicita subida al añadir `--subir`; no sube automáticamente.
+`particion` solo informa versión/estado: todavía no valida todo el contrato del dataset.
+`candidatos`, `acuerdo`, `ventanas`, `entrenar`, `evaluar` y `cuantizar` están declarados,
+pero su despacho CLI no está implementado. `todo` sin `--sintetico` devuelve 2.
+Las opciones `particion --verificar` y `puerta --version` no están implementadas.
+No ejecutar esas recetas de la planificación inicial como si estuvieran completas.
 
-GitHub → Actions → **publicar-modelo** → `version = 1.0.0` → Run. Comprobar:
+Completar las tareas de [cierre](cierre.md), después ejecutar la campaña, etiquetado,
+partición congelada, entrenamiento/evaluación, equivalencia y benchmark.
 
-```powershell
-curl -s https://cdn.killauru.pe/modelo/manifiesto.json
-curl -s https://cdn.killauru.pe/modelo/1.0.0/killauru-1.0.0.tflite -o m.tflite; certutil -hashfile m.tflite SHA256   # = sha256 del manifiesto
-```
+## 4. Publicación: bloqueada hasta completar la puerta
+
+El workflow manual `publicar-modelo.yml` existe, pero `python -m killauru_ml puerta`
+carga configuración y devuelve 2. Falta integrar la validación de modelo/métricas;
+no ignorar el código de salida ni sustituirla por la ejecución sintética.
+`ml/scripts/publicar_r2.sh` tampoco existe todavía.
+
+T065–T068 exigen publicación inmutable, manifiesto al final, comprobación de SHA-256
+por HTTP y simulacro de vuelta atrás en prefijo de pruebas. Cuando estén implementados,
+registrar resultados antes de publicar el modelo aprobado para 008.
 
 ## 5. Atributos de calidad: cómo se mide cada uno
 
@@ -72,6 +84,6 @@ curl -s https://cdn.killauru.pe/modelo/1.0.0/killauru-1.0.0.tflite -o m.tflite; 
 | RNF-04 (< 50 ms p95) | 1 000 inferencias por celular, 1 hilo, ≥ 3 de gama media | `benchmark/<alias>.json` |
 | RNF-15 (batería) | Tasa de paso del prefiltro en Normal (insumo); la medición es de 008 en campo | `informe.json` → `diagnostico.tasaPasoPrefiltroNormal` |
 | Reproducibilidad | Dos corridas iguales → mismas métricas y huella | `ml-ci.yml` (humo) y SC-003 |
-| No-fuga | Recorridos y pares disjuntos; ajustes sin prueba | `test_no_fuga.py`, `particion --verificar` |
-| Integridad de la publicación | SHA-256 desde `cdn.killauru.pe` = manifiesto | paso de verificación de `publicar-modelo.yml` |
+| No-fuga | Recorridos y pares disjuntos; ajustes sin prueba | `tests/unitarias/test_no_fuga.py`; integración de validación CLI pendiente |
+| Integridad de la publicación | SHA-256 desde `cdn.killauru.pe` = manifiesto | T065–T068: comparación HTTP de SHA-256 pendiente; listar objetos R2 no basta |
 | Privacidad | Sin lat/lon ni identificadores en el derivado; video ≤ 90 días | `test_ventaneo.py`, `test_grabacion.py`, `borrar_videos.sh` |

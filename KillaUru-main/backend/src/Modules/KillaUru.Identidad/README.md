@@ -1,5 +1,7 @@
 # Identidad y Accesos
 
+Estado vigente y validaciones pendientes: [cierre de la spec](../../../../specs/003-modulo-identidad-accesos/cierre.md).
+
 Implementa el spec 003: cuentas, consentimiento, credenciales, sesiones, correos y administración. No vincula usuarios con eventos ni trayectorias. La API valida JWT en el host de 001 y registra auditoría mediante contratos de 002.
 
 ## Diseño

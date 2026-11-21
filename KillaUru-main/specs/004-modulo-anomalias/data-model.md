@@ -1,5 +1,7 @@
 # Data Model: Módulo Anomalías
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 ## 1. Tablas (`V0004__anomalias.sql`)
 
 Base: `diseño-interno-de-modulos.md` §3.3. Lo agregado está marcado con `-- (+)` (ver `plan.md`, Complexity Tracking).

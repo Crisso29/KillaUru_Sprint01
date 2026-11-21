@@ -1,5 +1,7 @@
 # Trazabilidad Checklist: Módulo Dashboard
 
+> Vigencia documental (2026-11-15): contrastar las marcas con [cierre.md](../cierre.md). Esta checklist de requisitos/trazabilidad no certifica ejecución ni producción.
+
 **Purpose**: Todo lo que docs pide a Dashboard → FR → tarea
 **Created**: 2026-10-21
 **Feature**: [spec.md](../spec.md)

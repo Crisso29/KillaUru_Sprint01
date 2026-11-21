@@ -1,6 +1,6 @@
 # Backend de KillaUru
 
-Plataforma ASP.NET Core 10 de un monolito con seis módulos. La implementación actual corresponde a [001-plataforma-backend](../specs/001-plataforma-backend/spec.md); los módulos de negocio son esqueletos. La [revisión de implementación](../specs/001-plataforma-backend/revision-implementacion.md) documenta las brechas pendientes.
+Plataforma ASP.NET Core 10 de un monolito con seis módulos implementados en distintos grados. Consulta el [estado verificable](../docs/seguimiento/estado-implementacion.md) y el [índice de pruebas por spec](../docs/guias/pruebas.md) para distinguir código, pruebas y validaciones pendientes.
 
 ## Fuentes de verdad
 
@@ -19,7 +19,7 @@ Plataforma ASP.NET Core 10 de un monolito con seis módulos. La implementación 
 | `src/KillaUru.Api/Salud` | Liveness, BD y migraciones esperadas |
 | `src/KillaUru.Api/Observabilidad` | Logs, trazas e implementación del puerto de métricas |
 | `src/KillaUru.Shared` | Value objects, contratos de eventos/métricas, transacciones y cálculo de horarios |
-| `src/Modules` | Registro de cada módulo y sus futuras capas |
+| `src/Modules` | Registro, dominio, casos de uso, adaptadores e infraestructura de cada módulo |
 | `db/migraciones` | SQL explícito; la API no migra al iniciar |
 | `deploy` | Contenedores, scripts, runbooks y puerta de cobertura |
 | `tests` | Kernel, arquitectura, integración y pruebas k6 |
@@ -38,7 +38,7 @@ dotnet test --project tests/KillaUru.Integracion.Tests --no-build
 python deploy/ci/cobertura_dominio.py 90
 ```
 
-La solución usa Microsoft.Testing.Platform. Los proyectos de pruebas de módulos todavía vacíos no acreditan reglas de negocio. El script de cobertura tiene limitaciones documentadas en R08 de la revisión.
+La solución usa Microsoft.Testing.Platform. Las suites de módulos contienen pruebas de reglas y casos de uso; la integración se organiza por spec y propósito. Consulta [tests/README.md](tests/README.md) para ejecutar cada alcance. La cobertura debe medirse en la revisión correspondiente; no se deduce de la cantidad de tests.
 
 Para desplegar, consultar [deploy/runbooks/desplegar.md](deploy/runbooks/desplegar.md) y R02/R11/R12 de la revisión antes de usar el flujo. Los scripts `.sh` requieren Bash en Linux o en sus contenedores; no son comandos nativos de PowerShell.
 

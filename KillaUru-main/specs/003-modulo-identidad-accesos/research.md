@@ -1,5 +1,7 @@
 # Research: Módulo Identidad y Accesos
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 Las decisiones marcadas **«Derivado del prototipo»** o **«Decisión de diseño SDD»** no estaban en `referencia/docs/`; el autor las confirmó el 2026-10-21 (lista al final) y pasan a docs (D1).
 
 ## R-001 · Contraseñas (`diseño-interno` §6.7)
@@ -87,7 +89,7 @@ Las decisiones marcadas **«Derivado del prototipo»** o **«Decisión de diseñ
 ## R-015 · Auditoría de escrituras y lecturas (D15)
 
 - **Decision**: cada caso de uso que escribe abre `ITransaccionIdentidad` (la une a `IContextoTransaccion`) y llama `RegistrarAsync` dentro; si falta la transacción, `RegistrarAsync` lanza `InvalidOperationException` (falla en pruebas y desarrollo). El inicio de sesión fallido con un correo inexistente también abre la transacción para auditar. Las lecturas con datos personales —lista de usuarios, `GET /usuarios?ids=` y el estado de la revisión de privilegios (lista de administradores con su correo)— usan `RegistrarLecturaAsync` con `AccesoAdministrativoDatos`. 003 no tiene endpoint de detalle de usuario.
-- **Contexto**: `UsuarioCreado` y `CuentaActivada` llevan `{ "rol": "Administrador" | "ConductorRegistrado" }` en el contexto (dato no personal), para que Auditoría pueda tratarlas como riesgo si el autor amplía RNF-29 (SEG-13, ver `specs/revision/no-aplicado-003.md`).
+- **Contexto**: `UsuarioCreado` y `CuentaActivada` llevan `{ "rol": "Administrador" | "ConductorRegistrado" }` en el contexto (dato no personal), para que Auditoría pueda tratarlas como riesgo si el autor amplía RNF-29 (SEG-13, ver `docs/historial/revision-arquitectura-2026-10-21/no-aplicado-003.md`).
 - **Métrica de riesgo**: la emite solo Auditoría con `AlConfirmar` (SEG-18, OPS-16); 003 tiene una prueba de que nunca llama `RegistrarAccionRiesgo`.
 
 ## R-016 · Resultados en Application (D4)

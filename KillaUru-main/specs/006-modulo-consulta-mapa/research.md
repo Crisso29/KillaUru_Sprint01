@@ -1,5 +1,7 @@
 # Research: Módulo Consulta de Mapa
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 ## R-001 · De `bbox` a celdas: hace falta saber qué celdas toca la vía
 
 - **Problema**: `diseño-interno` §4 dice «bbox → celdas» y «el corredor tiene ~1 000 celdas». Pero el rectángulo que envuelve los 335.073 km (≈ 2,6° × 1,5°) contiene ~150 000 celdas de 0,005°, casi todas cerro vacío. Sin saber cuáles tocan la vía, cada petición del corredor haría 150 000 búsquedas en la caché.

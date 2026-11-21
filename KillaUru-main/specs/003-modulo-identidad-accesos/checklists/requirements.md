@@ -1,5 +1,7 @@
 # Specification Quality Checklist: Módulo Identidad y Accesos
 
+> Vigencia documental (2026-11-15): contrastar las marcas con [cierre.md](../cierre.md). Esta checklist de requisitos/trazabilidad no certifica ejecución ni producción.
+
 **Purpose**: Validar que la spec está completa y clara antes de planificar
 **Created**: 2026-10-20
 **Feature**: [spec.md](../spec.md)
@@ -26,4 +28,4 @@
 
 ## Notes
 
-- Las decisiones pendientes fueron **confirmadas por el autor el 2026-10-21** (`research.md`, sección final). Lo no aplicado está en `specs/revision/no-aplicado-003.md`.
+- Las decisiones pendientes fueron **confirmadas por el autor el 2026-10-21** (`research.md`, sección final). Lo no aplicado está en `docs/historial/revision-arquitectura-2026-10-21/no-aplicado-003.md`.

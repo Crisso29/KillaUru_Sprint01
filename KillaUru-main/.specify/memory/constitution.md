@@ -25,7 +25,7 @@ Sync Impact Report
   X (Grafana Alloy como agente que solo envía).
   Restricciones: Despliegue (CI/CD GitHub Actions + GHCR + despliegue automático al unir a main); Entorno de
   pruebas (carga y estrés con límites de CPU/RAM).
-  Origen: specs/revision/decisiones.md D4, D10, D11, D12, D15 y plan-de-cambios.md T-QA16, T-QA17;
+  Origen: docs/historial/revision-arquitectura-2026-10-21/decisiones.md D4, D10, D11, D12, D15 y plan-de-cambios.md T-QA16, T-QA17;
   docs 02–04 revisados el 2026-10-21.
   Plantillas revisadas: plan-template.md ✅ · spec-template.md ✅ · tasks-template.md ✅ ·
   checklist-template.md ✅ (sin cambios).

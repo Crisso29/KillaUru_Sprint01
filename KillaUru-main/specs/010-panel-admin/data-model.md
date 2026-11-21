@@ -1,5 +1,7 @@
 # Data Model: Panel de administración «KillaUru Ops»
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 El panel **no tiene base de datos** ni guarda nada en el navegador (FR-006). Este archivo describe el modelo **del cliente**: qué guarda en memoria, cómo nombra cada consulta, cómo traduce enumeraciones a textos y qué deriva. Los tipos de datos son los generados desde los YAML (`src/api/generado/`); aquí no se redefinen.
 
 ## 1. Sesión (en memoria, `src/sesion/`)

@@ -1,5 +1,7 @@
 # Quickstart: comprobar el panel «KillaUru Ops»
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 ## Requisitos previos
 
 Node 22 LTS. Para el modo real: «killauru-pruebas» levantado (001 R-012) con 003, 004, 006 y 007, `Api:OrigenPanel = http://localhost:4173` y claves de prueba de Turnstile (H-02), y las cuentas y datos de `panel/README.md` (T088). Para el mapa base: URL del estilo y del PMTiles en `cdn.killauru.pe` (H-04); sin ellas, el mapa muestra la lista y el aviso.
@@ -13,8 +15,10 @@ npm run tipos; git diff --exit-code src/api/generado      # tipos al día con lo
 npm run lint; npm run deps                                  # ESLint y regla de dependencia
 npm test                                                    # unitarias, componentes, contrato, líneas, contraste, cabeceras
 npm run cobertura                                           # modelo/ ≥ 90 %
-npm run build; npm run build:simulado; npm run size         # 120 KB inicial · 300 KB mapa
-npm run e2e                                                 # Playwright simulado + axe, 3 navegadores
+npm run build
+node scripts/verificar-presupuesto.mjs                      # presupuesto JS sobre dist de producción
+npm run build:simulado
+npm run e2e                                                 # simulado; los skip/fixme no acreditan aceptación
 ```
 
 ## 2. Escenarios que deben pasar
@@ -44,10 +48,11 @@ npm run e2e                                                 # Playwright simulad
 
 ```powershell
 curl.exe -sI https://panel.killauru.pe/ | Select-String "strict-transport|content-security|x-frame|x-content-type|referrer-policy|permissions-policy|cross-origin-opener"
-node scripts/verificar-cabeceras.mjs https://panel.killauru.pe
+$env:PANEL_URL = 'https://panel.killauru.pe'
+node scripts/verificar-cabeceras.mjs
 ```
 
-- Las 7 cabeceras presentes; CSP sin `unsafe-inline`/`unsafe-eval`; Mozilla HTTP Observatory ≥ A (SC-003).
+- El objetivo es validar todas las cabeceras y sus valores, CSP sin `unsafe-inline`/`unsafe-eval` y Observatory ≥ A (SC-003). El script actual solo verifica presencia de cinco cabeceras; no certifica esos valores ni las siete cabeceras del escenario. Completar la comprobación antes de cerrar T093.
 - En DevTools → Red: el PMTiles se pide con `Range` y responde 206 desde `cdn.killauru.pe` (ADR-011).
 - Volver atrás: Cloudflare Pages → `killauru-panel` → despliegue anterior → «Rollback» (< 5 min).
 
@@ -57,7 +62,7 @@ node scripts/verificar-cabeceras.mjs https://panel.killauru.pe
 |---|---|---|
 | Accesibilidad | axe por ruta (`accesibilidad.spec.ts`), teclado (`teclado.spec.ts`), NVDA + Firefox a mano | 0 violaciones WCAG 2.1 A/AA (SC-004) |
 | Rendimiento | `size-limit`; `rendimiento.spec.ts` (marca `mapa-listo`, 10 cargas); Lighthouse CI | ≤ 120 / 300 KB gzip; ≤ 3 s p95; LCP ≤ 2,5 s (SC-005, SC-006) |
-| Seguridad | `cabeceras.test.ts`, `verificar-cabeceras.mjs`, Observatory, `almacenamiento.spec.ts` | SC-002, SC-003 |
+| Seguridad | `cabeceras.seguridad.test.ts`, `verificar-cabeceras.mjs`, Observatory, `almacenamiento.spec.ts` | SC-002, SC-003 |
 | Compatibilidad | Playwright en Chromium, Firefox y Edge | SC-009 |
-| Mantenibilidad | `lineas.test.ts`, `dependency-cruiser`, cobertura de `modelo/` | SC-010 |
+| Mantenibilidad | `lineas.arquitectura.test.ts`, `dependency-cruiser`, cobertura de `modelo/` | SC-010 |
 | Contrato | tipos al día + Ajv sobre los datos simulados | SC-011 |

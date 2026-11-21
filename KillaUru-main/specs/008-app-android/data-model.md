@@ -1,5 +1,7 @@
 # Data Model: App Android KillaUru
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 Base: `diseño-interno-de-modulos.md` §7.2. Lo agregado está marcado con `-- (+)` y su decisión. Todo lo que guarda la app vive **solo en el celular** (RNF-10) y fuera de la copia de seguridad de Android (R-027).
 
 ## 1. Base Room `killauru.db` (versión 1, modo WAL, `exportSchema = true`)

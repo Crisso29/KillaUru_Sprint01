@@ -1,46 +1,71 @@
-# Ingesta
+# Ingesta — spec 005
 
-> **Estado**: pendiente de implementación — spec 005.
-> El módulo está registrado en el host (`AddIngestaModule`) pero no tiene endpoints ni lógica de negocio todavía.
+Hay implementación de recepción, persistencia, procesamiento y purgas. Falta acreditar
+la integración dedicada y las condiciones de recuperación/carga.
+[Estado de cierre](../../../../specs/005-modulo-ingesta/cierre.md) ·
+[Contrato](../../../../specs/005-modulo-ingesta/contracts/ingesta.openapi.yaml)
 
-## Propósito
+## Flujo y responsabilidades
 
-Recibe los lotes de reportes enviados por la app del conductor, los valida, los desagrega
-y los entrega al módulo de Anomalías para su procesamiento.
-Es el punto de entrada de todos los datos de campo al sistema; ningún otro módulo acepta
-reportes directamente (RN-05, spec 005).
+1. `SyncController` recibe el lote y determina si existe sesión verificada.
+2. `RecibirLoteEventosUseCase` valida tamaño/capacidad y evalúa eventos con Anomalías.
+3. `IRecepcionEventos` persiste antes de notificar la cola; PostgreSQL es la fuente durable.
+4. Trabajadores consumen la cola; un barredor recupera pendientes.
+5. El resultado distingue aceptados, duplicados y rechazados.
 
-## Responsabilidades planeadas (spec 005)
+Se usan puertos de Application, adaptadores PostgreSQL, cola en memoria y reloj inyectado.
+Los descartes de ingesta son métricas; no son acciones administrativas auditadas.
+No existe un endpoint de consulta de estado por lote.
 
-- Validar la autenticidad del lote (firma del dispositivo, seudónimo válido).
-- Aplicar el límite de tasa por seudónimo + IP antes de procesar (FR-010, FR-030).
-- Desagregar el lote en reportes individuales y publicarlos como `EventoReportado` (contratos de Anomalías).
-- Registrar la auditoría del envío si el lote supera el umbral de anomalías nuevas.
-- Devolver al cliente un resumen del procesamiento (aceptados, descartados, motivo).
+## API implementada
 
-## Dependencias planeadas
+| Método y ruta | Acceso | Resultado |
+|---|---|---|
+| `POST /api/v1/anomalies/batch` | Anónimo o conductor; administrador recibe 403 | Respuesta de recepción por evento |
 
-- `KillaUru.Anomalias.Contracts` — `IAnomaliasService`, `EventoReportado`, `ContextoReporte`
-- `KillaUru.Auditoria.Contracts` — `IAuditoriaService` (solo si el lote genera una acción de riesgo)
-- `KillaUru.Shared` — `TimeProvider`, `IPublicadorEventos`, dominios transversales
+El cuerpo contiene `eventos`, no un `loteId` aportado por el cliente.
+El servidor genera el identificador del lote de recepción.
+El rechazo incluye `id`, `indice` y `motivo`; la consistencia de seudónimo se
+verifica mediante `SeudonimoDelLote`. Ver el YAML para cada campo y condición.
+El 200 de recepción no significa que una anomalía ya esté confirmada en el mapa.
 
-## API planeada (prefijo `/api/v1`)
-
-| Ruta | Método | Acceso | Propósito |
-|---|---|---|---|
-| `/lotes` | POST | ConductorRegistrado | Enviar un lote de reportes geoespaciales |
-| `/lotes/{id}/estado` | GET | ConductorRegistrado | Consultar el resultado del procesamiento |
-
-> Las rutas y el contrato definitivos se especifican en `specs/005-modulo-ingesta/`.
-
-## Verificación desde `backend/`
+Para reproducir, preparar un archivo de lote sintético según el contrato:
 
 ```powershell
-dotnet build KillaUru.sln
-# Los tests se agregan al implementar el spec 005
+curl.exe -X POST "$env:KU_URL_PRUEBAS/api/v1/anomalies/batch" -H "Content-Type: application/json" -H "X-KillaUru-Seudonimo: $env:KU_SEUDONIMO_PRUEBA" --data-binary "@lote-prueba.json"
 ```
 
-## Bloqueante para el E2E
+La comparación HTTP/OpenAPI, incluidos cuerpos de error y límites, sigue pendiente de la suite dedicada.
 
-El test de punta a punta (`PuntaAPunta/FlujoPuntaAPuntaTests.cs`) está marcado con `Skip`
-hasta que este módulo esté implementado junto con Mapa (spec 006).
+## Parámetros y mantenimiento
+
+Valores declarados en `Application/IngestaOptions.cs`, configurables desde `Ingesta`:
+
+| Parámetro | Valor por defecto |
+|---|---:|
+| MaxEventosPorLote | 50 |
+| CapacidadCola | 2000 |
+| Trabajadores | 0: número de núcleos |
+| ReintentarEnSegundos | 30 |
+| IntervaloBarredorSegundos / AntiguedadMinimaBarredorSegundos | 60 / 60 |
+| AntiguedadMaximaColaMinutos | 5 |
+| PurgaSeudonimoHoras / RetencionRecepcionDias | 72 / 30 |
+| TamanoMaximoCuerpoKb | 256 |
+
+La purga de seudónimos corre al arrancar y cada hora en el minuto 10.
+La purga de recepción corre al arrancar y a las 03:00 de Lima.
+Confirmar valores efectivos de configuración y límite HTTP al validar el despliegue.
+
+## Cómo se prueba
+
+Desde `backend/`:
+
+```powershell
+dotnet test --project tests/KillaUru.Ingesta.Tests
+dotnet test --project tests/KillaUru.Arquitectura.Tests
+```
+
+[Guía de pruebas](../../../../specs/005-modulo-ingesta/pruebas.md).
+Faltan los escenarios dedicados de PostgreSQL/HTTP, reinicio, purga y salud.
+Para cerrar: conciliar eventos aceptados contra recepción y procesamiento, demostrar
+cero duplicados tras reintento/reinicio y ejecutar carga con datos sintéticos.

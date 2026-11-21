@@ -2,6 +2,10 @@
 
 Todos se hacen en el entorno de pruebas `killauru-pruebas` (R-11), nunca en producción.
 
+Este calendario es un procedimiento, no un registro de ejecución. Identificar versión,
+SHA, entorno, operador, tiempos y enlace al informe al completar cada simulacro.
+La promoción se rige por [cierre y despliegue](../../../docs/guias/cierre-y-despliegue.md).
+
 ## Calendario
 
 | Cada | Verificación | Runbook | Meta |

@@ -1,8 +1,10 @@
 # Quickstart: comprobar la app Android
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 ## Requisitos previos
 
-JDK 17, Android SDK (API 35) y un emulador o celular con Android 8.0+. Para el punta a punta: 003, 005 y 006 en el entorno de pruebas (R-11) y `BuildConfig.API_URL` apuntando a él. Para US8: Python 3.12 y la CLI `pmtiles`.
+JDK 21 para ejecutar las herramientas (destino JVM 17), Android SDK (API 35) y un emulador o celular con Android 8.0+. Para el punta a punta: 003, 005 y 006 en el entorno de pruebas (R-11) y `BuildConfig.API_URL` apuntando a él. Para US8: Python 3.12 y la CLI `pmtiles`. La suite instrumentada y la validación de campo siguen pendientes; ver [cierre.md](cierre.md).
 
 ## 1. Pruebas automáticas
 

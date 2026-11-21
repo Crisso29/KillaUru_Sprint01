@@ -1,5 +1,7 @@
 # Data Model: Módulo Consulta de Mapa
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 El módulo **no tiene tablas** (`componentes-arquitectonicos.md` §6). Todo lo que guarda vive en memoria y se puede perder sin consecuencias: se reconstruye desde Anomalías.
 
 ## 1. Qué ve cada rol (RN-08 → `PoliticaAlcance`)

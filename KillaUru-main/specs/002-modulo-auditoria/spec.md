@@ -1,5 +1,7 @@
 # Feature Specification: Módulo Auditoría
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 **Feature Branch**: `002-modulo-auditoria`
 
 **Created**: 2026-10-20
@@ -35,7 +37,7 @@
 | Decisión | ADR-013 (misma transacción), ADR-012 (esquema propio) | `07-decisiones-arquitectonicas.md` |
 | Escenario | EQ-13 (incidente con datos personales) | `08-escenarios-y-atributos-de-calidad.md` |
 | Diseño | Tabla `auditoria.registro`, `REVOKE`, contrato `RegistrarAsync(acción, actor, objetivo, contexto)` y `RegistrarLecturaAsync` | `diseño-interno-de-modulos.md` §3.4 · `Nivel3` §2.2 · `componentes-arquitectonicos.md` §3.1 |
-| Decisiones del autor | D9 (restauración), D15 (transacción de la auditoría y lecturas auditadas), 2026-10-21 | `specs/revision/decisiones.md` |
+| Decisiones del autor | D9 (restauración), D15 (transacción de la auditoría y lecturas auditadas), 2026-10-21 | `docs/historial/revision-arquitectura-2026-10-21/decisiones.md` |
 
 ## User Scenarios & Testing *(mandatory)*
 

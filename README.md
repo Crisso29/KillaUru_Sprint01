@@ -1,5 +1,7 @@
 <div align="center">
 
+<!-- La guía técnica está separada de esta presentación académica. -->
+
 <img src="img/readme/hero.svg" alt="KillaUru — la carretera que aprende de cada viaje" width="987">
 
 <br>
@@ -20,6 +22,8 @@ Tu celular siente la vía. KillaUru la convierte en un mapa vivo para el siguien
 ![C4](https://img.shields.io/badge/Modelo-C4%20·%20Structurizr-08427B?style=flat-square)
 
 </div>
+
+**Implementación y pruebas:** [mapa del repositorio](KillaUru-main/README.md) · [índice de pruebas por spec](KillaUru-main/docs/guias/pruebas.md).
 
 ---
 
@@ -172,18 +176,22 @@ Detalle completo en [`07-decisiones-arquitectonicas.md`](docs/01-analisis-del-si
 
 </div>
 
-La trazabilidad entre HU, RF, RN, drivers, ADR y escenarios se verifica de forma automática con [`tools/verificar-trazabilidad.py`](tools/verificar-trazabilidad.py).
+La trazabilidad entre HU, RF, RN, drivers, ADR y escenarios se consulta en las checklists de cada [spec](KillaUru-main/specs/README.md). El script automático anteriormente referenciado no está presente en este repositorio.
 
 ---
 
 ## 📂 Documentación
+
+El sistema descrito en este README es la arquitectura objetivo; la aceptación de producción está pendiente. Para terminarlo, seguir el [plan de cierre por spec y despliegue](KillaUru-main/docs/guias/cierre-y-despliegue.md).
+
+Para trabajar con el código: [estado verificable](KillaUru-main/docs/seguimiento/estado-implementacion.md), [pruebas por spec](KillaUru-main/docs/guias/pruebas.md) y [guía de calidad y seguridad](KillaUru-main/docs/guias/calidad-y-seguridad.md).
 
 | | Carpeta | Contenido |
 |:---:|---|---|
 | 🔍 | [**01 · Análisis del sistema**](docs/01-analisis-del-sistema) | [Actores](docs/01-analisis-del-sistema/01-actores.md) · [Historias de usuario](docs/01-analisis-del-sistema/02-historias-de-usuario.md) · [Requisitos funcionales](docs/01-analisis-del-sistema/03-requisitos-funcionales.md) · [Atributos de calidad](docs/01-analisis-del-sistema/04-atributos-de-calidad.md) · [Restricciones](docs/01-analisis-del-sistema/05-restricciones.md) · [Drivers](docs/01-analisis-del-sistema/06-driver-arquitectonicos.md) · [ADR](docs/01-analisis-del-sistema/07-decisiones-arquitectonicas.md) · [Escenarios](docs/01-analisis-del-sistema/08-escenarios-y-atributos-de-calidad.md) · [Reglas de negocio](docs/01-analisis-del-sistema/09-reglas-de-negocio.md) · [Glosario](docs/01-analisis-del-sistema/10-glosario.md) |
 | 🏛️ | [**02 · Arquitectura de software**](docs/02-arquitectura-de-software) | [Arquitectura inicial](docs/02-arquitectura-de-software/arquitectura-inicial.md) · [Estilo](docs/02-arquitectura-de-software/estilo-arquitectonico.md) · [Enfoque](docs/02-arquitectura-de-software/enfoque-arquitectonico.md) · [Componentes](docs/02-arquitectura-de-software/componentes-arquitectonicos.md) |
 | 🧩 | [**03 · Diseño de software**](docs/03-diseño-de-software) | [Principios](docs/03-diseño-de-software/principios-de-diseño.md) · [Patrones](docs/03-diseño-de-software/patrones-de-diseño.md) · [Diseño interno de módulos](docs/03-diseño-de-software/diseño-interno-de-modulos.md) |
-| 🗺️ | [**04 · Modelo C4**](docs/04-modelo-C4) | [C1 Contexto](docs/04-modelo-C4/Nivel1-diagrama-de-contexto.md) · [C2 Contenedores](docs/04-modelo-C4/Nivel2-diagrama-de-contenedores.md) · [C3 Componentes](docs/04-modelo-C4/Nivel3-diagrama-de-componentes.md) · [C4 Código](docs/04-modelo-C4/Nivel4-diagrama-de-codigo.md) · [`workspace.dsl`](docs/04-modelo-C4/workspace.dsl) |
+| 🗺️ | [**04 · Modelo C4**](docs/04-modelo-C4) | [C1 Contexto](docs/04-modelo-C4/Nivel1-diagrama-de-contexto.md) · [C2 Contenedores](docs/04-modelo-C4/Nivel2-diagrama-de-contenedores.md) · [C3 Componentes](docs/04-modelo-C4/Nivel3-diagrama-de-componentes.md) · [C4 Código](docs/04-modelo-C4/Nivel4-diagrama-de-codigo.md) |
 
 ---
 

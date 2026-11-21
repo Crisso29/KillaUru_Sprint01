@@ -1,5 +1,7 @@
 # Data Model: Módulo Ingesta
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 ## 1. Tabla (`V0006__ingesta.sql`)
 
 Base: `diseño-interno-de-modulos.md` §3.2. Lo agregado está marcado con `-- (+)`.

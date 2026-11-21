@@ -1,5 +1,7 @@
 # Data Model: Plataforma base del backend
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 Esta feature no tiene datos de negocio. Define la **base de datos vacía y segura**, el **kernel compartido** y los **puertos técnicos** que usan los módulos.
 
 ## 1. Base de datos: arranque y privilegios (T-BD01)

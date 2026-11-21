@@ -1,5 +1,7 @@
 # Quickstart: comprobar el módulo Identidad y Accesos
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 ## Requisitos previos
 
 001 y 002 funcionando; migración `V0003` aplicada. El adaptador de consola no imprime enlaces ni destinatarios: las pruebas capturan el correo en memoria; para el recorrido manual, configurar el proveedor según `backend/deploy/runbooks/correo.md`. Crear el primer administrador con el override `docker-compose.semilla.yml` descrito en el runbook de despliegue, que desactiva la captura de logs de Docker (T-SEG14).

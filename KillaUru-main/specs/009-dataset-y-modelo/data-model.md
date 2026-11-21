@@ -1,5 +1,7 @@
 # Data Model: Dataset y modelo de detección
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 No hay tablas SQL: los datos son archivos versionados. Lo marcado **(git)** se sube al repositorio; **(R2 privado)** vive en el *bucket* `killauru-datos`; **(caché)** se regenera en `ml/.cache/`.
 
 ## 1. Grabación (R2 privado) — detalle en `contracts/formato-grabacion.md`

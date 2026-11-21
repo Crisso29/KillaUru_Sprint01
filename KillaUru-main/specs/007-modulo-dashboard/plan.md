@@ -1,5 +1,7 @@
 # Implementation Plan: Módulo Dashboard
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 **Branch**: `007-modulo-dashboard` | **Date**: 2026-10-21 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `/specs/007-modulo-dashboard/spec.md`
@@ -82,7 +84,7 @@ backend/src/Modules/KillaUru.Dashboard/
 
 backend/db/migraciones/V0007__dashboard.sql
 backend/tests/KillaUru.Dashboard.Tests/          Domain/ · Application/
-backend/tests/KillaUru.Integracion.Tests/Dashboard/   IndicadoresRepositorio · TareaIndicadores · DashboardApi
+backend/tests/KillaUru.Integracion.Tests/specs/007-modulo-dashboard/   IndicadoresRepositorio · TareaIndicadores · DashboardApi
 ```
 
 **Structure Decision**: plantilla de `enfoque-arquitectonico.md` §4.1 («Dashboard: indicadores de negocio; job diario»). `DashboardOptions` va en `Application/` como dice `enfoque` §5. Como todas las tareas del sistema (T-OPS05), la tarea no usa `PeriodicTimer` de 24 h: corre al arrancar y luego a la hora del reloj que calcula `Shared/Tareas/ProgramaReloj` (001). El controlador solo ve tipos de Application (`ResumenDashboard`, `IndicadorResumen`) y el dominio no usa `ResumenDia` de Anomalías (D4, R-007).

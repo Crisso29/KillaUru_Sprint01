@@ -11,10 +11,17 @@
     "test": "vitest run",
     "cobertura": "vitest run --coverage",
     "e2e": "playwright test --config playwright.config.ts",
-    "e2e:pruebas": "playwright test --config playwright.config.ts --project=chromium-pruebas",
+    "e2e:pruebas": "playwright test --config playwright.pruebas.config.ts",
     "lint": "eslint src pruebas --max-warnings=0",
     "deps": "depcruise src --config .dependency-cruiser.cjs",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:unitarias": "vitest run .unitaria.test.",
+    "test:componentes": "vitest run .componente.test.",
+    "test:integracion": "vitest run .integracion.test.",
+    "test:contratos": "vitest run .contrato.test.",
+    "test:arquitectura": "vitest run .arquitectura.test.",
+    "test:accesibilidad": "vitest run .accesibilidad.test.",
+    "test:seguridad": "vitest run .seguridad.test."
   },
   "dependencies": {
     "@fontsource/overpass": "5.1.1",

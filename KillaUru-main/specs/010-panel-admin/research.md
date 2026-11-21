@@ -1,5 +1,7 @@
 # Research: Panel de administración «KillaUru Ops»
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 > Docs fija solo esto del panel: SPA **React + MapLibre GL JS**, estática en **Cloudflare Pages** (`panel.killauru.pe`), mapa base PMTiles leído **por rangos** desde R2, cookie `HttpOnly; Secure; SameSite=Strict`, sesión ≤ 8 h con renovación silenciosa, anti-bot en el login, HSTS/CSP/XFO/nosniff y **ninguna regla de negocio** (`estilo-arquitectonico.md`, `componentes-arquitectonicos.md` §5.1, ADR-009, ADR-011, RNF-09). Todo lo demás de este archivo es **Decisión de diseño SDD** (constitución I) y todas cuestan cero (constitución X): librerías MIT/Apache, Pages y GitHub Actions gratuitos.
 
 ## R-001 · Lenguaje, librería y empaquetador
@@ -38,7 +40,7 @@
   src/compartido, src/sesion, src/api, src/config           (nunca usan funcionalidades)
   ```
 
-  Una funcionalidad usa a otra **solo** por su `index.ts` (igual que `Contracts/` en el backend). Sin ciclos. Lo verifica `dependency-cruiser` en el CI (`.dependency-cruiser.cjs`). Ningún `.ts`/`.tsx` supera **200 líneas** (prueba `pruebas/arquitectura/lineas.test.ts`; excluye `src/api/generado/`). En `modelo/` y `sesion/` está prohibido `Date.now()`/`new Date()` sin argumento (regla de ESLint `no-restricted-syntax`): el reloj se inyecta (`compartido/reloj.ts`), como `TimeProvider` en el backend.
+  Una funcionalidad usa a otra **solo** por su `index.ts` (igual que `Contracts/` en el backend). Sin ciclos. Lo verifica `dependency-cruiser` en el CI (`.dependency-cruiser.cjs`). Ningún `.ts`/`.tsx` supera **200 líneas** (prueba `pruebas/arquitectura/lineas.arquitectura.test.ts`; excluye `src/api/generado/`). En `modelo/` y `sesion/` está prohibido `Date.now()`/`new Date()` sin argumento (regla de ESLint `no-restricted-syntax`): el reloj se inyecta (`compartido/reloj.ts`), como `TimeProvider` en el backend.
 - **Rationale**: cada pantalla de §5.1 es una carpeta con todo lo suyo; la lógica derivada (filtros por defecto, franja, textos de transición, acciones permitidas) queda en funciones puras fáciles de probar con valores límite (constitución VII).
 - **Alternatives**: por capas globales (`components/`, `hooks/`, `services/`: una pantalla queda repartida en 4 carpetas); *Feature-Sliced Design* completo (6 capas: demasiado para 8 pantallas).
 
@@ -174,7 +176,7 @@
   | E2E real | Playwright contra «killauru-pruebas» | flujos críticos con la API real (login, renovación, 423, mapa D6, moderación + auditoría, usuarios, exportación, cuenta); antes de cada versión, desde la PC del autor |
   | Accesibilidad | `vitest-axe`, `@axe-core/playwright` | componentes y 11 rutas |
   | Seguridad | prueba de `_headers`; E2E de almacenamiento; comprobación tras desplegar; Mozilla Observatory | FR-006, FR-011 |
-  | Arquitectura | `dependency-cruiser`; `lineas.test.ts` | FR-047 |
+  | Arquitectura | `dependency-cruiser`; `lineas.arquitectura.test.ts` | FR-047 |
 
 - **Datos simulados**: salen de los `example` de los YAML cuando existen y, si no, se escriben a mano y se validan con Ajv (así nunca se desalinean).
 
@@ -241,7 +243,7 @@ La constitución 1.1.0 está escrita para el backend .NET. **No se edita aquí**
 
 ## Confirmados por el autor el 2026-10-22 (D18)
 
-Todos los «Pendientes de confirmar por el autor» de este archivo y la «Propuesta de enmienda a la constitución» quedaron aprobados tal como se recomendaron (`specs/revision/decisiones.md`, D18). La enmienda se aplicó en la constitución 1.2.0.
+Todos los «Pendientes de confirmar por el autor» de este archivo y la «Propuesta de enmienda a la constitución» quedaron aprobados tal como se recomendaron (`docs/historial/revision-arquitectura-2026-10-21/decisiones.md`, D18). La enmienda se aplicó en la constitución 1.2.0.
 
 ## Ajuste geométrico autorizado — 2026-10-24
 

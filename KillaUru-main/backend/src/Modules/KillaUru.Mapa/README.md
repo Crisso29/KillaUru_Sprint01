@@ -1,48 +1,59 @@
-# Mapa
+# Consulta de mapa — spec 006
 
-> **Estado**: pendiente de implementación — spec 006.
-> El módulo está registrado en el host (`AddMapaModule`) pero no tiene endpoints ni lógica de negocio todavía.
+El módulo implementa consulta GeoJSON, selección por rol, filtros, cambios y caché.
+Su integración dedicada, geometría demo y validación de borde siguen pendientes.
+[Estado de cierre](../../../../specs/006-modulo-consulta-mapa/cierre.md) ·
+[Contrato](../../../../specs/006-modulo-consulta-mapa/contracts/mapa.openapi.yaml)
 
-## Propósito
+## Responsabilidades y diseño
 
-Expone las anomalías activas al panel web y a la app del conductor en forma de capas
-geoespaciales. Consume los contratos públicos de Anomalías (`IAnomaliaLectura`) para
-obtener los datos; nunca accede directamente a la base de datos de otro módulo (ADR-002).
+Application coordina consultas por celdas, filtros o cambios.
+Infrastructure adapta los contratos de Anomalías y la caché; este módulo no posee tablas.
+Los eventos de cambios invalidan las celdas correspondientes.
+El controlador `AnomaliasController` publica `GET /api/v1/anomalies`;
+no publica `/mapa/anomalias` ni `/mapa/resumen-dia`.
 
-## Responsabilidades planeadas (spec 006)
+| Rol | Alcance previsto por contrato |
+|---|---|
+| Anónimo | Recorte al polígono demo; respuesta pública solo cuando corresponde |
+| Conductor | Corredor completo dentro de las condiciones de su sesión |
+| Administrador | Consulta administrativa con filtros de estado |
 
-- Devolver anomalías visibles dentro de un bounding box con filtros opcionales (tipo, severidad).
-- Calcular el resumen del día por celda para la vista de calor del panel.
-- Actualizar la vista en tiempo real cuando `AnomaliaCambiada` se publica (evento de Anomalías).
-- Respetar los límites de tasa: anónimos 60 consultas/h, conductores 1 000/h (FR-010).
+La API decide el alcance. Los tests HTTP de recorte y filtros están pendientes;
+la tabla describe el contrato que deben acreditar.
 
-## Dependencias planeadas
+## Caché, ETag y sincronización
 
-- `KillaUru.Anomalias.Contracts` — `IAnomaliaLectura`, `AnomaliaVisible`, `FiltroAnomalias`, `ResumenDia`
-- `KillaUru.Shared` — dominios transversales, `IPublicadorEventos` (suscripción a eventos)
+- Ruta sin filtros: versiones por celda y alcance componen el ETag.
+- `If-None-Match` permite 304 cuando no hay cambios.
+- Consultas filtradas y `updatedSince` requieren comprobar las reglas del YAML.
+- Respuestas autenticadas: `private, no-store`; el borde solo puede cachear respuestas anónimas.
+- `updatedSince` permite sincronizar cambios y bajas. No mezclarlo con parámetros incompatibles.
+- La respuesta no expone seudónimos ni relaciones con cuentas.
 
-## API planeada (prefijo `/api/v1`)
+`MapaOptions` declara `PoligonoDemo`, `VigenciaCacheMinutos` (10),
+`MaxAgeBordeSegundos` (60) y `TamanoCacheMb` (64).
+La presencia de configuración no demuestra que el polígono ni el límite efectivo de memoria estén validados.
 
-| Ruta | Método | Acceso | Propósito |
-|---|---|---|---|
-| `/mapa/anomalias` | GET | Público | Anomalías visibles en un bbox (GeoJSON) |
-| `/mapa/resumen-dia` | GET | Público | Calor por celda para el panel |
-
-> Las rutas y el contrato definitivos se especifican en `specs/006-modulo-mapa/`.
-
-## Nota de privacidad
-
-Las respuestas de Mapa nunca incluyen seudónimos, ni identificadores de dispositivo, ni
-conteos por conductor (RN-09). Solo posición, tipo y severidad de la anomalía.
-
-## Verificación desde `backend/`
+Ejemplos contra el entorno de pruebas:
 
 ```powershell
-dotnet build KillaUru.sln
-# Los tests se agregan al implementar el spec 006
+curl.exe "$env:KU_URL_PRUEBAS/api/v1/anomalies"
+curl.exe "$env:KU_URL_PRUEBAS/api/v1/anomalies?estado=Activa" -H "Authorization: Bearer $env:KU_TOKEN_ADMIN"
 ```
 
-## Bloqueante para el E2E
+Para `bbox`, fechas y cambios, usar ejemplos del contrato y el [quickstart](../../../../specs/006-modulo-consulta-mapa/quickstart.md).
+No copiar el ETag entre usuarios o alcances diferentes.
 
-El test de punta a punta (`PuntaAPunta/FlujoPuntaAPuntaTests.cs`) está marcado con `Skip`
-hasta que este módulo esté implementado junto con Ingesta (spec 005).
+## Cómo se prueba
+
+Desde `backend/`:
+
+```powershell
+dotnet test --project tests/KillaUru.Mapa.Tests
+dotnet test --project tests/KillaUru.Arquitectura.Tests
+```
+
+[Guía de pruebas](../../../../specs/006-modulo-consulta-mapa/pruebas.md).
+Faltan casos dedicados de ETag, serialización, métricas, recorte, filtros, cambios y contrato.
+La carga se comparte con Ingesta en `tests/carga/`; el p95 debe medirse en el entorno de pruebas.

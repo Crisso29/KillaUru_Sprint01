@@ -1,5 +1,7 @@
 # Anomalías — spec 004
 
+Estado vigente y validaciones pendientes: [cierre de la spec](../../../../specs/004-modulo-anomalias/cierre.md).
+
 Valida y agrupa **Bache** y **Hundimiento** en el eje PE-28A. Gestiona confirmación, persistencia, caducidad, moderación, retención y exportación. No almacena cuentas de conductores; `actor_id` identifica únicamente al administrador de una transición.
 
 ## Diseño y reglas
@@ -70,7 +72,7 @@ Ejemplos de cuerpos JSON:
 
 `anomalias.corredor_via`, fila 1, se carga una vez al arrancar. Falta de traza → `/health/ready` 503; aplicar migraciones y reiniciar para cargarla. El eje canónico y su licencia están en `backend/db/datos/README.md`: 6689 vértices, 335.0729634613575 km, 336 tramos de cobertura y 20 referencias comunes con Android. El polígono demo pertenece a 006.
 
-## Verificación
+## Cómo se prueba
 
 Desde `backend`, con Docker para integración y Microsoft.Testing.Platform:
 

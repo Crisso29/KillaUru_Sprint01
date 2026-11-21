@@ -1,5 +1,7 @@
 # Implementation Plan: Módulo Ingesta
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 **Branch**: `005-modulo-ingesta` | **Date**: 2026-10-21 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `/specs/005-modulo-ingesta/spec.md`
@@ -92,7 +94,7 @@ backend/src/Modules/KillaUru.Ingesta/
 
 backend/db/migraciones/V0006__ingesta.sql
 backend/tests/KillaUru.Ingesta.Tests/            Domain/ · Application/ · Adapters/
-backend/tests/KillaUru.Integracion.Tests/Ingesta/   RecepcionApi · Procesamiento · Barredor · Reinicio · Purgas · Salud
+backend/tests/KillaUru.Integracion.Tests/specs/005-modulo-ingesta/   RecepcionApi · Procesamiento · Barredor · Reinicio · Purgas · Salud
 # Carga, picos, estrés, resistencia y caos: backend/tests/carga/ de 001 (D11); Ingesta no tiene script propio
 ```
 

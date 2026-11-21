@@ -1,5 +1,7 @@
 # Feature Specification: Módulo Anomalías
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 **Feature Branch**: `004-modulo-anomalias`
 
 **Created**: 2026-10-20
@@ -35,8 +37,8 @@
 | Escenarios | EQ-02, EQ-09, EQ-12 | `08-escenarios-y-atributos-de-calidad.md` |
 | Diseño | Algoritmo de `ProcesarReporteUseCase`, `AnomaliasOptions`, `ReglasCalidad`, `ReglaPersistencia` | `enfoque-arquitectonico.md` §5, §6 |
 | Diseño | Tablas, índices, caducidad masiva, agregado, `PoliticaConfirmacion`, caso de uso, indicadores | `diseño-interno-de-modulos.md` §3.3, §3.5, §3.8, §5, §6.2, §6.3, §10 |
-| Decisiones del autor (2026-10-21) | D1, D2, D3, D4, D7, D13, D14, D15 | `specs/revision/decisiones.md` |
-| Correcciones técnicas (2026-10-21) | T-ARQ06, T-ARQ07/08, T-BD02, T-BD-CHK, T-OPS05, T-OPS14, T-OPS19, T-PO08, T-PO11, T-PO19, T-QA18, T-SEG19 | `specs/revision/plan-de-cambios.md` §B |
+| Decisiones del autor (2026-10-21) | D1, D2, D3, D4, D7, D13, D14, D15 | `docs/historial/revision-arquitectura-2026-10-21/decisiones.md` |
+| Correcciones técnicas (2026-10-21) | T-ARQ06, T-ARQ07/08, T-BD02, T-BD-CHK, T-OPS05, T-OPS14, T-OPS19, T-PO08, T-PO11, T-PO19, T-QA18, T-SEG19 | `docs/historial/revision-arquitectura-2026-10-21/plan-de-cambios.md` §B |
 
 ## User Scenarios & Testing *(mandatory)*
 

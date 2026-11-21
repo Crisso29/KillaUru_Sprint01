@@ -1,5 +1,7 @@
 # Feature Specification: Módulo Consulta de Mapa
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 **Feature Branch**: `006-modulo-consulta-mapa`
 
 **Created**: 2026-10-21

@@ -41,7 +41,7 @@ No se marcaron automáticamente todas las tareas de 007.
 | T005 / FR-076 | `unittest`: falta `verificar_lineas` | 3/3 pruebas; 0 infracciones | Función pura de inspección separada de CLI; límites 199/200 |
 | T008 / FR-013 | Pendiente de ejecución de JUnit | Pendiente | Pruebas AAA de versión, variante, orden y unicidad |
 
-## Entorno y decisiones de integración
+## Entorno inicial (registro histórico; sustituido por R-036)
 
 - El proyecto real vive en `KillaUru-main/app`, y `.github` está en la raíz
   Git exterior. CI usa esa ruta y también reacciona a cambios de contratos.
@@ -53,3 +53,10 @@ No se marcaron automáticamente todas las tareas de 007.
   El equipo tenía JDK 24/25; se descargó Temurin 17 portable en TEMP para verificar.
 - No hay evidencia de campo, publicación R2, APK funcional ni modelo validado de 009.
   Esos requisitos permanecen pendientes y no se sustituyen por resultados simulados.
+
+## Configuración vigente revisada el 2026-11-15
+
+- Wrapper Gradle 9.7.1; catálogo AGP 9.3.3 y plugin Kotlin 2.4.20.
+- CI ejecuta con Java 21; `build.gradle.kts` conserva destino JVM 17 y SDK 35.
+- Los resultados anteriores pertenecen a aquella ejecución; no describen una regresión actual.
+- El seguimiento por tarea, pruebas aún incompletas y bloqueos de campo están en [cierre.md](cierre.md).

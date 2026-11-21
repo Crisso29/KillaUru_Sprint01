@@ -1,5 +1,7 @@
 # Feature Specification: Plataforma base del backend
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 **Feature Branch**: `001-plataforma-backend`
 
 **Created**: 2026-10-20
@@ -8,7 +10,7 @@
 
 **Input**: User description: "Base común del backend de KillaUru: levantar todo con un comando, seguridad común a todas las peticiones, documentación viva de la API, salud y monitoreo, respaldo y vuelta atrás, y reglas de arquitectura (incluido el límite de 200 líneas por archivo) verificadas en cada compilación."
 
-**Revisión 2026-10-21**: aplica las decisiones del autor D2, D4, D8, D9, D10, D11, D12 y D15 y las correcciones técnicas T-BD01, T-OPS05/08/09/17/19, T-QA14/16/17/18/20 y T-SEG03/09/20 de `specs/revision/plan-de-cambios.md`.
+**Revisión 2026-10-21**: aplica las decisiones del autor D2, D4, D8, D9, D10, D11, D12 y D15 y las correcciones técnicas T-BD01, T-OPS05/08/09/17/19, T-QA14/16/17/18/20 y T-SEG03/09/20 de `docs/historial/revision-arquitectura-2026-10-21/plan-de-cambios.md`.
 
 ---
 
@@ -36,7 +38,7 @@
 | Decisiones | ADR-001, ADR-002, ADR-006 (cabeceras de caché), ADR-009 (puntos 2 y 5), ADR-010, ADR-012, ADR-013 (mecanismo), ADR-014, ADR-015 (techo por IP) | `07-decisiones-arquitectonicas.md` |
 | Escenarios | EQ-05, EQ-06, EQ-07, EQ-09, EQ-10, EQ-14 | `08-escenarios-y-atributos-de-calidad.md` |
 | Diseño | Estructura de la solución, capas, kernel, roles de BD, migraciones, tareas programadas | `diseño-interno-de-modulos.md` §2, §3.7, §3.8, §6.1 · `estilo-arquitectonico.md` §4, §6 · `enfoque-arquitectonico.md` §3 |
-| Decisiones del autor | D2, D4, D8, D9, D10, D11, D12, D15 (2026-10-21) | `specs/revision/decisiones.md` y `plan-de-cambios.md` |
+| Decisiones del autor | D2, D4, D8, D9, D10, D11, D12, D15 (2026-10-21) | `docs/historial/revision-arquitectura-2026-10-21/decisiones.md` y `plan-de-cambios.md` |
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -268,7 +270,7 @@ Como autor, quiero pruebas de carga combinada, picos, estrés, resistencia y cao
 - **FR-037**: Cada PR MUST pasar `.github/workflows/ci.yml`: `dotnet build` (advertencias = errores), pruebas unitarias, de arquitectura, de integración (Testcontainers) y de contrato OpenAPI, y cobertura con **coverlet** ≥ 90 % en los proyectos `Domain` (puerta). `main` está protegida: no se une sin CI en verde. *(RNF-28, EQ-05, `principios-de-diseño.md`; D10)*
 - **FR-038**: Cada unión a `main` MUST ejecutar `.github/workflows/cd.yml`: imagen arm64 (runner `ubuntu-24.04-arm`) → `ghcr.io/<cuenta>/killauru-api:<sha>` → SSH por Cloudflare Access (sin puertos abiertos) a la VM → `desplegar.sh <sha>` (respaldo → migraciones → `docker compose up -d` → espera `/health/ready`), en el entorno de GitHub `produccion`. Volver atrás = `desplegar.sh <sha-anterior>`. Carga y estrés quedan fuera del CI. *(RNF-17, RNF-18, ADR-010; D10)*
 - **FR-039**: 001 MUST ser la única dueña de las pruebas de sistema en `backend/tests/carga/`: `carga-combinada.k6.js` (300 sincronizando + 300 mapa, 10 min), `picos.k6.js` (ráfaga de 600), `estres.k6.js` (escalera de 100 en 100 hasta p95 > 2× la meta o errores > 1 %, registrando el punto de quiebre), `resistencia.k6.js` (4 h al 50 %) y `caos.md` + `caos.sh` (`kill -9` del contenedor de la API bajo carga, conciliación exacta). Corren fuera de la VM (PC del autor o workflow manual `carga.yml`) contra el entorno de pruebas, en horario de poco tráfico. Error = todo 5xx; 503 con `Retry-After` solo se acepta en `estres`; 429 no debe aparecer. *(RNF-03, RNF-06, RNF-23, EQ-06, EQ-09, EQ-14; D11)*
-- **FR-044**: Una prueba de integración de punta a punta MUST recorrer lote → anomalía → mapa (invalidación) → indicador del día en `KillaUru.Integracion.Tests/PuntaAPunta/`. *(`enfoque` §6; T-QA20)*
+- **FR-044**: Una prueba de integración de punta a punta MUST recorrer lote → anomalía → mapa (invalidación) → indicador del día en `KillaUru.Integracion.Tests/sistema/e2e/`. *(`enfoque` §6; T-QA20)*
 
 ### Reglas y parámetros que aplica esta feature
 

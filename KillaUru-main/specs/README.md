@@ -1,10 +1,35 @@
-# Specs de KillaUru (SDD con Spec Kit) — Backend, módulo por módulo
+# Specs de KillaUru — backend, Android, dataset/modelo y panel
 
 > **Alcance de esta tanda:** backend (001–007), app Android (008), dataset y modelo (009) y panel (010). Fuente de verdad: `referencia/docs/`.
-> **Revisión por roles y decisiones del autor (2026-10-21):** [`revision/`](revision/README.md) — [`decisiones.md`](revision/decisiones.md) (D1…D17) y [`plan-de-cambios.md`](revision/plan-de-cambios.md) (nombres y valores canónicos).
+> **Revisión histórica de diseño (2026-10-21):** [revisión archivada de arquitectura](../docs/historial/revision-arquitectura-2026-10-21/README.md). Distingue decisiones aceptadas, informes y propuestas no aplicadas; no sustituye el seguimiento actual.
 > **Fuente de verdad:** `referencia/docs/` · **Reglas del proyecto:** `.specify/memory/constitution.md` · **Interfaz de referencia:** `referencia/prototipo/killauru-diseno.html`
 
 ## 1. Una feature por módulo
+
+### Qué archivo abrir
+
+Para una revisión QA: **`cierre.md` → `pruebas.md` → archivo de test → resultado registrado**.
+Para implementar: **`spec.md` → `plan.md` → `tasks.md`**, consultando contratos y decisiones.
+
+| Archivo | Responde a | No significa |
+|---|---|---|
+| `spec.md` | ¿Qué debe hacer la funcionalidad y cómo se acepta? | Que ya esté implementada |
+| `plan.md` | ¿Cómo se organiza su implementación? | Que el plan se haya ejecutado |
+| `research.md` | ¿Por qué se eligió una solución? | Un reporte de tests |
+| `data-model.md` | ¿Qué datos y relaciones usa? | Una medición de la base de datos |
+| `contracts/` | ¿Qué intercambian los componentes? | Que el servidor ya cumpla todo el contrato |
+| `tasks.md` | ¿Qué trabajo está marcado y qué falta? | Porcentaje de cobertura |
+| `pruebas.md` | ¿Dónde está cada suite y archivo, y cómo se ejecuta? | Que todos los casos hayan pasado |
+| `cierre.md` | ¿Qué evidencia existe y qué impide cerrar? | Autorización automática para producción |
+| `quickstart.md` | ¿Cómo preparar y comprobar la funcionalidad? | Evidencia de haber seguido los pasos |
+| `checklists/` | ¿Cómo se relacionan requisitos y comprobaciones? | Sustituto de los resultados ejecutados |
+
+Los informes fechados y la revisión archivada en `docs/historial/` conservan historia. Para el estado actual,
+usar `cierre.md` y sus enlaces a evidencias.
+
+**Para terminar el proyecto:** [orden de cierre y despliegue](../docs/guias/cierre-y-despliegue.md). Cada spec tiene `cierre.md` con evidencia y pendientes locales/desplegados; las revisiones antiguas conservan su fecha.
+
+**Para buscar o añadir pruebas:** [índice por spec](../docs/guias/pruebas.md). Cada carpeta de spec contiene `pruebas.md` con rutas, comandos y límites de la evidencia.
 
 El backend es un monolito con **6 módulos** (ADR-001). Cada módulo tiene **su propia feature**, más una feature base (001) con lo que todos comparten. El orden sigue las dependencias entre módulos (`componentes-arquitectonicos.md`, regla 4): primero lo que los demás necesitan.
 
@@ -85,4 +110,4 @@ HU-28 (dataset y modelo propio, *Must*) no tiene RF de servidor: es la feature 0
 1. Revisar `001`. Luego `/speckit-analyze` y, sin hallazgos críticos, `/speckit-implement`.
 2. Repetir en orden con `002` … `007`. `.specify/feature.json` indica la feature activa.
 3. Después: escribir 008, 009 y 010, cada una con su revisión por roles (D17).
-4. Si una spec choca con `referencia/docs/`, gana docs (constitución, principio I). Las decisiones del autor y lo que no se aplicó están en [`revision/`](revision/README.md).
+4. Si una spec choca con `referencia/docs/`, gana docs (constitución, principio I). Las decisiones del autor y lo que no se aplicó están en [`revision/`](../docs/historial/revision-arquitectura-2026-10-21/README.md).

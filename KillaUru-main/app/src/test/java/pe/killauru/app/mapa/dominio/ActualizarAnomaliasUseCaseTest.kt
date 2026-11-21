@@ -16,59 +16,6 @@ class ActualizarAnomaliasUseCaseTest {
 
     // ── dobles de prueba ─────────────────────────────────────────────────────
 
-    private class RepoMemoria : RepositorioAnomalias {
-        val anomalias = mutableListOf<AnomaliaLocal>()
-        var estado: EstadoCopia? = null
-        var limpiezas = 0
-
-        override suspend fun vigentes(ahoraMs: Long) = anomalias.toList()
-
-        override suspend fun actualizarLote(
-            altas: List<AnomaliaLocal>,
-            bajas: List<String>,
-            estado: EstadoCopia,
-        ) {
-            anomalias.removeAll { it.id in bajas }
-            anomalias.addAll(altas)
-            this.estado = estado
-        }
-
-        override suspend fun recortarAlDemo() {
-            anomalias.removeAll { !it.enDemo }
-        }
-
-        override suspend fun obtenerEstado() = estado
-        override suspend fun limpiarCopia() {
-            anomalias.clear()
-            estado = null
-            limpiezas++
-        }
-    }
-
-    private class FuenteMemoria(
-        var respuesta: FuenteAnomalias.Respuesta,
-    ) : FuenteAnomalias {
-        var llamadas = 0
-        var ultimoUpdatedSince: Long? = null
-        var ultimoEtag: String? = null
-
-        override suspend fun obtener(
-            alcance: Alcance,
-            updatedSince: Long?,
-            etag: String?,
-        ): FuenteAnomalias.Respuesta {
-            llamadas++
-            ultimoUpdatedSince = updatedSince
-            ultimoEtag = etag
-            return respuesta
-        }
-    }
-
-    private class RelojFijo(private val ahoraMs: Long = 1_000_000L) :
-        pe.killauru.app.comun.dominio.Reloj {
-        override fun ahoraMs() = ahoraMs
-    }
-
     private fun anomaliaEjemplo(id: String = "a1", enDemo: Boolean = false) = AnomaliaLocal(
         id = id,
         tipo = TipoAnomalia.Bache,
@@ -85,8 +32,8 @@ class ActualizarAnomaliasUseCaseTest {
 
     @Test fun `registrado sin copia descarga todo sin updatedSince`() = runTest {
         // Arrange
-        val repo = RepoMemoria()
-        val fuente = FuenteMemoria(
+        val repo = RepositorioAnomaliasMemoria()
+        val fuente = FuenteAnomaliasMemoria(
             FuenteAnomalias.Respuesta.Datos(
                 altas = listOf(anomaliaEjemplo("x")),
                 bajas = emptyList(),
@@ -94,7 +41,7 @@ class ActualizarAnomaliasUseCaseTest {
                 etag = null,
             )
         )
-        val caso = ActualizarAnomaliasUseCase(repo, fuente, RelojFijo())
+        val caso = ActualizarAnomaliasUseCase(repo, fuente, RelojMapaFijo())
         // Act
         caso.actualizar(Alcance.Registrado)
         // Assert
@@ -104,13 +51,13 @@ class ActualizarAnomaliasUseCaseTest {
 
     @Test fun `registrado con copia envia updatedSince igual al generadoUtc previo`() = runTest {
         // Arrange
-        val repo = RepoMemoria().also {
+        val repo = RepositorioAnomaliasMemoria().also {
             it.estado = EstadoCopia(Alcance.Registrado, generadoUtc = 3000L, etag = null, verificadoUtc = null)
         }
-        val fuente = FuenteMemoria(
+        val fuente = FuenteAnomaliasMemoria(
             FuenteAnomalias.Respuesta.Datos(emptyList(), emptyList(), 6000L, null)
         )
-        val caso = ActualizarAnomaliasUseCase(repo, fuente, RelojFijo())
+        val caso = ActualizarAnomaliasUseCase(repo, fuente, RelojMapaFijo())
         // Act
         caso.actualizar(Alcance.Registrado)
         // Assert
@@ -119,15 +66,15 @@ class ActualizarAnomaliasUseCaseTest {
 
     @Test fun `bajas se eliminan de la copia local`() = runTest {
         // Arrange
-        val repo = RepoMemoria().also {
+        val repo = RepositorioAnomaliasMemoria().also {
             it.anomalias += anomaliaEjemplo("del")
             it.anomalias += anomaliaEjemplo("keep")
             it.estado = EstadoCopia(Alcance.Registrado, 1000L, null, null)
         }
-        val fuente = FuenteMemoria(
+        val fuente = FuenteAnomaliasMemoria(
             FuenteAnomalias.Respuesta.Datos(emptyList(), listOf("del"), 2000L, null)
         )
-        val caso = ActualizarAnomaliasUseCase(repo, fuente, RelojFijo())
+        val caso = ActualizarAnomaliasUseCase(repo, fuente, RelojMapaFijo())
         // Act
         caso.actualizar(Alcance.Registrado)
         // Assert
@@ -138,11 +85,11 @@ class ActualizarAnomaliasUseCaseTest {
     @Test fun `anonimo pide completo con If-None-Match del etag previo`() = runTest {
         // Arrange
         val etag = "abc123"
-        val repo = RepoMemoria().also {
+        val repo = RepositorioAnomaliasMemoria().also {
             it.estado = EstadoCopia(Alcance.Anonimo, null, etag, null)
         }
-        val fuente = FuenteMemoria(FuenteAnomalias.Respuesta.SinCambios(999L))
-        val caso = ActualizarAnomaliasUseCase(repo, fuente, RelojFijo())
+        val fuente = FuenteAnomaliasMemoria(FuenteAnomalias.Respuesta.SinCambios(999L))
+        val caso = ActualizarAnomaliasUseCase(repo, fuente, RelojMapaFijo())
         // Act
         caso.actualizar(Alcance.Anonimo)
         // Assert
@@ -152,13 +99,13 @@ class ActualizarAnomaliasUseCaseTest {
 
     @Test fun `304 conserva anomalias y actualiza verificadoUtc`() = runTest {
         // Arrange
-        val repo = RepoMemoria().also {
+        val repo = RepositorioAnomaliasMemoria().also {
             it.anomalias += anomaliaEjemplo("original")
             it.estado = EstadoCopia(Alcance.Anonimo, null, "etag", 100L)
         }
         val verificado = 500L
-        val fuente = FuenteMemoria(FuenteAnomalias.Respuesta.SinCambios(verificado))
-        val caso = ActualizarAnomaliasUseCase(repo, fuente, RelojFijo())
+        val fuente = FuenteAnomaliasMemoria(FuenteAnomalias.Respuesta.SinCambios(verificado))
+        val caso = ActualizarAnomaliasUseCase(repo, fuente, RelojMapaFijo())
         // Act
         val resultado = caso.actualizar(Alcance.Anonimo)
         // Assert
@@ -170,7 +117,7 @@ class ActualizarAnomaliasUseCaseTest {
     @Test fun `400 descarta el delta y repite descarga completa`() = runTest {
         // Arrange
         var llamadas = 0
-        val repo = RepoMemoria().also {
+        val repo = RepositorioAnomaliasMemoria().also {
             it.estado = EstadoCopia(Alcance.Registrado, 2000L, null, null)
         }
         // Primera llamada → 400; segunda (sin updatedSince) → datos
@@ -181,7 +128,7 @@ class ActualizarAnomaliasUseCaseTest {
                 else FuenteAnomalias.Respuesta.Datos(listOf(anomaliaEjemplo("nuevo")), emptyList(), 9000L, null)
             }
         }
-        val caso = ActualizarAnomaliasUseCase(repo, fuente, RelojFijo())
+        val caso = ActualizarAnomaliasUseCase(repo, fuente, RelojMapaFijo())
         // Act
         caso.actualizar(Alcance.Registrado)
         // Assert
@@ -191,12 +138,12 @@ class ActualizarAnomaliasUseCaseTest {
 
     @Test fun `al limpiar cambia de rol borra toda la copia`() = runTest {
         // Arrange
-        val repo = RepoMemoria().also {
+        val repo = RepositorioAnomaliasMemoria().also {
             it.anomalias += anomaliaEjemplo("x")
             it.estado = EstadoCopia(Alcance.Registrado, 1000L, null, null)
         }
-        val fuente = FuenteMemoria(FuenteAnomalias.Respuesta.SinCambios(0))
-        val caso = ActualizarAnomaliasUseCase(repo, fuente, RelojFijo())
+        val fuente = FuenteAnomaliasMemoria(FuenteAnomalias.Respuesta.SinCambios(0))
+        val caso = ActualizarAnomaliasUseCase(repo, fuente, RelojMapaFijo())
         // Act
         caso.limpiarAlCambiarRol()
         // Assert

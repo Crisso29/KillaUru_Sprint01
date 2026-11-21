@@ -1,5 +1,7 @@
 # Feature Specification: Módulo Identidad y Accesos
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 **Feature Branch**: `003-modulo-identidad-accesos`
 
 **Created**: 2026-10-20
@@ -34,7 +36,7 @@
 | Restricciones y riesgos | R-06 (Ley 29733, consentimiento, ARCO, flujo transfronterizo), RS-04 (correo) | `05-restricciones.md` |
 | Decisiones | ADR-009 (todo), ADR-013, ADR-007 (punto 4) | `07-decisiones-arquitectonicas.md` |
 | Escenarios | EQ-04, EQ-13 | `08-escenarios-y-atributos-de-calidad.md` |
-| Decisiones del autor (2026-10-21) | D3, D4, D8, D9, D13, D15 y correcciones T-OPS05, T-QA14, T-QA18, T-SEG09, T-SEG14, T-SEG19, T-SEG20 | `specs/revision/decisiones.md`, `specs/revision/plan-de-cambios.md` |
+| Decisiones del autor (2026-10-21) | D3, D4, D8, D9, D13, D15 y correcciones T-OPS05, T-QA14, T-QA18, T-SEG09, T-SEG14, T-SEG19, T-SEG20 | `docs/historial/revision-arquitectura-2026-10-21/decisiones.md`, `docs/historial/revision-arquitectura-2026-10-21/plan-de-cambios.md` |
 | Diseño | Tablas `usuario`, `sesion_refresh`, `consentimiento`, `token_correo`; §6.7 (contraseñas, tokens, bloqueo) | `diseño-interno-de-modulos.md` §3.4, §6.7 |
 | Glosario | Token de acceso, token de actualización, derecho de acceso local, conductor activo, derechos ARCO, términos de uso | `10-glosario.md` §4 |
 

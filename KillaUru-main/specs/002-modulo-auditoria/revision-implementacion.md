@@ -1,5 +1,7 @@
 # Revisión de implementación · 002-modulo-auditoria
 
+> Registro histórico: resultados y hallazgos de la fecha indicada, no del candidato actual. Consultar [cierre.md](cierre.md) para el estado vigente.
+
 Fecha: 2026-10-23. Base: docs/referencia, constitución 1.3.0 y artefactos SDD de 001/002.
 
 **Estado: implementación local de US1 y US2 completada; cierre operativo de US3 pendiente.**

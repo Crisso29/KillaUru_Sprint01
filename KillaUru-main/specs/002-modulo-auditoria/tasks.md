@@ -5,6 +5,8 @@ description: "Tareas del módulo Auditoría"
 
 # Tasks: Módulo Auditoría
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 **Input**: `specs/002-modulo-auditoria/` · **Requiere**: fases 1–6 de `001-plataforma-backend`
 
 **Avance 2026-10-23:** 35/38 tareas completadas localmente. T027 y T031 requieren servicios/entorno externos;
@@ -36,8 +38,8 @@ T038: la parte de Identidad (003) está verificada al 2026-10-24 mediante `Regla
 - [x] T006 [P] [US1] `RegistroAuditoriaTests`: crea con datos válidos; rechaza acción fuera del enum; rechaza cada clave prohibida (también en mayúsculas); usa la hora del `FakeTimeProvider` — `tests/KillaUru.Auditoria.Tests/Domain/RegistroAuditoriaTests.cs` · (FR-004…FR-006)
 - [x] T007 [P] [US1] `CatalogoAccionesTests`: las 14 acciones tienen categoría; solo `RolCambiado`, `DatasetExportado` y `CuentaBloqueada` son de riesgo — `tests/KillaUru.Auditoria.Tests/Domain/CatalogoAccionesTests.cs` · (FR-005, FR-013)
 - [x] T008 [P] [US1] `RegistrarAuditoriaUseCaseTests`: sin transacción unida → `InvalidOperationException`; guarda con el repositorio; registra `AlConfirmar` con `RegistrarAccionRiesgo` solo para las 3 de riesgo (no la llama directamente); contexto prohibido → excepción — `tests/KillaUru.Auditoria.Tests/Application/RegistrarAuditoriaUseCaseTests.cs` · (FR-002, FR-003, FR-013)
-- [x] T009 [US1] `TransaccionCompartidaTests` (Testcontainers): (a) un `DbContext` de prueba abre transacción, `Unir`, inserta una fila propia, registra auditoría y confirma → existen ambas; (b) igual pero el registro falla (contexto prohibido) → no existe ninguna; (c) `RegistrarAsync` sin transacción unida → `InvalidOperationException` y ninguna fila; (d) `RegistrarLecturaAsync` sin transacción → la fila queda confirmada; (e) `RolCambiado` con `RevertirAsync` → no se emite la métrica; con `ConfirmarAsync` → se emite una vez — `tests/KillaUru.Integracion.Tests/Auditoria/TransaccionCompartidaTests.cs` · (FR-002, FR-003, FR-013, FR-017, RNF-31)
-- [x] T010 [US1] `InmutabilidadTests`: con el rol `killauru_app`, `UPDATE`, `DELETE` y `TRUNCATE` sobre `auditoria.registro` fallan con `permission denied` — `tests/KillaUru.Integracion.Tests/Auditoria/InmutabilidadTests.cs` · (FR-008)
+- [x] T009 [US1] `TransaccionCompartidaTests` (Testcontainers): (a) un `DbContext` de prueba abre transacción, `Unir`, inserta una fila propia, registra auditoría y confirma → existen ambas; (b) igual pero el registro falla (contexto prohibido) → no existe ninguna; (c) `RegistrarAsync` sin transacción unida → `InvalidOperationException` y ninguna fila; (d) `RegistrarLecturaAsync` sin transacción → la fila queda confirmada; (e) `RolCambiado` con `RevertirAsync` → no se emite la métrica; con `ConfirmarAsync` → se emite una vez — `tests/KillaUru.Integracion.Tests/specs/002-modulo-auditoria/integracion/TransaccionCompartidaTests.cs` · (FR-002, FR-003, FR-013, FR-017, RNF-31)
+- [x] T010 [US1] `InmutabilidadTests`: con el rol `killauru_app`, `UPDATE`, `DELETE` y `TRUNCATE` sobre `auditoria.registro` fallan con `permission denied` — `tests/KillaUru.Integracion.Tests/specs/002-modulo-auditoria/seguridad/InmutabilidadTests.cs` · (FR-008)
 
 ### Implementación
 
@@ -61,7 +63,7 @@ T038: la parte de Identidad (003) está verificada al 2026-10-24 mediante `Regla
 ### Pruebas (primero)
 
 - [x] T019 [P] [US2] `ConsultarAuditoriaUseCaseTests`: valida `desde ≤ hasta` y `1 ≤ tamano ≤ 200`; aplica los filtros; registra `AccesoAdministrativoDatos` con los filtros en el contexto mediante `RegistrarLecturaUseCase` — `tests/KillaUru.Auditoria.Tests/Application/ConsultarAuditoriaUseCaseTests.cs` · (FR-011, FR-012)
-- [x] T020 [US2] `AuditoriaApiTests` (`WebApplicationFactory`): 401 sin token; 403 `sin_permiso` con `ConductorRegistrado` (regla única T-SEG20); 429 al superar la cuota del administrador; 200 con `Administrador`, orden descendente, paginación correcta, filtros combinados; 400 con fechas invertidas; no existen `PUT`, `PATCH` ni `DELETE` (405) — `tests/KillaUru.Integracion.Tests/Auditoria/AuditoriaApiTests.cs` · (FR-011, US2)
+- [x] T020 [US2] `AuditoriaApiTests` (`WebApplicationFactory`): 401 sin token; 403 `sin_permiso` con `ConductorRegistrado` (regla única T-SEG20); 429 al superar la cuota del administrador; 200 con `Administrador`, orden descendente, paginación correcta, filtros combinados; 400 con fechas invertidas; no existen `PUT`, `PATCH` ni `DELETE` (405) — `tests/KillaUru.Integracion.Tests/specs/002-modulo-auditoria/integracion/AuditoriaApiTests.cs` · (FR-011, US2)
 
 ### Implementación
 
@@ -90,7 +92,7 @@ T038: la parte de Identidad (003) está verificada al 2026-10-24 mediante `Regla
 ## Phase 6: Polish
 
 - [x] T032 [P] `README.md` del módulo: propósito, catálogo, cómo auditar desde otro módulo (los 5 pasos de `contratos-internos.md`), endpoint y ejemplo — `Aud/README.md` · (RNF-19)
-- [x] T033 Prueba de rendimiento: 50 000 registros sembrados, consulta de un mes < 500 ms p95 — `tests/KillaUru.Integracion.Tests/Auditoria/RendimientoConsultaTests.cs` · (SC-004)
+- [x] T033 Prueba de rendimiento: 50 000 registros sembrados, consulta de un mes < 500 ms p95 — `tests/KillaUru.Integracion.Tests/specs/002-modulo-auditoria/rendimiento/RendimientoConsultaTests.cs` · (SC-004)
 - [ ] T038 Revisión de código: Identidad (003) y Anomalías (004) **no** llaman `RegistrarAccionRiesgo` ni registran descartes de ingesta; Mapa y Dashboard no auditan lecturas · (FR-007, FR-013, D15)
 - [x] T034 Marcar `checklists/trazabilidad.md`
 

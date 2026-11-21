@@ -1,5 +1,7 @@
 # Trazabilidad Checklist: Módulo Identidad y Accesos
 
+> Vigencia documental (2026-11-15): contrastar las marcas con [cierre.md](../cierre.md). Esta checklist de requisitos/trazabilidad no certifica ejecución ni producción.
+
 **Purpose**: Todo lo que docs pide a Identidad → FR → tarea
 **Created**: 2026-10-20
 **Feature**: [spec.md](../spec.md)
@@ -64,4 +66,4 @@
 - [x] CHK042 T-SEG09 · `ClockSkew = TimeSpan.Zero` → FR-014 → T019
 - [x] CHK043 T-SEG14 · enlace del primer administrador solo en la consola → FR-043 → T051
 - [x] CHK044 T-SEG19 / T-SEG20 · 429 en todas las operaciones; 401 sin token, 403 por rol → FR-042 → T065, T054
-- [x] CHK045 SEG-13 · alerta al crear o reactivar un administrador → **no aplicado** (`specs/revision/no-aplicado-003.md`)
+- [x] CHK045 SEG-13 · alerta al crear o reactivar un administrador → **no aplicado** (`docs/historial/revision-arquitectura-2026-10-21/no-aplicado-003.md`)

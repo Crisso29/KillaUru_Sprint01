@@ -1,5 +1,7 @@
 # Quickstart: comprobar el módulo Dashboard
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 ## Requisitos previos
 
 001, 003 y 004 funcionando; migración `V0007` aplicada. Semilla `db/semillas/dashboard-60-dias.sql` con 60 días de indicadores (y 2 días faltantes a propósito). Token de administrador en `$env:KU_TOKEN_ADMIN`.
@@ -8,8 +10,8 @@
 
 ```powershell
 cd backend
-dotnet test tests/KillaUru.Dashboard.Tests
-dotnet test tests/KillaUru.Integracion.Tests --filter "FullyQualifiedName~Dashboard"
+dotnet test --project tests/KillaUru.Dashboard.Tests
+dotnet test --project tests/KillaUru.Integracion.Tests
 ```
 
 ## 2. Escenarios que deben pasar

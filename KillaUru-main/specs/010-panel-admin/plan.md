@@ -1,5 +1,7 @@
 # Implementation Plan: Panel de administración «KillaUru Ops»
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 **Branch**: `010-panel-admin` | **Date**: 2026-10-22 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `/specs/010-panel-admin/spec.md`
@@ -80,7 +82,7 @@ panel/
 │   ├── generar-tipos.mjs           # openapi-typescript sobre ../specs/*/contracts/*.openapi.yaml
 │   ├── generar-cabeceras.mjs       # dist/_headers desde la plantilla y VITE_URL_API
 │   ├── verificar-cabeceras.mjs     # tras desplegar: las 7 cabeceras y la CSP
-│   └── cabeceras.test.ts           # prueba de la plantilla (FR-011)
+│   └── cabeceras.seguridad.test.ts           # prueba de la plantilla (FR-011)
 ├── src/
 │   ├── main.tsx · vite-env.d.ts
 │   ├── app/
@@ -140,8 +142,8 @@ panel/
     ├── msw/ servidor.ts · navegador.ts · mockServiceWorker.js (generado por `msw init`)
     │        manejadores/ identidad.ts · mapa.ts · anomalias.ts · dashboard.ts · auditoria.ts
     │        datos/ *.json                            # respuestas de ejemplo (salen de los `example` de los YAML)
-    ├── contrato/ esquemas.ts · datosSimulados.test.ts
-    ├── arquitectura/ lineas.test.ts
+    ├── contrato/ esquemas.ts · datosSimulados.contrato.test.ts
+    ├── arquitectura/ lineas.arquitectura.test.ts
     └── e2e/ ayudas.ts · login.spec.ts · sesion.spec.ts · almacenamiento.spec.ts · mapa.spec.ts · usuarios.spec.ts ·
              cuenta.spec.ts · moderacion.spec.ts · resumen.spec.ts · auditoria.spec.ts · exportacion.spec.ts ·
              accesibilidad.spec.ts · teclado.spec.ts · rendimiento.spec.ts
@@ -149,7 +151,7 @@ panel/
 .github/workflows/ panel-ci.yml · panel-deploy.yml   # en la raíz del repositorio (../ desde panel/)
 ```
 
-Las pruebas unitarias y de componentes van **junto a su archivo** (`filtros.ts` → `filtros.test.ts`, `PaginaMapa.tsx` → `PaginaMapa.test.tsx`). También cumplen las 200 líneas.
+Las pruebas unitarias y de componentes van **junto a su archivo** (`filtros.ts` → `filtros.unitaria.test.ts`, `PaginaMapa.tsx` → `PaginaMapa.componente.test.tsx`). También cumplen las 200 líneas.
 
 **Structure Decision**: una funcionalidad por pantalla de §5.1 (más `cuenta/` por 003 R-006). Las dependencias entre funcionalidades permitidas (solo por `index.ts`) son: `mapa → moderacion` (acciones en el detalle), `mapa → usuarios` (correo de los actores del historial), `resumen → mapa, moderacion, usuarios`, `auditoria → usuarios`, `exportacion → auditoria, usuarios`. `app/marco` usa `mapa` (búsqueda) y `moderacion` (contador). No hay ciclos.
 

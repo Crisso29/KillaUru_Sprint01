@@ -2,6 +2,11 @@
 
 ## Primer despliegue (una sola vez, en la VM)
 
+Procedimiento previsto; no es evidencia de un despliegue realizado. Antes de ejecutarlo,
+completar las puertas de [preparación de la versión](../../../docs/guias/cierre-y-despliegue.md).
+Los comandos siguientes se ejecutan desde `/opt/killauru/KillaUru-main/backend/deploy`
+con un checkout del SHA que se va a desplegar.
+
 1. VM Oracle A1 (4 OCPU / 24 GB, arm64, Santiago) con Docker y el repositorio en `/opt/killauru`.
 2. Copiar `deploy/.env.example` a `deploy/.env` y llenar los secretos (ver `secretos.md`). Nunca subir `.env`.
 3. Construir las imágenes locales: `docker compose build postgres backup`.
@@ -15,7 +20,7 @@
 ## Despliegues normales (automáticos, D10)
 
 - Cada unión a `main` con el CI en verde corre `cd.yml`: imagen arm64 → `ghcr.io/<cuenta>/killauru-api:<sha>` → SSH por Cloudflare Access → `desplegar.sh <sha>`.
-- `main` está protegida (T070): *check* `ci` obligatorio, sin uniones directas ni *force-push*. Configurar en GitHub → Settings → Branches → Branch protection rules.
+- Configurar y comprobar la protección de `main` (T070): CI obligatorio, sin uniones directas ni *force-push*. El estado remoto no está acreditado por este archivo. Verificar el nombre del check real en GitHub antes de exigirlo.
 - A mano, si hiciera falta: `ssh` por Cloudflare Access y `cd /opt/killauru/KillaUru-main/backend/deploy && ./desplegar.sh <sha>`.
 
 ## Reglas de migraciones (RNF-18)

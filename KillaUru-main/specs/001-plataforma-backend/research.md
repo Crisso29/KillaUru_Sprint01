@@ -1,6 +1,8 @@
 # Research: Plataforma base del backend
 
-Cada decisión indica de qué documento sale. Las marcadas **«Decisión de diseño SDD»** no están en `referencia/docs/` y se justifican aquí; las marcadas **«D#»** son decisiones del autor del 2026-10-21 (`specs/revision/decisiones.md`).
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
+Cada decisión indica de qué documento sale. Las marcadas **«Decisión de diseño SDD»** no están en `referencia/docs/` y se justifican aquí; las marcadas **«D#»** son decisiones del autor del 2026-10-21 (`docs/historial/revision-arquitectura-2026-10-21/decisiones.md`).
 
 ## R-001 · Documentación de la API
 

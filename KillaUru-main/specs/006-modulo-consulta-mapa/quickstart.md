@@ -1,5 +1,7 @@
 # Quickstart: comprobar el módulo Consulta de Mapa
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 ## Requisitos previos
 
 001, 003 y 004 funcionando (corredor cargado); semilla `db/semillas/mapa-roles.sql` con anomalías en 4 grupos: dentro del demo, en una celda de borde pero fuera, fuera del demo, y no `Activa` (una por estado). Tokens en `$env:KU_TOKEN_CONDUCTOR` y `$env:KU_TOKEN_ADMIN`.
@@ -8,8 +10,8 @@
 
 ```powershell
 cd backend
-dotnet test tests/KillaUru.Mapa.Tests
-dotnet test tests/KillaUru.Integracion.Tests --filter "FullyQualifiedName~Mapa"
+dotnet test --project tests/KillaUru.Mapa.Tests
+dotnet test --project tests/KillaUru.Integracion.Tests
 ```
 
 ## 2. Escenarios que deben pasar

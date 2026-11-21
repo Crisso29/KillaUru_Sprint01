@@ -1,5 +1,7 @@
 # Revisión de implementación · 003-modulo-identidad-accesos
 
+> Registro histórico: resultados y hallazgos de la fecha indicada, no del candidato actual. Consultar [cierre.md](cierre.md) para el estado vigente.
+
 Fecha: 2026-10-24. Base: requisitos de referencia, constitución 1.3.0, spec, plan, modelo de datos y contrato de 003; integración con 001/002.
 
 **Estado: implementación local completada; activación y validación en el entorno desplegado pendientes.** No se enviaron correos reales ni se alteraron servicios externos.

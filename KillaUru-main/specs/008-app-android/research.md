@@ -1,5 +1,7 @@
 # Research: App Android KillaUru
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 Cada decisión dice qué se decidió, por qué, qué se descartó y de dónde sale. Lo que docs no decide va marcado **Decisión SDD**.
 
 ## R-001 · Un solo módulo Gradle, organizado por funcionalidad
@@ -232,7 +234,7 @@ La constitución 1.1.0 está escrita para el backend. Para la app se propone una
 
 ## Confirmados por el autor el 2026-10-22 (D18)
 
-Todos los «Pendientes de confirmar por el autor» de este archivo y la «Propuesta de enmienda a la constitución» quedaron aprobados tal como se recomendaron (`specs/revision/decisiones.md`, D18). La enmienda se aplicó en la constitución 1.2.0.
+Todos los «Pendientes de confirmar por el autor» de este archivo y la «Propuesta de enmienda a la constitución» quedaron aprobados tal como se recomendaron (`docs/historial/revision-arquitectura-2026-10-21/decisiones.md`, D18). La enmienda se aplicó en la constitución 1.2.0.
 
 ## Ajuste geométrico autorizado — 2026-10-24
 

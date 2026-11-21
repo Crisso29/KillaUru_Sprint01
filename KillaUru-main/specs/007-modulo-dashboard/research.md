@@ -1,5 +1,7 @@
 # Research: Módulo Dashboard
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 ## R-001 · Qué se guarda por día
 
 - **Decision**: 9 filas por día, una por cada número de `ResumenDia` (004) más los conductores activos: `EventosRecibidos` (1), `ConductoresActivos` (2), `DispositivosDistintos` (3), `TramosConReportes7d` (4), `TramosTotales` (5), `Confirmaciones` (6), `PendientesExpiradas` (7), `Expiraciones` (8), `Renacimientos` (9). Las tasas y la cobertura se calculan al leer.

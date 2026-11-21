@@ -1,5 +1,7 @@
 # Implementation Plan: Dataset y modelo de detección
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 **Branch**: `009-dataset-y-modelo` | **Date**: 2026-10-22 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `/specs/009-dataset-y-modelo/spec.md`

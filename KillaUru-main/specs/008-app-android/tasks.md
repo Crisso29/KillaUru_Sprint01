@@ -5,6 +5,8 @@ description: "Tareas de la app Android KillaUru"
 
 # Tasks: App Android KillaUru
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 **Input**: `specs/008-app-android/` · **Requiere**: contratos de 003, 005 y 006 (para MockWebServer); 004 T002 y 006 T002 (datos del corredor, US8); un modelo inicial de 009 (US2, con un modelo de prueba mientras tanto)
 
 **Tests**: obligatorias y **primero** (constitución VII): cada regla del dominio con valores límite y cada respuesta del contrato del lote antes del código.
@@ -34,7 +36,7 @@ description: "Tareas de la app Android KillaUru"
 - [x] T014 [P] `DisparadoresTest`: insertar evento con estado ≠ 0, tipo 3, severidad 0/6, confidence 0.74, lat 91 → `evento_invalido`; transiciones prohibidas (2→0, 3→0, 4→1, 0→2, 0→3) → `transicion_invalida`; cambiar `eventoId` → `evento_inmutable`; `anomalia` con `persistente` 2; `estado_copia` id 2 — `KT/comun/datos/bd/DisparadoresTest.kt` · (FR-019, FR-020; R-005)
 - [x] T015 [P] `CodigosEstablesTest`: códigos fijos de `EstadoLocal`, `TipoAnomalia`, `Alcance` (`data-model.md` §4) — `KT/comun/datos/bd/CodigosEstablesTest.kt` · (FR-019; BD-A5)
 - [x] T016 [P] `SerializadorCifradoTest` (Robolectric): ida y vuelta; un byte alterado → error, no datos falsos — `KT/comun/datos/almacen/SerializadorCifradoTest.kt` · (FR-062; R-022)
-- [x] T017 [P] `ValidadorContrato` (soporte de pruebas): carga los YAML copiados con `swagger-parser` y valida peticiones y respuestas de MockWebServer con `json-schema-validator`; `ValidadorContratoTest` valida los `example` de los 4 YAML — `KT/soporte/ValidadorContrato.kt`, `KT/soporte/ValidadorContratoTest.kt` · (FR-078)
+- [ ] T017 [P] `ValidadorContrato` (soporte de pruebas): carga los YAML copiados con `swagger-parser` y valida peticiones y respuestas de MockWebServer con `json-schema-validator`; `ValidadorContratoTest` valida los `example` de los 4 YAML — `KT/soporte/ValidadorContrato.kt`, `KT/contratos/ValidadorContratoTest.kt` · (FR-078)
 
 ### Implementación
 

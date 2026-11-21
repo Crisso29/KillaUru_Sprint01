@@ -1,5 +1,7 @@
 # Data Model: Módulo Dashboard
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 ## 1. Tabla (`V0007__dashboard.sql`)
 
 Igual a `diseño-interno-de-modulos.md` §3.4, más dos `CHECK` (marcados `(+)`):

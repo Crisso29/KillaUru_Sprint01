@@ -1,5 +1,7 @@
 # Data Model: Módulo Identidad y Accesos
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 ## 1. Tablas (`V0003__identidad.sql`)
 
 Base: `diseño-interno-de-modulos.md` §3.4. Lo **agregado** está marcado con `-- (+)` y justificado en `plan.md` → Complexity Tracking.

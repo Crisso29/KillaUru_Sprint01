@@ -1,5 +1,7 @@
 # Research: Módulo Ingesta
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 ## R-001 · Leer cada evento por separado (`LectorEvento`)
 
 - **Problema**: si el controlador deserializa el lote a `List<EventoDto>` con tipos (`int Severidad`), un solo `"severidad": "alta"` hace fallar **todo** el cuerpo y el lote termina en 400, contradiciendo RF-11 («un evento mal formado nunca rechaza el lote»).

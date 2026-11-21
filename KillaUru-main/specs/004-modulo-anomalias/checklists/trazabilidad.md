@@ -1,5 +1,7 @@
 # Trazabilidad Checklist: Módulo Anomalías
 
+> Vigencia documental (2026-11-15): contrastar las marcas con [cierre.md](../cierre.md). Esta checklist de requisitos/trazabilidad no certifica ejecución ni producción.
+
 **Purpose**: Todo lo que docs pide a Anomalías → FR → tarea
 **Created**: 2026-10-20
 **Feature**: [spec.md](../spec.md)
@@ -61,7 +63,7 @@
 - [x] CHK041 D15 · moderación con `RegistrarAsync` en su transacción; exportación: contar → `RegistrarLecturaAsync` con `filas` → escribir → FR-025, FR-028 → T044, T049, T050
 - [x] CHK042 T-BD02 · `FOR UPDATE` + revalidación en trabajador y moderación; caducidad `SKIP LOCKED` → FR-030 → T026, T027, T036, T047
 - [x] CHK043 T-OPS05 · tareas al arrancar y por reloj (`:05`, `:10`, 03:30) con `ProgramaReloj` → FR-018, FR-021, FR-022, FR-024 → T035, T038, T058
-- [x] CHK044 T-OPS14 · `RegistrarRetenidoPorTope` y `RegistrarDuracionProceso`; sin `RegistrarAccionRiesgo` → FR-013, FR-031 → T025, T053
+- [ ] CHK044 T-OPS14 · `RegistrarRetenidoPorTope` y `RegistrarDuracionProceso`; sin `RegistrarAccionRiesgo` → FR-013, FR-031 → T025, T053
 - [x] CHK045 T-OPS19 · comprobación `corredor` en `/health/ready` → FR-033 → T024
 - [x] CHK046 T-BD-CHK · CHECK nuevos y sin `ix_anomalia_pendiente` → T001, T056
 - [x] CHK047 T-ARQ06/07/08 · `IAnomaliaRepository`, `AnomaliaRepositoryPostgis`, puertos de listas, detalle, exportación y resumen; archivos partidos → T028, T030, T033, T037, T041, T045, T049
@@ -81,3 +83,7 @@ Implementación local, evidencias y condiciones de cierre: [revisión de impleme
 ## Evidencia de cierre local — 2026-10-26
 
 Matriz de archivos, pruebas y resultados en [revision-implementacion.md](../revision-implementacion.md). CHK025 y CHK029 tienen bloqueo ordenado e idempotencia local comprobados; quedan abiertos por reanudación e idempotencia de extremo a extremo en 005. CHK027 no cumple aún el umbral: p95 local Release 185,995 ms > 100 ms. CHK033 tiene defensas verificadas en el servicio, pero espera la recepción HTTP/cola de 005. CHK044 cierra la instrumentación y separación de métricas, no el objetivo de latencia de CHK027. CHK020 verifica el contrato de motivos; la detección de `SeudonimoInconsistente` corresponde a Ingesta.
+
+## Conciliación de seguimiento (2026-11-15)
+
+Se reabrieron 1 marcas que referencian tareas todavía abiertas. Esto no elimina implementación: evita presentar un requisito completo mientras una de sus comprobaciones o entregables sigue pendiente. Véase [cierre.md](../cierre.md).

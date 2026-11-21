@@ -5,6 +5,8 @@ description: "Tareas de la plataforma base del backend"
 
 # Tasks: Plataforma base del backend
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 **Input**: `specs/001-plataforma-backend/` (spec, plan, research, data-model, contracts)
 
 **Tests**: obligatorias (constitución VII). En cada historia, las pruebas se escriben primero y deben **fallar** antes de implementar.
@@ -68,9 +70,9 @@ description: "Tareas de la plataforma base del backend"
 
 ### Pruebas
 
-- [x] T021 [US1] `FabricaApi`: `WebApplicationFactory` + contenedor PostGIS de Testcontainers que aplica `V0000__arranque.sql` como superusuario y luego `V0001…` como `killauru_migrador`, igual que `migrar.sh`; la API se conecta como `killauru_app` — `tests/KillaUru.Integracion.Tests/Infraestructura/FabricaApi.cs` · (FR-032)
-- [x] T022 [US1] `MigracionesTests`: tras arranque + V0001 existen los 5 esquemas de módulo, `migraciones`, los 2 roles, `postgis`, `citext` y las filas `V0000`/`V0001`; `killauru_app` no puede `CREATE TABLE`; una tabla creada por `killauru_migrador` es legible y escribible por `killauru_app`; un script con error no deja nada aplicado — `tests/KillaUru.Integracion.Tests/Migraciones/MigracionesTests.cs` · (FR-002, FR-004, FR-032)
-- [x] T063 [US1] `SinFkEntreEsquemasTests`: con todas las migraciones aplicadas, ninguna FK de `information_schema` apunta a otro esquema — `tests/KillaUru.Integracion.Tests/Migraciones/SinFkEntreEsquemasTests.cs` · (FR-004)
+- [x] T021 [US1] `FabricaApi`: `WebApplicationFactory` + contenedor PostGIS de Testcontainers que aplica `V0000__arranque.sql` como superusuario y luego `V0001…` como `killauru_migrador`, igual que `migrar.sh`; la API se conecta como `killauru_app` — `tests/KillaUru.Integracion.Tests/soporte/Infraestructura/FabricaApi.cs` · (FR-032)
+- [x] T022 [US1] `MigracionesTests`: tras arranque + V0001 existen los 5 esquemas de módulo, `migraciones`, los 2 roles, `postgis`, `citext` y las filas `V0000`/`V0001`; `killauru_app` no puede `CREATE TABLE`; una tabla creada por `killauru_migrador` es legible y escribible por `killauru_app`; un script con error no deja nada aplicado — `tests/KillaUru.Integracion.Tests/specs/001-plataforma-backend/integracion/MigracionesTests.cs` · (FR-002, FR-004, FR-032)
+- [x] T063 [US1] `SinFkEntreEsquemasTests`: con todas las migraciones aplicadas, ninguna FK de `information_schema` apunta a otro esquema — `tests/KillaUru.Integracion.Tests/specs/001-plataforma-backend/integracion/SinFkEntreEsquemasTests.cs` · (FR-004)
 
 ### Implementación
 
@@ -93,10 +95,10 @@ description: "Tareas de la plataforma base del backend"
 
 ### Pruebas
 
-- [x] T032 [US3] `SeguridadTests` (con un controlador de prueba solo en el proyecto de pruebas): sin token → `Anonimo`; sin token en endpoint con política → 401; token de rol sin permiso → 403 `sin_permiso`; token vencido hace 1 s / mal firmado / rol desconocido → 401 `token_invalido`; token por cookie `ku_acceso` → aceptado — `tests/KillaUru.Integracion.Tests/Seguridad/SeguridadTests.cs` · (FR-008, FR-009, FR-045, T-SEG09)
-- [x] T033 [US3] `LimiteTasaTests` (valores límite): 60.ª consulta anónima → 200 y 61.ª → 429 con `Retry-After`; 120.º lote → 200 y 121.º → 429; registrado 1 000/1 001; administrador 3 000/3 001; cuota de lotes independiente; `CF-Connecting-IP` ignorada fuera de `RedTunel` — `tests/KillaUru.Integracion.Tests/Seguridad/LimiteTasaTests.cs` · (FR-010, FR-011, T-QA18)
-- [x] T065 [US3] `TechoPorIpTests`: una IP con un seudónimo distinto por petición: 600.º lote → 200, 601.º → 429; 300.ª consulta → 200, 301.ª → 429; peticiones con token no cuentan; registro: 5.º → permitido, 6.º → 429 — `tests/KillaUru.Integracion.Tests/Seguridad/TechoPorIpTests.cs` · (FR-030, FR-031, T-QA18)
-- [x] T034 [US3] `ErroresYCabecerasTests`: excepción → 500 `ProblemDetails` con `codigo = error_interno` y `correlacionId`, sin traza; toda respuesta con `Cache-Control: private, no-store`, HSTS y `nosniff`; CORS solo para `OrigenPanel` — `tests/KillaUru.Integracion.Tests/Seguridad/ErroresYCabecerasTests.cs` · (FR-012…FR-014)
+- [x] T032 [US3] `SeguridadTests` (con un controlador de prueba solo en el proyecto de pruebas): sin token → `Anonimo`; sin token en endpoint con política → 401; token de rol sin permiso → 403 `sin_permiso`; token vencido hace 1 s / mal firmado / rol desconocido → 401 `token_invalido`; token por cookie `ku_acceso` → aceptado — `tests/KillaUru.Integracion.Tests/specs/001-plataforma-backend/seguridad/SeguridadTests.cs` · (FR-008, FR-009, FR-045, T-SEG09)
+- [x] T033 [US3] `LimiteTasaTests` (valores límite): 60.ª consulta anónima → 200 y 61.ª → 429 con `Retry-After`; 120.º lote → 200 y 121.º → 429; registrado 1 000/1 001; administrador 3 000/3 001; cuota de lotes independiente; `CF-Connecting-IP` ignorada fuera de `RedTunel` — `tests/KillaUru.Integracion.Tests/specs/001-plataforma-backend/seguridad/LimiteTasaTests.cs` · (FR-010, FR-011, T-QA18)
+- [x] T065 [US3] `TechoPorIpTests`: una IP con un seudónimo distinto por petición: 600.º lote → 200, 601.º → 429; 300.ª consulta → 200, 301.ª → 429; peticiones con token no cuentan; registro: 5.º → permitido, 6.º → 429 — `tests/KillaUru.Integracion.Tests/specs/001-plataforma-backend/seguridad/TechoPorIpTests.cs` · (FR-030, FR-031, T-QA18)
+- [x] T034 [US3] `ErroresYCabecerasTests`: excepción → 500 `ProblemDetails` con `codigo = error_interno` y `correlacionId`, sin traza; toda respuesta con `Cache-Control: private, no-store`, HSTS y `nosniff`; CORS solo para `OrigenPanel` — `tests/KillaUru.Integracion.Tests/specs/001-plataforma-backend/seguridad/ErroresYCabecerasTests.cs` · (FR-012…FR-014)
 
 ### Implementación
 
@@ -114,8 +116,8 @@ description: "Tareas de la plataforma base del backend"
 
 ## Phase 6: User Story 2 — Documentación viva de la API (P1)
 
-- [x] T041 [US2] `DocumentacionTests`: en Development `/openapi/v1.json` y `/docs` responden 200 y el documento contiene `/health/live` y `/health/ready`; en Production ambos 404 — `tests/KillaUru.Integracion.Tests/Documentacion/DocumentacionTests.cs` · (FR-015)
-- [x] T042 [US2] `ContratoOpenApiTests`: compara el documento generado con **todos** los `specs/*/contracts/*.openapi.yaml` (rutas, métodos, códigos —429 en toda operación de `/api/v1`—, propiedades requeridas) — `tests/KillaUru.Integracion.Tests/Contratos/ContratoOpenApiTests.cs` · (FR-016)
+- [x] T041 [US2] `DocumentacionTests`: en Development `/openapi/v1.json` y `/docs` responden 200 y el documento contiene `/health/live` y `/health/ready`; en Production ambos 404 — `tests/KillaUru.Integracion.Tests/specs/001-plataforma-backend/integracion/DocumentacionTests.cs` · (FR-015)
+- [ ] T042 [US2] `ContratoOpenApiTests`: compara el documento generado con **todos** los `specs/*/contracts/*.openapi.yaml` (rutas, métodos, códigos —429 en toda operación de `/api/v1`—, propiedades requeridas) — `tests/KillaUru.Integracion.Tests/specs/001-plataforma-backend/contratos/ContratoOpenApiTests.cs` · (FR-016)
 - [x] T043 [US2] `DocumentacionExtensions` (OpenAPI 3.1 + Scalar en `/docs`, apagado en producción) — `src/KillaUru.Api/Documentacion/DocumentacionExtensions.cs` · (FR-015)
 - [x] T044 [US2] `TransformadorSeguridad` (agrega «Rol: …», esquemas `tokenAcceso`/`cookieAcceso` y respuestas 401/403/429 comunes) — `src/KillaUru.Api/Documentacion/TransformadorSeguridad.cs` · (FR-016, FR-045)
 
@@ -123,9 +125,9 @@ description: "Tareas de la plataforma base del backend"
 
 ## Phase 7: User Story 4 — Salud y monitoreo (P2, recortable al final: HU-17)
 
-- [x] T045 [US4] `SaludTests`: `/health/live` 200 sin consultar la BD; `/health/ready` 503 con la BD detenida o con una migración pendiente; un chequeo extra registrado por un módulo de prueba se suma a `ready`; ninguna respuesta incluye datos internos — `tests/KillaUru.Integracion.Tests/Salud/SaludTests.cs` · (FR-018, FR-019)
+- [x] T045 [US4] `SaludTests`: `/health/live` 200 sin consultar la BD; `/health/ready` 503 con la BD detenida o con una migración pendiente; un chequeo extra registrado por un módulo de prueba se suma a `ready`; ninguna respuesta incluye datos internos — `tests/KillaUru.Integracion.Tests/specs/001-plataforma-backend/integracion/SaludTests.cs` · (FR-018, FR-019)
 - [x] T046 [US4] `SaludExtensions` (etiqueta `ready`), `ChequeoBaseDatos` (caché de 5 s) y `ChequeoMigraciones` (versión esperada frente a `migraciones.aplicada`) — `src/KillaUru.Api/Salud/` · (FR-018, FR-019, T-OPS19)
-- [x] T067 [US4] `LogsSinDatosPersonalesTests`: capturar logs y trazas de un lote enviado con token y seudónimo, de un login y de un error; no aparecen seudónimo, IP, `Authorization`, cookies, tokens, correos ni `sub` junto a `loteId` — `tests/KillaUru.Integracion.Tests/Seguridad/LogsSinDatosPersonalesTests.cs` · (FR-034, T-SEG03)
+- [ ] T067 [US4] `LogsSinDatosPersonalesTests`: capturar logs y trazas de un lote enviado con token y seudónimo, de un login y de un error; no aparecen seudónimo, IP, `Authorization`, cookies, tokens, correos ni `sub` junto a `loteId` — `tests/KillaUru.Integracion.Tests/specs/001-plataforma-backend/seguridad/LogsSinDatosPersonalesTests.cs` · (FR-034, T-SEG03)
 - [x] T047 [P] [US4] `LogsExtensions` (Serilog JSON, correlación, sin `/health`) y `FiltroDatosPersonales` — `src/KillaUru.Api/Observabilidad/` · (FR-020, FR-034)
 - [x] T048 [P] [US4] `TelemetriaExtensions` (OTLP, muestreo 10 %, instrumentación de ASP.NET Core con `http.route`, sin exponer `/metrics`) — `src/KillaUru.Api/Observabilidad/TelemetriaExtensions.cs` · (FR-020, FR-021)
 - [x] T049 [US4] `MetricasOpenTelemetry` implementa `IMetricas` (9 métodos, `retraso_cola_s` en segundos) sin etiquetas de alta cardinalidad + prueba unitaria con `MeterListener` — `src/KillaUru.Api/Observabilidad/MetricasOpenTelemetry.cs` · (FR-022, RNF-32)
@@ -168,8 +170,8 @@ description: "Tareas de la plataforma base del backend"
 
 ## Phase 11: Polish
 
-- [ ] T055 [P] Completar los `README.md` de los 6 módulos con la sección «Cómo se prueba» · (FR-017)
-- [ ] T080 Prueba de punta a punta: lote → anomalía → mapa (invalidación, `ETag` nuevo) → indicador del día — `tests/KillaUru.Integracion.Tests/PuntaAPunta/FlujoCompletoTests.cs` · (FR-044, T-QA20; se completa cuando existan 004–007)
+- [x] T055 [P] Completar los `README.md` de los 6 módulos con la sección «Cómo se prueba» · (FR-017)
+- [ ] T080 Prueba de punta a punta: lote → anomalía → mapa (invalidación, `ETag` nuevo) → indicador del día — `tests/KillaUru.Integracion.Tests/sistema/e2e/FlujoPuntaAPuntaTests.cs` · (FR-044, T-QA20; se completa cuando existan 004–007)
 - [x] T081 Calendario de verificaciones periódicas (restauración mensual, revisión de privilegios mensual, costo y uso de Grafana mensual, simulacro de incidente semestral, pruebas de carga antes de cada versión y mensual) — `deploy/runbooks/simulacros.md` · (FR-043, T-QA14)
 - [ ] T056 Ejecutar `quickstart.md` completo y marcar `checklists/trazabilidad.md`
 - [ ] T057 Revisar costo: alertas de presupuesto en Oracle y Cloudflare a US$ 8 — `deploy/runbooks/monitoreo.md` · (RNF-16)

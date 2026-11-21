@@ -1,5 +1,7 @@
 # Specification Quality Checklist: Plataforma base del backend
 
+> Vigencia documental (2026-11-15): contrastar las marcas con [cierre.md](../cierre.md). Esta checklist de requisitos/trazabilidad no certifica ejecución ni producción.
+
 **Purpose**: Validar que la spec está completa y clara antes de implementar
 **Created**: 2026-10-20
 **Feature**: [spec.md](../spec.md)

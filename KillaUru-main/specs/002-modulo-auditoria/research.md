@@ -1,5 +1,7 @@
 # Research: Módulo Auditoría
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 ## R-001 · Cómo unirse a la transacción del llamador (ADR-013)
 
 - **Decision**: `FabricaContextoAuditoria` lee `IContextoTransaccion` (scoped, de `Shared`). Si tiene conexión y transacción, crea `AuditoriaDbContext` con `UseNpgsql(conexion)` y llama `Database.UseTransaction(transaccion)`; `SaveChangesAsync` inserta sin confirmar (confirma el llamador con `IContextoTransaccion.ConfirmarAsync`). Si no hay transacción unida, `RegistrarAsync` lanza `InvalidOperationException` (D15): un módulo que olvide `Unir(...)` falla en pruebas y desarrollo en vez de auditar fuera de su transacción. Solo `RegistrarLecturaAsync` abre su propio `DbContext` con su conexión y confirma él (R-010).

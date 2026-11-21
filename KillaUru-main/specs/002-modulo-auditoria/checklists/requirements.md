@@ -1,5 +1,7 @@
 # Specification Quality Checklist: Módulo Auditoría
 
+> Vigencia documental (2026-11-15): contrastar las marcas con [cierre.md](../cierre.md). Esta checklist de requisitos/trazabilidad no certifica ejecución ni producción.
+
 **Purpose**: Validar que la spec está completa y clara antes de planificar
 **Created**: 2026-10-20
 **Feature**: [spec.md](../spec.md)

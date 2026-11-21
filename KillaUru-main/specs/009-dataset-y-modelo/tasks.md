@@ -5,6 +5,8 @@ description: "Tareas del dataset y el modelo de detección (HU-28)"
 
 # Tasks: Dataset y modelo de detección
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 **Input**: `specs/009-dataset-y-modelo/` · **Requiere**: nada del backend para empezar (semana 1, HU-28); la polilínea de 004 (`backend/db/datos/corredor_pe28a.geojson`, D16) para el kilometraje; el grabador no depende de 008.
 
 **Tests**: obligatorias y **primero** (constitución VII): cada tarea de prueba debe fallar antes de su implementación. Valores límite en todas las reglas con número (0,899/0,900; 199/200; 49,9/50,0 ms; 0.74/0.75/0.76; 44,9/45 Hz; 249/250 ms).
@@ -15,7 +17,7 @@ description: "Tareas del dataset y el modelo de detección (HU-28)"
 
 - [x] T001 `pyproject.toml` (paquete `killauru_ml`, ruff, pytest), `requirements.in` (Python 3.11, TensorFlow 2.18 CPU, `ai-edge-litert`, NumPy, pandas, scikit-learn, PyYAML, matplotlib, jsonschema, pytest, ruff) y `requirements.lock` con `pip-compile --generate-hashes`; `.gitignore` (`.cache/`, `crudos/`, `*.mp4`) — `ml/pyproject.toml`, `ml/requirements.in`, `ml/requirements.lock`, `ml/.gitignore` · (FR-016; R-019)
 - [x] T002 [P] Configuración con la fuente de cada valor en comentario: `captura.yaml` (RF-01, RF-02, RN-03, `diseño-interno` §7.4), `etiquetado.yaml`, `entrenamiento.yaml` (semilla 2828), `puerta.yaml` (`data-model.md` §9) — `ml/config/` · (FR-012, FR-017, FR-028; constitución III)
-- [x] T003 [P] `test_limite_lineas.py`: recorre `ml/**/*.py`, `ml/**/*.kt` y `ml/**/*.kts`; falla con ruta y conteo si alguno pasa de 199 líneas — `ml/tests/test_limite_lineas.py` · (FR-033)
+- [x] T003 [P] `test_limite_lineas.py`: recorre `ml/**/*.py`, `ml/**/*.kt` y `ml/**/*.kts`; falla con ruta y conteo si alguno pasa de 199 líneas — `ml/tests/arquitectura/test_limite_lineas.py` · (FR-033)
 - [ ] T004 [P] `ml-ci.yml` (PR que toca `ml/**`): instala el *lock*, `ruff check`, `pytest`, límite de 200 líneas y corrida de humo `todo` con el dataset sintético dos veces comparando la huella de pesos — `.github/workflows/ml-ci.yml` · (FR-016, FR-033; D10)
 - [x] T005 [P] `test_comun.py`: lee YAML y falla si falta una clave; misma semilla → mismos números; SHA-256 de un archivo conocido; `entorno` devuelve versiones de Python y TensorFlow — `MT/test_comun.py` · (FR-016)
 - [x] T006 `comun/config.py`, `semillas.py` (Python, NumPy, `keras.utils.set_random_seed`, `enable_op_determinism`), `huella.py`, `entorno.py` — `KM/comun/` · (FR-016; R-019)
@@ -164,7 +166,7 @@ description: "Tareas del dataset y el modelo de detección (HU-28)"
 
 ## Phase 10: Polish
 
-- [ ] T072 [P] `README.md` de `ml/`: entorno, comandos por etapa, flujo grabar → publicar, dónde está cada dato, privacidad — `ml/README.md` · (FR-016)
+- [x] T072 [P] `README.md` de `ml/`: entorno, comandos por etapa, flujo grabar → publicar, dónde está cada dato, privacidad — `ml/README.md` · (FR-016)
 - [ ] T073 Correr el quickstart de punta a punta con el dataset sintético y luego con `ds-1` — `specs/009-dataset-y-modelo/quickstart.md` · (FR-016, SC-003, SC-004)
 - [ ] T074 Marcar la trazabilidad y llevar a docs lo que el autor confirme (D1, `research.md` «Para llevar a docs») — `specs/009-dataset-y-modelo/checklists/trazabilidad.md` · (FR-001…FR-034)
 

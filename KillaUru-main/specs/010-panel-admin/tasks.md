@@ -5,6 +5,8 @@ description: "Tareas del panel de administración «KillaUru Ops»"
 
 # Tasks: Panel de administración «KillaUru Ops»
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 **Input**: `specs/010-panel-admin/` · **Requiere**: los contratos de 001–007 (YAML en `specs/*/contracts/`); para el E2E real, 001 (entorno «killauru-pruebas»), 003, 004, 006 y 007 desplegados; para el mapa base, las rutas de R2 de 008 (D16, H-04)
 
 **Tests**: obligatorias y **primero** (constitución VII adaptada): cada fase empieza por sus pruebas, que deben fallar.
@@ -19,13 +21,13 @@ description: "Tareas del panel de administración «KillaUru Ops»"
 - [x] T002 [P] `tsconfig.json` (`strict`, `noUncheckedIndexedAccess`), `vite.config.ts` (rutas perezosas, bloque `mapa`, modo `simulado` que copia el worker de MSW), `index.html` (`lang="es"`), `src/main.tsx`, `src/vite-env.d.ts` — `tsconfig.json`, `vite.config.ts`, `index.html`, `src/main.tsx` · (FR-001, FR-044)
 - [x] T003 [P] `eslint.config.js`: prohíbe `localStorage`, `sessionStorage`, `indexedDB`, `document.cookie` y `dangerouslySetInnerHTML` en todo `src/`, y `Date.now()` / `new Date()` sin argumento en `**/modelo/**` y `src/sesion/**` — `eslint.config.js` · (FR-006, FR-047)
 - [x] T004 [P] `.dependency-cruiser.cjs` con la regla de `research.md` R-005 (capas, `index.ts` entre funcionalidades, sin ciclos, `src/compartido` sin funcionalidades) — `.dependency-cruiser.cjs` · (FR-047)
-- [x] T005 [P] `lineas.test.ts`: recorre `src/**/*.{ts,tsx}` y `pruebas/**/*.ts` (menos `src/api/generado/`) y falla con archivo y número de líneas si alguno pasa de 100 — `pruebas/arquitectura/lineas.test.ts` · (FR-047, SC-010)
+- [x] T005 [P] `lineas.arquitectura.test.ts`: recorre `src/**/*.{ts,tsx}` y `pruebas/**/*.ts` (menos `src/api/generado/`) y falla con archivo y número de líneas si alguno pasa de 100 — `pruebas/arquitectura/lineas.arquitectura.test.ts` · (FR-047, SC-010)
 - [x] T006 `generar-tipos.mjs` (`openapi-typescript` sobre los 6 YAML de `../specs/*/contracts/`) y los tipos generados versionados — `scripts/generar-tipos.mjs`, `src/api/generado/*.d.ts` · (FR-048; R-002)
 - [x] T007 [P] Configuración de `data-model.md` §8 con su fuente en un comentario por valor; `entorno.ts` valida las 6 variables y falla al arrancar si falta una; `.env.example` — `src/config/constantes.ts`, `src/config/corredor.ts`, `src/config/entorno.ts`, `.env.example` · (FR-022, FR-025, FR-010; D6)
 - [x] T008 [P] Tokens del `:root` del prototipo (claro y oscuro por `prefers-color-scheme`), base, fuentes propias con `@fontsource` (Overpass, Source Sans 3, Overpass Mono) y hojas por zona — `src/compartido/estilos/*.css` · (FR-003, FR-043, FR-050; R-021)
 - [x] T009 [P] `vitest.config.ts` (jsdom, cobertura de `src/**/modelo/**` ≥ 90 %), configuración (jest-dom, `vitest-axe`, MSW) y `renderizar.tsx` con proveedores de prueba — `vitest.config.ts`, `pruebas/configuracion.ts`, `pruebas/renderizar.tsx` · (SC-010)
 - [x] T010 MSW: manejadores por contrato y datos de ejemplo tomados de los `example` de los YAML (o escritos a mano), servidor (Vitest) y navegador (modo simulado) — `pruebas/msw/servidor.ts`, `pruebas/msw/navegador.ts`, `pruebas/msw/manejadores/*.ts`, `pruebas/msw/datos/*.json`, `pruebas/msw/mockServiceWorker.js` · (FR-048)
-- [x] T011 Prueba de contrato: `esquemas.ts` carga los YAML (resolviendo los `$ref` a 001) y `datosSimulados.test.ts` valida con Ajv 2020 cada archivo de `pruebas/msw/datos/` contra el esquema de la respuesta de su operación — `pruebas/contrato/esquemas.ts`, `pruebas/contrato/datosSimulados.test.ts` · (FR-048, SC-011)
+- [x] T011 Prueba de contrato: `esquemas.ts` carga los YAML (resolviendo los `$ref` a 001) y `datosSimulados.contrato.test.ts` valida con Ajv 2020 cada archivo de `pruebas/msw/datos/` contra el esquema de la respuesta de su operación — `pruebas/contrato/esquemas.ts`, `pruebas/contrato/datosSimulados.contrato.test.ts` · (FR-048, SC-011)
 - [x] T012 [P] `playwright.config.ts`: proyectos `chromium`, `firefox` y `msedge`; modo `simulado` (sirve `build:simulado`) y modo `pruebas` (URL de «killauru-pruebas», H-02); `ayudas.ts` (entrar con usuarios de prueba, borrar la cookie `ku_acceso` con `context.clearCookies({ name })`) — `playwright.config.ts`, `pruebas/e2e/ayudas.ts` · (FR-004, FR-007, SC-009)
 
 ---
@@ -34,14 +36,14 @@ description: "Tareas del panel de administración «KillaUru Ops»"
 
 ### Pruebas (primero; deben fallar)
 
-- [x] T013 [P] `problema.test.ts` (`Problema` y `ProblemaBloqueo` → `ErrorApi`; sin cuerpo → `sin_conexion`) y `errores.test.ts` (un mensaje por cada fila de `data-model.md` §2; 5xx con `correlacionId`) — `src/api/problema.test.ts`, `C/textos/errores.test.ts` · (FR-008)
-- [x] T014 [P] Formato: «287,4», «8,1 %», «+12», «−4», «+4 pts», «+1 pt»; 2026-10-21T04:59Z → 20 oct en Lima y 05:00Z → 21 oct; «hace 2 h», «ayer a las 15:30»; id corto de 8 caracteres — `C/formato/numeros.test.ts`, `C/formato/fechas.test.ts`, `C/formato/relativo.test.ts`, `C/formato/km.test.ts`, `C/formato/ids.test.ts` · (FR-003, FR-045; R-026, R-029)
-- [x] T015 [P] Sesión: transiciones de `data-model.md` §1; `planificador` (desfase con `VIDA_ACCESO_MIN`; renovar a 61/60/59 s del vencimiento → no/sí/sí; fracción restante acotada a [0, 1]); `renovador` (3 llamadas a la vez → 1 renovación; renovación 401 → sesión terminada) — `src/sesion/estadoSesion.test.ts`, `src/sesion/planificador.test.ts`, `src/sesion/renovador.test.ts` · (FR-007, FR-010)
-- [x] T016 [P] `middleware.test.ts` (MSW): toda petición con `credentials: 'include'` y sin cabecera `Authorization`; 401 `token_invalido` → 1 renovación y 1 reintento; segundo 401 → sesión terminada; 401 `credenciales_invalidas` no renueva; mutación con cuerpo → `Content-Type: application/json` — `src/api/middleware.test.ts` · (FR-006, FR-007, FR-012)
-- [x] T017 [P] `contraste.test.ts`: lee `tokens.css` y comprueba en los dos temas texto ≥ 4,5:1 (`--ink*` sobre `--surface`/`--bg`, `--on-s*` sobre `--s*`) y gráficos ≥ 3:1 (`--s1…--s5`, `--killa` sobre `--surface`) — `C/estilos/contraste.test.ts` · (FR-043)
-- [x] T018 [P] `Dialogo.test.tsx` y `Avisos.test.tsx`: foco al abrir, foco atrapado, `Esc` cierra y devuelve el foco; avisos en `aria-live`; 0 violaciones de axe — `C/ui/Dialogo.test.tsx`, `C/ui/Avisos.test.tsx` · (FR-043)
-- [x] T019 [P] `Marco.test.tsx`: menú «Operación» / «Administración», contador de «Por revisar», migas, «Actualizado HH:MM:SS», «DEMO» solo si `VITE_ENTORNO ≠ produccion`, «Sesión hasta HH:MM» y barra, «Salir» llama a `cerrarSesion` — `src/app/marco/Marco.test.tsx` · (FR-009, FR-010, FR-041)
-- [x] T020 [P] `cabeceras.test.ts`: la plantilla genera las 7 cabeceras de FR-011; CSP sin `unsafe-inline` ni `unsafe-eval`, con `frame-ancestors 'none'`, la API y el CDN en `connect-src` y Turnstile en `script-src`/`frame-src`; `index.html` `no-cache`; `/assets/*` inmutable — `scripts/cabeceras.test.ts` · (FR-011, FR-050, SC-003)
+- [x] T013 [P] `problema.unitaria.test.ts` (`Problema` y `ProblemaBloqueo` → `ErrorApi`; sin cuerpo → `sin_conexion`) y `errores.unitaria.test.ts` (un mensaje por cada fila de `data-model.md` §2; 5xx con `correlacionId`) — `src/api/problema.unitaria.test.ts`, `C/textos/errores.unitaria.test.ts` · (FR-008)
+- [x] T014 [P] Formato: «287,4», «8,1 %», «+12», «−4», «+4 pts», «+1 pt»; 2026-10-21T04:59Z → 20 oct en Lima y 05:00Z → 21 oct; «hace 2 h», «ayer a las 15:30»; id corto de 8 caracteres — `C/formato/numeros.unitaria.test.ts`, `C/formato/fechas.unitaria.test.ts`, `C/formato/relativo.unitaria.test.ts`, `C/formato/km.unitaria.test.ts`, `C/formato/ids.unitaria.test.ts` · (FR-003, FR-045; R-026, R-029)
+- [x] T015 [P] Sesión: transiciones de `data-model.md` §1; `planificador` (desfase con `VIDA_ACCESO_MIN`; renovar a 61/60/59 s del vencimiento → no/sí/sí; fracción restante acotada a [0, 1]); `renovador` (3 llamadas a la vez → 1 renovación; renovación 401 → sesión terminada) — `src/sesion/estadoSesion.unitaria.test.ts`, `src/sesion/planificador.unitaria.test.ts`, `src/sesion/renovador.unitaria.test.ts` · (FR-007, FR-010)
+- [x] T016 [P] `middleware.integracion.test.ts` (MSW): toda petición con `credentials: 'include'` y sin cabecera `Authorization`; 401 `token_invalido` → 1 renovación y 1 reintento; segundo 401 → sesión terminada; 401 `credenciales_invalidas` no renueva; mutación con cuerpo → `Content-Type: application/json` — `src/api/middleware.integracion.test.ts` · (FR-006, FR-007, FR-012)
+- [x] T017 [P] `contraste.accesibilidad.test.ts`: lee `tokens.css` y comprueba en los dos temas texto ≥ 4,5:1 (`--ink*` sobre `--surface`/`--bg`, `--on-s*` sobre `--s*`) y gráficos ≥ 3:1 (`--s1…--s5`, `--killa` sobre `--surface`) — `C/estilos/contraste.accesibilidad.test.ts` · (FR-043)
+- [x] T018 [P] `Dialogo.componente.test.tsx` y `Avisos.componente.test.tsx`: foco al abrir, foco atrapado, `Esc` cierra y devuelve el foco; avisos en `aria-live`; 0 violaciones de axe — `C/ui/Dialogo.componente.test.tsx`, `C/ui/Avisos.componente.test.tsx` · (FR-043)
+- [x] T019 [P] `Marco.componente.test.tsx`: menú «Operación» / «Administración», contador de «Por revisar», migas, «Actualizado HH:MM:SS», «DEMO» solo si `VITE_ENTORNO ≠ produccion`, «Sesión hasta HH:MM» y barra, «Salir» llama a `cerrarSesion` — `src/app/marco/Marco.componente.test.tsx` · (FR-009, FR-010, FR-041)
+- [x] T020 [P] `cabeceras.seguridad.test.ts`: la plantilla genera las 7 cabeceras de FR-011; CSP sin `unsafe-inline` ni `unsafe-eval`, con `frame-ancestors 'none'`, la API y el CDN en `connect-src` y Turnstile en `script-src`/`frame-src`; `index.html` `no-cache`; `/assets/*` inmutable — `scripts/cabeceras.seguridad.test.ts` · (FR-011, FR-050, SC-003)
 
 ### Implementación
 
@@ -61,16 +63,16 @@ description: "Tareas del panel de administración «KillaUru Ops»"
 
 ### Pruebas
 
-- [x] T028 [P] [US1] `bloqueo.test.ts`: `bloqueadoHastaUtc` a 4 min 01 s → «5 min»; hora en Lima; el formulario se reactiva exactamente a esa hora (reloj falso) — `F/login/modelo/bloqueo.test.ts` · (FR-005; R-020)
-- [x] T029 [P] [US1] `FormularioLogin.test.tsx` (MSW, Turnstile doble): envía `canal = panel` y `turnstileToken`; 200 → `/resumen`; 401, 403 ×2, 423 y 429 con sus textos; nuevo desafío tras cada error; botón desactivado mientras envía — `F/login/ui/FormularioLogin.test.tsx` · (FR-005)
-- [x] T030 [P] [US1] `PaginaRecuperar.test.tsx`: con 202 el mismo texto exista o no el correo; 429 con su aviso — `F/login/ui/PaginaRecuperar.test.tsx` · (FR-013)
+- [x] T028 [P] [US1] `bloqueo.unitaria.test.ts`: `bloqueadoHastaUtc` a 4 min 01 s → «5 min»; hora en Lima; el formulario se reactiva exactamente a esa hora (reloj falso) — `F/login/modelo/bloqueo.unitaria.test.ts` · (FR-005; R-020)
+- [x] T029 [P] [US1] `FormularioLogin.componente.test.tsx` (MSW, Turnstile doble): envía `canal = panel` y `turnstileToken`; 200 → `/resumen`; 401, 403 ×2, 423 y 429 con sus textos; nuevo desafío tras cada error; botón desactivado mientras envía — `F/login/ui/FormularioLogin.componente.test.tsx` · (FR-005)
+- [x] T030 [P] [US1] `PaginaRecuperar.componente.test.tsx`: con 202 el mismo texto exista o no el correo; 429 con su aviso — `F/login/ui/PaginaRecuperar.componente.test.tsx` · (FR-013)
 
 ### Implementación
 
 - [x] T031 [US1] `textos`, `modelo/bloqueo`, `useIniciarSesion`, `useRecuperar`, `Turnstile` (script cargado solo aquí, `render=explicit`), `FormularioLogin`, `AvisoBloqueo`, `PaginaLogin` (textos del prototipo y versión «KillaUru Ops vX · CRISSO DEV S.A.C.»), `PaginaRecuperar`, `index` — `F/login/` · (FR-005, FR-013, FR-050; R-009)
-- [x] T032 [US1] `sesion.spec.ts` (simulado): MSW responde 401 `token_invalido` una vez → la pantalla sigue sin ir al login; renovación rechazada → login con «Tu sesión terminó. Vuelve a entrar.»; «Salir» en una pestaña lleva a la otra al login — `E2E/sesion.spec.ts` · (FR-007, FR-009, SC-007)
-- [x] T033 [P] [US1] `login.spec.ts` (simulado y pruebas): entrar, credenciales malas, bloqueo 423 tras 3 fallos (pruebas), conductor → «Esta cuenta no tiene acceso al panel.», en los 3 navegadores — `E2E/login.spec.ts` · (FR-005, SC-009; EQ-04)
-- [x] T034 [P] [US1] `almacenamiento.spec.ts`: al final de cada flujo, `localStorage`, `sessionStorage`, IndexedDB y `document.cookie` vacíos de datos personales y tokens — `E2E/almacenamiento.spec.ts` · (FR-006, SC-002)
+- [ ] T032 [US1] `sesion.spec.ts` (simulado): MSW responde 401 `token_invalido` una vez → la pantalla sigue sin ir al login; renovación rechazada → login con «Tu sesión terminó. Vuelve a entrar.»; «Salir» en una pestaña lleva a la otra al login — `E2E/funcionales/sesion.spec.ts` · (FR-007, FR-009, SC-007)
+- [ ] T033 [P] [US1] `login.spec.ts` (simulado y pruebas): entrar, credenciales malas, bloqueo 423 tras 3 fallos (pruebas), conductor → «Esta cuenta no tiene acceso al panel.», en los 3 navegadores — `E2E/funcionales/login.spec.ts` · (FR-005, SC-009; EQ-04)
+- [ ] T034 [P] [US1] `almacenamiento.spec.ts`: al final de cada flujo, `localStorage`, `sessionStorage`, IndexedDB y `document.cookie` vacíos de datos personales y tokens — `E2E/seguridad/almacenamiento.spec.ts` · (FR-006, SC-002)
 
 **Checkpoint**: se entra, se navega por el marco vacío y la sesión se renueva sola.
 
@@ -80,14 +82,14 @@ description: "Tareas del panel de administración «KillaUru Ops»"
 
 ### Pruebas
 
-- [x] T035 [P] [US2] `filtros.test.ts`: sin parámetros → `Activa,PendienteConfirmacion`, todos los tipos, 1–5, `7d`; ida y vuelta con la dirección; valores desconocidos descartados; grupo vacío → sin petición — `F/mapa/modelo/filtros.test.ts` · (FR-022, FR-026, SC-001; D6)
-- [x] T036 [P] [US2] `peticion.test.ts`: `estado` siempre; `tipo` solo con uno; `severidad` omitida con las 5; `desde` = ahora − 24 h / 7 d / 30 d con reloj fijo; nunca `bbox` ni `updatedSince` — `F/mapa/modelo/peticion.test.ts` · (FR-022; R-011)
-- [x] T037 [P] [US2] `tramoDemo.test.ts`: 267,9 → fuera; 268 y 335.073 → dentro; 335,1 → fuera — `F/mapa/modelo/tramoDemo.test.ts` · (FR-025; R-012)
-- [x] T038 [P] [US2] `simbolos.test.ts`: forma por cada estado; anillo solo en `Activa` 4–5; las 25 combinaciones llevan su número — `F/mapa/modelo/simbolos.test.ts` · (FR-023)
-- [x] T039 [P] [US2] `busqueda.test.ts`: UUID completo, prefijo de 8, «287,4» → la más cercana, correo → usuarios, texto suelto → sin resultados — `F/mapa/modelo/busqueda.test.ts` · (FR-040; R-028)
-- [x] T040 [US2] `PaginaMapa.test.tsx` (MSW, `LienzoMapa` doble): la primera petición lleva `estado=Activa,PendienteConfirmacion`; lista «Bache · km 287,4», id corto y «hace 2 h»; «N de M»; vacío; error con «Reintentar»; elegir una fila abre el detalle y pone `?anomalia=` — `F/mapa/ui/PaginaMapa.test.tsx` · (FR-022, FR-024, FR-026, FR-042)
-- [x] T041 [US2] `DetalleAnomalia.test.tsx`: los 17 campos; `venceUtc: null` → «—»; dentro/fuera del demo; historial con «sistema» y correo (un solo `?ids=`); 404 → «Esta anomalía ya no existe.» — `F/mapa/ui/DetalleAnomalia.test.tsx` · (FR-025, FR-039)
-- [x] T042 [P] [US2] `BusquedaRapida.test.tsx`: `Ctrl K` enfoca; Enter con id, km y correo navega; sin resultados avisa — `src/app/marco/BusquedaRapida.test.tsx` · (FR-040)
+- [x] T035 [P] [US2] `filtros.unitaria.test.ts`: sin parámetros → `Activa,PendienteConfirmacion`, todos los tipos, 1–5, `7d`; ida y vuelta con la dirección; valores desconocidos descartados; grupo vacío → sin petición — `F/mapa/modelo/filtros.unitaria.test.ts` · (FR-022, FR-026, SC-001; D6)
+- [x] T036 [P] [US2] `peticion.unitaria.test.ts`: `estado` siempre; `tipo` solo con uno; `severidad` omitida con las 5; `desde` = ahora − 24 h / 7 d / 30 d con reloj fijo; nunca `bbox` ni `updatedSince` — `F/mapa/modelo/peticion.unitaria.test.ts` · (FR-022; R-011)
+- [x] T037 [P] [US2] `tramoDemo.unitaria.test.ts`: 267,9 → fuera; 268 y 335.073 → dentro; 335,1 → fuera — `F/mapa/modelo/tramoDemo.unitaria.test.ts` · (FR-025; R-012)
+- [x] T038 [P] [US2] `simbolos.unitaria.test.ts`: forma por cada estado; anillo solo en `Activa` 4–5; las 25 combinaciones llevan su número — `F/mapa/modelo/simbolos.unitaria.test.ts` · (FR-023)
+- [x] T039 [P] [US2] `busqueda.unitaria.test.ts`: UUID completo, prefijo de 8, «287,4» → la más cercana, correo → usuarios, texto suelto → sin resultados — `F/mapa/modelo/busqueda.unitaria.test.ts` · (FR-040; R-028)
+- [x] T040 [US2] `PaginaMapa.componente.test.tsx` (MSW, `LienzoMapa` doble): la primera petición lleva `estado=Activa,PendienteConfirmacion`; lista «Bache · km 287,4», id corto y «hace 2 h»; «N de M»; vacío; error con «Reintentar»; elegir una fila abre el detalle y pone `?anomalia=` — `F/mapa/ui/PaginaMapa.componente.test.tsx` · (FR-022, FR-024, FR-026, FR-042)
+- [x] T041 [US2] `DetalleAnomalia.componente.test.tsx`: los 17 campos; `venceUtc: null` → «—»; dentro/fuera del demo; historial con «sistema» y correo (un solo `?ids=`); 404 → «Esta anomalía ya no existe.» — `F/mapa/ui/DetalleAnomalia.componente.test.tsx` · (FR-025, FR-039)
+- [x] T042 [P] [US2] `BusquedaRapida.componente.test.tsx`: `Ctrl K` enfoca; Enter con id, km y correo navega; sin resultados avisa — `src/app/marco/BusquedaRapida.componente.test.tsx` · (FR-040)
 
 ### Implementación
 
@@ -98,7 +100,7 @@ description: "Tareas del panel de administración «KillaUru Ops»"
 - [x] T047 [US2] `DetalleAnomalia`, `DatosAnomalia`, `ReportesPorDia` (con tabla oculta) e `Historial` (textos de `data-model.md` §5, actores con `useActores`) — `F/mapa/ui/` · (FR-025, FR-039, FR-045)
 - [x] T048 [US2] `PaginaMapa` (filtros y selección en la dirección) e `index` — `F/mapa/ui/PaginaMapa.tsx`, `F/mapa/index.ts` · (FR-026)
 - [x] T049 [US2] `BusquedaRapida` en la barra superior — `src/app/marco/BusquedaRapida.tsx` · (FR-040)
-- [x] T050 [US2] `mapa.spec.ts`: intercepta la primera petición sin parámetros (SC-001); cambia filtros; la dirección copiada abre lo mismo; la lista es navegable con teclado — `E2E/mapa.spec.ts` · (FR-022, FR-026, SC-001)
+- [ ] T050 [US2] `mapa.spec.ts`: intercepta la primera petición sin parámetros (SC-001); cambia filtros; la dirección copiada abre lo mismo; la lista es navegable con teclado — `E2E/funcionales/mapa.spec.ts` · (FR-022, FR-026, SC-001)
 
 ---
 
@@ -106,17 +108,17 @@ description: "Tareas del panel de administración «KillaUru Ops»"
 
 ### Pruebas
 
-- [x] T051 [P] [US5] `consulta.test.ts` (UUID → `ids`; < 3 caracteres → sin filtro; ≥ 3 → `busqueda`) y `revision.test.ts` (días que faltan, vencida, cada administrador en una sola lista) — `F/usuarios/modelo/consulta.test.ts`, `F/usuarios/modelo/revision.test.ts` · (FR-031, FR-034)
-- [x] T052 [US5] `PaginaUsuarios.test.tsx`: filtros (incluida «Invitación pendiente»), paginación «N de total usuarios», espera de 400 ms o Enter (temporizadores falsos), vacío y error — `F/usuarios/ui/PaginaUsuarios.test.tsx` · (FR-031, FR-042)
-- [x] T053 [US5] `MenuUsuario.test.tsx` y diálogos: acciones según estado y verificación; en la fila propia no hay «Cambiar rol» ni «Desactivar»; motivo obligatorio ≤ 200; 409 `accion_sobre_si_mismo`, `ultimo_administrador` y `correo_en_uso` con sus textos aunque el botón estuviera visible — `F/usuarios/ui/MenuUsuario.test.tsx` · (FR-002, FR-032, FR-033)
-- [x] T054 [US5] `DialogoRevision.test.tsx`: una decisión por administrador; cuerpo `{confirmados, retirados}`; 400 `revision_incompleta` recarga la lista — `F/usuarios/ui/DialogoRevision.test.tsx` · (FR-034)
+- [x] T051 [P] [US5] `consulta.unitaria.test.ts` (UUID → `ids`; < 3 caracteres → sin filtro; ≥ 3 → `busqueda`) y `revision.unitaria.test.ts` (días que faltan, vencida, cada administrador en una sola lista) — `F/usuarios/modelo/consulta.unitaria.test.ts`, `F/usuarios/modelo/revision.unitaria.test.ts` · (FR-031, FR-034)
+- [x] T052 [US5] `PaginaUsuarios.componente.test.tsx`: filtros (incluida «Invitación pendiente»), paginación «N de total usuarios», espera de 400 ms o Enter (temporizadores falsos), vacío y error — `F/usuarios/ui/PaginaUsuarios.componente.test.tsx` · (FR-031, FR-042)
+- [x] T053 [US5] `MenuUsuario.componente.test.tsx` y diálogos: acciones según estado y verificación; en la fila propia no hay «Cambiar rol» ni «Desactivar»; motivo obligatorio ≤ 200; 409 `accion_sobre_si_mismo`, `ultimo_administrador` y `correo_en_uso` con sus textos aunque el botón estuviera visible — `F/usuarios/ui/MenuUsuario.componente.test.tsx` · (FR-002, FR-032, FR-033)
+- [x] T054 [US5] `DialogoRevision.componente.test.tsx`: una decisión por administrador; cuerpo `{confirmados, retirados}`; 400 `revision_incompleta` recarga la lista — `F/usuarios/ui/DialogoRevision.componente.test.tsx` · (FR-034)
 
 ### Implementación
 
 - [x] T055 [US5] `textos`, `modelo/consulta`, `modelo/revision`, `useUsuarios`, `useAccionesUsuario` (invalidaciones de `data-model.md` §3), `useRevision` y `useActores` (un `?ids=` por lote, caché 10 min) — `F/usuarios/modelo/`, `F/usuarios/api/`, `F/usuarios/textos.ts` · (FR-031, FR-033, FR-034, FR-039, FR-046)
 - [x] T056 [US5] `PaginaUsuarios`, `FiltrosUsuarios`, `TablaUsuarios` (pie «Ninguna cuenta está unida a viajes ni detecciones (RNF-10)») y `MenuUsuario` — `F/usuarios/ui/` · (FR-031, FR-033)
 - [x] T057 [US5] `DialogoInvitar`, `DialogoRol`, `DialogoDesactivar`, `AvisoRevision`, `DialogoRevision` e `index` — `F/usuarios/ui/`, `F/usuarios/index.ts` · (FR-032, FR-033, FR-034)
-- [x] T058 [US5] `usuarios.spec.ts`: invitar, cambiar rol, desactivar con motivo, activar, reenviar y revisión mensual — `E2E/usuarios.spec.ts` · (FR-031…FR-034, SC-008)
+- [ ] T058 [US5] `usuarios.spec.ts`: invitar, cambiar rol, desactivar con motivo, activar, reenviar y revisión mensual — `E2E/funcionales/usuarios.spec.ts` · (FR-031…FR-034, SC-008)
 
 ---
 
@@ -124,13 +126,13 @@ description: "Tareas del panel de administración «KillaUru Ops»"
 
 ### Pruebas
 
-- [x] T059 [P] [US8] `tokenDelFragmento.test.ts` (lee `#token=`, llama a `history.replaceState` sin el fragmento, sin token → error) y `contrasena.test.ts` (9/10/128/129 caracteres; las dos iguales) — `F/cuenta/modelo/tokenDelFragmento.test.ts`, `F/cuenta/modelo/contrasena.test.ts` · (FR-014)
-- [x] T060 [US8] `PaginaVerificar.test.tsx` y `PaginaFijarContrasena.test.tsx` (MSW): 204 y 400 `enlace_invalido` con sus textos; restablecer e invitación con su mensaje final; el token no se envía dos veces — `F/cuenta/ui/PaginaVerificar.test.tsx`, `F/cuenta/ui/PaginaFijarContrasena.test.tsx` · (FR-014)
+- [x] T059 [P] [US8] `tokenDelFragmento.unitaria.test.ts` (lee `#token=`, llama a `history.replaceState` sin el fragmento, sin token → error) y `contrasena.unitaria.test.ts` (9/10/128/129 caracteres; las dos iguales) — `F/cuenta/modelo/tokenDelFragmento.unitaria.test.ts`, `F/cuenta/modelo/contrasena.unitaria.test.ts` · (FR-014)
+- [x] T060 [US8] `PaginaVerificar.componente.test.tsx` y `PaginaFijarContrasena.componente.test.tsx` (MSW): 204 y 400 `enlace_invalido` con sus textos; restablecer e invitación con su mensaje final; el token no se envía dos veces — `F/cuenta/ui/PaginaVerificar.componente.test.tsx`, `F/cuenta/ui/PaginaFijarContrasena.componente.test.tsx` · (FR-014)
 
 ### Implementación
 
 - [x] T061 [US8] `textos`, modelos, `useEnlaces`, `PaginaVerificar`, `PaginaFijarContrasena` (modo restablecer / invitación) e `index` — `F/cuenta/` · (FR-014)
-- [x] T062 [US8] `cuenta.spec.ts`: las 3 páginas; el fragmento no queda en el historial ni en la barra — `E2E/cuenta.spec.ts` · (FR-014)
+- [ ] T062 [US8] `cuenta.spec.ts`: las 3 páginas; el fragmento no queda en el historial ni en la barra — `E2E/funcionales/cuenta.spec.ts` · (FR-014)
 
 ---
 
@@ -138,15 +140,15 @@ description: "Tareas del panel de administración «KillaUru Ops»"
 
 ### Pruebas
 
-- [x] T063 [P] [US3] `acciones.test.ts`: tabla de RN-07 completa (5 estados × 4 acciones); `MantenerDescartada` solo con `porRevisar`; texto «No disponible desde X. Solo desde: …» — `F/moderacion/modelo/acciones.test.ts` · (FR-027, FR-028)
-- [x] T064 [US3] `AccionesModeracion.test.tsx`: textos de confirmación del prototipo; `POST` con `accion`; el detalle se reemplaza con la respuesta; 409 `transicion_no_permitida` → aviso y recarga aunque el botón estaba habilitado; invalidaciones de `data-model.md` §3 — `F/moderacion/ui/AccionesModeracion.test.tsx` · (FR-002, FR-027, FR-030)
-- [x] T065 [US3] `PaginaModeracion.test.tsx`: pestañas «Por revisar N» / «Esperan confirmación N»; «Mantener descartada» sin diálogo y «Reabrir» con diálogo; pendientes de solo lectura con «Ver en el mapa»; textos de vacío y del aviso del prototipo — `F/moderacion/ui/PaginaModeracion.test.tsx` · (FR-028, FR-029, FR-042)
+- [x] T063 [P] [US3] `acciones.unitaria.test.ts`: tabla de RN-07 completa (5 estados × 4 acciones); `MantenerDescartada` solo con `porRevisar`; texto «No disponible desde X. Solo desde: …» — `F/moderacion/modelo/acciones.unitaria.test.ts` · (FR-027, FR-028)
+- [x] T064 [US3] `AccionesModeracion.componente.test.tsx`: textos de confirmación del prototipo; `POST` con `accion`; el detalle se reemplaza con la respuesta; 409 `transicion_no_permitida` → aviso y recarga aunque el botón estaba habilitado; invalidaciones de `data-model.md` §3 — `F/moderacion/ui/AccionesModeracion.componente.test.tsx` · (FR-002, FR-027, FR-030)
+- [x] T065 [US3] `PaginaModeracion.componente.test.tsx`: pestañas «Por revisar N» / «Esperan confirmación N»; «Mantener descartada» sin diálogo y «Reabrir» con diálogo; pendientes de solo lectura con «Ver en el mapa»; textos de vacío y del aviso del prototipo — `F/moderacion/ui/PaginaModeracion.componente.test.tsx` · (FR-028, FR-029, FR-042)
 
 ### Implementación
 
 - [x] T066 [US3] `textos`, `modelo/acciones`, `useListasModeracion`, `useModerar`, `AccionesModeracion` y `DialogoModeracion` (con «Queda en la auditoría con tu usuario») — `F/moderacion/` · (FR-027, FR-030)
 - [x] T067 [US3] `PaginaModeracion`, `TablaPorRevisar`, `TablaPendientes` e `index`; el detalle del mapa usa `AccionesModeracion` desde `moderacion/index.ts` y el menú lateral, el contador — `F/moderacion/ui/`, `F/moderacion/index.ts`, `F/mapa/ui/DetalleAnomalia.tsx` · (FR-028, FR-029, FR-041)
-- [x] T068 [US3] `moderacion.spec.ts`: las 4 acciones y un 409 provocado por otra pestaña — `E2E/moderacion.spec.ts` · (FR-027…FR-030, SC-008)
+- [ ] T068 [US3] `moderacion.spec.ts`: las 4 acciones y un 409 provocado por otra pestaña — `E2E/funcionales/moderacion.spec.ts` · (FR-027…FR-030, SC-008)
 
 ---
 
@@ -154,18 +156,18 @@ description: "Tareas del panel de administración «KillaUru Ops»"
 
 ### Pruebas
 
-- [x] T069 [P] [US4] `indicadores.test.ts`: rótulo, unidad y formato de variación por indicador; «Reaparición» al subir = malo; `null` → «—» — `F/resumen/modelo/indicadores.test.ts` · (FR-015)
-- [x] T070 [P] [US4] `franja.test.ts`: km 0, 9,99, 10, 332,9 y 335.073 → tramos 0, 0, 1, 33 y 33; severidad máxima; tramo vacío — `F/resumen/modelo/franja.test.ts` · (FR-019; R-013)
-- [x] T071 [P] [US4] `atencion.test.ts`: «N temas»; revisión a 16/15 días → no/sí suma; vencida; «<id> expira en N h» — `F/resumen/modelo/atencion.test.ts` · (FR-018)
-- [x] T072 [P] [US4] `transicion.test.ts`: cada fila de la tabla «Qué pasó» de `data-model.md` §5 — `F/resumen/modelo/transicion.test.ts` · (FR-020; R-014)
-- [x] T073 [US4] `PaginaResumen.test.tsx` (MSW con el `example` de 007): 6 rótulos, «—», selector 7/14/30 envía `dias`, «Paneles técnicos» con `target="_blank"` y `rel="noopener noreferrer"`, «Estado del servicio» sin cifras, últimos cambios con «sistema», una tarjeta con error no rompe las demás — `F/resumen/ui/PaginaResumen.test.tsx` · (FR-015…FR-020, FR-042)
+- [x] T069 [P] [US4] `indicadores.unitaria.test.ts`: rótulo, unidad y formato de variación por indicador; «Reaparición» al subir = malo; `null` → «—» — `F/resumen/modelo/indicadores.unitaria.test.ts` · (FR-015)
+- [x] T070 [P] [US4] `franja.unitaria.test.ts`: km 0, 9,99, 10, 332,9 y 335.073 → tramos 0, 0, 1, 33 y 33; severidad máxima; tramo vacío — `F/resumen/modelo/franja.unitaria.test.ts` · (FR-019; R-013)
+- [x] T071 [P] [US4] `atencion.unitaria.test.ts`: «N temas»; revisión a 16/15 días → no/sí suma; vencida; «<id> expira en N h» — `F/resumen/modelo/atencion.unitaria.test.ts` · (FR-018)
+- [x] T072 [P] [US4] `transicion.unitaria.test.ts`: cada fila de la tabla «Qué pasó» de `data-model.md` §5 — `F/resumen/modelo/transicion.unitaria.test.ts` · (FR-020; R-014)
+- [x] T073 [US4] `PaginaResumen.componente.test.tsx` (MSW con el `example` de 007): 6 rótulos, «—», selector 7/14/30 envía `dias`, «Paneles técnicos» con `target="_blank"` y `rel="noopener noreferrer"`, «Estado del servicio» sin cifras, últimos cambios con «sistema», una tarjeta con error no rompe las demás — `F/resumen/ui/PaginaResumen.componente.test.tsx` · (FR-015…FR-020, FR-042)
 
 ### Implementación
 
 - [x] T074 [US4] `textos`, `modelo/indicadores`, `modelo/franja`, `modelo/atencion`, `modelo/transicion`, `useIndicadores` y `useTransiciones` — `F/resumen/modelo/`, `F/resumen/api/`, `F/resumen/textos.ts` · (FR-015, FR-018…FR-020)
 - [x] T075 [US4] `FranjaIndicadores`, `TarjetaIndicador` (ayuda accesible), `GraficoEventos` (barras + línea punteada + tabla oculta) — `F/resumen/ui/` · (FR-015, FR-016, FR-043)
 - [x] T076 [US4] `RequiereAtencion`, `FranjaCorredor` (tabla oculta), `UltimosCambios`, `PaginaResumen` (botón «Paneles técnicos») e `index` — `F/resumen/ui/`, `F/resumen/index.ts` · (FR-017…FR-020)
-- [x] T077 [US4] `resumen.spec.ts`: carga, cambio de periodo y paso a «Moderación» desde «Requiere atención» — `E2E/resumen.spec.ts` · (FR-015…FR-018)
+- [x] T077 [US4] `resumen.spec.ts`: carga, cambio de periodo y paso a «Moderación» desde «Requiere atención» — `E2E/funcionales/resumen.spec.ts` · (FR-015…FR-018)
 
 ---
 
@@ -173,13 +175,13 @@ description: "Tareas del panel de administración «KillaUru Ops»"
 
 ### Pruebas
 
-- [x] T078 [P] [US6] `actor.test.ts` (UUID, correo, inválido; `elegirCuenta` exacta sin mayúsculas; 0 y varias parciales → `null`) y `textoAccion.test.ts` (las 14 acciones; `AnomaliaModerada` según `contexto.accion`; 6 categorías) — `F/auditoria/modelo/actor.test.ts`, `F/auditoria/modelo/textoAccion.test.ts` · (FR-037, FR-038)
-- [x] T079 [US6] `PaginaAuditoria.test.tsx`: filtros → parámetros; actor por correo = 1 `?busqueda` + consulta con `actorId`; sin cuenta → aviso; 1 solo `?ids=` por página; `null` → «sistema»; fila con `aria-expanded` y JSON; «N registros · retención permanente» — `F/auditoria/ui/PaginaAuditoria.test.tsx` · (FR-037…FR-039, FR-042)
+- [x] T078 [P] [US6] `actor.unitaria.test.ts` (UUID, correo, inválido; `elegirCuenta` exacta sin mayúsculas; 0 y varias parciales → `null`) y `textoAccion.unitaria.test.ts` (las 14 acciones; `AnomaliaModerada` según `contexto.accion`; 6 categorías) — `F/auditoria/modelo/actor.unitaria.test.ts`, `F/auditoria/modelo/textoAccion.unitaria.test.ts` · (FR-037, FR-038)
+- [x] T079 [US6] `PaginaAuditoria.componente.test.tsx`: filtros → parámetros; actor por correo = 1 `?busqueda` + consulta con `actorId`; sin cuenta → aviso; 1 solo `?ids=` por página; `null` → «sistema»; fila con `aria-expanded` y JSON; «N registros · retención permanente» — `F/auditoria/ui/PaginaAuditoria.componente.test.tsx` · (FR-037…FR-039, FR-042)
 
 ### Implementación
 
 - [x] T080 [US6] `textos`, modelos, `useAuditoria`, `PaginaAuditoria` (insignia «Solo lectura»), `FiltrosAuditoria` («Hora en UTC»), `TablaAuditoria`, `FilaAuditoria` e `index` — `F/auditoria/` · (FR-037…FR-039)
-- [x] T081 [US6] `auditoria.spec.ts`: filtra por categoría, por id y por correo; comprueba que las acciones de T058, T068 y T085 aparecen con su texto — `E2E/auditoria.spec.ts` · (FR-037, FR-038, SC-008)
+- [ ] T081 [US6] `auditoria.spec.ts`: filtra por categoría, por id y por correo; comprueba que las acciones de T058, T068 y T085 aparecen con su texto — `E2E/funcionales/auditoria.spec.ts` · (FR-037, FR-038, SC-008)
 
 ---
 
@@ -187,20 +189,20 @@ description: "Tareas del panel de administración «KillaUru Ops»"
 
 ### Pruebas
 
-- [x] T082 [P] [US7] `solicitud.test.ts` (13 oct → `2026-10-13T05:00:00Z`; hasta 20 oct → `2026-10-21T04:59:59Z`; vacías → `null`; «Todos» → `tipo: null` y `estados: []`) y `descarga.test.ts` (nombre del archivo por formato) — `F/exportacion/modelo/solicitud.test.ts`, `F/exportacion/modelo/descarga.test.ts` · (FR-035; R-017)
-- [x] T083 [US7] `PaginaExportacion.test.tsx`: 11 columnas y `seudonimo` tachado; cuerpo del `POST`; descarga con `createObjectURL` espiado y liberado; «Recientes» con filas y «tú» — `F/exportacion/ui/PaginaExportacion.test.tsx` · (FR-035, FR-036)
+- [x] T082 [P] [US7] `solicitud.unitaria.test.ts` (13 oct → `2026-10-13T05:00:00Z`; hasta 20 oct → `2026-10-21T04:59:59Z`; vacías → `null`; «Todos» → `tipo: null` y `estados: []`) y `descarga.unitaria.test.ts` (nombre del archivo por formato) — `F/exportacion/modelo/solicitud.unitaria.test.ts`, `F/exportacion/modelo/descarga.unitaria.test.ts` · (FR-035; R-017)
+- [x] T083 [US7] `PaginaExportacion.componente.test.tsx`: 11 columnas y `seudonimo` tachado; cuerpo del `POST`; descarga con `createObjectURL` espiado y liberado; «Recientes» con filas y «tú» — `F/exportacion/ui/PaginaExportacion.componente.test.tsx` · (FR-035, FR-036)
 
 ### Implementación
 
 - [x] T084 [US7] `textos`, modelos, `useExportar` (con `Accept` por formato), `useRecientes`, `PaginaExportacion`, `FormularioExportacion`, `ExportacionesRecientes` e `index` — `F/exportacion/` · (FR-035, FR-036)
-- [x] T085 [US7] `exportacion.spec.ts`: descarga CSV y GeoJSON; la cabecera del CSV es exactamente `id,tipo,severidad,estado,persistencia,km,latitud,longitud,reportes,primer_reporte,ultimo_reporte`; aparece en «Recientes» — `E2E/exportacion.spec.ts` · (FR-035, FR-036; RF-20)
+- [ ] T085 [US7] `exportacion.spec.ts`: descarga CSV y GeoJSON; la cabecera del CSV es exactamente `id,tipo,severidad,estado,persistencia,km,latitud,longitud,reportes,primer_reporte,ultimo_reporte`; aparece en «Recientes» — `E2E/funcionales/exportacion.spec.ts` · (FR-035, FR-036; RF-20)
 
 ---
 
 ## Phase 11: Polish — calidad, CI y despliegue
 
-- [x] T086 [P] `accesibilidad.spec.ts` (axe con `wcag2a` y `wcag2aa` en las 11 rutas, con datos y con diálogos abiertos) y `teclado.spec.ts` (login, filtro del mapa, lista → detalle → moderar, revisión mensual, solo con teclado) — `E2E/accesibilidad.spec.ts`, `E2E/teclado.spec.ts` · (FR-043, SC-004)
-- [x] T087 [P] Presupuesto y medición: `.size-limit.json`, `lighthouserc.json` y `rendimiento.spec.ts` (10 cargas del mapa contra «killauru-pruebas», p95 de `mapa-listo`) — `.size-limit.json`, `lighthouserc.json`, `E2E/rendimiento.spec.ts` · (FR-044, SC-005, SC-006)
+- [ ] T086 [P] `accesibilidad.spec.ts` (axe con `wcag2a` y `wcag2aa` en las 11 rutas, con datos y con diálogos abiertos) y `teclado.spec.ts` (login, filtro del mapa, lista → detalle → moderar, revisión mensual, solo con teclado) — `E2E/accesibilidad/accesibilidad.spec.ts`, `E2E/accesibilidad/teclado.spec.ts` · (FR-043, SC-004)
+- [ ] T087 [P] Presupuesto y medición: `.size-limit.json`, `lighthouserc.json` y `rendimiento.spec.ts` (10 cargas del mapa contra «killauru-pruebas», p95 de `mapa-listo`) — `.size-limit.json`, `lighthouserc.json`, `E2E/rendimiento/rendimiento.spec.ts` · (FR-044, SC-005, SC-006)
 - [ ] T088 [P] Cuentas y datos de prueba que necesita el E2E real (2 administradores, 1 conductor, anomalías en los 5 estados, 1 descartada «por revisar») documentados para la semilla de «killauru-pruebas» — `README.md` · (SC-007, SC-008)
 - [ ] T089 [P] CORS propuesto para el *bucket* de R2 (`GET`, `HEAD`, `Range`, origen `https://panel.killauru.pe`, expone `Content-Range`, `ETag`) — `infra/r2-cors.json` · (FR-021; H-04)
 - [ ] T090 CI del panel: tipos al día (`git diff --exit-code`), `tsc`, ESLint, `dependency-cruiser`, Vitest con cobertura y líneas, `build` + `build:simulado`, `size-limit`, Playwright simulado + axe en 3 navegadores, Lighthouse CI — `../.github/workflows/panel-ci.yml` · (FR-047, FR-048, FR-049)

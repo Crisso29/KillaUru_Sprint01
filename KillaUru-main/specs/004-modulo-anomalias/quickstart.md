@@ -1,8 +1,10 @@
 # Quickstart: comprobar el módulo Anomalías
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 ## Requisitos previos
 
-001 y 002 funcionando; migraciones `V0004` y `V0005` aplicadas (polilínea cargada: `/health/ready` = 200). Hasta que exista Ingesta (005), los eventos se inyectan con la prueba de integración con los escenarios automatizados de `tests/KillaUru.Integracion.Tests/Anomalias/`.
+001 y 002 funcionando; migraciones `V0004` y `V0005` aplicadas (polilínea cargada: `/health/ready` = 200). Ingesta (005) ya tiene implementación, pero su integración dedicada está pendiente. La suite de Anomalías inyecta eventos directamente; no acredita la recepción HTTP de lotes. Sus escenarios están en `tests/KillaUru.Integracion.Tests/specs/004-modulo-anomalias/`.
 
 ## 1. Pruebas automáticas
 

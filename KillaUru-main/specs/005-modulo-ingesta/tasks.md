@@ -5,17 +5,19 @@ description: "Tareas del módulo Ingesta"
 
 # Tasks: Módulo Ingesta
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 **Input**: `specs/005-modulo-ingesta/` · **Requiere**: 001 (fases 1–6) y 004 (Phase 2 para empezar con dobles; US2 para integrar de verdad)
 
 **Tests**: obligatorias y **primero** (constitución VII; el contrato del lote y la prueba de reinicio son críticos: EQ-02, EQ-09).
 
-**Formato**: `- [ ] T### [P?] [US?] Descripción — ruta · (requisito)`. Rutas relativas a `backend/`. Módulo: `src/Modules/KillaUru.Ingesta/` (`In/`). Pruebas: `tests/KillaUru.Ingesta.Tests/` (`InT/`) y `tests/KillaUru.Integracion.Tests/Ingesta/` (`IntIn/`). **Ningún `.cs` > 199 líneas.**
+**Formato**: `- [ ] T### [P?] [US?] Descripción — ruta · (requisito)`. Rutas relativas a `backend/`. Módulo: `src/Modules/KillaUru.Ingesta/` (`In/`). Pruebas: `tests/KillaUru.Ingesta.Tests/` (`InT/`) y `tests/KillaUru.Integracion.Tests/specs/005-modulo-ingesta/` (`IntIn/`). **Ningún `.cs` > 199 líneas.**
 
 ## Phase 1: Setup
 
 - [x] T001 Migración `V0006__ingesta.sql` (tabla e índices de `data-model.md` §1: `lote_id` NULLable, `CHECK (motivo BETWEEN 1 AND 8)`, `ix_recibido_purga`) — `db/migraciones/V0006__ingesta.sql` · (FR-017, FR-025; D3, T-BD06, T-BD-CHK)
 - [x] T002 [P] `IngestaOptions` con `ValidateOnStart` y su sección en `appsettings.json` — `In/Application/IngestaOptions.cs` · (ADR-012)
-- [ ] T003 [P] Prueba que `Ingesta:PurgaSeudonimoHoras` = `Anomalias:PurgaSeudonimoHoras` en `appsettings.json` — `IntIn/ConfiguracionTests.cs` · (plan, Complexity Tracking)
+- [ ] T003 [P] Prueba que `Ingesta:PurgaSeudonimoHoras` = `Anomalias:PurgaSeudonimoHoras` en `appsettings.json` — `tests/KillaUru.Integracion.Tests/specs/005-modulo-ingesta/integracion/ConfiguracionTests.cs` · (plan, Complexity Tracking)
 - [ ] T004 [P] Semillas: lotes de ejemplo sobre la polilínea, sin `loteId` y con un solo seudónimo (`lote-50-buenos.json`, `lote-con-errores.json`) — `db/semillas/lotes/` · (D2, D3)
 
 ## Phase 2: Foundational — dominio mínimo y tipos del lote
@@ -42,8 +44,8 @@ description: "Tareas del módulo Ingesta"
 ### Pruebas
 
 - [x] T010 [P] [US1] `RecibirLoteEventosUseCaseTests` (dobles de `IAnomaliasService`, `IRecepcionEventos`, `IColaLotes`): vacío/51 → `Invalido`; sin capacidad → `Saturado` sin insertar; una sola `recibidoUtc` y un `loteId` UUIDv7 generado por el servidor; evento sin `eventoId` → `Rechazo(null, indice, EsquemaInvalido)`; `SeudonimoInconsistente`; listas disjuntas; métricas de lote y de rechazo por motivo — `InT/Application/RecibirLoteEventosUseCaseTests.cs` · (FR-003…FR-010, FR-023…FR-025)
-- [ ] T011 [US1] `RecepcionEventosPostgresTests` (Testcontainers): un solo `INSERT`; devuelve solo los nuevos; reinsertar = 0 nuevos — `IntIn/RecepcionEventosPostgresTests.cs` · (FR-005)
-- [ ] T012 [US1] `RecepcionApiTests` (`WebApplicationFactory`): escenarios 1–12 y 17–21 del quickstart — `IntIn/RecepcionApiTests.cs` · (SC-004, FR-001, FR-007, FR-023…FR-025)
+- [ ] T011 [US1] `RecepcionEventosPostgresTests` (Testcontainers): un solo `INSERT`; devuelve solo los nuevos; reinsertar = 0 nuevos — `tests/KillaUru.Integracion.Tests/specs/005-modulo-ingesta/integracion/RecepcionEventosPostgresTests.cs` · (FR-005)
+- [ ] T012 [US1] `RecepcionApiTests` (`WebApplicationFactory`): escenarios 1–12 y 17–21 del quickstart — `tests/KillaUru.Integracion.Tests/specs/005-modulo-ingesta/integracion/RecepcionApiTests.cs` · (SC-004, FR-001, FR-007, FR-023…FR-025)
 
 ### Implementación
 
@@ -63,37 +65,37 @@ description: "Tareas del módulo Ingesta"
 ### Pruebas
 
 - [x] T019 [P] [US3] `ProcesarLoteUseCaseTests` (dobles): orden por `detectado_utc`; contexto con `ConSesion`, conteo y `RecibidoUtc`; marca `Procesado` ante `Procesado` y `YaProcesado`, `Descartado` con motivo; `RegistrarRetrasoCola(ahora − recibido)` al marcar; excepción → no marca, sin métrica, y sigue con el siguiente — `InT/Application/ProcesarLoteUseCaseTests.cs` · (FR-012…FR-014, FR-026; R-005, R-015)
-- [ ] T020 [US3] `PendientesRepositorioTests` (Testcontainers): `RecibidosDelLoteAsync` usa `ix_recibido_lote` (también con `lote_id IS NULL`); `ContarEnLaHoraAsync` con límites de la hora; `MarcarAsync`; `BarridoPendientesPostgres` — `IntIn/PendientesRepositorioTests.cs` · (FR-013, FR-016; R-007, R-011)
+- [ ] T020 [US3] `PendientesRepositorioTests` (Testcontainers): `RecibidosDelLoteAsync` usa `ix_recibido_lote` (también con `lote_id IS NULL`); `ContarEnLaHoraAsync` con límites de la hora; `MarcarAsync`; `BarridoPendientesPostgres` — `tests/KillaUru.Integracion.Tests/specs/005-modulo-ingesta/integracion/PendientesRepositorioTests.cs` · (FR-013, FR-016; R-007, R-011)
 
 ### Implementación
 
 - [x] T021 [US3] Puertos `IPendientesRepositorio` e `IBarridoPendientes`; `PendientesRepositorio` y `BarridoPendientesPostgres` (partidos para no pasar de 200 líneas) — `In/Application/Puertos/`, `In/Infrastructure/` · (FR-013, FR-016; T-ARQ08)
 - [x] T022 [US3] `ArmadorContexto` y `ProcesarLoteUseCase` (con `RegistrarRetrasoCola`) — `In/Application/Procesamiento/` · (FR-012…FR-015, FR-026; D11)
 - [x] T023 [US3] `ProcesadorEventosBackgroundService` (N = `Trabajadores` o núcleos; un *scope* por lote) — `In/Infrastructure/ProcesadorEventosBackgroundService.cs` · (FR-012)
-- [ ] T024 [US3] `ProcesamientoTests` de punta a punta con Anomalías real: lote → filas `Procesado`/`Descartado` y anomalías creadas — `IntIn/ProcesamientoTests.cs` · (FR-013, FR-014)
+- [ ] T024 [US3] `ProcesamientoTests` de punta a punta con Anomalías real: lote → filas `Procesado`/`Descartado` y anomalías creadas — `tests/KillaUru.Integracion.Tests/specs/004-modulo-anomalias/integracion/ProcesamientoTests.cs` · (FR-013, FR-014)
 
 ## Phase 5: User Story 2 — Ningún evento aceptado se pierde (P1)
 
 - [x] T025 [P] [US2] `BarrerPendientesUseCaseTests`: al arrancar encola todo; después, solo lo de más de 60 s; filas sin `lote_id` → aviso `LoteRecibido(null)`; respeta la capacidad (lotes de 100 ids) — `InT/Application/BarrerPendientesUseCaseTests.cs` · (FR-016; R-011)
 - [x] T026 [US2] `BarrerPendientesUseCase` y `BarredorBackgroundService` (al arrancar + `PeriodicTimer` de 60 s sobre `TimeProvider`) — `In/Application/Procesamiento/`, `In/Infrastructure/BarredorBackgroundService.cs` · (FR-016)
-- [ ] T027 [US2] `ReinicioTests` (EQ-09): aceptar 500 eventos, detener el *host* a mitad del procesamiento, arrancar otro y verificar conciliación exacta y 0 duplicados en ≤ 2 min — `IntIn/ReinicioTests.cs` · (SC-003, RNF-06)
+- [ ] T027 [US2] `ReinicioTests` (EQ-09): aceptar 500 eventos, detener el *host* a mitad del procesamiento, arrancar otro y verificar conciliación exacta y 0 duplicados en ≤ 2 min — `tests/KillaUru.Integracion.Tests/specs/005-modulo-ingesta/integracion/ReinicioTests.cs` · (SC-003, RNF-06)
 
 ## Phase 6: User Story 4 — Privacidad y retención (P1)
 
 - [x] T028 [P] [US4] Puerto `IPurgasRecepcion` y `PurgasRecepcionPostgres` (SQL de `data-model.md` §3: la de 72 h pone `seudonimo`, `lote_id` en `NULL` y `recibido_utc = date_trunc('hour', recibido_utc)` en una sola sentencia con `ix_recibido_purga`; la de 30 días solo estados 1 y 2; lotes de 5 000) — `In/Application/Puertos/`, `In/Infrastructure/PurgasRecepcionPostgres.cs` · (FR-017, FR-018; D3, R-008)
 - [x] T029 [US4] `PurgarSeudonimosRecepcionUseCase` y `PurgarRecepcionUseCase` (métrica `purga-seudonimos-recepcion` / `purga-recepcion`) + `TareaPurgaSeudonimosRecepcion` (al arrancar y cada hora en :10) y `TareaPurgaRecepcion` (al arrancar y 03:00 hora local), ambas con `ProgramaReloj` — `In/Application/Tareas/`, `In/Infrastructure/Tareas/` · (FR-017, FR-018, FR-020; T-OPS05)
 - [x] T039 [P] [US4] `TareasPorRelojTests` (`FakeTimeProvider`): corren al arrancar; la horaria dispara en el minuto :10 y la diaria a las 03:00 hora local, también tras reinicios seguidos — `InT/Infrastructure/TareasPorRelojTests.cs` · (FR-017, FR-018, FR-020; T-OPS05)
-- [ ] T030 [US4] `PurgasTests`: escenarios 15 y 16 (seudónimo y `lote_id` en `NULL`, hora redondeada; filas `Recibido` > 30 días se conservan); `payload` sin seudónimo; esquema sin cuentas, correos ni tokens — `IntIn/PurgasTests.cs` · (SC-005, FR-017…FR-019)
+- [ ] T030 [US4] `PurgasTests`: escenarios 15 y 16 (seudónimo y `lote_id` en `NULL`, hora redondeada; filas `Recibido` > 30 días se conservan); `payload` sin seudónimo; esquema sin cuentas, correos ni tokens — `tests/KillaUru.Integracion.Tests/specs/005-modulo-ingesta/integracion/PurgasTests.cs` · (SC-005, FR-017…FR-019)
 
 ## Phase 7: User Story 5 — Salud de la cola (P2)
 
 - [x] T031 [US5] `ChequeoColaIngesta` (caché de 5 s) y `ObservarCola` (tamaño del `Channel` + antigüedad) — `In/Infrastructure/ChequeoColaIngesta.cs`, `In/Infrastructure/ColaLotesChannel.cs` · (FR-021, FR-022; R-009)
-- [ ] T032 [US5] `SaludIngestaTests`: escenario 14; con la cola al día `/health/ready` = 200 — `IntIn/SaludIngestaTests.cs` · (FR-021)
+- [ ] T032 [US5] `SaludIngestaTests`: escenario 14; con la cola al día `/health/ready` = 200 — `tests/KillaUru.Integracion.Tests/specs/005-modulo-ingesta/integracion/SaludIngestaTests.cs` · (FR-021)
 - [ ] T040 [US5] Alerta de Grafana «pendiente más viejo de Ingesta > 72 h» (riesgo de R-008 frente a RNF-25) y paso de reproceso manual, en el runbook de monitoreo de 001 — `deploy/runbooks/monitoreo.md` · (FR-018, FR-022; SEG-05)
 
 ## Phase 8: Polish
 
-- [ ] T033 [P] `README.md` del módulo (flujo, contrato del lote con `indice` y `SeudonimoInconsistente`, parámetros, horario de tareas, conciliación) — `In/README.md` · (RNF-19)
+- [x] T033 [P] `README.md` del módulo (flujo, contrato del lote con `indice` y `SeudonimoInconsistente`, parámetros, horario de tareas, conciliación) — `In/README.md` · (RNF-19)
 - [ ] T034 Prueba de contrato con `contracts/ingesta.openapi.yaml` en verde · (FR-001, FR-006)
 - [ ] T035 Medir SC-001 y SC-002 con los scripts de 001 (`tests/carga/carga-combinada.k6.js`, `picos.k6.js`, `estres.k6.js`, `resistencia.k6.js`, `caos.sh`), fuera de la VM contra el entorno de pruebas, con `killauru.ingesta.retraso_cola_s`; Ingesta no tiene script propio · (RNF-02, RNF-03, RNF-23, FR-026; D11)
 - [ ] T036 Marcar `checklists/trazabilidad.md` (los pendientes de `research.md` ya están confirmados por el autor)

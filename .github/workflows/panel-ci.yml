@@ -73,7 +73,17 @@ jobs:
 
       - run: npm ci
 
-      - run: npx vitest run --coverage
+      - run: npm run cobertura
+
+      - name: Conservar resultados y cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: panel-pruebas-${{ github.sha }}
+          path: |
+            KillaUru-main/panel/coverage/
+            KillaUru-main/panel/test-results/
+          if-no-files-found: warn
 
   build:
     name: Build

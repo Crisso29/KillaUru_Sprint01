@@ -6,7 +6,7 @@ Panel web de administración para el sistema KillaUru. SPA React + TypeScript en
 
 Interfaz exclusiva para administradores: moderación de anomalías, gestión de usuarios, auditoría de acciones, exportación de datos y resumen del sistema.
 
-URL de producción: `https://panel.killauru.pe`
+URL prevista de producción: `https://panel.killauru.pe`. Su disponibilidad y despliegue no se verificaron en esta revisión local.
 
 ## Arranque local
 
@@ -43,9 +43,13 @@ Variables disponibles:
 | `VITE_URL_ESTILO_MAPA` | URL del estilo MapLibre | `https://cdn.killauru.pe/estilo/v1/style.json` |
 | `VITE_URL_PMTILES` | URL del archivo PMTiles en R2 | `https://cdn.killauru.pe/mapa/corredor.pmtiles` |
 | `VITE_URL_ESTADO` | URL de la página de estado (UptimeRobot) | `https://status.killauru.pe` |
-| `VITE_TURNSTILE_SITE_KEY` | Clave pública de Turnstile | (ver H-02) |
+| `VITE_TURNSTILE_SITEKEY` | Clave pública de Turnstile; nombre leído por el código | (ver H-02) |
+| `VITE_URL_CDN` | Origen CDN usado por la generación de cabeceras del despliegue | Configurar según entorno |
+| `PANEL_URL` | URL comprobada por el script de cabeceras, fuera del bundle | Configurar según entorno |
 
 ## Modos de prueba
+
+Consulta la [organización y pendientes de las pruebas](pruebas/README.md). Los E2E simulados y los escenarios omitidos no acreditan validación contra el backend real.
 
 | Modo | Descripción |
 |---|---|
@@ -53,11 +57,13 @@ Variables disponibles:
 | `npm run build:simulado` | Bundle con MSW activado para Playwright E2E simulado |
 | `npm run test` | Vitest: unitarias + componentes |
 | `npm run e2e` | Playwright E2E simulado (modo simulado) |
-| `npm run e2e:pruebas` | Playwright E2E real contra «killauru-pruebas» (ver H-02) |
+| `npm run e2e:pruebas` | Configuración desplegada separada, sin servidor local; requiere `PANEL_URL` HTTPS. Sin casos `*.pruebas.ts` todavía |
 
 ## Cuentas de prueba para E2E
 
-Entorno: `killauru-pruebas` (ver H-02 para configuración del backend).
+Entorno previsto: `killauru-pruebas` (ver H-02 para configuración del backend).
+Los datos siguientes son ejemplos sintéticos requeridos por T088; no se ha verificado
+que estén provisionados. No reutilizar esas contraseñas en producción.
 
 ### Administradores
 
@@ -74,7 +80,7 @@ Entorno: `killauru-pruebas` (ver H-02 para configuración del backend).
 
 ### Anomalías de prueba
 
-El entorno «killauru-pruebas» incluye al menos una anomalía en cada estado del ciclo de vida:
+La semilla del entorno «killauru-pruebas» debe incluir al menos una anomalía en cada estado del ciclo de vida:
 
 | Estado | Descripción |
 |---|---|
@@ -88,7 +94,7 @@ Además: 1 anomalía `Descartada` con `porRevisar = true` (para probar «Por rev
 
 ## Despliegue
 
-El despliegue es automático al unir a `main` si hay cambios en `panel/**`.
+El workflow de despliegue escucha la finalización correcta de `Panel CI` para un push a `main` del mismo repositorio. Publica el SHA verificado y requiere secretos y variables completos en el entorno `produccion`.
 
 Ver `.github/workflows/panel-deploy.yml`.
 
@@ -100,11 +106,11 @@ Requisitos (ver H-03):
 
 En Cloudflare Pages: Dashboard → killauru-panel → Deployments → seleccionar versión anterior → «Rollback».
 
-O redesplegar el commit anterior:
+O preparar una reversión revisada y pasar nuevamente el CI de `main`. Un checkout local no publica por sí solo:
 
 ```bash
 git checkout <commit-anterior>
-# El workflow de deploy se activa al push a main
+# Esto solo cambia el checkout local; no dispara el despliegue.
 ```
 
 Tiempo estimado: < 5 minutos.

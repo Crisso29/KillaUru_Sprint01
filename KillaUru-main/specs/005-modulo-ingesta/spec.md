@@ -1,5 +1,7 @@
 # Feature Specification: Módulo Ingesta
 
+> Vigencia documental (2026-11-15): [estado y pendientes de cierre](cierre.md). Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+
 **Feature Branch**: `005-modulo-ingesta`
 
 **Created**: 2026-10-21
@@ -36,7 +38,7 @@
 | Escenarios | EQ-02, EQ-06, EQ-09 | `08-escenarios-y-atributos-de-calidad.md` |
 | Diseño | `RecibirLoteEventosUseCase`, algoritmo del procesador, `IngestaOptions`, `IngestaModule` | `enfoque-arquitectonico.md` §4.1, §5, §6, §7 |
 | Diseño | Tabla `evento_recibido`, recepción con `unnest`, cola y trabajadores, `SyncController`, purgas | `diseño-interno-de-modulos.md` §3.2, §3.5, §3.8, §5, §6.4, §6.6 |
-| Decisiones del autor (2026-10-21) | D2 (un lote = un seudónimo), D3 (`loteId` del servidor y purga de 72 h), D4 (tipos del lote en Application), D5 (evento sin `eventoId`), D8 (`con_sesion` con correo verificado), D11 (retraso de cola y carga) · correcciones T-BD06, T-BD-CHK, T-OPS05, T-ARQ08 | `specs/revision/decisiones.md`, `specs/revision/plan-de-cambios.md` |
+| Decisiones del autor (2026-10-21) | D2 (un lote = un seudónimo), D3 (`loteId` del servidor y purga de 72 h), D4 (tipos del lote en Application), D5 (evento sin `eventoId`), D8 (`con_sesion` con correo verificado), D11 (retraso de cola y carga) · correcciones T-BD06, T-BD-CHK, T-OPS05, T-ARQ08 | `docs/historial/revision-arquitectura-2026-10-21/decisiones.md`, `docs/historial/revision-arquitectura-2026-10-21/plan-de-cambios.md` |
 
 ## User Scenarios & Testing *(mandatory)*
 
