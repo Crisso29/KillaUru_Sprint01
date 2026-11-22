@@ -33,5 +33,5 @@ internal data class RespuestaRechazoDto(
 internal data class LoteResponseDto(
     @SerialName("aceptados") val aceptados: List<String> = emptyList(),
     @SerialName("rechazados") val rechazados: List<RespuestaRechazoDto> = emptyList(),
-    @SerialName("pendientes") val pendientes: List<String> = emptyList(),
+    @SerialName("duplicados") val duplicados: List<String> = emptyList(),
 )

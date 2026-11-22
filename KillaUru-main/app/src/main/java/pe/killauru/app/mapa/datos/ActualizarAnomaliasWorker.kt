@@ -23,7 +23,7 @@ internal class ActualizarAnomaliasWorker @AssistedInject constructor(
 ) : CoroutineWorker(ctx, params) {
 
     override suspend fun doWork(): Result {
-        val alcance = if (sesion.obtenerSesion() != null) Alcance.Registrado else Alcance.Anonimo
+        val alcance = if (sesion.obtener() != null) Alcance.Registrado else Alcance.Anonimo
         return when (actualizar.actualizar(alcance)) {
             is ActualizarAnomaliasUseCase.Resultado.Exito,
             is ActualizarAnomaliasUseCase.Resultado.SinCambios -> Result.success()

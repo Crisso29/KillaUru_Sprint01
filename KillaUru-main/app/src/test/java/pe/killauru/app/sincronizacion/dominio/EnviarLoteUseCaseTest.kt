@@ -77,10 +77,10 @@ class EnviarLoteUseCaseTest {
     fun `200 exitosa aplica SYNCED a los ids confirmados`() = runTest {
         // Arrange
         val repo = RepoFalso()
-        val dto = RespuestaLoteDto(
+        val dto = RespuestaLote(
             aceptados = listOf("e1", "e2"),
+            duplicados = emptyList(),
             rechazados = emptyList(),
-            pendientes = emptyList(),
         )
         val api = ApiFalsa(RespuestaLoteApi.Exitosa(dto))
         val uc = EnviarLoteUseCase(api, repo)

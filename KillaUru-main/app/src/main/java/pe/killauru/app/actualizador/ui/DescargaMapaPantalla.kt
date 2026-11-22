@@ -16,6 +16,8 @@ import pe.killauru.app.R
  * FR-041, FR-008: pantalla que muestra el progreso de la descarga del mapa PMTiles.
  * Texto «Si se corta, sigue desde donde quedó» para explicar la descarga reanudable.
  */
+// TopAppBar sigue marcada como experimental en Material 3: su uso debe declararse explícitamente.
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun DescargaMapaPantalla(
     alSalir: () -> Unit,

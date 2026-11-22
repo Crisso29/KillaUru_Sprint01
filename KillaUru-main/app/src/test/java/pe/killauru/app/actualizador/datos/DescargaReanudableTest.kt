@@ -2,7 +2,7 @@ package pe.killauru.app.actualizador.datos
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType

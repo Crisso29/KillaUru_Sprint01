@@ -18,7 +18,7 @@ internal class EnviarLoteUseCase @Inject constructor(
 
         val resp = api.enviar(lote)
         val estados = if (resp is RespuestaLoteApi.Exitosa) {
-            InterpretarRespuestaLote().interpretar(ids, resp.dto).mapValues { estado(it.value) }
+            InterpretarRespuestaLote().interpretar(ids, resp.respuesta).mapValues { estado(it.value) }
         } else ids.associateWith { EstadoLocal.PENDING }
         repositorio.aplicarEstados(estados)
     }

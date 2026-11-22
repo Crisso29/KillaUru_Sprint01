@@ -3,7 +3,7 @@ package pe.killauru.app.sincronizacion.datos
 import pe.killauru.app.sincronizacion.dominio.ApiLotes
 import pe.killauru.app.sincronizacion.dominio.Lote
 import pe.killauru.app.sincronizacion.dominio.RespuestaLoteApi
-import pe.killauru.app.sincronizacion.dominio.RespuestaLoteDto
+import pe.killauru.app.sincronizacion.dominio.RespuestaLote
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -51,12 +51,12 @@ internal class ClienteLotesHttp @Inject constructor(
 
     private fun respuestaExitosa(body: LoteResponseDto): RespuestaLoteApi {
                 return RespuestaLoteApi.Exitosa(
-                    RespuestaLoteDto(
+                    RespuestaLote(
                         aceptados = body.aceptados,
                         rechazados = body.rechazados.map {
-                            pe.killauru.app.sincronizacion.dominio.RechazoDto(it.id, it.indice)
+                            pe.killauru.app.sincronizacion.dominio.Rechazo(it.id, it.indice, it.motivo.orEmpty())
                         },
-                        pendientes = body.pendientes,
+                        duplicados = body.duplicados,
                     )
                 )
     }

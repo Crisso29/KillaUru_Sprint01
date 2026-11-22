@@ -14,6 +14,19 @@ Implementación y tests JVM por funcionalidad. Configuración actual: Gradle 9.7
 
 ## Qué falta localmente
 
+**2026-11-22 — la app vuelve a compilar y aparecen las diferencias con la API.** Corregidos con TDD:
+- Compilación: `obtenerSesion` → `obtener`; `@OptIn` en `TopAppBar`; `verificadoUtc` toma la **hora del servidor**
+  (`data-model` §estado_copia, FR-026) y `ActualizarAnomaliasUseCase` deja de depender del reloj; `?.` innecesario (`-Werror`).
+- Hilt: `MapaModulo` repetía un repositorio y dos DAO de `BdModulo`/`RepositoriosModulo`; faltaba proveer `WorkManager`.
+- Pruebas: 3 archivos importaban el convertidor JSON antiguo de Jake Wharton; usan el de Square, como producción.
+- FR-031 (T056): `duplicados` y rechazados con `id` → `SYNCED`; el modelo del dominio pasa a `RespuestaLote`/`Rechazo` con `motivo`.
+
+**Pendiente, en curso:** los clientes HTTP no siguen los contratos (rutas sin `/api` y en inglés, campos y tipos distintos):
+Ingesta (005), Mapa (006), Identidad (003); CDN por revisar. Falta además sumar los rechazos por motivo en
+`contador_local` (FR-031): `ContadorDao.incrementar` usa `@Upsert`, que reemplaza el valor en vez de sumarlo.
+Detekt marca 3 funciones de más de 20 líneas (`DescargaMapaPantalla`, `RepositorioAnomaliasHttp.obtener`, `DescargaReanudable.descargar`).
+
+
 El 21 de noviembre se intentó ejecutar los tests de contratos, actualización de mapa y tamaño.
 Gradle se detuvo antes de los tests por errores de compilación en producción:
 `DescargaMapaPantalla.kt:28` (API experimental), `ActualizarAnomaliasWorker.kt:26`

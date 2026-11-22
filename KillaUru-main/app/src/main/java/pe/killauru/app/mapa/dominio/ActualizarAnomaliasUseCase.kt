@@ -1,6 +1,5 @@
 package pe.killauru.app.mapa.dominio
 
-import pe.killauru.app.comun.dominio.Reloj
 import javax.inject.Inject
 
 /**
@@ -14,11 +13,13 @@ import javax.inject.Inject
  * 5. 400 → descarta el `generadoUtc` y repite la descarga completa en la misma llamada.
  *
  * Invariante: `venceUtc: null` en la respuesta se trata como baja (R-011).
+ *
+ * No depende del reloj del celular: `verificadoUtc` («Actualizado hace…») es siempre la hora del **servidor**
+ * (`generadoUtc` en un 200, la de la fuente en un 304), como pide data-model §estado_copia y FR-026.
  */
 internal class ActualizarAnomaliasUseCase @Inject constructor(
     private val repositorio: RepositorioAnomalias,
     private val fuente: FuenteAnomalias,
-    private val reloj: Reloj,
 ) {
     sealed class Resultado {
         object Exito : Resultado()
@@ -63,7 +64,8 @@ internal class ActualizarAnomaliasUseCase @Inject constructor(
                 // Anónimo siempre pide todo con ETag para revalidar (If-None-Match)
                 fuente.obtener(alcance, null, estado?.etag?.takeIf { mismoRol })
 
-            mismoRol && estado?.generadoUtc != null ->
+            // mismoRol ⇒ estado no es null (se comparó su alcance con uno no nulo)
+            mismoRol && estado.generadoUtc != null ->
                 // Registrado con copia existente → delta con updatedSince
                 fuente.obtener(alcance, estado.generadoUtc, null)
 
@@ -77,12 +79,11 @@ internal class ActualizarAnomaliasUseCase @Inject constructor(
         r: FuenteAnomalias.Respuesta.Datos,
         alcance: Alcance,
     ): Resultado {
-        val verificadoUtc = reloj.ahoraMs()
         val nuevoEstado = EstadoCopia(
             alcance = alcance,
             generadoUtc = r.generadoUtc,
             etag = r.etag,
-            verificadoUtc = verificadoUtc,
+            verificadoUtc = r.generadoUtc,
         )
         repositorio.actualizarLote(r.altas, r.bajas, nuevoEstado)
         return Resultado.Exito

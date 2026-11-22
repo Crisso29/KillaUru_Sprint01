@@ -31,10 +31,10 @@ class SincronizarEventosUseCaseTest {
         val lotesSeudonimos = mutableListOf<String>()
         override suspend fun enviar(lote: Lote): RespuestaLoteApi {
             lotesSeudonimos.add(lote.seudonimo)
-            val dto = RespuestaLoteDto(
+            val dto = RespuestaLote(
                 aceptados = lote.eventos.map { it.eventoId },
+                duplicados = emptyList(),
                 rechazados = emptyList(),
-                pendientes = emptyList(),
             )
             return RespuestaLoteApi.Exitosa(dto)
         }

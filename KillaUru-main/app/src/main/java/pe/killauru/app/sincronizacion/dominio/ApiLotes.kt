@@ -5,7 +5,7 @@ internal interface ApiLotes {
 }
 
 internal sealed class RespuestaLoteApi {
-    data class Exitosa(val dto: RespuestaLoteDto) : RespuestaLoteApi()
+    data class Exitosa(val respuesta: RespuestaLote) : RespuestaLoteApi()
     data class Error400(val codigo: String?) : RespuestaLoteApi()
     data class Error401(val codigo: String?) : RespuestaLoteApi()
     data class Error403(val codigo: String?) : RespuestaLoteApi()

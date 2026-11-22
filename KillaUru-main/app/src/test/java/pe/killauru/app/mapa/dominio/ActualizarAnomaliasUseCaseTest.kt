@@ -41,7 +41,7 @@ class ActualizarAnomaliasUseCaseTest {
                 etag = null,
             )
         )
-        val caso = ActualizarAnomaliasUseCase(repo, fuente, RelojMapaFijo())
+        val caso = ActualizarAnomaliasUseCase(repo, fuente)
         // Act
         caso.actualizar(Alcance.Registrado)
         // Assert
@@ -57,7 +57,7 @@ class ActualizarAnomaliasUseCaseTest {
         val fuente = FuenteAnomaliasMemoria(
             FuenteAnomalias.Respuesta.Datos(emptyList(), emptyList(), 6000L, null)
         )
-        val caso = ActualizarAnomaliasUseCase(repo, fuente, RelojMapaFijo())
+        val caso = ActualizarAnomaliasUseCase(repo, fuente)
         // Act
         caso.actualizar(Alcance.Registrado)
         // Assert
@@ -74,7 +74,7 @@ class ActualizarAnomaliasUseCaseTest {
         val fuente = FuenteAnomaliasMemoria(
             FuenteAnomalias.Respuesta.Datos(emptyList(), listOf("del"), 2000L, null)
         )
-        val caso = ActualizarAnomaliasUseCase(repo, fuente, RelojMapaFijo())
+        val caso = ActualizarAnomaliasUseCase(repo, fuente)
         // Act
         caso.actualizar(Alcance.Registrado)
         // Assert
@@ -89,7 +89,7 @@ class ActualizarAnomaliasUseCaseTest {
             it.estado = EstadoCopia(Alcance.Anonimo, null, etag, null)
         }
         val fuente = FuenteAnomaliasMemoria(FuenteAnomalias.Respuesta.SinCambios(999L))
-        val caso = ActualizarAnomaliasUseCase(repo, fuente, RelojMapaFijo())
+        val caso = ActualizarAnomaliasUseCase(repo, fuente)
         // Act
         caso.actualizar(Alcance.Anonimo)
         // Assert
@@ -105,13 +105,30 @@ class ActualizarAnomaliasUseCaseTest {
         }
         val verificado = 500L
         val fuente = FuenteAnomaliasMemoria(FuenteAnomalias.Respuesta.SinCambios(verificado))
-        val caso = ActualizarAnomaliasUseCase(repo, fuente, RelojMapaFijo())
+        val caso = ActualizarAnomaliasUseCase(repo, fuente)
         // Act
         val resultado = caso.actualizar(Alcance.Anonimo)
         // Assert
         assertIs<ActualizarAnomaliasUseCase.Resultado.SinCambios>(resultado)
         assertEquals(1, repo.anomalias.size, "no debe tocar las anomalías")
         assertEquals(verificado, repo.estado?.verificadoUtc)
+    }
+
+    /**
+     * data-model §estado_copia y FR-026: «Actualizado hace…» usa la hora del **servidor** (`generadoUtc` del 200),
+     * nunca el reloj del celular, que puede estar mal o no ser confiable.
+     */
+    @Test fun `200 guarda como verificadoUtc la hora del servidor y no la del celular`() = runTest {
+        // Arrange — el servidor generó la respuesta en 5 000 ms (el caso de uso no tiene acceso al reloj del celular)
+        val repo = RepositorioAnomaliasMemoria()
+        val fuente = FuenteAnomaliasMemoria(
+            FuenteAnomalias.Respuesta.Datos(emptyList(), emptyList(), generadoUtc = 5000L, etag = null)
+        )
+        val caso = ActualizarAnomaliasUseCase(repo, fuente)
+        // Act
+        caso.actualizar(Alcance.Registrado)
+        // Assert
+        assertEquals(5000L, repo.estado?.verificadoUtc)
     }
 
     @Test fun `400 descarta el delta y repite descarga completa`() = runTest {
@@ -128,7 +145,7 @@ class ActualizarAnomaliasUseCaseTest {
                 else FuenteAnomalias.Respuesta.Datos(listOf(anomaliaEjemplo("nuevo")), emptyList(), 9000L, null)
             }
         }
-        val caso = ActualizarAnomaliasUseCase(repo, fuente, RelojMapaFijo())
+        val caso = ActualizarAnomaliasUseCase(repo, fuente)
         // Act
         caso.actualizar(Alcance.Registrado)
         // Assert
@@ -143,7 +160,7 @@ class ActualizarAnomaliasUseCaseTest {
             it.estado = EstadoCopia(Alcance.Registrado, 1000L, null, null)
         }
         val fuente = FuenteAnomaliasMemoria(FuenteAnomalias.Respuesta.SinCambios(0))
-        val caso = ActualizarAnomaliasUseCase(repo, fuente, RelojMapaFijo())
+        val caso = ActualizarAnomaliasUseCase(repo, fuente)
         // Act
         caso.limpiarAlCambiarRol()
         // Assert
