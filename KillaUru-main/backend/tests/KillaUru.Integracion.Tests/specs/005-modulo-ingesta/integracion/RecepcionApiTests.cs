@@ -1,5 +1,3 @@
-using System.Net;
-using System.Net.Http.Json;
 using KillaUru.Integracion.Tests.Infraestructura;
 
 namespace KillaUru.Integracion.Tests.Ingesta;
@@ -13,13 +11,6 @@ public sealed class RecepcionApiTests(BaseDatosPrueba bd)
     // El procesamiento real es asíncrono (cola + trabajadores); el quickstart pide «en segundos».
     private static readonly TimeSpan PlazoProcesamiento = TimeSpan.FromSeconds(15);
 
-    private static async Task<RespuestaLoteLeida> EnviarAsync(HttpClient cliente, HttpRequestMessage peticion)
-    {
-        using var respuesta = await cliente.SendAsync(peticion, TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
-        return (await respuesta.Content.ReadFromJsonAsync<RespuestaLoteLeida>(TestContext.Current.CancellationToken))!;
-    }
-
     /// <summary>#1 — 50 buenos: 200 con los 50 aceptados, guardados con el loteId del servidor y procesados.</summary>
     [Fact]
     public async Task Lote_de_50_buenos_se_guarda_entero_y_pasa_a_procesado()
@@ -31,7 +22,7 @@ public sealed class RecepcionApiTests(BaseDatosPrueba bd)
         var ids = eventos.Select(e => (Guid)e["eventoId"]!).ToArray();
 
         // Act
-        var respuesta = await EnviarAsync(api.CreateClient(), lote.Peticion(LoteDePrueba.Cuerpo(eventos)));
+        var respuesta = await EnvioLote.EnviarAsync(api.CreateClient(), lote.Peticion(LoteDePrueba.Cuerpo(eventos)));
         var filas = await RecepcionEnBd.EsperarProcesadasAsync(bd.CadenaSuperusuario, ids, PlazoProcesamiento);
 
         // Assert — respuesta, filas guardadas con el loteId del servidor y estado final Procesado (1)
@@ -53,10 +44,10 @@ public sealed class RecepcionApiTests(BaseDatosPrueba bd)
         var lote = new LoteDePrueba();
         var eventos = lote.Eventos(50);
         var ids = eventos.Select(e => (Guid)e["eventoId"]!).ToArray();
-        await EnviarAsync(cliente, lote.Peticion(LoteDePrueba.Cuerpo(eventos)));
+        await EnvioLote.EnviarAsync(cliente, lote.Peticion(LoteDePrueba.Cuerpo(eventos)));
 
         // Act
-        var reintento = await EnviarAsync(cliente, lote.Peticion(LoteDePrueba.Cuerpo(eventos)));
+        var reintento = await EnvioLote.EnviarAsync(cliente, lote.Peticion(LoteDePrueba.Cuerpo(eventos)));
 
         // Assert
         Assert.Empty(reintento.Aceptados);
@@ -74,7 +65,7 @@ public sealed class RecepcionApiTests(BaseDatosPrueba bd)
         var id = Guid.CreateVersion7();
 
         // Act
-        var respuesta = await EnviarAsync(api.CreateClient(), lote.Peticion(LoteDePrueba.Cuerpo([lote.Evento(id), lote.Evento(id)])));
+        var respuesta = await EnvioLote.EnviarAsync(api.CreateClient(), lote.Peticion(LoteDePrueba.Cuerpo([lote.Evento(id), lote.Evento(id)])));
 
         // Assert
         Assert.Equal([id], respuesta.Aceptados);
@@ -92,7 +83,7 @@ public sealed class RecepcionApiTests(BaseDatosPrueba bd)
         var delCliente = Guid.CreateVersion7();
 
         // Act
-        var respuesta = await EnviarAsync(api.CreateClient(), lote.Peticion(LoteDePrueba.Cuerpo(lote.Eventos(1), delCliente)));
+        var respuesta = await EnvioLote.EnviarAsync(api.CreateClient(), lote.Peticion(LoteDePrueba.Cuerpo(lote.Eventos(1), delCliente)));
 
         // Assert
         Assert.NotEqual(delCliente, respuesta.LoteId);

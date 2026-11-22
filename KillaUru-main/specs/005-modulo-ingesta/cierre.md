@@ -37,7 +37,7 @@ de la revisión. “Local” incluye implementación/documentación y preparaci�
 | T003 | Local | Prueba que `Ingesta:PurgaSeudonimoHoras` = `Anomalias:PurgaSeudonimoHoras` en `appsettings.json` |
 | T004 | Local | Semillas: lotes de ejemplo sobre la polilínea, sin `loteId` y con un solo seudónimo (`lote-50-buenos.json`, `lote-con-errores.json`) |
 | T011 | Local | `RecepcionEventosPostgresTests` (Testcontainers): un solo `INSERT`; devuelve solo los nuevos; reinsertar = 0 nuevos |
-| T012 | Local | `RecepcionApiTests` (`WebApplicationFactory`): escenarios 1–12 y 17–21 del quickstart. **En curso:** 4/17 aprobados (#1, #3, #4, #21) |
+| T012 | Local | `RecepcionApiTests` (`WebApplicationFactory`): escenarios 1–12 y 17–21 del quickstart. **En curso:** 8/17 aprobados (bloques A y B); faltan C (#7, #8, #12) y D (#9–#11, #18–#20) |
 | T020 | Local | `PendientesRepositorioTests` (Testcontainers): `RecibidosDelLoteAsync` usa `ix_recibido_lote` (también con `lote_id IS NULL`); `ContarEnLaHoraAsync` con límites de la hora; `MarcarAsync`; `BarridoPendientesPostgres` |
 | T024 | Local | `ProcesamientoTests` de punta a punta con Anomalías real: lote → filas `Procesado`/`Descartado` y anomalías creadas |
 | T027 | Local | `ReinicioTests` (EQ-09): aceptar 500 eventos, detener el *host* a mitad del procesamiento, arrancar otro y verificar conciliación exacta y 0 duplicados en ≤ 2 min |

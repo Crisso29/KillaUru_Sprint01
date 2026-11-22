@@ -12,6 +12,10 @@ internal sealed class LoteDePrueba
 {
     internal const string Ruta = "/api/v1/anomalies/batch";
 
+    // La vía sintética corre por lat -13. Metros por grado con el radio medio de GeodesiaLocal (6 371 008,8 m).
+    private const double LatitudVia = -13.0;
+    private const double MetrosPorGrado = 6371008.8 * Math.PI / 180;
+
     private static int secuencia;
 
     // 004 reparte sus escenarios desde lon -76 hacia el este; 005 va desde -75,05 hacia el oeste,
@@ -27,7 +31,7 @@ internal sealed class LoteDePrueba
         ["eventoId"] = eventoId,
         // El host de FabricaApi usa el reloj del sistema: «hace 1 minuto» queda dentro de los 7 días de RN-11.
         ["detectadoUtc"] = TimeProvider.System.GetUtcNow().AddMinutes(-1),
-        ["latitud"] = -13.0,
+        ["latitud"] = LatitudVia,
         ["longitud"] = longitud,
         ["precisionMetros"] = 6.5,
         ["tipo"] = "Bache",
@@ -36,6 +40,9 @@ internal sealed class LoteDePrueba
         ["modeloVersion"] = "1.2.0",
         ["seudonimo"] = Seudonimo,
     };
+
+    /// <summary>Latitud a <paramref name="metros"/> al norte de la vía (perpendicular a ella).</summary>
+    internal static double LatitudAMetrosDeLaVia(double metros) => LatitudVia + (metros / MetrosPorGrado);
 
     /// <summary><paramref name="cantidad"/> eventos válidos, cada uno con un eventoId nuevo.</summary>
     internal JsonObject[] Eventos(int cantidad) =>
