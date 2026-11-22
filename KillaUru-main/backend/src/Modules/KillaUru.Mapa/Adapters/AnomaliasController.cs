@@ -23,23 +23,25 @@ internal sealed class AnomaliasController(
 {
     private const string MimeGeoJson = "application/geo+json";
 
-    [HttpGet("anomalies")]
+    [HttpGet("anomalies", Name = Documentacion.OperacionMapa.OperationId)]
     [Produces(MimeGeoJson)]
     [ProducesResponseType(200), ProducesResponseType(304)]
     public async Task<IActionResult> ObtenerMapa([FromQuery] ParametrosMapaDto dto, CancellationToken ct)
     {
-        var error = ValidarParametros(dto);
+        var listas = dto.LeerListas();
+        if (listas is null) return Problema("datos_invalidos", 400);
+        var error = ValidarParametros(dto, listas);
         if (error is not null) return error;
-        var consulta = ConsultaMapa.Crear(ObtenerRol(), dto.Bbox, dto.Tipo, dto.Severidades,
-            dto.Desde, dto.Hasta, dto.Estados, dto.UpdatedSince,
+        var consulta = ConsultaMapa.Crear(ObtenerRol(), dto.Bbox, dto.Tipo, listas.Severidades,
+            dto.Desde, dto.Hasta, listas.Estados, dto.UpdatedSince,
             Request.Headers.IfNoneMatch.FirstOrDefault());
         if (consulta is null) return Problema("datos_invalidos", 400);
         return Responder(await useCase.EjecutarAsync(consulta, ct));
     }
 
-    private ObjectResult? ValidarParametros(ParametrosMapaDto dto)
+    private ObjectResult? ValidarParametros(ParametrosMapaDto dto, ListasMapa listas)
     {
-        bool hayFiltros = dto.Tipo.HasValue || (dto.Severidades is { Length: > 0 })
+        bool hayFiltros = dto.Tipo.HasValue || (listas.Severidades is { Length: > 0 })
                           || dto.Desde.HasValue || dto.Hasta.HasValue;
 
         if (dto.UpdatedSince.HasValue && hayFiltros)

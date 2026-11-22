@@ -76,7 +76,7 @@ description: "Tareas del módulo Consulta de Mapa"
 ## Phase 7: Polish
 
 - [x] T028 [P] `README.md` del módulo (tabla por rol, caché, `ETag`, `updatedSince`, ejemplos) — `Ma/README.md` · (RNF-19)
-- [ ] T029 Prueba de contrato con `contracts/mapa.openapi.yaml` en verde
+- [x] T029 Prueba de contrato con `contracts/mapa.openapi.yaml` en verde — `tests/KillaUru.Integracion.Tests/specs/006-modulo-consulta-mapa/contratos/ContratoMapaTests.cs` (5 casos); esquemas en `Adapters/Documentacion/`; `severidad`/`estado` separados por comas en `Adapters/Dtos/ParametrosMapaDto.cs` (`tests/KillaUru.Mapa.Tests/Adapters/ParametrosMapaDtoTests.cs`, 8 casos)
 - [ ] T030 Regla de caché de Cloudflare (cachear `GET /api/v1/anomalies` solo sin `Authorization` ni cookie `ku_acceso`, respetando `Cache-Control` del origen) documentada en `deploy/runbooks/monitoreo.md` y comprobada como en el quickstart §4; la tasa de aciertos en el borde se lee en las analíticas de Cloudflare y se anota en ese *runbook* · (ADR-006, SC-002; R-013)
 - [ ] T031 Medir SC-001 con las pruebas de carga de 001 (`tests/carga/carga-combinada.k6.js`: 300 consultando el mapa + 300 sincronizando, 10 min; y `picos.k6.js`), fuera de la VM contra el entorno de pruebas; anotar el p95 del mapa. 006 no tiene script propio · (RNF-01, EQ-14; D11)
 - [ ] T032 Marcar `checklists/trazabilidad.md` (los pendientes de `research.md` ya fueron confirmados por el autor el 2026-10-21)

@@ -42,6 +42,12 @@ curl.exe "$env:KU_URL_PRUEBAS/api/v1/anomalies"
 curl.exe "$env:KU_URL_PRUEBAS/api/v1/anomalies?estado=Activa" -H "Authorization: Bearer $env:KU_TOKEN_ADMIN"
 ```
 
+`severidad` y `estado` son listas separadas por comas (`?severidad=4,5`); `Adapters/Dtos/ParametrosMapaDto.cs`
+las convierte y una lista mal formada responde 400 `datos_invalidos`. Hasta el 2026-11-21 solo se aceptaba
+la forma repetida (`?severidad=4&severidad=5`), y el panel recibía 400.
+`Adapters/Documentacion/` publica los esquemas GeoJSON en `/openapi/v1.json` y `/docs`, porque la respuesta
+son bytes preserializados por la caché.
+
 Para `bbox`, fechas y cambios, usar ejemplos del contrato y el [quickstart](../../../../specs/006-modulo-consulta-mapa/quickstart.md).
 No copiar el ETag entre usuarios o alcances diferentes.
 
@@ -52,8 +58,10 @@ Desde `backend/`:
 ```powershell
 dotnet test --project tests/KillaUru.Mapa.Tests
 dotnet test --project tests/KillaUru.Arquitectura.Tests
+dotnet test --project tests/KillaUru.Integracion.Tests -- --filter-class "*ContratoMapaTests"
 ```
 
 [Guía de pruebas](../../../../specs/006-modulo-consulta-mapa/pruebas.md).
-Faltan casos dedicados de ETag, serialización, métricas, recorte, filtros, cambios y contrato.
+El contrato OpenAPI está aprobado (T029). Faltan casos dedicados de ETag, serialización, métricas,
+recorte, filtros y cambios.
 La carga se comparte con Ingesta en `tests/carga/`; el p95 debe medirse en el entorno de pruebas.

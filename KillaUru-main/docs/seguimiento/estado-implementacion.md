@@ -22,12 +22,12 @@ Conteos de casillas en `tasks.md`; no son cobertura ni certificación de producc
 | 003 | Identidad | 65/65 | 0 |
 | 004 | Anomalías | 56/58 | 2 |
 | 005 | Ingesta | 28/40 | 12 |
-| 006 | Consulta de mapa | 19/33 | 14 |
+| 006 | Consulta de mapa | 20/33 | 13 |
 | 007 | Dashboard | 24/26 | 2 |
 | 008 | Android | 103/128 | 25 |
 | 009 | Dataset/modelo | 46/74 | 28 |
 | 010 | Panel | 77/94 | 17 |
-| **Total** | | **524/637** | **113** |
+| **Total** | | **525/637** | **112** |
 
 Panel tenía 88 tareas marcadas. Se reabrieron 11 por E2E vacíos u omitidos:
 T032, T033, T034, T050, T058, T062, T068, T081, T085, T086 y T087.
@@ -78,8 +78,11 @@ de su ejecución aprobada. No se ocultaron advertencias de TensorFlow/sklearn.
 
 - **Integración:** no se encontró Docker en PATH; falta ejecutar Testcontainers.
 - **E2E backend:** el recorrido compartido conserva dos casos con `Skip` y pasos sin implementar.
-- **005/006:** 005 ya tiene contrato HTTP (T034, 4/4 aprobados el 2026-11-21 con Testcontainers);
-  faltan sus pruebas con PostgreSQL/HTTP y toda la integración dedicada de Mapa.
+- **005/006:** ambas tienen contrato HTTP aprobado el 2026-11-21 con Testcontainers (005/T034 4/4, 006/T029 5/5).
+  Faltan sus pruebas con PostgreSQL/HTTP. 006/T029 corrigió un 400 real con `?severidad=4,5` y `?estado=a,b`.
+- **Prueba intermitente:** `003/ConsolaPrivacidadTests` falló 1 vez en 2 ejecuciones de la suite completa
+  (`ArgumentOutOfRangeException` en `StringWriter`). Sola pasó 3/3. El sink de prueba no es seguro entre hilos.
+- **Suite backend completa (2026-11-21, Docker):** 1110 casos: 1106 aprobados, 3 omitidos (E2E pendientes) y 1 intermitente.
 - **Panel:** escenarios `skip/fixme`; E2E locales con MSW y configuración desplegada separada, aún sin archivos `*.pruebas.ts`
   para acreditar el backend real.
 - **Android:** aún no existen `src/androidTest/` ni `src/test/resources/`; quedan pruebas

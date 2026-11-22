@@ -31,6 +31,8 @@ public static class MapaModule
         services.AddTransient<ConsultarFiltradoUseCase>();
         services.AddTransient<ConsultarCambiosUseCase>();
         services.AddTransient<ConsultarMapaUseCase>();
+        // Documentación: completa el OpenAPI v1 con el contrato de 006 (FR-001)
+        services.AddOpenApi("v1", o => o.AddOperationTransformer<Adapters.Documentacion.OperacionMapa>());
         return services;
     }
 

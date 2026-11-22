@@ -8,6 +8,7 @@ La integración se organiza en `KillaUru.Integracion.Tests/specs/<spec>/<tipo>`.
 |---|---|
 | `KillaUru.<Modulo>.Tests/Domain` | Reglas de negocio y límites |
 | `KillaUru.<Modulo>.Tests/Application` | Casos de uso con dobles |
+| `KillaUru.<Modulo>.Tests/Adapters` | Lectura de parámetros HTTP sin levantar el host (hoy solo Mapa) |
 | `KillaUru.Integracion.Tests/specs` | HTTP, BD, contratos, seguridad y rendimiento por spec |
 | `KillaUru.Integracion.Tests/soporte` | Host, PostgreSQL, tokens y lectura de contratos compartidos |
 | `KillaUru.Integracion.Tests/sistema/e2e` | Recorridos compartidos entre specs; actualmente pendientes |

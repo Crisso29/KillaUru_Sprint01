@@ -12,6 +12,8 @@ Filtros, celdas, cambios y alcance según rol.
 |---|---|
 | Reglas y casos de uso | [KillaUru.Mapa.Tests](../../backend/tests/KillaUru.Mapa.Tests/) |
 | Arquitectura y legibilidad | [Suite compartida](../../backend/tests/KillaUru.Arquitectura.Tests/) |
+| Integración por spec | [Carpetas por propósito](../../backend/tests/KillaUru.Integracion.Tests/specs/006-modulo-consulta-mapa/) |
+| Contrato HTTP | [Contratos](../../backend/tests/KillaUru.Integracion.Tests/specs/006-modulo-consulta-mapa/contratos/) |
 | Carga y resiliencia | [Escenarios k6 compartidos](../../backend/tests/carga/README.md) |
 | E2E entre módulos | [Recorrido compartido, pendiente](../../backend/tests/KillaUru.Integracion.Tests/sistema/e2e/FlujoPuntaAPuntaTests.cs) |
 
@@ -23,14 +25,20 @@ Desde `KillaUru-main/backend/`:
 dotnet build KillaUru.sln
 dotnet test --project tests/KillaUru.Mapa.Tests --no-build
 dotnet test --project tests/KillaUru.Arquitectura.Tests --no-build
+dotnet test --project tests/KillaUru.Integracion.Tests --no-build -- --filter-class "*ContratoMapaTests"
 ```
 
-Esta spec todavía no tiene suite de integración dedicada. La suite compartida del backend requiere Docker; no sustituye esos casos pendientes.
+La última línea requiere Docker Desktop encendido (Testcontainers levanta PostgreSQL).
 Las pruebas con dobles no certifican PostgreSQL real. El rendimiento local no acredita carga.
 
 ## Estado y límites
 
-No se encontró una suite de integración dedicada a esta spec en el proyecto compartido.
+Contrato HTTP (T029): 5/5 aprobados el 2026-11-21. Comprueba `operationId`, los códigos
+(200, 304, 400, 401, 403, 429), el 200 en `application/geo+json`, los esquemas `ColeccionAnomalias`,
+`AnomaliaFeature` y `BajaFeature`, y el tipo de cada parámetro de consulta.
+Compara el OpenAPI **publicado** con el contrato; no consulta anomalías reales.
+Al escribirla se halló que `?severidad=4,5` respondía 400; se corrigió y lo cubre `ParametrosMapaDtoTests` (8 casos).
+Siguen pendientes las pruebas HTTP de recorte, ETag, filtros y cambios (T018, T019, T021, T024, T027).
 Las pruebas de otros módulos y el código implementado no sustituyen esa evidencia.
 El E2E compartido conserva dos casos omitidos con pasos sin implementar.
 La ejecución de k6 y las validaciones operacionales requieren evidencia del entorno de pruebas.
@@ -54,6 +62,20 @@ Las suites de arquitectura, carga y E2E compartidas se detallan en [pruebas de p
 - [ConsultarCambiosUseCaseTests.cs](../../backend/tests/KillaUru.Mapa.Tests/Application/ConsultarCambiosUseCaseTests.cs)
 - [ConsultarFiltradoUseCaseTests.cs](../../backend/tests/KillaUru.Mapa.Tests/Application/ConsultarFiltradoUseCaseTests.cs)
 - [ConsultarPorCeldasUseCaseTests.cs](../../backend/tests/KillaUru.Mapa.Tests/Application/ConsultarPorCeldasUseCaseTests.cs)
+
+</details>
+
+<details>
+<summary>Adaptadores sin host (1 archivo)</summary>
+
+- [ParametrosMapaDtoTests.cs](../../backend/tests/KillaUru.Mapa.Tests/Adapters/ParametrosMapaDtoTests.cs)
+
+</details>
+
+<details>
+<summary>Contratos HTTP (1 archivo)</summary>
+
+- [ContratoMapaTests.cs](../../backend/tests/KillaUru.Integracion.Tests/specs/006-modulo-consulta-mapa/contratos/ContratoMapaTests.cs)
 
 </details>
 
