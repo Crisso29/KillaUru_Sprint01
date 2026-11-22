@@ -115,6 +115,23 @@ class ActualizarAnomaliasUseCaseTest {
     }
 
     /**
+     * FR-026: si el 304 llega sin la hora del servidor (`Date`), no se inventa una con el reloj del celular:
+     * se conserva la última marca conocida.
+     */
+    @Test fun `304 sin hora del servidor conserva el verificadoUtc anterior`() = runTest {
+        // Arrange
+        val repo = RepositorioAnomaliasMemoria().also {
+            it.estado = EstadoCopia(Alcance.Anonimo, null, "etag", 100L)
+        }
+        val fuente = FuenteAnomaliasMemoria(FuenteAnomalias.Respuesta.SinCambios(verificadoUtc = null))
+        val caso = ActualizarAnomaliasUseCase(repo, fuente)
+        // Act
+        caso.actualizar(Alcance.Anonimo)
+        // Assert
+        assertEquals(100L, repo.estado?.verificadoUtc)
+    }
+
+    /**
      * data-model §estado_copia y FR-026: «Actualizado hace…» usa la hora del **servidor** (`generadoUtc` del 200),
      * nunca el reloj del celular, que puede estar mal o no ser confiable.
      */

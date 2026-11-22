@@ -3,58 +3,41 @@ package pe.killauru.app.mapa.datos
 import pe.killauru.app.comun.dominio.Coordenada
 import pe.killauru.app.deteccion.dominio.TipoAnomalia
 import pe.killauru.app.mapa.dominio.AnomaliaLocal
+import java.time.Instant
 
 /**
- * FR-044, FR-045: convierte `FeatureCollectionDto` a listas de altas y bajas del dominio.
- * Criterios de baja (R-011):
- * - `geometry == null` → `BajaFeature` explícita.
- * - `properties.eliminada == true` → baja según el contrato.
- * - `venceUtc == null` con un `AnomaliaFeature` → estado final → baja.
+ * FR-044, FR-045: traduce `ColeccionAnomalias` (contrato 006) a altas y bajas del dominio.
+ * Es una baja (R-011) la `BajaFeature` (`geometry: null` o `eliminada`) y la anomalía sin `venceUtc` (estado final).
+ * Una feature con un `tipo` o `persistencia` desconocidos se omite en lugar de invalidar toda la respuesta, así una
+ * versión nueva del servidor con más valores no deja a la app sin mapa.
  */
 internal object MapeadorGeoJson {
 
-    data class Lote(
-        val altas: List<AnomaliaLocal>,
-        val bajas: List<String>,
-    )
+    data class Lote(val altas: List<AnomaliaLocal>, val bajas: List<String>)
 
-    fun mapear(dto: FeatureCollectionDto): Lote {
-        val altas = mutableListOf<AnomaliaLocal>()
-        val bajas = mutableListOf<String>()
-
-        for (f in dto.features) {
-            val esBaja = f.geometry == null ||
-                f.properties.eliminada ||
-                f.properties.venceUtc == null
-
-            if (esBaja) {
-                bajas += f.properties.id
-            } else {
-                val anomalia = toAnomalia(f) ?: continue
-                altas += anomalia
-            }
-        }
-        return Lote(altas, bajas)
+    fun mapear(dto: ColeccionAnomaliasDto): Lote {
+        val (bajas, altas) = dto.features.partition(::esBaja)
+        return Lote(altas = altas.mapNotNull(::anomalia), bajas = bajas.map { it.properties.id })
     }
 
-    private fun toAnomalia(f: FeatureDto): AnomaliaLocal? {
-        val geo = f.geometry ?: return null
-        if (geo.coordinates.size < 2) return null
+    fun aMilisegundos(fechaIso: String): Long = Instant.parse(fechaIso).toEpochMilli()
+
+    private fun esBaja(f: FeatureDto) = f.geometry == null || f.properties.eliminada || f.properties.venceUtc == null
+
+    private fun anomalia(f: FeatureDto): AnomaliaLocal? {
         val p = f.properties
-        val tipo = p.tipo?.let { TipoAnomalia.deCodigo(it) } ?: return null
-        val severidad = p.severidad ?: return null
-        val km = p.km ?: return null
-        val ultimaDet = p.ultimaDeteccionUtc ?: return null
+        val (longitud, latitud) = f.geometry?.coordinates?.takeIf { it.size == 2 } ?: return null
         return AnomaliaLocal(
             id = p.id,
-            tipo = tipo,
-            severidad = severidad,
-            persistente = p.persistente,
-            coordenada = Coordenada(geo.coordinates[1], geo.coordinates[0]),
-            km = km,
-            venceUtc = p.venceUtc,   // null queda como null; el trigger lo valida en BD
-            ultimaDeteccionUtc = ultimaDet,
-            enDemo = p.enDemo,
+            tipo = TipoAnomalia.entries.firstOrNull { it.texto == p.tipo } ?: return null,
+            severidad = p.severidad ?: return null,
+            persistente = when (p.persistencia) { "Persistente" -> true; "Episodica" -> false; else -> return null },
+            coordenada = Coordenada(latitud = latitud, longitud = longitud),
+            km = p.kmVia ?: return null,
+            venceUtc = p.venceUtc?.let(::aMilisegundos),
+            ultimaDeteccionUtc = p.ultimaDeteccionUtc?.let(::aMilisegundos) ?: return null,
+            // El contrato no trae `enDemo`: la app debe calcularlo con su ZonaDemo (data-model §1). Pendiente; ver cierre de 008.
+            enDemo = false,
         )
     }
 }

@@ -16,7 +16,7 @@ internal interface FuenteAnomalias {
         ) : Respuesta()
 
         /** El servidor respondió 304: la copia sigue vigente. */
-        data class SinCambios(val verificadoUtc: Long) : Respuesta()
+        data class SinCambios(val verificadoUtc: Long?) : Respuesta()
 
         /** El servidor respondió 400: descarta los parámetros y descarga completa. */
         object SolicitudInvalida : Respuesta()

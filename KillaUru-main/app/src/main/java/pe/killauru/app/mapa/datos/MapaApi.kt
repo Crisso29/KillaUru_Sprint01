@@ -5,11 +5,15 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Query
 
-/** FR-040: endpoint delta de anomalías para actualización incremental. */
+/** FR-044, FR-045: operación `consultarMapa` de `specs/006-modulo-consulta-mapa/contracts/mapa.openapi.yaml`. */
 internal interface MapaApi {
-    @GET("v1/mapa/anomalias")
+    /**
+     * @param etag valor del `ETag` previo para revalidar (304); solo sirve sin filtros.
+     * @param updatedSince fecha ISO-8601 del último `generadoUtc`; null = descarga completa.
+     */
+    @GET("api/v1/anomalies")
     suspend fun anomalias(
         @Header("If-None-Match") etag: String? = null,
-        @Query("desde") desdeUtc: Long? = null,
-    ): Response<FeatureCollectionDto>
+        @Query("updatedSince") updatedSince: String? = null,
+    ): Response<ColeccionAnomaliasDto>
 }

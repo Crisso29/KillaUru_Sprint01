@@ -9,7 +9,7 @@ import javax.inject.Inject
  * 1. Lee el [EstadoCopia] para saber si hay delta previo.
  * 2. Pide a [FuenteAnomalias] con los parámetros correctos según el rol y el estado.
  * 3. 200 → aplica altas/bajas y guarda el nuevo `generadoUtc`.
- * 4. 304 → solo actualiza `verificadoUtc`; las anomalías no cambian.
+ * 4. 304 → solo actualiza `verificadoUtc` (si el servidor envió su hora); las anomalías no cambian.
  * 5. 400 → descarta el `generadoUtc` y repite la descarga completa en la misma llamada.
  *
  * Invariante: `venceUtc: null` en la respuesta se trata como baja (R-011).
@@ -91,11 +91,12 @@ internal class ActualizarAnomaliasUseCase @Inject constructor(
 
     private suspend fun guardarVerificado(
         estado: EstadoCopia?,
-        verificadoUtc: Long,
+        verificadoUtc: Long?,
     ): Resultado {
         // 304: mantiene anomalías, actualiza la marca de verificación
         val actualizado = (estado ?: EstadoCopia(Alcance.Anonimo, null, null, null))
-            .copy(verificadoUtc = verificadoUtc)
+            // Sin la hora del servidor se conserva la marca anterior: nunca se usa el reloj del celular (FR-026)
+            .copy(verificadoUtc = verificadoUtc ?: estado?.verificadoUtc)
         repositorio.actualizarLote(emptyList(), emptyList(), actualizado)
         return Resultado.SinCambios
     }

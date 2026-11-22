@@ -1,52 +1,43 @@
 package pe.killauru.app.mapa.datos
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/**
- * FR-044: DTOs GeoJSON para el delta de anomalías desde la API.
- * Colección: `ColeccionAnomalias` del contrato `mapa.openapi.yaml`.
+/*
+ * JSON del mapa con los nombres exactos de `mapa.openapi.yaml` (`ColeccionAnomalias`, `AnomaliaFeature`, `BajaFeature`).
+ * Solo forma: la traducción al dominio está en MapeadorGeoJson. Fechas en ISO-8601 y catálogos como texto.
  */
 
 @Serializable
-internal data class FeatureCollectionDto(
-    @SerialName("type") val type: String,
-    /** Próximo `updatedSince`; milisegundos UTC serializado como epoch por el servidor. */
-    @SerialName("generadoUtc") val generadoUtc: Long,
-    @SerialName("features") val features: List<FeatureDto>,
+internal data class ColeccionAnomaliasDto(
+    val type: String,
+    /** Hora del servidor; se guarda como próximo `updatedSince`. */
+    val generadoUtc: String,
+    val features: List<FeatureDto>,
 )
 
-/**
- * Un feature puede ser `AnomaliaFeature` o `BajaFeature`.
- * Se distinguen por `geometry == null` (baja) o `properties.eliminada == true` (baja explícita).
- */
+/** `AnomaliaFeature` o `BajaFeature`: la baja trae `geometry: null` y `properties.eliminada = true`. */
 @Serializable
 internal data class FeatureDto(
-    @SerialName("type") val type: String,
-    /** null en `BajaFeature` (geometry: null del contrato). */
-    @SerialName("geometry") val geometry: GeometryDto? = null,
-    @SerialName("properties") val properties: PropiedadesAnomaliaDto,
+    val type: String,
+    val id: String,
+    val geometry: GeometriaDto? = null,
+    val properties: PropiedadesDto,
 )
 
+/** Punto GeoJSON: `coordinates` = `[longitud, latitud]`. */
 @Serializable
-internal data class GeometryDto(
-    @SerialName("type") val type: String,
-    @SerialName("coordinates") val coordinates: List<Double>,
-)
+internal data class GeometriaDto(val type: String, val coordinates: List<Double>)
 
+/** Propiedades de ambas clases de feature; las de la anomalía son null en una baja. */
 @Serializable
-internal data class PropiedadesAnomaliaDto(
-    @SerialName("id") val id: String,
-    // AnomaliaFeature fields (null en BajaFeature)
-    @SerialName("tipo") val tipo: Int? = null,
-    @SerialName("severidad") val severidad: Int? = null,
-    @SerialName("persistente") val persistente: Boolean = false,
-    /** `kmVia` en el contrato, `km` en el dominio (D13). */
-    @SerialName("km") val km: Double? = null,
-    /** null en estados finales → se trata como baja (R-011). */
-    @SerialName("venceUtc") val venceUtc: Long? = null,
-    @SerialName("ultimaDeteccionUtc") val ultimaDeteccionUtc: Long? = null,
-    @SerialName("enDemo") val enDemo: Boolean = false,
-    // BajaFeature fields
-    @SerialName("eliminada") val eliminada: Boolean = false,
+internal data class PropiedadesDto(
+    val id: String,
+    val kmVia: Double? = null,
+    val tipo: String? = null,
+    val severidad: Int? = null,
+    val persistencia: String? = null,
+    val ultimaDeteccionUtc: String? = null,
+    /** null en los estados finales: la app lo trata como baja (R-011). */
+    val venceUtc: String? = null,
+    val eliminada: Boolean = false,
 )

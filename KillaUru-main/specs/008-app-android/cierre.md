@@ -31,11 +31,23 @@ Implementación y tests JVM por funcionalidad. Configuración actual: Gradle 9.7
   `Retry-After` real en 429/503. La traducción vive en `MapeadorLote`; el cuerpo se valida contra el esquema `Lote` del YAML
   y se comparan los nombres de campo, porque `Evento` es permisivo (D5) y no detectaría `lat` en lugar de `latitud`.
 
-**Pendiente, en curso:** Mapa (006) e Identidad (003) siguen sin coincidir con sus contratos; CDN por revisar.
+- **Cliente del Mapa alineado con el contrato 006** (`ContratoMapaTest` reescrito, 8 casos, en rojo 7/8 antes del cambio):
+  ruta `api/v1/anomalies` (era `v1/mapa/anomalias`), `updatedSince` ISO-8601 (era `desde` en ms), fechas ISO, `tipo` y
+  `persistencia` como texto, `kmVia`; el 304 lee `Date` en formato HTTP (antes fallaba al tratarla como ISO) y, si falta,
+  conserva la marca anterior en vez de usar el reloj del celular (FR-026; `RelojProhibidoTest` vuelve a verde).
+  Los datos de prueba se validan contra `ColeccionAnomalias` del YAML. `ValidadorContrato.esquema` quita el `type: object`
+  que el parser de Swagger añade junto a `const`.
+- **Resultado:** 242 pruebas JVM, 0 fallidas, 0 omitidas (2026-11-22).
+
+**Pendiente, en curso:** `enDemo` no viene en el contrato; debe calcularse con `ZonaDemo` (data-model §1). El polígono
+se descarga de la CDN (FR-042, research `cdn.killauru.pe`, `cdn.openapi.yaml` con `tipo: tramoDemo`), pero
+`CargadorZonaDemo` lo busca en los assets del APK y nadie lo usa; además el archivo depende de 006/T002. Mientras tanto
+vale `false`, y FR-051 (borrar `enDemo = 0` al cerrar sesión) vaciaría toda la copia. Identidad (003) sigue sin coincidir con
+su contrato; CDN por revisar.
 `InterceptorToken` y `RenovadorToken` existen pero **no se añaden a OkHttp**, e `InterceptorSeudonimo` se provee con
 `{ null }`: la app no envía ni token ni seudónimo en el resto de peticiones (se corrige con Identidad).
 FR-035: el adaptador ya entrega el `Retry-After`, pero ningún caso de uso usa `reintentarEn` para programar el reintento.
-Detekt marca 3 funciones de más de 20 líneas (`DescargaMapaPantalla`, `RepositorioAnomaliasHttp.obtener`, `DescargaReanudable.descargar`).
+Detekt marca 2 funciones de más de 20 líneas (`DescargaMapaPantalla`, `DescargaReanudable.descargar`); `RepositorioAnomaliasHttp.obtener` ya se dividió.
 
 
 El 21 de noviembre se intentó ejecutar los tests de contratos, actualización de mapa y tamaño.

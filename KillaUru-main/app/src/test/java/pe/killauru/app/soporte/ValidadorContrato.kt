@@ -8,7 +8,9 @@ import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.PathItem
 import io.swagger.v3.parser.core.models.ParseOptions
 import okhttp3.mockwebserver.RecordedRequest
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ObjectNode
 
 /**
  * T017 / FR-078: valida peticiones y respuestas de MockWebServer contra los YAML de contratos.
@@ -39,8 +41,21 @@ internal object ValidadorContrato {
     }
 
     /** Esquema [componente] del contrato con sus `$ref` resueltos, como JSON listo para [validarJson]. */
-    fun esquema(nombreYaml: String, componente: String): String =
-        Json31.mapper().writeValueAsString(abrir(nombreYaml).components.schemas.getValue(componente))
+    fun esquema(nombreYaml: String, componente: String): String {
+        val arbol = Json31.mapper().valueToTree<JsonNode>(abrir(nombreYaml).components.schemas.getValue(componente))
+        quitarTipoJuntoAConst(arbol)
+        return arbol.toString()
+    }
+
+    /**
+     * El parser de Swagger añade `"type": "object"` a una propiedad llamada `type` cuyo esquema es `{ const: … }`
+     * (p. ej. `type: { const: FeatureCollection }` en el contrato 006), y eso rechazaría un JSON correcto.
+     * Con `const` el valor ya queda fijado del todo, así que quitar ese `type` no afloja ninguna regla del YAML.
+     */
+    private fun quitarTipoJuntoAConst(nodo: JsonNode) {
+        if (nodo is ObjectNode && nodo.has("const")) nodo.remove("type")
+        nodo.forEach(::quitarTipoJuntoAConst)
+    }
 
     /**
      * Nombres de las propiedades del esquema [componente]. Sirve cuando el esquema es permisivo a propósito
