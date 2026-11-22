@@ -1,6 +1,5 @@
 using System.Net;
 using System.Text;
-using System.Text.Json;
 using KillaUru.Integracion.Tests.Infraestructura;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,13 +13,6 @@ namespace KillaUru.Integracion.Tests.Ingesta;
 /// </summary>
 public sealed class RecepcionLimitesApiTests(BaseDatosPrueba bd)
 {
-    private static async Task<string?> CodigoDelProblemaAsync(HttpResponseMessage respuesta)
-    {
-        Assert.Equal("application/problem+json", respuesta.Content.Headers.ContentType?.MediaType);
-        using var cuerpo = JsonDocument.Parse(await respuesta.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
-        return cuerpo.RootElement.GetProperty("codigo").GetString();
-    }
-
     private static StringContent Texto(string cuerpo) => new(cuerpo, Encoding.UTF8, "application/json");
 
     public static TheoryData<string> CuerposInvalidos() => new()
@@ -50,7 +42,7 @@ public sealed class RecepcionLimitesApiTests(BaseDatosPrueba bd)
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
-        Assert.Equal("lote_invalido", await CodigoDelProblemaAsync(respuesta));
+        Assert.Equal("lote_invalido", await ProblemaLeido.CodigoAsync(respuesta));
     }
 
     /// <summary>
@@ -73,7 +65,7 @@ public sealed class RecepcionLimitesApiTests(BaseDatosPrueba bd)
 
         // Assert
         Assert.Equal(HttpStatusCode.RequestEntityTooLarge, respuesta.StatusCode);
-        Assert.Equal("lote_demasiado_grande", await CodigoDelProblemaAsync(respuesta));
+        Assert.Equal("lote_demasiado_grande", await ProblemaLeido.CodigoAsync(respuesta));
     }
 
     /// <summary>
@@ -100,7 +92,7 @@ public sealed class RecepcionLimitesApiTests(BaseDatosPrueba bd)
         // Assert
         Assert.Equal(HttpStatusCode.ServiceUnavailable, respuesta.StatusCode);
         Assert.Equal("30", Assert.Single(respuesta.Headers.GetValues("Retry-After")));
-        Assert.Equal("saturado", await CodigoDelProblemaAsync(respuesta));
+        Assert.Equal("saturado", await ProblemaLeido.CodigoAsync(respuesta));
         Assert.Empty(await RecepcionEnBd.LeerAsync(bd.CadenaSuperusuario, rechazados.Select(e => (Guid)e["eventoId"]!)));
     }
 

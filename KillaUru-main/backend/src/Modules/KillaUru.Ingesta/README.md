@@ -73,6 +73,6 @@ dotnet test --project tests/KillaUru.Integracion.Tests -- --filter-namespace "Ki
 ```
 
 [Guía de pruebas](../../../../specs/005-modulo-ingesta/pruebas.md).
-La recepción HTTP con PostgreSQL real (T012) está en curso. Faltan reinicio, purga y salud.
+La recepción HTTP con PostgreSQL real (T012) está aprobada: 17/17 escenarios. Faltan reinicio, purga y salud.
 Para cerrar: conciliar eventos aceptados contra recepción y procesamiento, demostrar
 cero duplicados tras reintento/reinicio y ejecutar carga con datos sintéticos.

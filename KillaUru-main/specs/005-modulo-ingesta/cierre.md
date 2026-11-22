@@ -1,7 +1,7 @@
 # Cierre de spec 005 — Ingesta
 
 **Revisado:** 2026-11-21. **Estado:** cierre de producción no acreditado.
-**Seguimiento:** 28/40 tareas marcadas; 12 pendientes en tasks.md.
+**Seguimiento:** 29/40 tareas marcadas; 11 pendientes en tasks.md.
 [Requisitos](spec.md) · [Tareas](tasks.md) · [Pruebas](pruebas.md) · [Plan de cierre global](../../docs/guias/cierre-y-despliegue.md)
 
 ## Dependencias
@@ -23,9 +23,12 @@ Al escribirla en rojo aparecieron tres diferencias con el contrato, ya corregida
 - **Cuerpo no JSON → `datos_invalidos`** (validación genérica de MVC) en vez de `lote_invalido`.
 - **Errores en `application/json` con solo `{codigo}`**, en vez de ProblemDetails con `type`, `title`, `status`, `codigo` y `correlacionId`. La app ya esperaba ProblemDetails (`ProblemaDto`), y `codigo` sigue en el primer nivel.
 - **Soporte de pruebas:** `FabricaApi` no quitaba las purgas de Ingesta. Una prueba de 003 con el reloj en 2031 arrancaba la purga y borraba filas procesadas de otras pruebas (el #1 vio 37 de 50). Se quitan como ya se hacía con Anomalías; las purgas se prueban aparte en T030.
+**2026-11-21 — T012 cerrada:** 17/17 escenarios del quickstart con HTTP y PostgreSQL real, en 4 archivos
+(ver [pruebas.md](pruebas.md)). Se marcaron en `checklists/trazabilidad.md` CHK002, 004, 007, 008, 012, 024, 027 y 028;
+CHK011 y CHK023 siguen abiertos porque también dependen de T027 (reinicio).
 ## Qué falta localmente
 
-Faltan recepción PostgreSQL/HTTP, pendientes, procesamiento con Anomalías real, reinicio, purgas y salud. El E2E compartido no cubre esas ausencias.
+Faltan el repositorio PostgreSQL aislado (T011, T020), procesamiento con Anomalías real (T024), reinicio, purgas y salud. El E2E compartido no cubre esas ausencias.
 
 ## Qué falta en el entorno desplegado
 
@@ -42,7 +45,6 @@ de la revisión. “Local” incluye implementación/documentación y preparaci�
 | T003 | Local | Prueba que `Ingesta:PurgaSeudonimoHoras` = `Anomalias:PurgaSeudonimoHoras` en `appsettings.json` |
 | T004 | Local | Semillas: lotes de ejemplo sobre la polilínea, sin `loteId` y con un solo seudónimo (`lote-50-buenos.json`, `lote-con-errores.json`) |
 | T011 | Local | `RecepcionEventosPostgresTests` (Testcontainers): un solo `INSERT`; devuelve solo los nuevos; reinsertar = 0 nuevos |
-| T012 | Local | `RecepcionApiTests` (`WebApplicationFactory`): escenarios 1–12 y 17–21 del quickstart. **En curso:** 11/17 aprobados (bloques A, B y C); falta D (#9–#11, #18–#20) |
 | T020 | Local | `PendientesRepositorioTests` (Testcontainers): `RecibidosDelLoteAsync` usa `ix_recibido_lote` (también con `lote_id IS NULL`); `ContarEnLaHoraAsync` con límites de la hora; `MarcarAsync`; `BarridoPendientesPostgres` |
 | T024 | Local | `ProcesamientoTests` de punta a punta con Anomalías real: lote → filas `Procesado`/`Descartado` y anomalías creadas |
 | T027 | Local | `ReinicioTests` (EQ-09): aceptar 500 eventos, detener el *host* a mitad del procesamiento, arrancar otro y verificar conciliación exacta y 0 duplicados en ≤ 2 min |

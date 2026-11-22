@@ -56,10 +56,13 @@ internal sealed class LoteDePrueba
         return JsonContent.Create(cuerpo);
     }
 
-    /// <summary>Petición POST al lote con la cabecera de seudónimo de esta instalación.</summary>
-    internal HttpRequestMessage Peticion(HttpContent cuerpo, string? token = null)
+    /// <summary>
+    /// Petición POST al lote; por defecto con la cabecera `X-KillaUru-Seudonimo` de esta instalación.
+    /// Sin cabecera, el seudónimo del lote es el del primer evento con seudónimo válido (D2).
+    /// </summary>
+    internal HttpRequestMessage Peticion(HttpContent cuerpo, string? token = null, bool conCabeceraSeudonimo = true)
     {
-        var peticion = Infraestructura.Peticiones.Post(Ruta, token, Seudonimo.ToString());
+        var peticion = Infraestructura.Peticiones.Post(Ruta, token, conCabeceraSeudonimo ? Seudonimo.ToString() : null);
         peticion.Content = cuerpo;
         return peticion;
     }

@@ -13,16 +13,22 @@ internal static class Tokens
 {
     internal const string Clave = "clave-de-pruebas-de-integracion-con-32-bytes-o-mas";
 
+    /// <param name="verificado">
+    /// Claim `verificado` como lo emite Identidad (`EmisorJwt`): true/false, o ausente si es null (RN-14, D8).
+    /// </param>
     internal static string Emitir(
-        string rol, string? sujeto = null, TimeSpan? venceEn = null, string clave = Clave, TimeProvider? reloj = null)
+        string rol, string? sujeto = null, TimeSpan? venceEn = null, string clave = Clave, TimeProvider? reloj = null,
+        bool? verificado = null)
     {
         var ahora = (reloj ?? TimeProvider.System).GetUtcNow().UtcDateTime;
         var vence = ahora + (venceEn ?? TimeSpan.FromMinutes(5));
+        var claims = new List<Claim> { new("sub", sujeto ?? Guid.NewGuid().ToString()), new("rol", rol) };
+        if (verificado is { } valor) claims.Add(new("verificado", valor ? "true" : "false", ClaimValueTypes.Boolean));
         var descriptor = new SecurityTokenDescriptor
         {
             Issuer = "https://api.killauru.pe",
             Audience = "killauru",
-            Subject = new ClaimsIdentity([new Claim("sub", sujeto ?? Guid.NewGuid().ToString()), new Claim("rol", rol)]),
+            Subject = new ClaimsIdentity(claims),
             NotBefore = vence.AddMinutes(-10),
             IssuedAt = vence.AddMinutes(-10),
             Expires = vence,

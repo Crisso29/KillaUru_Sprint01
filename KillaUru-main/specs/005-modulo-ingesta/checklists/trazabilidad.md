@@ -1,6 +1,6 @@
 # Trazabilidad Checklist: Módulo Ingesta
 
-> Vigencia documental (2026-11-15): contrastar las marcas con [cierre.md](../cierre.md). Esta checklist de requisitos/trazabilidad no certifica ejecución ni producción.
+> Vigencia documental (2026-11-21; CHK002, 004, 007, 008, 012, 024, 027 y 028 marcados al cerrar T012): contrastar las marcas con [cierre.md](../cierre.md). Esta checklist de requisitos/trazabilidad no certifica ejecución ni producción.
 
 **Purpose**: Todo lo que docs pide a Ingesta → FR → tarea
 **Created**: 2026-10-21
@@ -9,20 +9,20 @@
 ## Historias y requisitos funcionales
 
 - [ ] CHK001 HU-04 · reintento con los mismos `eventoId` sin duplicados; `SYNCED` solo tras un 200 que los incluya → FR-005, FR-006, FR-016 → T010…T018, T025…T027
-- [ ] CHK002 HU-05 (recepción) · resultado por evento; un evento malo no rechaza el lote → FR-002…FR-006, FR-023 → T005, T007, T010, T012
+- [x] CHK002 HU-05 (recepción) · resultado por evento; un evento malo no rechaza el lote → FR-002…FR-006, FR-023 → T005, T007, T010, T012
 - [ ] CHK003 HU-21 (recepción) · seudónimo purgado a 72 h también en la copia de recepción → FR-008, FR-017 → T028…T030
-- [ ] CHK004 RF-11 · `POST /api/v1/anomalies/batch`, 200 tras persistir, 400/401/503, `con_sesion` → FR-001…FR-010, FR-023 → T012, T016
+- [x] CHK004 RF-11 · `POST /api/v1/anomalies/batch`, 200 tras persistir, 400/401/503, `con_sesion` → FR-001…FR-010, FR-023 → T012, T016
 - [x] CHK005 RF-27 (parte Ingesta) · purga del seudónimo en `evento_recibido` → FR-017 → T029
 - [ ] CHK006 RF-28 · cola en `/health/ready` → FR-021 → T031, T032
-- [ ] CHK007 Contrato del lote (`03-requisitos-funcionales.md`) · 200/400/401/429/503 y `rechazados{id, indice, motivo}` → FR-006, FR-023 → T012, T034
-- [ ] CHK008 `01-actores.md` §4 · el administrador no sincroniza (403) → FR-001 → T016, T012
+- [x] CHK007 Contrato del lote (`03-requisitos-funcionales.md`) · 200/400/401/429/503 y `rechazados{id, indice, motivo}` → FR-006, FR-023 → T012, T034
+- [x] CHK008 `01-actores.md` §4 · el administrador no sincroniza (403) → FR-001 → T016, T012
 
 ## Reglas de negocio
 
 - [ ] CHK009 RN-09 · 72 h desde la recepción, en ambas tablas (esta y la de 004) → FR-017 → T028, T030
 - [ ] CHK010 RN-10 · recepción 30 días → FR-018 → T030
 - [ ] CHK011 RN-11 · recepción sin BD antes del 200; rechazados sin guardar; `SeudonimoInconsistente`; conciliación → FR-004, FR-024 → T010, T012, T027, T038
-- [ ] CHK012 RN-14 · `con_sesion` por el token (rol y `verificado`), nunca por la app → FR-007 → T012 (escenarios 10 y 20), T016
+- [x] CHK012 RN-14 · `con_sesion` por el token (rol y `verificado`), nunca por la app → FR-007 → T012 (escenarios 10 y 20), T016
 - [ ] CHK013 RN-15a · conteo por hora de **detección** entregado en el contexto → FR-013 → T006, T019, T020
 
 ## Calidad y decisiones
@@ -40,11 +40,11 @@
 
 ## Decisiones del autor (confirmadas el 2026-10-21)
 
-- [ ] CHK024 D2 · un lote = un seudónimo, `SeudonimoInconsistente` (8), regla en Application → FR-024 → T037, T038, T015, T012
+- [x] CHK024 D2 · un lote = un seudónimo, `SeudonimoInconsistente` (8), regla en Application → FR-024 → T037, T038, T015, T012
 - [ ] CHK025 D3 · `loteId` del servidor; purga de 72 h con `lote_id` y `date_trunc('hour', …)`; `ix_recibido_purga` → FR-017, FR-025 → T001, T010, T028, T030
 - [x] CHK026 D4 · Domain solo `EstadoRecepcion` y `HoraDeDeteccion`; lote y resultado en Application; controlador sin Domain → T008, T037, T009, T016
-- [ ] CHK027 D5 · evento sin `eventoId` → `{id: null, indice, EsquemaInvalido}`; 400 solo ilegible/sin eventos/vacío/> 50 → FR-003, FR-006, FR-023 → T007, T010, T012
-- [ ] CHK028 D8 · `con_sesion` = `ConductorRegistrado` y `verificado = true` → FR-007 → T016, T012
+- [x] CHK027 D5 · evento sin `eventoId` → `{id: null, indice, EsquemaInvalido}`; 400 solo ilegible/sin eventos/vacío/> 50 → FR-003, FR-006, FR-023 → T007, T010, T012
+- [x] CHK028 D8 · `con_sesion` = `ConductorRegistrado` y `verificado = true` → FR-007 → T016, T012
 - [ ] CHK029 D11 · `RegistrarRetrasoCola` al marcar; scripts de carga de 001 → FR-026 → T019, T022, T035
 - [x] CHK030 T-OPS05 · `purga-seudonimos-recepcion` :10 y `purga-recepcion` 03:00, al arrancar, `ProgramaReloj` → FR-017, FR-018, FR-020 → T029, T039
 - [x] CHK031 T-ARQ08 · `PendientesRepositorio` partido (`BarridoPendientesPostgres`) → T021

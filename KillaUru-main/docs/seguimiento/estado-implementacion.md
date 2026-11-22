@@ -21,13 +21,13 @@ Conteos de casillas en `tasks.md`; no son cobertura ni certificación de producc
 | 002 | Auditoría | 35/38 | 3 |
 | 003 | Identidad | 65/65 | 0 |
 | 004 | Anomalías | 56/58 | 2 |
-| 005 | Ingesta | 28/40 | 12 |
+| 005 | Ingesta | 29/40 | 11 |
 | 006 | Consulta de mapa | 20/33 | 13 |
 | 007 | Dashboard | 24/26 | 2 |
 | 008 | Android | 103/128 | 25 |
 | 009 | Dataset/modelo | 46/74 | 28 |
 | 010 | Panel | 77/94 | 17 |
-| **Total** | | **525/637** | **112** |
+| **Total** | | **526/637** | **111** |
 
 Panel tenía 88 tareas marcadas. Se reabrieron 11 por E2E vacíos u omitidos:
 T032, T033, T034, T050, T058, T062, T068, T081, T085, T086 y T087.
@@ -79,7 +79,8 @@ de su ejecución aprobada. No se ocultaron advertencias de TensorFlow/sklearn.
 - **Integración:** no se encontró Docker en PATH; falta ejecutar Testcontainers.
 - **E2E backend:** el recorrido compartido conserva dos casos con `Skip` y pasos sin implementar.
 - **005/006:** ambas tienen contrato HTTP aprobado el 2026-11-21 con Testcontainers (005/T034 4/4, 006/T029 5/5).
-  Faltan sus pruebas con PostgreSQL/HTTP. 006/T029 corrigió un 400 real con `?severidad=4,5` y `?estado=a,b`.
+  005/T012 (recepción HTTP con PostgreSQL real) está cerrada con 17/17 escenarios. Faltan el resto de pruebas
+  con PostgreSQL de 005 (T011, T020, T024, T027, T030, T032) y las de API de 006. 006/T029 corrigió un 400 real con `?severidad=4,5` y `?estado=a,b`.
 - **Prueba intermitente:** `003/ConsolaPrivacidadTests` falló 1 vez en 2 ejecuciones de la suite completa
   (`ArgumentOutOfRangeException` en `StringWriter`). Sola pasó 3/3. El sink de prueba no es seguro entre hilos.
   No reapareció después de quitar las purgas de Ingesta de `FabricaApi` (2 ejecuciones); no está demostrado que fuera esa la causa.
