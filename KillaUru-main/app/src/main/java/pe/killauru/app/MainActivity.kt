@@ -14,7 +14,7 @@ internal class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                NavGrafo()
+                NavGrafo(PantallasReales)
             }
         }
     }

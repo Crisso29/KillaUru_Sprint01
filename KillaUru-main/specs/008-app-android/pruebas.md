@@ -85,6 +85,7 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 <details>
 <summary>JVM — comun (12 archivos)</summary>
 
+- [NavGrafoTest.kt](../../app/src/test/java/pe/killauru/app/comun/ui/NavGrafoTest.kt): T024/T126 — primer uso → mapa sin volver atrás, pestañas en 1 toque, detalle en 2 (sustituye a `ToquesAccionesPrincipalesTest`, que solo comprobaba un conjunto definido en la misma prueba)
 - [SerializadorCifradoTest.kt](../../app/src/test/java/pe/killauru/app/comun/datos/almacen/SerializadorCifradoTest.kt)
 - [CodigosEstablesTest.kt](../../app/src/test/java/pe/killauru/app/comun/datos/bd/CodigosEstablesTest.kt)
 - [DisparadoresTest.kt](../../app/src/test/java/pe/killauru/app/comun/datos/bd/DisparadoresTest.kt)
@@ -96,7 +97,6 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 - [GeodesiaTest.kt](../../app/src/test/java/pe/killauru/app/comun/dominio/GeodesiaTest.kt)
 - [TiempoRelativoTest.kt](../../app/src/test/java/pe/killauru/app/comun/dominio/TiempoRelativoTest.kt)
 - [UuidV7Test.kt](../../app/src/test/java/pe/killauru/app/comun/dominio/UuidV7Test.kt)
-- [ToquesAccionesPrincipalesTest.kt](../../app/src/test/java/pe/killauru/app/comun/ui/ToquesAccionesPrincipalesTest.kt)
 
 </details>
 
@@ -154,8 +154,10 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 </details>
 
 <details>
-<summary>JVM — sesion (10 archivos)</summary>
+<summary>JVM — sesion (12 archivos)</summary>
 
+- [PrimerUsoViewModelTest.kt](../../app/src/test/java/pe/killauru/app/sesion/ui/PrimerUsoViewModelTest.kt): bienvenida solo la primera vez, versión nueva sin repetir vehículo (R-024), retoma en el vehículo
+- [PermisosUbicacionTest.kt](../../app/src/test/java/pe/killauru/app/sesion/ui/PermisosUbicacionTest.kt): FR-006 — ubicación en dos pasos (precisa y luego «todo el tiempo»)
 - [RedAutenticadaTest.kt](../../app/src/test/java/pe/killauru/app/sesion/datos/RedAutenticadaTest.kt): cadena real de OkHttp — token, rutas públicas, renovación única y sesión invalidada
 - [ContratoIdentidadTest.kt](../../app/src/test/java/pe/killauru/app/sesion/datos/ContratoIdentidadTest.kt): registro, inicio de sesión, reenvío y eliminación contra `identidad.openapi.yaml`
 - [EliminarCuentaUseCaseTest.kt](../../app/src/test/java/pe/killauru/app/sesion/dominio/EliminarCuentaUseCaseTest.kt)

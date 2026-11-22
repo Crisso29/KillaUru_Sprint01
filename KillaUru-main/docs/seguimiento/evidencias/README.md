@@ -13,5 +13,6 @@ Aquí solo se copian las ejecuciones que sirven como evidencia, una carpeta por 
 | 2026-11-22 | Pruebas automatizadas y cobertura (constitución VII) | [Backend: 1 153 pruebas y cobertura](pruebas/2026-11-22-backend/README.md) | Local, PostgreSQL real | 1 150 aprobadas, 0 fallidas, 3 pendientes; dominio ≥ 97 %; backend 78,8 % de líneas |
 | 2026-11-22 | Pruebas automatizadas y cobertura del panel | [Panel: Vitest, cobertura y Playwright](pruebas/2026-11-22-panel/README.md) | Local, API simulada (MSW) | 389 Vitest aprobadas; 75,1 % de líneas, `modelo/` ≥ 90 %; E2E: 1 de 13 archivos implementado (147 casos pendientes) |
 | 2026-11-22 | Rendimiento (RNF-23) y conformidad con el diseño (§3.7) | [Trabajadores y pool de conexiones](carga/2026-11-22-local-trabajadores-y-pool/README.md) | Local, misma máquina | Más trabajadores empeoran; 5xx por pool sin tope corregidos (0 tras el cambio); quedan 3 pools |
+| 2026-11-22 | Funcionalidad y usabilidad de la app (FR-001, FR-006, FR-008) | [App: primer uso y navegación en emulador](pruebas/2026-11-22-app-navegacion/README.md) | Emulador Android 15 | Primer uso completo hasta el mapa; permisos reales en dos pasos; pestañas en 1 toque; 5 diferencias con la spec anotadas |
 
 Pendiente: repetir en `killauru-pruebas` (VM) cuando esté desplegado, con k6 fuera de la VM.

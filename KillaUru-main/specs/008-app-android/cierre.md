@@ -60,6 +60,15 @@ Historial, y cada una muestra un texto fijo. Ninguna de las 19 pantallas program
 Términos, Permisos, Detalle, Historial, Descarga…) se llama desde la navegación, y `PerfilViewModel` no lo usa nadie.
 Las capas de dominio y datos están probadas, pero el usuario no puede llegar a ellas.
 
+**Parte 1 resuelta (2026-11-22):** `NavGrafo` recibe sus pantallas como `PantallasApp` (las reales en
+`PantallasReales`, dobles en `NavGrafoTest`) y conecta primer uso → mapa (fuera de la pila), pestañas Mapa · Mis viajes ·
+Ajustes y detalle. `PrimerUsoViewModel` ahora muestra la bienvenida solo la primera vez, pide una versión nueva de los
+términos sin repetir vehículo ni permisos (R-024) y retoma en el vehículo si faltaba. `PermisosRuta` pide los permisos
+al sistema (antes nada lo hacía), con la ubicación en dos pasos (`PermisosUbicacion`). Se corrigió un ciclo de
+inicialización en `Rutas` (un conjunto en su `companion` podía quedar en null) y se sustituyó la prueba tautológica
+`ToquesAccionesPrincipalesTest`. Recorrido en emulador: [evidencia](../../docs/seguimiento/evidencias/pruebas/2026-11-22-app-navegacion/README.md),
+con 5 diferencias de pantalla frente a la spec anotadas allí. **271 pruebas JVM y lint en verde.**
+
 **Pendiente, en curso:** `enDemo` no viene en el contrato; debe calcularse con `ZonaDemo` (data-model §1). El polígono
 se descarga de la CDN (FR-042, research `cdn.killauru.pe`, `cdn.openapi.yaml` con `tipo: tramoDemo`), pero
 `CargadorZonaDemo` lo busca en los assets del APK y nadie lo usa; además el archivo depende de 006/T002. Mientras tanto
