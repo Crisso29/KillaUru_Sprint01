@@ -86,6 +86,9 @@ de su ejecución aprobada. No se ocultaron advertencias de TensorFlow/sklearn.
   No reapareció después de quitar las purgas de Ingesta de `FabricaApi` (2 ejecuciones); no está demostrado que fuera esa la causa.
 - **005/T012 bloque C:** halló un 500 real con cuerpos de más de 256 KB en Kestrel, `datos_invalidos` en vez de
   `lote_invalido` y errores sin `problem+json`. Corregido; detalle en `specs/005-modulo-ingesta/cierre.md`.
+- **Carga k6 (2026-11-21, local, misma máquina):** [progresiva hasta 2 000 usuarios](evidencias/carga/2026-11-21-local-progresiva-2000/README.md).
+  Metas de 300 (RNF-01, RNF-02) cumplidas, 0 5xx y 503 de defensa desde 1 000. **El procesamiento (77 eventos/s) es
+  más lento que la llegada desde 300 usuarios: riesgo para RNF-23, pendiente de medir y diagnosticar.** Repetir en la VM.
 - **Suite backend completa (2026-11-21, Docker, 2 ejecuciones seguidas):** 1141 casos: 1138 aprobados, 0 fallidos y 3 omitidos (E2E pendientes).
 - **Panel:** escenarios `skip/fixme`; E2E locales con MSW y configuración desplegada separada, aún sin archivos `*.pruebas.ts`
   para acreditar el backend real.

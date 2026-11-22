@@ -51,7 +51,7 @@ de la revisión. “Local” incluye implementación/documentación y preparaci�
 | T030 | Local | `PurgasTests`: escenarios 15 y 16 (seudónimo y `lote_id` en `NULL`, hora redondeada; filas `Recibido` > 30 días se conservan); `payload` sin seudónimo; esquema sin cuentas, correos ni tokens |
 | T032 | Local | `SaludIngestaTests`: escenario 14; con la cola al día `/health/ready` = 200 |
 | T040 | Desplegado/campo | Alerta de Grafana «pendiente más viejo de Ingesta > 72 h» (riesgo de R-008 frente a RNF-25) y paso de reproceso manual, en el runbook de monitoreo de 001 |
-| T035 | Desplegado/campo | Medir SC-001 y SC-002 con los scripts de 001 (`tests/carga/carga-combinada.k6.js`, `picos.k6.js`, `estres.k6.js`, `resistencia.k6.js`, `caos.sh`), fuera de la VM contra el entorno de pruebas, con `killauru.ingesta.retraso_cola_s`; Ingesta no tiene script propio |
+| T035 | Desplegado/campo | Medir SC-001 y SC-002 con los scripts de 001 (`tests/carga/carga-combinada.k6.js`, `picos.k6.js`, `estres.k6.js`, `resistencia.k6.js`, `caos.sh`), fuera de la VM contra el entorno de pruebas, con `killauru.ingesta.retraso_cola_s`; Ingesta no tiene script propio. **Ejecución local previa (2026-11-21):** [progresiva hasta 2 000](../../docs/seguimiento/evidencias/carga/2026-11-21-local-progresiva-2000/README.md); no cierra la tarea (falta la VM). |
 | T036 | Local | Marcar `checklists/trazabilidad.md` (los pendientes de `research.md` ya están confirmados por el autor) |
 
 ## Criterio de cierre

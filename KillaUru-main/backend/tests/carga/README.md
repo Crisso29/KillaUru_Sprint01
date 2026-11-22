@@ -27,6 +27,31 @@ export KU_URL_PRUEBAS=https://api-pruebas.killauru.pe
 | `resistencia.k6.js` | T076 | 150+150 VUs durante 4 horas | 4 h |
 | `caos.k6.js` | T079 | 150 VUs válidos + 50 VUs de tráfico basura | 5 min |
 | `identidad.k6.js` | SC-005 | 300 logins + renovación de token | ~3 min |
+| `progresiva-2000.k6.js` | Sprint 2 | Escalones 100 → 300 → 500 → 1 000 → 1 500 → **2 000** usuarios concurrentes (mitad lotes, mitad mapa) | ~19 min |
+
+`progresiva-2000` responde al pedido de «simular progresivamente hasta 2 000 usuarios virtuales concurrentes».
+Su criterio de aprobación son las metas documentadas en el escalón de **300** (RNF-03): lote p95 < 300 ms y
+mapa p95 < 250 ms. Por encima de 300 no hay meta escrita, así que se anota hasta dónde aguanta. Ahí un 503 con
+`Retry-After` es la defensa esperada (DA-05) y cualquier otro 5xx cuenta en `errores_5xx`.
+Cada petición lleva la etiqueta `escalon` (o `transicion` durante las subidas), para leer la latencia de cada nivel.
+Guarda `resumen.txt` y `resumen.json` en la carpeta indicada con `-e SALIDA=...`.
+
+Antes del 2026-11-21 **ningún script arrancaba**: `comun.js` leía el corredor como `FeatureCollection`
+y `corredor_pe28a.geojson` es un `Feature`. Ya acepta ambas formas.
+
+## Sin la VM: entorno local
+
+Mientras no esté desplegado `killauru-pruebas`, se puede levantar [`killauru-local`](../../deploy/local/README.md)
+con Docker en el PC (mismos recursos y configuración `Pruebas`) y apuntar k6 a `http://localhost:18080`,
+que es el valor por defecto de `comun.js`. Los resultados se rotulan **«local, misma máquina»**
+y se repiten en la VM antes de cerrar las tareas de carga.
+`backend/TestResults/` se ignora en git: las ejecuciones que sirven de evidencia se copian a
+[docs/seguimiento/evidencias](../../../docs/seguimiento/evidencias/README.md).
+Primera ejecución: [progresiva hasta 2 000, local, 2026-11-21](../../../docs/seguimiento/evidencias/carga/2026-11-21-local-progresiva-2000/README.md).
+
+```powershell
+k6 run -e KU_URL_PRUEBAS=http://localhost:18080 -e SALIDA=<carpeta-de-resultados> progresiva-2000.k6.js
+```
 
 ## Cómo correr cada prueba
 

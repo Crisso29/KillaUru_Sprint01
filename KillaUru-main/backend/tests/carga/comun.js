@@ -12,8 +12,10 @@ export const URL = __ENV.KU_URL_PRUEBAS || 'http://localhost:18080';
 // Cada función que hace HTTP suma 1 a esta métrica cuando recibe 429.
 const tasa429 = new Rate('tasa_429');
 
-// Polilínea de 004 (T002): [[lon, lat], ...]
-const corredor = JSON.parse(open('../../db/datos/corredor_pe28a.geojson')).features[0].geometry.coordinates;
+// Polilínea de 004 (T002): [[lon, lat], ...]. El archivo es un Feature LineString (construir_corredor.py);
+// se acepta también una FeatureCollection. Hasta el 2026-11-21 solo se leía .features[0] y ningún script arrancaba.
+const geo = JSON.parse(open('../../db/datos/corredor_pe28a.geojson'));
+const corredor = (geo.features ? geo.features[0] : geo).geometry.coordinates;
 
 // Un seudónimo por usuario virtual (= un celular), como hace la app (D2: un lote = un seudónimo).
 const seudonimos = {};
@@ -45,22 +47,25 @@ export function lote(cantidad = 50) {
   return JSON.stringify({ eventos });
 }
 
-export function enviarLote() {
+// etiquetas: tags extra de k6 (p. ej. el escalón de progresiva-2000); los demás scripts no las pasan.
+export function enviarLote(etiquetas = {}) {
   const r = http.post(`${URL}/api/v1/anomalies/batch`, lote(), {
     headers: { 'Content-Type': 'application/json', 'X-KillaUru-Seudonimo': seudonimoDelVu() },
-    tags: { ruta: 'lote' },
+    tags: { ruta: 'lote', ...etiquetas },
   });
   tasa429.add(r.status === 429);
   check(r, { 'lote 200': (x) => x.status === 200 });
+  return r;
 }
 
-export function consultarMapa() {
+export function consultarMapa(etiquetas = {}) {
   const r = http.get(`${URL}/api/v1/anomalies`, {
     headers: { 'X-KillaUru-Seudonimo': seudonimoDelVu() },
-    tags: { ruta: 'mapa' },
+    tags: { ruta: 'mapa', ...etiquetas },
   });
   tasa429.add(r.status === 429);
   check(r, { 'mapa 200/304': (x) => x.status === 200 || x.status === 304 });
+  return r;
 }
 
 // D11: cero 429 bajo carga normal (los límites de cuota están dimensionados para 300 VUs).

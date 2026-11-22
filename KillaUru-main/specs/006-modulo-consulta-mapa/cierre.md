@@ -45,7 +45,7 @@ de la revisión. “Local” incluye implementación/documentación y preparaci�
 | T024 | Local | `FiltrosApiTests`: escenarios 5–8 y 13 del quickstart (`estado` con token de conductor y sin token → 403); sin `ETag`; cabeceras por rol |
 | T027 | Local | `CambiosApiTests`: escenarios 9 y 10 del quickstart |
 | T030 | Desplegado/campo | Regla de caché de Cloudflare (cachear `GET /api/v1/anomalies` solo sin `Authorization` ni cookie `ku_acceso`, respetando `Cache-Control` del origen) documentada en `deploy/runbooks/monitoreo.md` y comprobada como en el quickstart §4; la tasa de aciertos en el borde se lee en las analíticas de Cloudflare y se anota en ese *runbook* |
-| T031 | Desplegado/campo | Medir SC-001 con las pruebas de carga de 001 (`tests/carga/carga-combinada.k6.js`: 300 consultando el mapa + 300 sincronizando, 10 min; y `picos.k6.js`), fuera de la VM contra el entorno de pruebas; anotar el p95 del mapa. 006 no tiene script propio |
+| T031 | Desplegado/campo | Medir SC-001 con las pruebas de carga de 001 (`tests/carga/carga-combinada.k6.js`: 300 consultando el mapa + 300 sincronizando, 10 min; y `picos.k6.js`), fuera de la VM contra el entorno de pruebas; anotar el p95 del mapa. 006 no tiene script propio. **Ejecución local previa (2026-11-21):** [progresiva hasta 2 000](../../docs/seguimiento/evidencias/carga/2026-11-21-local-progresiva-2000/README.md); no cierra la tarea (falta la VM). |
 | T032 | Local | Marcar `checklists/trazabilidad.md` (los pendientes de `research.md` ya fueron confirmados por el autor el 2026-10-21) |
 
 ## Criterio de cierre

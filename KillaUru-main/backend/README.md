@@ -41,6 +41,7 @@ python deploy/ci/cobertura_dominio.py 90
 La solución usa Microsoft.Testing.Platform. Las suites de módulos contienen pruebas de reglas y casos de uso; la integración se organiza por spec y propósito. Consulta [tests/README.md](tests/README.md) para ejecutar cada alcance. La cobertura debe medirse en la revisión correspondiente; no se deduce de la cantidad de tests.
 
 Para desplegar, consultar [deploy/runbooks/desplegar.md](deploy/runbooks/desplegar.md) y R02/R11/R12 de la revisión antes de usar el flujo. Los scripts `.sh` requieren Bash en Linux o en sus contenedores; no son comandos nativos de PowerShell.
+Para pruebas de carga sin la VM existe un entorno local desechable: [deploy/local/README.md](deploy/local/README.md).
 
 ## Comentarios de código
 

@@ -1,0 +1,52 @@
+# Entorno LOCAL desechable «killauru-local»: pruebas de carga con k6 en el PC del autor antes de tener la VM.
+#   docker compose --env-file .env.local -f docker-compose.local.yml up -d --build
+# Mismos recursos que killauru-pruebas (API 1,25 CPU / 3 GB, BD 0,75 CPU / 3 GB) para poder comparar resultados.
+# Diferencias con la VM: imagen de la API construida aquí (amd64), PostGIS oficial amd64 y SIN respaldo a R2.
+# k6 corre en el mismo PC: los resultados son «local, misma máquina», no evidencia de producción.
+# Guía: local/README.md
+name: killauru-local
+
+services:
+  postgres:
+    image: postgis/postgis:17-3.5
+    environment:
+      POSTGRES_DB: killauru
+      POSTGRES_PASSWORD: ${KU_PG_SUPERUSUARIO:?}
+    volumes: [pgdata-local:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d killauru"]
+      interval: 5s
+      retries: 12
+    cpus: "0.75"
+    mem_limit: 3g
+
+  # Mismo migrar.sh de la VM (roles y orden); el respaldo a R2 se sustituye por un aviso de «omitido».
+  migrador:
+    image: postgis/postgis:17-3.5
+    depends_on:
+      postgres: { condition: service_healthy }
+    env_file: .env.local
+    entrypoint: ["bash", "/killauru/deploy/local/migrar-local.sh"]
+    volumes:
+      - ./:/killauru/deploy:ro
+      - ../db:/killauru/db:ro
+      - ./local/respaldo-omitido.sh:/killauru/deploy/backup/respaldar.sh:ro
+
+  api:
+    build: { context: .., dockerfile: deploy/Dockerfile }
+    image: killauru-api:local
+    depends_on:
+      migrador: { condition: service_completed_successfully }
+    environment:
+      ASPNETCORE_ENVIRONMENT: Pruebas   # appsettings.Pruebas.json: límites de tasa altos (D11)
+      ConnectionStrings__KillaUru: "Host=postgres;Database=killauru;Username=killauru_app;Password=${KU_DB_APP_PASSWORD:?}"
+      Api__Jwt__ClaveFirma: ${KU_JWT_CLAVE_FIRMA:?}
+      Identidad__ClaveRotacion: ${KU_IDENTIDAD_CLAVE_ROTACION:?}
+      Identidad__TurnstileSecreto: ${KU_TURNSTILE_SECRETO:?}
+      Identidad__CorreoApiKey: ${KU_CORREO_API_KEY:?}
+    ports: ["18080:8080"]
+    cpus: "1.25"
+    mem_limit: 3g
+
+volumes:
+  pgdata-local: {}
