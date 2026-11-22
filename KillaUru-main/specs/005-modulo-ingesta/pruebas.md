@@ -26,6 +26,7 @@ dotnet build KillaUru.sln
 dotnet test --project tests/KillaUru.Ingesta.Tests --no-build
 dotnet test --project tests/KillaUru.Arquitectura.Tests --no-build
 dotnet test --project tests/KillaUru.Integracion.Tests --no-build -- --filter-class "*ContratoIngestaTests"
+dotnet test --project tests/KillaUru.Integracion.Tests --no-build -- --filter-class "*RecepcionApiTests"
 ```
 
 La última línea requiere Docker Desktop encendido (Testcontainers levanta PostgreSQL).
@@ -36,7 +37,13 @@ Las pruebas con dobles no certifican PostgreSQL real. El rendimiento local no ac
 Contrato HTTP (T034): 4/4 aprobados el 2026-11-21. Comprueba `operationId`, los 7 códigos
 (200, 400, 401, 403, 413, 429, 503), los esquemas `Lote`, `Evento` y `RespuestaLote`, y `Retry-After` en el 503.
 Compara el OpenAPI **publicado** con el contrato; no envía lotes reales.
-Siguen pendientes las pruebas de integración con PostgreSQL y HTTP (T011, T012, T020, T024, T027, T030, T032).
+
+Recepción HTTP (T012, en curso): 4/17 escenarios aprobados el 2026-11-21 (#1, #3, #4 y #21 del quickstart).
+Envía lotes por HTTP a la API en memoria con PostgreSQL real y comprueba la respuesta **y** las filas de
+`ingesta.evento_recibido`. El #1 espera, con un plazo de 15 s, a que el procesamiento real deje las filas en Procesado.
+Se verificó por mutación que detectan errores: anular la marca de duplicados entre envíos hace fallar el #3,
+y anular la de dentro del lote hace fallar el #4.
+Siguen pendientes las pruebas con PostgreSQL y HTTP de T011, T020, T024, T027, T030 y T032, y 13 escenarios de T012.
 Las pruebas de otros módulos y el código implementado no sustituyen esa evidencia.
 El E2E compartido conserva dos casos omitidos con pasos sin implementar.
 La ejecución de k6 y las validaciones operacionales requieren evidencia del entorno de pruebas.
@@ -71,6 +78,16 @@ Las suites de arquitectura, carga y E2E compartidas se detallan en [pruebas de p
 <summary>Reglas de dominio (1 archivo)</summary>
 
 - [HoraDeDeteccionTests.cs](../../backend/tests/KillaUru.Ingesta.Tests/Domain/HoraDeDeteccionTests.cs)
+
+</details>
+
+<details>
+<summary>Integración HTTP y PostgreSQL (1 archivo)</summary>
+
+- [RecepcionApiTests.cs](../../backend/tests/KillaUru.Integracion.Tests/specs/005-modulo-ingesta/integracion/RecepcionApiTests.cs)
+
+La preparación está en [soporte/](../../backend/tests/KillaUru.Integracion.Tests/specs/005-modulo-ingesta/soporte/):
+`LoteDePrueba` arma lotes válidos y `RecepcionEnBd` lee las filas guardadas.
 
 </details>
 

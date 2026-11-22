@@ -45,7 +45,7 @@ description: "Tareas del módulo Ingesta"
 
 - [x] T010 [P] [US1] `RecibirLoteEventosUseCaseTests` (dobles de `IAnomaliasService`, `IRecepcionEventos`, `IColaLotes`): vacío/51 → `Invalido`; sin capacidad → `Saturado` sin insertar; una sola `recibidoUtc` y un `loteId` UUIDv7 generado por el servidor; evento sin `eventoId` → `Rechazo(null, indice, EsquemaInvalido)`; `SeudonimoInconsistente`; listas disjuntas; métricas de lote y de rechazo por motivo — `InT/Application/RecibirLoteEventosUseCaseTests.cs` · (FR-003…FR-010, FR-023…FR-025)
 - [ ] T011 [US1] `RecepcionEventosPostgresTests` (Testcontainers): un solo `INSERT`; devuelve solo los nuevos; reinsertar = 0 nuevos — `tests/KillaUru.Integracion.Tests/specs/005-modulo-ingesta/integracion/RecepcionEventosPostgresTests.cs` · (FR-005)
-- [ ] T012 [US1] `RecepcionApiTests` (`WebApplicationFactory`): escenarios 1–12 y 17–21 del quickstart — `tests/KillaUru.Integracion.Tests/specs/005-modulo-ingesta/integracion/RecepcionApiTests.cs` · (SC-004, FR-001, FR-007, FR-023…FR-025)
+- [ ] T012 [US1] `RecepcionApiTests` (`WebApplicationFactory`): escenarios 1–12 y 17–21 del quickstart — `tests/KillaUru.Integracion.Tests/specs/005-modulo-ingesta/integracion/RecepcionApiTests.cs` · (SC-004, FR-001, FR-007, FR-023…FR-025) — **en curso (2026-11-21):** 4/17 aprobados (#1, #3, #4, #21: recepción e idempotencia)
 
 ### Implementación
 
