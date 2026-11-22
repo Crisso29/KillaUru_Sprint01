@@ -83,7 +83,7 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 </details>
 
 <details>
-<summary>JVM — comun (13 archivos)</summary>
+<summary>JVM — comun (12 archivos)</summary>
 
 - [SerializadorCifradoTest.kt](../../app/src/test/java/pe/killauru/app/comun/datos/almacen/SerializadorCifradoTest.kt)
 - [CodigosEstablesTest.kt](../../app/src/test/java/pe/killauru/app/comun/datos/bd/CodigosEstablesTest.kt)
@@ -91,7 +91,6 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 - [EsquemaInicialTest.kt](../../app/src/test/java/pe/killauru/app/comun/datos/bd/EsquemaInicialTest.kt)
 - [TamanoBaseTest.kt](../../app/src/test/java/pe/killauru/app/comun/datos/bd/TamanoBaseTest.kt)
 - [CargadorParametrosTest.kt](../../app/src/test/java/pe/killauru/app/comun/datos/CargadorParametrosTest.kt)
-- [InterceptorSeudonimoTest.kt](../../app/src/test/java/pe/killauru/app/comun/datos/red/InterceptorSeudonimoTest.kt)
 - [RelojConfiableTest.kt](../../app/src/test/java/pe/killauru/app/comun/datos/RelojConfiableTest.kt)
 - [AnclaTiempoTest.kt](../../app/src/test/java/pe/killauru/app/comun/dominio/AnclaTiempoTest.kt)
 - [GeodesiaTest.kt](../../app/src/test/java/pe/killauru/app/comun/dominio/GeodesiaTest.kt)
@@ -155,8 +154,9 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 </details>
 
 <details>
-<summary>JVM — sesion (9 archivos)</summary>
+<summary>JVM — sesion (10 archivos)</summary>
 
+- [RedAutenticadaTest.kt](../../app/src/test/java/pe/killauru/app/sesion/datos/RedAutenticadaTest.kt): cadena real de OkHttp — token, rutas públicas, renovación única y sesión invalidada
 - [ContratoIdentidadTest.kt](../../app/src/test/java/pe/killauru/app/sesion/datos/ContratoIdentidadTest.kt): registro, inicio de sesión, reenvío y eliminación contra `identidad.openapi.yaml`
 - [EliminarCuentaUseCaseTest.kt](../../app/src/test/java/pe/killauru/app/sesion/dominio/EliminarCuentaUseCaseTest.kt)
 - [IniciarSesionUseCaseTest.kt](../../app/src/test/java/pe/killauru/app/sesion/dominio/IniciarSesionUseCaseTest.kt)
@@ -170,8 +170,9 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 </details>
 
 <details>
-<summary>JVM — seudonimo (2 archivos)</summary>
+<summary>JVM — seudonimo (3 archivos)</summary>
 
+- [InterceptorSeudonimoTest.kt](../../app/src/test/java/pe/killauru/app/seudonimo/datos/InterceptorSeudonimoTest.kt): solo en anónimas y sin pisar el del lote (D2)
 - [ObtenerSeudonimoTest.kt](../../app/src/test/java/pe/killauru/app/seudonimo/dominio/ObtenerSeudonimoTest.kt)
 - [PoliticaRotacionTest.kt](../../app/src/test/java/pe/killauru/app/seudonimo/dominio/PoliticaRotacionTest.kt)
 
