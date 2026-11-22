@@ -14,6 +14,14 @@
 - **Decision** (D5): 400 `lote_invalido` **solo** si el cuerpo no es JSON, no trae el arreglo `eventos`, el arreglo está vacío o trae más de 50 (RF-11 tal cual). Un evento sin `eventoId` UUID **no** hace fallar el lote: sale en `rechazados` como `{ id: null, indice, motivo: EsquemaInvalido }`, donde `indice` es su posición 0-based en el arreglo `eventos`. Todo elemento de `rechazados` lleva `indice`, siempre. 413 si el cuerpo pasa de 256 KB (`RequestSizeLimit`, lo corta Kestrel antes de leer).
 - **Rationale**: «un evento malo nunca tumba el lote» (RF-11). Con `indice` la app sabe qué evento marcar `REJECTED_LOCAL` aunque no tenga id. Un lote de 50 eventos pesa ~20 KB: 256 KB solo se supera con un cliente abusivo.
 - **Queda para 008-app-android**: cómo trata la app el 413 (no lo decide D5).
+- **Adenda 2026-11-21 (T012, mecanismo; la decisión no cambia).** La prueba con Kestrel real mostró que `RequestSizeLimit`
+  no daba 413: Kestrel cortaba la lectura de `[FromBody]` y la excepción terminaba en 500 `error_interno`. Además, un
+  cuerpo que no era JSON salía 400 `datos_invalidos` (validación genérica de MVC) en vez de `lote_invalido`, y los
+  errores no eran `application/problem+json`. Ahora `Adapters/LectorCuerpoLote` lee el cuerpo con el tope de
+  `Ingesta:TamanoMaximoCuerpoKb` (antes fijo en el atributo): 413 sin leer si `Content-Length` ya lo supera, 413 si se
+  supera al leer por bloques o si Kestrel corta, y 400 `lote_invalido` si no es `{ "eventos": [...] }`.
+  Solo entrega los `JsonElement` crudos: el mapeo a `EventoReportado` sigue en Application (`LectorEvento`), así que
+  R-001 se mantiene. El cuerpo se documenta en OpenAPI con `Adapters/Documentacion/OperacionIngesta`.
 
 ## R-003 · Repetidos dentro del mismo lote
 

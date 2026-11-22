@@ -26,7 +26,8 @@ public static class IngestaModule
         RegistrarPersistencia(services);
         RegistrarProcesamiento(services);
         // Documentación: completa el OpenAPI v1 con el contrato de 005 (FR-001, FR-006)
-        services.AddOpenApi("v1", o => o.AddSchemaTransformer<Adapters.Documentacion.EsquemasIngesta>());
+        services.AddOpenApi("v1", o => o.AddSchemaTransformer<Adapters.Documentacion.EsquemasIngesta>()
+            .AddOperationTransformer<Adapters.Documentacion.OperacionIngesta>());
         return services;
     }
 

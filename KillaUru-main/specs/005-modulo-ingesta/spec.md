@@ -143,7 +143,7 @@ Como operador, quiero saber si la cola se atascó, para enterarme antes de que l
 - La app rota su seudónimo con eventos pendientes: parte el lote para que cada lote lleve un solo seudónimo (nota para 008; D2).
 - Un lote que llega mientras la cola está a punto de llenarse: se guarda y el aviso puede no entrar; el barredor lo recupera.
 - Un lote de un administrador (no detecta): 403 `sin_permiso` (R-004; `01-actores.md` §4).
-- Cuerpo de más de 256 KB: 413 antes de leerlo (R-002).
+- Cuerpo de más de `TamanoMaximoCuerpoKb` (256 KB): 413 `lote_demasiado_grande`; sin leerlo si `Content-Length` ya lo declara, y sin pasar del tope si llega por bloques (R-002 y su adenda).
 - Un evento que se queda `Recibido` más de 30 días: no se borra; `/health/ready` ya estaba en 503 y la alerta de pendiente > 72 h ya avisó. Choca con RNF-25 (máx. 30 días): riesgo anotado (R-008, SEG-05).
 - Una fila `Recibido` con más de 72 h pierde su `lote_id` en la purga: el barredor la recupera como «lote sin id» (R-011).
 - Reinicio con miles de pendientes: el barredor encola por lotes de 100 `lote_id` y respeta la capacidad de la cola.

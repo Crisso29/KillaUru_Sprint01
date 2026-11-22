@@ -37,7 +37,10 @@ curl.exe -X POST "$env:KU_URL_PRUEBAS/api/v1/anomalies/batch" -H "Content-Type: 
 
 `Adapters/Documentacion/EsquemasIngesta.cs` completa el OpenAPI publicado (`/openapi/v1.json`, `/docs`)
 con requeridos, límites y catálogos del YAML. `ContratoIngestaTests` compara ambos (T034, aprobado).
-Los cuerpos de error reales y el límite de 256 KB se prueban por HTTP en T012, aún pendiente.
+El cuerpo no se lee con `[FromBody]`: `Adapters/LectorCuerpoLote.cs` lo lee con el tope `TamanoMaximoCuerpoKb`.
+Más que el tope es 413 `lote_demasiado_grande`, también si Kestrel corta antes, y un cuerpo que no es
+`{ "eventos": [...] }` es 400 `lote_invalido`. Todos los errores son ProblemDetails (`application/problem+json`)
+con `codigo` y `correlacionId`. `Adapters/Documentacion/OperacionIngesta.cs` declara el cuerpo `Lote` en el OpenAPI.
 
 ## Parámetros y mantenimiento
 
@@ -66,9 +69,10 @@ Desde `backend/`:
 dotnet test --project tests/KillaUru.Ingesta.Tests
 dotnet test --project tests/KillaUru.Arquitectura.Tests
 dotnet test --project tests/KillaUru.Integracion.Tests -- --filter-class "*ContratoIngestaTests"
+dotnet test --project tests/KillaUru.Integracion.Tests -- --filter-namespace "KillaUru.Integracion.Tests.Ingesta"
 ```
 
 [Guía de pruebas](../../../../specs/005-modulo-ingesta/pruebas.md).
-Faltan los escenarios dedicados de PostgreSQL/HTTP, reinicio, purga y salud.
+La recepción HTTP con PostgreSQL real (T012) está en curso. Faltan reinicio, purga y salud.
 Para cerrar: conciliar eventos aceptados contra recepción y procesamiento, demostrar
 cero duplicados tras reintento/reinicio y ejecutar carga con datos sintéticos.

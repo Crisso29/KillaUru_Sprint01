@@ -15,6 +15,10 @@ namespace KillaUru.Integracion.Tests.Infraestructura;
 /// <param name="entorno">Development (con /docs) o Production.</param>
 internal sealed class FabricaApi(BaseDatosPrueba bd, string entorno = "Development") : WebApplicationFactory<Program>
 {
+    /// <summary>Tareas programadas que se prueban aparte, cada una con su propio reloj (Anomalías 004, Ingesta 005/T030).</summary>
+    private static readonly string[] EspaciosDeTareas =
+        ["KillaUru.Anomalias.Infrastructure.Tareas", "KillaUru.Ingesta.Infrastructure.Tareas"];
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment(entorno);
@@ -31,7 +35,8 @@ internal sealed class FabricaApi(BaseDatosPrueba bd, string entorno = "Developme
             if (purga is not null) servicios.Remove(purga);
             var carga = servicios.SingleOrDefault(x => x.ImplementationType == typeof(KillaUru.Anomalias.Infrastructure.CargadorCorredor));
             if (carga is not null) servicios.Remove(carga);
-            foreach (var tarea in servicios.Where(x => x.ImplementationType?.Namespace == "KillaUru.Anomalias.Infrastructure.Tareas").ToArray()) servicios.Remove(tarea);
+            // Las purgas de Ingesta corren al arrancar: con el reloj de otra prueba en 2031 borraban filas ajenas (005/T012 #1).
+            foreach (var tarea in servicios.Where(x => EspaciosDeTareas.Contains(x.ImplementationType?.Namespace)).ToArray()) servicios.Remove(tarea);
             // El corredor real se valida en sus pruebas; otros módulos no dependen de datos cartográficos externos.
             var corredor = new KillaUru.Anomalias.Application.Procesamiento.EstadoCorredor();
             corredor.Cargar(new([KillaUru.Shared.Domain.Coordenada.Crear(-13, -76)!.Value,

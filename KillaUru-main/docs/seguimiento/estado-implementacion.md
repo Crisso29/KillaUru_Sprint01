@@ -82,7 +82,10 @@ de su ejecución aprobada. No se ocultaron advertencias de TensorFlow/sklearn.
   Faltan sus pruebas con PostgreSQL/HTTP. 006/T029 corrigió un 400 real con `?severidad=4,5` y `?estado=a,b`.
 - **Prueba intermitente:** `003/ConsolaPrivacidadTests` falló 1 vez en 2 ejecuciones de la suite completa
   (`ArgumentOutOfRangeException` en `StringWriter`). Sola pasó 3/3. El sink de prueba no es seguro entre hilos.
-- **Suite backend completa (2026-11-21, Docker):** 1110 casos: 1106 aprobados, 3 omitidos (E2E pendientes) y 1 intermitente.
+  No reapareció después de quitar las purgas de Ingesta de `FabricaApi` (2 ejecuciones); no está demostrado que fuera esa la causa.
+- **005/T012 bloque C:** halló un 500 real con cuerpos de más de 256 KB en Kestrel, `datos_invalidos` en vez de
+  `lote_invalido` y errores sin `problem+json`. Corregido; detalle en `specs/005-modulo-ingesta/cierre.md`.
+- **Suite backend completa (2026-11-21, Docker, 2 ejecuciones seguidas):** 1141 casos: 1138 aprobados, 0 fallidos y 3 omitidos (E2E pendientes).
 - **Panel:** escenarios `skip/fixme`; E2E locales con MSW y configuración desplegada separada, aún sin archivos `*.pruebas.ts`
   para acreditar el backend real.
 - **Android:** aún no existen `src/androidTest/` ni `src/test/resources/`; quedan pruebas

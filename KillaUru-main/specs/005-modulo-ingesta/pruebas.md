@@ -38,13 +38,13 @@ Contrato HTTP (T034): 4/4 aprobados el 2026-11-21. Comprueba `operationId`, los 
 (200, 400, 401, 403, 413, 429, 503), los esquemas `Lote`, `Evento` y `RespuestaLote`, y `Retry-After` en el 503.
 Compara el OpenAPI **publicado** con el contrato; no envía lotes reales.
 
-Recepción HTTP (T012, en curso): 8/17 escenarios del quickstart aprobados el 2026-11-21, un archivo por bloque:
+Recepción HTTP (T012, en curso): 11/17 escenarios del quickstart aprobados el 2026-11-21, un archivo por bloque:
 
 | Bloque | Archivo | Escenarios | Estado |
 |---|---|---|---|
 | A. Recepción e idempotencia | `RecepcionApiTests.cs` | #1, #3, #4, #21 | ✅ 4/4 |
 | B. Rechazo por evento | `RecepcionRechazosApiTests.cs` | #2, #5, #6, #17 | ✅ 7/7 casos (el #5 prueba ambos lados de cada límite) |
-| C. Lote inválido y límites | `RecepcionLimitesApiTests.cs` | #7, #8, #12 | Pendiente |
+| C. Lote inválido y límites | `RecepcionLimitesApiTests.cs` | #7, #8, #12 | ✅ 6/6 casos (el #8 sobre Kestrel real) |
 | D. Seguridad y seudónimo | `RecepcionSeguridadApiTests.cs` | #9, #10, #11, #18, #19, #20 | Pendiente |
 
 Envían lotes por HTTP a la API en memoria con PostgreSQL real y comprueban la respuesta **y** las filas de
@@ -52,6 +52,9 @@ Envían lotes por HTTP a la API en memoria con PostgreSQL real y comprueban la r
 Se verificó por mutación que detectan errores: anular la marca de duplicados entre envíos hace fallar el #3,
 anular la de dentro del lote hace fallar el #4, y volver exclusivos los límites de RN-11 (`>=` 50 m, `<=` 0,75)
 hace fallar justo los dos casos de borde del #5.
+El bloque C empezó en rojo (0/6) y halló errores reales, ya corregidos y descritos en [cierre.md](cierre.md):
+el 300 KB respondía 500 en Kestrel, un cuerpo no JSON salía `datos_invalidos` y los errores no eran `problem+json`.
+El #12 usa la cola real con `CapacidadCola = 1` y sin procesador ni barredor, para que nadie la vacíe.
 Siguen pendientes las pruebas con PostgreSQL y HTTP de T011, T020, T024, T027, T030 y T032.
 Las pruebas de otros módulos y el código implementado no sustituyen esa evidencia.
 El E2E compartido conserva dos casos omitidos con pasos sin implementar.
@@ -91,13 +94,21 @@ Las suites de arquitectura, carga y E2E compartidas se detallan en [pruebas de p
 </details>
 
 <details>
-<summary>Integración HTTP y PostgreSQL (2 archivos)</summary>
+<summary>Integración HTTP y PostgreSQL (3 archivos)</summary>
 
 - [RecepcionApiTests.cs](../../backend/tests/KillaUru.Integracion.Tests/specs/005-modulo-ingesta/integracion/RecepcionApiTests.cs)
 - [RecepcionRechazosApiTests.cs](../../backend/tests/KillaUru.Integracion.Tests/specs/005-modulo-ingesta/integracion/RecepcionRechazosApiTests.cs)
+- [RecepcionLimitesApiTests.cs](../../backend/tests/KillaUru.Integracion.Tests/specs/005-modulo-ingesta/integracion/RecepcionLimitesApiTests.cs)
 
 La preparación está en [soporte/](../../backend/tests/KillaUru.Integracion.Tests/specs/005-modulo-ingesta/soporte/):
 `LoteDePrueba` arma lotes válidos, `EnvioLote` los envía y `RecepcionEnBd` lee las filas guardadas.
+
+</details>
+
+<details>
+<summary>Adaptadores sin host (1 archivo)</summary>
+
+- [LectorCuerpoLoteTests.cs](../../backend/tests/KillaUru.Ingesta.Tests/Adapters/LectorCuerpoLoteTests.cs): tope de bytes inclusivo, `Content-Length`, corte de Kestrel y cuerpos inválidos.
 
 </details>
 
