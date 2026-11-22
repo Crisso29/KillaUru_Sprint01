@@ -18,7 +18,7 @@ services:
       postgres: { condition: service_healthy }
     environment:
       ASPNETCORE_ENVIRONMENT: Pruebas   # appsettings.Pruebas.json: límites de tasa altos (D11)
-      ConnectionStrings__KillaUru: "Host=postgres;Database=killauru;Username=killauru_app;Password=${KU_DB_APP_PASSWORD:?}"
+      ConnectionStrings__KillaUru: "Host=postgres;Database=killauru;Username=killauru_app;Password=${KU_DB_APP_PASSWORD:?};Maximum Pool Size=30"
       Api__Jwt__ClaveFirma: ${KU_JWT_CLAVE_FIRMA:?}
       # Identidad los valida al arrancar (igual que en docker-compose.yml); sin ellos la API no inicia.
       Identidad__ClaveRotacion: ${KU_IDENTIDAD_CLAVE_ROTACION:?}

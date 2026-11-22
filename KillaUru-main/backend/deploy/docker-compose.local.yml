@@ -14,7 +14,9 @@ services:
       POSTGRES_PASSWORD: ${KU_PG_SUPERUSUARIO:?}
     volumes: [pgdata-local:/var/lib/postgresql/data]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d killauru"]
+      # Por TCP: en el primer arranque la imagen levanta un servidor temporal solo por socket y luego se reinicia;
+      # sin -h el migrador podía conectarse justo en ese reinicio y fallar (exit 2, 2026-11-22).
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d killauru"]
       interval: 5s
       retries: 12
     cpus: "0.75"
@@ -39,11 +41,13 @@ services:
       migrador: { condition: service_completed_successfully }
     environment:
       ASPNETCORE_ENVIRONMENT: Pruebas   # appsettings.Pruebas.json: límites de tasa altos (D11)
-      ConnectionStrings__KillaUru: "Host=postgres;Database=killauru;Username=killauru_app;Password=${KU_DB_APP_PASSWORD:?}"
+      ConnectionStrings__KillaUru: "Host=postgres;Database=killauru;Username=killauru_app;Password=${KU_DB_APP_PASSWORD:?};Maximum Pool Size=30"
       Api__Jwt__ClaveFirma: ${KU_JWT_CLAVE_FIRMA:?}
       Identidad__ClaveRotacion: ${KU_IDENTIDAD_CLAVE_ROTACION:?}
       Identidad__TurnstileSecreto: ${KU_TURNSTILE_SECRETO:?}
       Identidad__CorreoApiKey: ${KU_CORREO_API_KEY:?}
+      # Trabajadores del procesamiento de Ingesta (RNF-23); 0 = núcleos que ve .NET. Para experimentos: KU_TRABAJADORES=4
+      Ingesta__Trabajadores: ${KU_TRABAJADORES:-0}
     ports: ["18080:8080"]
     cpus: "1.25"
     mem_limit: 3g

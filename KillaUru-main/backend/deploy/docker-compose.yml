@@ -16,7 +16,7 @@ services:
     depends_on:
       postgres: { condition: service_healthy }
     environment:
-      ConnectionStrings__KillaUru: "Host=postgres;Database=killauru;Username=killauru_app;Password=${KU_DB_APP_PASSWORD:?}"
+      ConnectionStrings__KillaUru: "Host=postgres;Database=killauru;Username=killauru_app;Password=${KU_DB_APP_PASSWORD:?};Maximum Pool Size=30"
       Api__Jwt__ClaveFirma: ${KU_JWT_CLAVE_FIRMA:?}
       Identidad__ClaveRotacion: ${KU_IDENTIDAD_CLAVE_ROTACION:?}
       Identidad__TurnstileSecreto: ${KU_TURNSTILE_SECRETO:?}
