@@ -20,10 +20,13 @@ Implementación y tests JVM por funcionalidad. Configuración actual: Gradle 9.7
 - Hilt: `MapaModulo` repetía un repositorio y dos DAO de `BdModulo`/`RepositoriosModulo`; faltaba proveer `WorkManager`.
 - Pruebas: 3 archivos importaban el convertidor JSON antiguo de Jake Wharton; usan el de Square, como producción.
 - FR-031 (T056): `duplicados` y rechazados con `id` → `SYNCED`; el modelo del dominio pasa a `RespuestaLote`/`Rechazo` con `motivo`.
+- FR-031, conteo: `EnviarLoteUseCase` suma cada rechazo a `contador_local` (`rechazo.<Motivo>`) con el puerto
+  `ContadorRechazos` y el adaptador `ContadorRechazosRoom`. `ContadorDao.incrementar` (`@Upsert`) **reemplazaba** el valor:
+  `ContadorRechazosRoomTest` lo demostró (esperado 2, obtenido 1) y ahora `ContadorDao.sumar` usa `INSERT OR IGNORE`
+  + `UPDATE valor = valor + n` en una transacción (`ON CONFLICT DO UPDATE` requiere Android 11; `minSdk` es 26).
 
 **Pendiente, en curso:** los clientes HTTP no siguen los contratos (rutas sin `/api` y en inglés, campos y tipos distintos):
-Ingesta (005), Mapa (006), Identidad (003); CDN por revisar. Falta además sumar los rechazos por motivo en
-`contador_local` (FR-031): `ContadorDao.incrementar` usa `@Upsert`, que reemplaza el valor en vez de sumarlo.
+Ingesta (005), Mapa (006), Identidad (003); CDN por revisar.
 Detekt marca 3 funciones de más de 20 líneas (`DescargaMapaPantalla`, `RepositorioAnomaliasHttp.obtener`, `DescargaReanudable.descargar`).
 
 

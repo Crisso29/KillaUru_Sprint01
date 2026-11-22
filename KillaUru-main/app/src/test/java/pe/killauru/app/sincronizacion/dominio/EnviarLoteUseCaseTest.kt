@@ -43,12 +43,34 @@ class EnviarLoteUseCaseTest {
         }
     }
 
+    /**
+     * FR-031: cada rechazo del 200 se suma a su motivo en `contador_local`, tenga `id` o no.
+     * El estado del evento lo decide [InterpretarRespuestaLote]; aquí solo se cuenta.
+     */
+    @Test
+    fun `200 suma cada rechazo a su motivo con id o sin id`() = runTest {
+        // Arrange
+        val contador = ContadorRechazosEnMemoria()
+        val respuesta = RespuestaLote(
+            aceptados = emptyList(),
+            duplicados = emptyList(),
+            rechazados = listOf(Rechazo("e1", 0, "FueraDelCorredor"), Rechazo(null, 1, "EsquemaInvalido")),
+        )
+        val uc = EnviarLoteUseCase(ApiFalsa(RespuestaLoteApi.Exitosa(respuesta)), RepoFalso(), contador)
+
+        // Act
+        uc.ejecutar("seu1", listOf("e1", "e2"), listOf(e1, e2))
+
+        // Assert
+        assertEquals(listOf("FueraDelCorredor", "EsquemaInvalido"), contador.motivos)
+    }
+
     @Test
     fun `401 pone todos en PENDING sin REJECTED_LOCAL`() = runTest {
         // Arrange
         val repo = RepoFalso()
         val api = ApiFalsa(RespuestaLoteApi.Error401("token_invalido"))
-        val uc = EnviarLoteUseCase(api, repo)
+        val uc = EnviarLoteUseCase(api, repo, ContadorRechazosEnMemoria())
 
         // Act
         uc.ejecutar("seu1", listOf("e1", "e2"), listOf(e1, e2))
@@ -63,7 +85,7 @@ class EnviarLoteUseCaseTest {
         // Arrange
         val repo = RepoFalso()
         val api = ApiFalsa(RespuestaLoteApi.Error403("sesion_invalida"))
-        val uc = EnviarLoteUseCase(api, repo)
+        val uc = EnviarLoteUseCase(api, repo, ContadorRechazosEnMemoria())
 
         // Act
         uc.ejecutar("seu1", listOf("e1", "e2"), listOf(e1, e2))
@@ -83,7 +105,7 @@ class EnviarLoteUseCaseTest {
             rechazados = emptyList(),
         )
         val api = ApiFalsa(RespuestaLoteApi.Exitosa(dto))
-        val uc = EnviarLoteUseCase(api, repo)
+        val uc = EnviarLoteUseCase(api, repo, ContadorRechazosEnMemoria())
 
         // Act
         uc.ejecutar("seu1", listOf("e1", "e2"), listOf(e1, e2))
@@ -98,7 +120,7 @@ class EnviarLoteUseCaseTest {
         // Arrange
         val repo = RepoFalso()
         val api = ApiFalsa(RespuestaLoteApi.ErrorRed(RuntimeException("sin red")))
-        val uc = EnviarLoteUseCase(api, repo)
+        val uc = EnviarLoteUseCase(api, repo, ContadorRechazosEnMemoria())
 
         // Act
         uc.ejecutar("seu1", listOf("e1"), listOf(e1))

@@ -75,7 +75,7 @@ class SincronizarEventosUseCaseTest {
         // Arrange
         val repo = RepoFalso(listOf(evento("e1")))
         val api = ApiFalsa()
-        val uc = SincronizarEventosUseCase(repo, EnviarLoteUseCase(api, repo), parametros(), RelojFalso(Instant.now()))
+        val uc = SincronizarEventosUseCase(repo, EnviarLoteUseCase(api, repo, ContadorRechazosEnMemoria()), parametros(), RelojFalso(Instant.now()))
 
         // Act
         uc.ejecutar(soloVerMapa = true, enAhorro = false)
@@ -89,7 +89,7 @@ class SincronizarEventosUseCaseTest {
         // Arrange
         val repo = RepoFalso(listOf(evento("e1")))
         val api = ApiFalsa()
-        val uc = SincronizarEventosUseCase(repo, EnviarLoteUseCase(api, repo), parametros(), RelojFalso(Instant.now()))
+        val uc = SincronizarEventosUseCase(repo, EnviarLoteUseCase(api, repo, ContadorRechazosEnMemoria()), parametros(), RelojFalso(Instant.now()))
 
         // Act
         uc.ejecutar(soloVerMapa = false, enAhorro = true)
@@ -104,7 +104,7 @@ class SincronizarEventosUseCaseTest {
         val eventos = (1..3).map { evento("e$it", "seu1") } + (4..6).map { evento("e$it", "seu2") }
         val repo = RepoFalso(eventos)
         val api = ApiFalsa()
-        val uc = SincronizarEventosUseCase(repo, EnviarLoteUseCase(api, repo), parametros(), RelojFalso(Instant.now()))
+        val uc = SincronizarEventosUseCase(repo, EnviarLoteUseCase(api, repo, ContadorRechazosEnMemoria()), parametros(), RelojFalso(Instant.now()))
 
         // Act
         uc.ejecutar(soloVerMapa = false, enAhorro = false)
@@ -119,7 +119,7 @@ class SincronizarEventosUseCaseTest {
         // Arrange
         val repo = RepoFalso()
         val api = ApiFalsa()
-        val uc = SincronizarEventosUseCase(repo, EnviarLoteUseCase(api, repo), parametros(), RelojFalso(null))
+        val uc = SincronizarEventosUseCase(repo, EnviarLoteUseCase(api, repo, ContadorRechazosEnMemoria()), parametros(), RelojFalso(null))
 
         // Act
         uc.ejecutar(soloVerMapa = false, enAhorro = false)
@@ -135,7 +135,7 @@ class SincronizarEventosUseCaseTest {
         val esperado = ahora.minusSeconds(168 * 3600).toEpochMilli()
         val repo = RepoFalso()
         val api = ApiFalsa()
-        val uc = SincronizarEventosUseCase(repo, EnviarLoteUseCase(api, repo), parametros(), RelojFalso(ahora))
+        val uc = SincronizarEventosUseCase(repo, EnviarLoteUseCase(api, repo, ContadorRechazosEnMemoria()), parametros(), RelojFalso(ahora))
 
         // Act
         uc.ejecutar(soloVerMapa = false, enAhorro = false)
