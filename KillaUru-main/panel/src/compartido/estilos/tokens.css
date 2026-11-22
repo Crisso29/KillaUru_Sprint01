@@ -35,7 +35,8 @@
   --road-case: #9C6810;
   --route: #0F5C70;
 
-  /* Severidades 1-5 */
+  /* Severidades 1-5. --s2 y --s3 son más oscuros que en el prototipo (#84A03A, #E1A321): así llegan a 3:1 sobre
+     --surface (WCAG 1.4.11, ver contraste.accesibilidad.test.ts). La app usa los mismos (Paleta.kt). */
   --s1: #4E8E77;
   --s2: #7E9A38;
   --s3: #B8820E;

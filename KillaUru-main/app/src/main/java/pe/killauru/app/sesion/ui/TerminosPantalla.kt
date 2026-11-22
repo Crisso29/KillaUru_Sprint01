@@ -1,58 +1,58 @@
 package pe.killauru.app.sesion.ui
 
-import pe.killauru.app.comun.ui.MarcoFormulario
-
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import pe.killauru.app.comun.ui.FilaCasilla
+import pe.killauru.app.comun.ui.MarcoFormulario
 
-/** FR-001, FR-003, FR-008: pantalla de términos y política con doble casilla obligatoria. */
+/**
+ * FR-001, FR-003, HU-27 (prototipo «Términos y privacidad»): los dos documentos en una sola pantalla; «Acepto y
+ * continúo» se activa solo con las dos casillas marcadas. Avisa que, si la versión cambia, se volverá a pedir (R-024).
+ */
 @Composable
-internal fun TerminosPantalla(
-    terminosTexto: String,
-    politicaTexto: String,
-    onAceptar: () -> Unit,
-) {
-    var terminosMarcado by remember { mutableStateOf(false) }
-    var politicaMarcada by remember { mutableStateOf(false) }
-    val puedeAceptar = terminosMarcado && politicaMarcada
-
+internal fun TerminosPantalla(terminosTexto: String, politicaTexto: String, version: String, onAceptar: () -> Unit) {
+    var terminos by rememberSaveable { mutableStateOf(false) }
+    var privacidad by rememberSaveable { mutableStateOf(false) }
     MarcoFormulario(desplazable = true) {
-            TextosLegales(terminosTexto, politicaTexto)
-            AceptacionLegal(terminosMarcado, { terminosMarcado = it }, "Acepto los términos y condiciones")
-            AceptacionLegal(politicaMarcada, { politicaMarcada = it }, "Acepto la política de privacidad")
-            Spacer(Modifier.height(24.dp))
-            Button(
-                onClick = onAceptar,
-                enabled = puedeAceptar,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text("Continuar")
-            }
+        Documento("Términos de uso", terminosTexto)
+        Documento("Aviso de privacidad", politicaTexto)
+        Casilla(terminos, { terminos = it }, "Acepto los términos de uso")
+        Casilla(privacidad, { privacidad = it }, "Acepto el aviso de privacidad")
+        Text(
+            "Versión $version. Si cambia, te la mostraremos otra vez. Para solo ver el mapa sin enviar datos, " +
+                "actívalo luego en Ajustes.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(21.dp))
+        Button(onClick = onAceptar, enabled = terminos && privacidad, modifier = Modifier.fillMaxWidth()) {
+            Text("Acepto y continúo")
+        }
     }
 }
 
 @Composable
-private fun TextosLegales(terminosTexto: String, politicaTexto: String) {
-            Text("Términos y condiciones", style = MaterialTheme.typography.headlineSmall)
-            Spacer(Modifier.height(8.dp))
-            Text(terminosTexto, style = MaterialTheme.typography.bodyMedium)
-            Spacer(Modifier.height(16.dp))
-            Text("Política de privacidad", style = MaterialTheme.typography.headlineSmall)
-            Spacer(Modifier.height(8.dp))
-            Text(politicaTexto, style = MaterialTheme.typography.bodyMedium)
-            Spacer(Modifier.height(24.dp))
+private fun Documento(titulo: String, texto: String) {
+    Text(titulo, style = MaterialTheme.typography.headlineSmall)
+    Spacer(Modifier.height(8.dp))
+    Text(texto, style = MaterialTheme.typography.bodyMedium)
+    Spacer(Modifier.height(21.dp))
 }
 
 @Composable
-private fun AceptacionLegal(marcado: Boolean, onCambio: (Boolean) -> Unit, texto: String) {
-    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-        Checkbox(checked = marcado, onCheckedChange = onCambio)
-        Spacer(Modifier.width(8.dp))
-        Text(texto)
-    }
+private fun Casilla(marcada: Boolean, alCambiar: (Boolean) -> Unit, texto: String) = FilaCasilla(marcada, alCambiar) {
+    Spacer(Modifier.width(8.dp))
+    Text(texto, style = MaterialTheme.typography.bodyLarge)
 }

@@ -82,7 +82,7 @@ K/
 │   ├── datos/red/ ClienteHttp.kt · ProblemaDto.kt · RetryAfter.kt · InterceptorSeudonimo.kt
 │   ├── datos/almacen/ CifradorKeystore.kt · SerializadorCifrado.kt · PreferenciasDataStore.kt
 │   ├── datos/di/ BdModulo.kt · RedModulo.kt · RelojModulo.kt · ParametrosModulo.kt
-│   └── ui/ tema/Tema.kt · tema/Colores.kt · tema/Tipografia.kt · navegacion/Rutas.kt · navegacion/NavGrafo.kt · componentes/SeveridadChip.kt · componentes/BarraInferior.kt
+│   └── ui/ tema/Tema.kt · tema/Paleta.kt · tema/Tipografia.kt · navegacion/Rutas.kt · navegacion/NavGrafo.kt · componentes/SeveridadChip.kt · componentes/BarraInferior.kt
 ├── sesion/
 │   ├── dominio/ Sesion.kt · PermisoLocal.kt · CategoriaVehiculo.kt · Consentimiento.kt · ValidadorContrasena.kt · ResultadoCuenta.kt
 │   ├── dominio/ RepositorioSesion.kt · ApiCuenta.kt · RepositorioPreferencias.kt

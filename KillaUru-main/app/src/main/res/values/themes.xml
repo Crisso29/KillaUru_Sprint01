@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tema de la ventana (fondo y acento de KillaUru); el resto lo pinta KillaUruTema en Compose. -->
+<resources>
+    <style name="Theme.KillaUru" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/killa_fondo</item>
+        <item name="android:colorPrimary">@color/killa_marca</item>
+        <item name="android:colorAccent">@color/killa_marca</item>
+    </style>
+</resources>

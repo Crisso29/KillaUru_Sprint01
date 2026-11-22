@@ -83,8 +83,10 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 </details>
 
 <details>
-<summary>JVM — comun (12 archivos)</summary>
+<summary>JVM — comun (14 archivos)</summary>
 
+- [TemaCoherenteConPanelTest.kt](../../app/src/test/java/pe/killauru/app/comun/ui/tema/TemaCoherenteConPanelTest.kt): la paleta de la app (claro, oscuro y ventana) es la de `panel/.../tokens.css`
+- [PaletaSeveridadTest.kt](../../app/src/test/java/pe/killauru/app/comun/ui/tema/PaletaSeveridadTest.kt): color de cada severidad y de su número (prototipo `.sev`)
 - [NavGrafoTest.kt](../../app/src/test/java/pe/killauru/app/comun/ui/NavGrafoTest.kt): T024/T126 — primer uso → mapa sin volver atrás, pestañas en 1 toque, detalle en 2 (sustituye a `ToquesAccionesPrincipalesTest`, que solo comprobaba un conjunto definido en la misma prueba)
 - [SerializadorCifradoTest.kt](../../app/src/test/java/pe/killauru/app/comun/datos/almacen/SerializadorCifradoTest.kt)
 - [CodigosEstablesTest.kt](../../app/src/test/java/pe/killauru/app/comun/datos/bd/CodigosEstablesTest.kt)
@@ -154,8 +156,9 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 </details>
 
 <details>
-<summary>JVM — sesion (12 archivos)</summary>
+<summary>JVM — sesion (13 archivos)</summary>
 
+- [PrimerUsoPantallasTest.kt](../../app/src/test/java/pe/killauru/app/sesion/ui/PrimerUsoPantallasTest.kt): textos del prototipo, «Acepto y continúo» y filas pulsables enteras (términos y vehículo)
 - [PrimerUsoViewModelTest.kt](../../app/src/test/java/pe/killauru/app/sesion/ui/PrimerUsoViewModelTest.kt): bienvenida solo la primera vez, versión nueva sin repetir vehículo (R-024), retoma en el vehículo
 - [PermisosUbicacionTest.kt](../../app/src/test/java/pe/killauru/app/sesion/ui/PermisosUbicacionTest.kt): FR-006 — ubicación en dos pasos (precisa y luego «todo el tiempo»)
 - [RedAutenticadaTest.kt](../../app/src/test/java/pe/killauru/app/sesion/datos/RedAutenticadaTest.kt): cadena real de OkHttp — token, rutas públicas, renovación única y sesión invalidada

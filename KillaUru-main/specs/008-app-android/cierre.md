@@ -69,6 +69,17 @@ inicialización en `Rutas` (un conjunto en su `companion` podía quedar en null)
 `ToquesAccionesPrincipalesTest`. Recorrido en emulador: [evidencia](../../docs/seguimiento/evidencias/pruebas/2026-11-22-app-navegacion/README.md),
 con 5 diferencias de pantalla frente a la spec anotadas allí. **271 pruebas JVM y lint en verde.**
 
+**Tema y pantallas del primer uso (2026-11-22):** la app no tenía tema (T024 nombraba `Tema`, `Colores` y
+`Tipografia`, que no existían): usaba el morado de Material. Ahora `comun/ui/tema/` trae `Paleta` (los tokens del
+panel, claro y oscuro), `Tipografia` (Overpass, Source Sans 3 y Overpass Mono en el APK, licencia OFL en
+`assets/licencias/`) y `KillaUruTema`; `TemaCoherenteConPanelTest` lee `panel/src/compartido/estilos/tokens.css` y
+falla si un color se aparta (mutación: `--s2` con el valor del prototipo → «Distintos del panel en claro: [--s2]»).
+`--s2` y `--s3` siguen al panel, no al prototipo, porque el prototipo no llega a 3:1 (WCAG 1.4.11); el motivo quedó
+escrito en `tokens.css` y en `Paleta`. `SeveridadChip` usaba verde/ámbar/rojo genéricos y pintaba igual 1 y 2: ahora
+es el círculo `.sev`. Términos y vehículo siguen al prototipo (textos, «Acepto y continúo», guía del soporte y del
+cargador, RN-18) con filas pulsables enteras (`FilaMarcable`). Verificado en emulador, claro y oscuro. Pendiente: los
+marcadores del mapa son todos rojos (`MapaPantalla`), se rehace con el paso de la CDN. **283 pruebas JVM y lint en verde.**
+
 **Pendiente, en curso:** `enDemo` no viene en el contrato; debe calcularse con `ZonaDemo` (data-model §1). El polígono
 se descarga de la CDN (FR-042, research `cdn.killauru.pe`, `cdn.openapi.yaml` con `tipo: tramoDemo`), pero
 `CargadorZonaDemo` lo busca en los assets del APK y nadie lo usa; además el archivo depende de 006/T002. Mientras tanto

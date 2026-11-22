@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Modo oscuro. Iguales a Paleta.oscura (lo vigila TemaCoherenteConPanelTest). -->
+<resources>
+    <color name="killa_fondo">#08141A</color>
+    <color name="killa_marca">#74D3C6</color>
+</resources>

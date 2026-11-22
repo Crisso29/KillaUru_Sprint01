@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Colores de la ventana antes de que cargue Compose. Iguales a Paleta.clara (lo vigila TemaCoherenteConPanelTest). -->
+<resources>
+    <color name="killa_fondo">#F2F5F5</color>
+    <color name="killa_marca">#0F5C70</color>
+</resources>

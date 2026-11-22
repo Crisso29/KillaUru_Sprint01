@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.KillaUru" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/killa_fondo</item>
+        <item name="android:colorPrimary">@color/killa_marca</item>
+        <item name="android:colorAccent">@color/killa_marca</item>
+    </style>
+</resources>

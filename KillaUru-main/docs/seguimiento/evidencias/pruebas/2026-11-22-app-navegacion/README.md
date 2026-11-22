@@ -24,12 +24,15 @@
 | 8. Pestañas | [07-mis-viajes.png](07-mis-viajes.png), [08-ajustes.png](08-ajustes.png) | Cada una en 1 toque (FR-008) |
 | 9. Atrás desde el mapa y volver a abrir | — | Atrás cierra la app (no vuelve a los términos); al abrir de nuevo, en frío o en caliente, va directo al mapa |
 
-## Lo que se vio y queda pendiente
+## Lo que se vio
 
-- El mapa sale vacío: `MapaPantalla` usa el estilo de demostración de MapLibre y no centra la cámara en la PE-28A
-  (T096, mapa PMTiles de la CDN).
-- Tocar el texto de una casilla (términos) o de una opción (vehículo) no la marca; solo responde el control pequeño.
-- La pantalla del vehículo muestra los nombres internos (LIVIANO…) y dice que «ajusta la sensibilidad», cuando la
-  spec dice que con Pesado o Moto la detección se apaga (RN-18) y pide la guía del soporte y del cargador (FR-004).
-- La app usa el tema por defecto de Material (morado), no el de KillaUru.
-- «Crear cuenta» continúa sin cuenta hasta la parte 2 de T024 (cuenta y perfil).
+| Diferencia con la spec y el prototipo | Estado |
+|---|---|
+| Tocar el texto de una casilla (términos) o de una opción (vehículo) no la marcaba | ✅ Corregida: filas pulsables enteras (`FilaMarcable`); captura 10 y 11 marcadas tocando el texto |
+| Vehículo con nombres internos (LIVIANO…) y «ajusta la sensibilidad»; sin guía del soporte y del cargador | ✅ Corregida con los textos del prototipo «¿Qué manejas?» (RN-18, FR-004); captura 11 |
+| Botón de términos «Continuar» en vez de «Acepto y continúo», sin aviso de versión | ✅ Corregida; captura 10 |
+| Tema por defecto de Material (morado) | ✅ Tema de KillaUru (paleta del panel, Overpass y Source Sans 3), claro y oscuro; capturas 09 a 12 |
+| El mapa sale vacío (estilo de demostración, sin centrar en la PE-28A) y los marcadores son todos rojos | Pendiente: paso de la CDN (T096) |
+| «Crear cuenta» continúa sin cuenta | Pendiente: parte 2 de T024 |
+
+La captura 12 (modo oscuro) muestra además que la app retoma en el vehículo cuando los términos ya estaban aceptados.

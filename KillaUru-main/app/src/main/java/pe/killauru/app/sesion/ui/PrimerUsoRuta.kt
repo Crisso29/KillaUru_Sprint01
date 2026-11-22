@@ -18,9 +18,10 @@ internal fun PrimerUsoRuta(alCompletar: () -> Unit, viewModel: PrimerUsoViewMode
     when (val paso = estado) {
         EstadoPrimerUso.Cargando -> Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator() }
         EstadoPrimerUso.Bienvenida -> BienvenidaPantalla(onComenzar = viewModel::comenzar)
-        is EstadoPrimerUso.MostrarTerminos -> TerminosPantalla(paso.terminosTexto, paso.politicaTexto) {
-            viewModel.aceptarTerminos(paso.terminosVersion, paso.politicaVersion)
-        }
+        is EstadoPrimerUso.MostrarTerminos ->
+            TerminosPantalla(paso.terminosTexto, paso.politicaTexto, paso.terminosVersion) {
+                viewModel.aceptarTerminos(paso.terminosVersion, paso.politicaVersion)
+            }
         EstadoPrimerUso.SeleccionarVehiculo -> VehiculoPantalla(onSeleccionar = viewModel::seleccionarVehiculo)
         EstadoPrimerUso.SolicitarPermisos -> PermisosRuta(alContinuar = viewModel::permisosListos)
         // Parte 2 de T024: «Crear cuenta» llevará al registro; mientras tanto ambas opciones continúan sin cuenta.
