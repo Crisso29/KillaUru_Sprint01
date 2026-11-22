@@ -28,7 +28,7 @@ de la revisión. “Local” incluye implementación/documentación y preparaci�
 
 | Tarea | Etapa principal | Entregable pendiente |
 |---|---|---|
-| T053 | Desplegado/campo | Medir p95 del procesamiento con 300 dispositivos (junto con 005) ≤ 100 ms con el histograma `killauru.anomalias.proceso_ms` |
+| T053 | Desplegado/campo | Medir p95 del procesamiento con 300 dispositivos (junto con 005) ≤ 100 ms con el histograma `killauru.anomalias.proceso_ms`. **2026-11-22:** k6 local confirma el riesgo y localiza causas probables; ver [DT-01](../../docs/seguimiento/deuda-tecnica.md) y 005/T041 |
 | T054 | Desplegado/campo | Escenario EQ-12 completo (ataque + subida legítima de 5 h + lluvia de 600 eventos/h) |
 
 ## Criterio de cierre

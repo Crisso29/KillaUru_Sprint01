@@ -29,6 +29,11 @@ dotnet test --project tests/KillaUru.Integracion.Tests --no-build
 ```
 
 La última suite requiere Docker para Testcontainers.
+
+**Resultados y cobertura de todo el backend** (lo mismo que CI, un proyecto por carpeta):
+`pwsh tests/generar-resultados.ps1` borra y regenera `TestResults/` con `RESUMEN.md`, `cobertura/index.html`
+y la puerta del 90 % por dominio. Las ejecuciones que sirven de evidencia se copian a
+[docs/seguimiento/evidencias/pruebas](../../docs/seguimiento/evidencias/README.md).
 Para toda la solución: `dotnet test --solution KillaUru.sln --no-build`.
 El traslado conserva namespaces y contenidos C#: los fixtures siguen compartiendo la misma BD.
 No crear un contenedor por spec únicamente para reflejar la estructura de carpetas.

@@ -176,6 +176,12 @@ description: "Tareas de la plataforma base del backend"
 - [ ] T056 Ejecutar `quickstart.md` completo y marcar `checklists/trazabilidad.md`
 - [ ] T057 Revisar costo: alertas de presupuesto en Oracle y Cloudflare a US$ 8 — `deploy/runbooks/monitoreo.md` · (RNF-16)
 
+## Deuda técnica detectada con k6 (2026-11-22)
+
+- [ ] T082 Un solo `NpgsqlDataSource` (con NetTopologySuite) compartido por todos los `DbContext` y los chequeos de salud, para que el tope de 30 conexiones sea real (hoy hay 3 pools, techo 90). Detalle en `docs/seguimiento/deuda-tecnica.md` DT-02 · (`diseño-interno-de-modulos.md` §3.7; ARQ-22)
+- [ ] T083 *Healthcheck* de PostgreSQL por TCP (`pg_isready -h 127.0.0.1`) en `deploy/docker-compose.yml` y `docker-compose.pruebas.yml`, para evitar la carrera del primer arranque (DT-03)
+- [ ] T084 `SinkDePrueba` seguro entre hilos en `003/ConsolaPrivacidadTests`, para eliminar la prueba intermitente (DT-04)
+
 ## Dependencies & Execution Order
 
 **Seguimiento al integrar 002 (2026-10-23):** se corrigieron caché autenticada, errores vacíos/MVC,

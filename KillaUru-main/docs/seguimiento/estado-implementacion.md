@@ -17,17 +17,17 @@ Conteos de casillas en `tasks.md`; no son cobertura ni certificación de producc
 
 | Spec | Área | Marcadas / total | Pendientes |
 |---|---|---:|---:|
-| 001 | Plataforma | 71/81 | 10 |
+| 001 | Plataforma | 71/84 | 13 |
 | 002 | Auditoría | 35/38 | 3 |
 | 003 | Identidad | 65/65 | 0 |
 | 004 | Anomalías | 56/58 | 2 |
-| 005 | Ingesta | 29/40 | 11 |
+| 005 | Ingesta | 29/41 | 12 |
 | 006 | Consulta de mapa | 20/33 | 13 |
 | 007 | Dashboard | 24/26 | 2 |
 | 008 | Android | 103/128 | 25 |
 | 009 | Dataset/modelo | 46/74 | 28 |
 | 010 | Panel | 77/94 | 17 |
-| **Total** | | **526/637** | **111** |
+| **Total** | | **526/641** | **115** |
 
 Panel tenía 88 tareas marcadas. Se reabrieron 11 por E2E vacíos u omitidos:
 T032, T033, T034, T050, T058, T062, T068, T081, T085, T086 y T087.
@@ -76,6 +76,9 @@ de su ejecución aprobada. No se ocultaron advertencias de TensorFlow/sklearn.
 
 ## Pendientes para certificar el cierre
 
+La deuda técnica ya demostrada (procesamiento, pools, *healthcheck*, prueba intermitente) está en
+[deuda-tecnica.md](deuda-tecnica.md), con su ubicación en el código y la tarea que la sigue (001/T082–T084, 005/T041).
+
 - **Integración:** no se encontró Docker en PATH; falta ejecutar Testcontainers.
 - **E2E backend:** el recorrido compartido conserva dos casos con `Skip` y pasos sin implementar.
 - **005/006:** ambas tienen contrato HTTP aprobado el 2026-11-21 con Testcontainers (005/T034 4/4, 006/T029 5/5).
@@ -92,6 +95,8 @@ de su ejecución aprobada. No se ocultaron advertencias de TensorFlow/sklearn.
 - **Diagnóstico (2026-11-22):** [trabajadores y pool](evidencias/carga/2026-11-22-local-trabajadores-y-pool/README.md). Más
   trabajadores empeoran; el procesamiento se frena al crecer los datos. Faltaba `Maximum Pool Size=30` (§3.7, ARQ-22):
   bajo ráfaga daba 500 por error 53300. Ya está configurado y vigilado por `PoolDeConexionesTests`. Quedan 3 pools (techo real 90).
+- **Pruebas y cobertura del backend (2026-11-22):** [1 153 pruebas, 0 fallidas, 3 pendientes; dominio ≥ 97 %, backend 78,8 %](evidencias/pruebas/2026-11-22-backend/README.md),
+  generado con `backend/tests/generar-resultados.ps1`.
 - **Suite backend completa (2026-11-21, Docker, 2 ejecuciones seguidas):** 1141 casos: 1138 aprobados, 0 fallidos y 3 omitidos (E2E pendientes).
 - **Panel:** escenarios `skip/fixme`; E2E locales con MSW y configuración desplegada separada, aún sin archivos `*.pruebas.ts`
   para acreditar el backend real.

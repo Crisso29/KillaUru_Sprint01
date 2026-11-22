@@ -100,6 +100,10 @@ description: "Tareas del módulo Ingesta"
 - [ ] T035 Medir SC-001 y SC-002 con los scripts de 001 (`tests/carga/carga-combinada.k6.js`, `picos.k6.js`, `estres.k6.js`, `resistencia.k6.js`, `caos.sh`), fuera de la VM contra el entorno de pruebas, con `killauru.ingesta.retraso_cola_s`; Ingesta no tiene script propio · (RNF-02, RNF-03, RNF-23, FR-026; D11)
 - [ ] T036 Marcar `checklists/trazabilidad.md` (los pendientes de `research.md` ya están confirmados por el autor)
 
+## Deuda técnica detectada con k6 (2026-11-22)
+
+- [ ] T041 Procesamiento al menos tan rápido como la llegada en el pico de RNF-03 (~250 eventos/s; retraso de cola p95 ≤ 30 s, RNF-23). Primero medir el historial de 15 días por evento (`ProcesarReporteUseCase.cs:58`) y el commit aparte de `MarcarAsync` (`ProcesarLoteUseCase.cs:36`); el cambio a una transacción por lote necesita ADR. Detalle y evidencia en `docs/seguimiento/deuda-tecnica.md` DT-01 · (RNF-23; relacionada con 004/T053)
+
 ## Dependencies & Execution Order
 
 Phase 1 → Phase 2 → US1 → US3 → US2 → (US4, US5 en paralelo) → Polish. US1 y US3 pueden avanzar con dobles de `IAnomaliasService` antes de que 004 termine su US2; T024, T027 y T035 necesitan Anomalías real; T035 necesita los scripts de carga de 001.

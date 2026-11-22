@@ -96,6 +96,10 @@ No repiten literalmente cada línea de código.
 
 ## 5. Registra evidencia, no solo casillas
 
+Resultados y cobertura del backend: `pwsh backend/tests/generar-resultados.ps1` (regenera `backend/TestResults/`, ignorado por git).
+Las ejecuciones que sirven de evidencia se conservan en [evidencias](../seguimiento/evidencias/README.md),
+y los problemas conocidos con su ubicación en el código, en [deuda técnica](../seguimiento/deuda-tecnica.md).
+
 | Campo | Qué guardar |
 |---|---|
 | Escenario | Spec/requisito, nombre del caso y ruta |

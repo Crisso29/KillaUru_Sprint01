@@ -8,6 +8,7 @@ el seguimiento muestra qué falta; el historial conserva lo revisado en una fech
 | Necesito saber… | Documento |
 |---|---|
 | ¿En qué estado está el proyecto y qué lo bloquea? | [Estado de implementación](seguimiento/estado-implementacion.md) |
+| ¿Qué problemas conocidos hay y dónde se arreglan? | [Deuda técnica](seguimiento/deuda-tecnica.md) |
 | ¿Dónde están los resultados de carga y otras evidencias? | [Evidencias de validación](seguimiento/evidencias/README.md) |
 | ¿Dónde están las unitarias, integración, E2E y demás pruebas? | [Guía de pruebas](guias/pruebas.md) |
 | ¿Qué criterios de calidad, estructura y seguridad seguimos? | [Calidad y seguridad](guias/calidad-y-seguridad.md) |
@@ -27,6 +28,7 @@ docs/
 │   └── cierre-y-despliegue.md
 ├── seguimiento/                    ← situación actual
 │   ├── estado-implementacion.md
+│   ├── deuda-tecnica.md            ← problemas conocidos: dónde están y cómo arreglarlos
 │   └── evidencias/                 ← resultados de ejecución conservados (k6, …)
 └── historial/                      ← registros fechados
     ├── revision-documental.md
