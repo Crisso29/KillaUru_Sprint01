@@ -35,7 +35,9 @@ Para reproducir, preparar un archivo de lote sintético según el contrato:
 curl.exe -X POST "$env:KU_URL_PRUEBAS/api/v1/anomalies/batch" -H "Content-Type: application/json" -H "X-KillaUru-Seudonimo: $env:KU_SEUDONIMO_PRUEBA" --data-binary "@lote-prueba.json"
 ```
 
-La comparación HTTP/OpenAPI, incluidos cuerpos de error y límites, sigue pendiente de la suite dedicada.
+`Adapters/Documentacion/EsquemasIngesta.cs` completa el OpenAPI publicado (`/openapi/v1.json`, `/docs`)
+con requeridos, límites y catálogos del YAML. `ContratoIngestaTests` compara ambos (T034, aprobado).
+Los cuerpos de error reales y el límite de 256 KB se prueban por HTTP en T012, aún pendiente.
 
 ## Parámetros y mantenimiento
 
@@ -63,6 +65,7 @@ Desde `backend/`:
 ```powershell
 dotnet test --project tests/KillaUru.Ingesta.Tests
 dotnet test --project tests/KillaUru.Arquitectura.Tests
+dotnet test --project tests/KillaUru.Integracion.Tests -- --filter-class "*ContratoIngestaTests"
 ```
 
 [Guía de pruebas](../../../../specs/005-modulo-ingesta/pruebas.md).

@@ -21,13 +21,13 @@ Conteos de casillas en `tasks.md`; no son cobertura ni certificación de producc
 | 002 | Auditoría | 35/38 | 3 |
 | 003 | Identidad | 65/65 | 0 |
 | 004 | Anomalías | 56/58 | 2 |
-| 005 | Ingesta | 27/40 | 13 |
+| 005 | Ingesta | 28/40 | 12 |
 | 006 | Consulta de mapa | 19/33 | 14 |
 | 007 | Dashboard | 24/26 | 2 |
 | 008 | Android | 103/128 | 25 |
 | 009 | Dataset/modelo | 46/74 | 28 |
 | 010 | Panel | 77/94 | 17 |
-| **Total** | | **523/637** | **114** |
+| **Total** | | **524/637** | **113** |
 
 Panel tenía 88 tareas marcadas. Se reabrieron 11 por E2E vacíos u omitidos:
 T032, T033, T034, T050, T058, T062, T068, T081, T085, T086 y T087.
@@ -78,7 +78,8 @@ de su ejecución aprobada. No se ocultaron advertencias de TensorFlow/sklearn.
 
 - **Integración:** no se encontró Docker en PATH; falta ejecutar Testcontainers.
 - **E2E backend:** el recorrido compartido conserva dos casos con `Skip` y pasos sin implementar.
-- **005/006:** no se encontró integración dedicada de Ingesta/Mapa en el proyecto compartido.
+- **005/006:** 005 ya tiene contrato HTTP (T034, 4/4 aprobados el 2026-11-21 con Testcontainers);
+  faltan sus pruebas con PostgreSQL/HTTP y toda la integración dedicada de Mapa.
 - **Panel:** escenarios `skip/fixme`; E2E locales con MSW y configuración desplegada separada, aún sin archivos `*.pruebas.ts`
   para acreditar el backend real.
 - **Android:** aún no existen `src/androidTest/` ni `src/test/resources/`; quedan pruebas

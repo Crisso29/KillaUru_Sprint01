@@ -96,7 +96,7 @@ description: "Tareas del módulo Ingesta"
 ## Phase 8: Polish
 
 - [x] T033 [P] `README.md` del módulo (flujo, contrato del lote con `indice` y `SeudonimoInconsistente`, parámetros, horario de tareas, conciliación) — `In/README.md` · (RNF-19)
-- [ ] T034 Prueba de contrato con `contracts/ingesta.openapi.yaml` en verde · (FR-001, FR-006)
+- [x] T034 Prueba de contrato con `contracts/ingesta.openapi.yaml` en verde — `tests/KillaUru.Integracion.Tests/specs/005-modulo-ingesta/contratos/ContratoIngestaTests.cs` (4 casos); el OpenAPI se completa en `Adapters/Documentacion/EsquemasIngesta.cs` · (FR-001, FR-006)
 - [ ] T035 Medir SC-001 y SC-002 con los scripts de 001 (`tests/carga/carga-combinada.k6.js`, `picos.k6.js`, `estres.k6.js`, `resistencia.k6.js`, `caos.sh`), fuera de la VM contra el entorno de pruebas, con `killauru.ingesta.retraso_cola_s`; Ingesta no tiene script propio · (RNF-02, RNF-03, RNF-23, FR-026; D11)
 - [ ] T036 Marcar `checklists/trazabilidad.md` (los pendientes de `research.md` ya están confirmados por el autor)
 

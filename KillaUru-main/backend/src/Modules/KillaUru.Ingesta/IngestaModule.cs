@@ -25,6 +25,8 @@ public static class IngestaModule
             o.UseNpgsql(configuration.GetConnectionString("KillaUru")));
         RegistrarPersistencia(services);
         RegistrarProcesamiento(services);
+        // Documentación: completa el OpenAPI v1 con el contrato de 005 (FR-001, FR-006)
+        services.AddOpenApi("v1", o => o.AddSchemaTransformer<Adapters.Documentacion.EsquemasIngesta>());
         return services;
     }
 

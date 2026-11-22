@@ -2,6 +2,7 @@
   <!-- Todo es internal salvo Contracts/ y IngestaModule (constitución II). -->
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="KillaUru.Ingesta.Tests" />

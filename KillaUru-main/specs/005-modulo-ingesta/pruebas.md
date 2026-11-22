@@ -12,6 +12,8 @@ Recepción, idempotencia, procesamiento y mantenimiento de lotes.
 |---|---|
 | Reglas y casos de uso | [KillaUru.Ingesta.Tests](../../backend/tests/KillaUru.Ingesta.Tests/) |
 | Arquitectura y legibilidad | [Suite compartida](../../backend/tests/KillaUru.Arquitectura.Tests/) |
+| Integración por spec | [Carpetas por propósito](../../backend/tests/KillaUru.Integracion.Tests/specs/005-modulo-ingesta/) |
+| Contrato HTTP | [Contratos](../../backend/tests/KillaUru.Integracion.Tests/specs/005-modulo-ingesta/contratos/) |
 | Carga y resiliencia | [Escenarios k6 compartidos](../../backend/tests/carga/README.md) |
 | E2E entre módulos | [Recorrido compartido, pendiente](../../backend/tests/KillaUru.Integracion.Tests/sistema/e2e/FlujoPuntaAPuntaTests.cs) |
 
@@ -23,14 +25,18 @@ Desde `KillaUru-main/backend/`:
 dotnet build KillaUru.sln
 dotnet test --project tests/KillaUru.Ingesta.Tests --no-build
 dotnet test --project tests/KillaUru.Arquitectura.Tests --no-build
+dotnet test --project tests/KillaUru.Integracion.Tests --no-build -- --filter-class "*ContratoIngestaTests"
 ```
 
-Esta spec todavía no tiene suite de integración dedicada. La suite compartida del backend requiere Docker; no sustituye esos casos pendientes.
+La última línea requiere Docker Desktop encendido (Testcontainers levanta PostgreSQL).
 Las pruebas con dobles no certifican PostgreSQL real. El rendimiento local no acredita carga.
 
 ## Estado y límites
 
-No se encontró una suite de integración dedicada a esta spec en el proyecto compartido.
+Contrato HTTP (T034): 4/4 aprobados el 2026-11-21. Comprueba `operationId`, los 7 códigos
+(200, 400, 401, 403, 413, 429, 503), los esquemas `Lote`, `Evento` y `RespuestaLote`, y `Retry-After` en el 503.
+Compara el OpenAPI **publicado** con el contrato; no envía lotes reales.
+Siguen pendientes las pruebas de integración con PostgreSQL y HTTP (T011, T012, T020, T024, T027, T030, T032).
 Las pruebas de otros módulos y el código implementado no sustituyen esa evidencia.
 El E2E compartido conserva dos casos omitidos con pasos sin implementar.
 La ejecución de k6 y las validaciones operacionales requieren evidencia del entorno de pruebas.
@@ -65,6 +71,13 @@ Las suites de arquitectura, carga y E2E compartidas se detallan en [pruebas de p
 <summary>Reglas de dominio (1 archivo)</summary>
 
 - [HoraDeDeteccionTests.cs](../../backend/tests/KillaUru.Ingesta.Tests/Domain/HoraDeDeteccionTests.cs)
+
+</details>
+
+<details>
+<summary>Contratos HTTP (1 archivo)</summary>
+
+- [ContratoIngestaTests.cs](../../backend/tests/KillaUru.Integracion.Tests/specs/005-modulo-ingesta/contratos/ContratoIngestaTests.cs)
 
 </details>
 

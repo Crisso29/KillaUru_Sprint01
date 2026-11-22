@@ -22,14 +22,16 @@ internal sealed class SyncController(RecibirLoteEventosUseCase useCase) : Contro
     /// <response code="400">El cuerpo no era un lote válido (vacío, mal JSON, más de 50 eventos).</response>
     /// <response code="401">Token inválido o vencido.</response>
     /// <response code="403">El administrador no puede enviar detecciones.</response>
+    /// <response code="413">Cuerpo de más de 256 KB (lote_demasiado_grande).</response>
     /// <response code="503">Cola saturada; reintentar tras Retry-After segundos.</response>
-    [HttpPost("batch")]
+    [HttpPost("batch", Name = "recibirLote")]
     [AllowAnonymous]
     [RequestSizeLimit(256 * 1024)]
     [ProducesResponseType(typeof(RespuestaLoteDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status413PayloadTooLarge)]
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> RecibirLoteAsync(
         [FromBody] LoteDto? dto,

@@ -1,7 +1,7 @@
 # Cierre de spec 005 — Ingesta
 
-**Revisado:** 2026-11-15. **Estado:** cierre de producción no acreditado.
-**Seguimiento:** 27/40 tareas marcadas; 13 pendientes en tasks.md.
+**Revisado:** 2026-11-21. **Estado:** cierre de producción no acreditado.
+**Seguimiento:** 28/40 tareas marcadas; 12 pendientes en tasks.md.
 [Requisitos](spec.md) · [Tareas](tasks.md) · [Pruebas](pruebas.md) · [Plan de cierre global](../../docs/guias/cierre-y-despliegue.md)
 
 ## Dependencias
@@ -13,9 +13,14 @@ Depende de 001/004.
 Recepción HTTP y durable, cola, trabajadores, barredor y purgas presentes; 46 casos del módulo aprobados. README actualizado; T033 documental cerrada.
 
 Tareas documentales cerradas en esta revisión: T033. Eso no certifica ejecución funcional.
+
+**2026-11-21 — T034 cerrada:** [ContratoIngestaTests.cs](../../backend/tests/KillaUru.Integracion.Tests/specs/005-modulo-ingesta/contratos/ContratoIngestaTests.cs), 4/4 aprobados con Testcontainers.
+Al escribirla en rojo aparecieron tres diferencias con el contrato, ya corregidas: faltaba el `operationId`
+`recibirLote`, no se declaraba el 413 y `Lote`/`Evento`/`RespuestaLote` no publicaban requeridos, límites ni catálogos
+(se completan en `Adapters/Documentacion/EsquemasIngesta.cs`).
 ## Qué falta localmente
 
-No se encontró suite dedicada de integración Ingesta. Faltan recepción PostgreSQL/HTTP, pendientes, procesamiento con Anomalías real, reinicio, purgas, salud y contrato. El E2E compartido no cubre esas ausencias.
+Faltan recepción PostgreSQL/HTTP, pendientes, procesamiento con Anomalías real, reinicio, purgas y salud. El E2E compartido no cubre esas ausencias.
 
 ## Qué falta en el entorno desplegado
 
@@ -39,7 +44,6 @@ de la revisión. “Local” incluye implementación/documentación y preparaci�
 | T030 | Local | `PurgasTests`: escenarios 15 y 16 (seudónimo y `lote_id` en `NULL`, hora redondeada; filas `Recibido` > 30 días se conservan); `payload` sin seudónimo; esquema sin cuentas, correos ni tokens |
 | T032 | Local | `SaludIngestaTests`: escenario 14; con la cola al día `/health/ready` = 200 |
 | T040 | Desplegado/campo | Alerta de Grafana «pendiente más viejo de Ingesta > 72 h» (riesgo de R-008 frente a RNF-25) y paso de reproceso manual, en el runbook de monitoreo de 001 |
-| T034 | Local | Prueba de contrato con `contracts/ingesta.openapi.yaml` en verde |
 | T035 | Desplegado/campo | Medir SC-001 y SC-002 con los scripts de 001 (`tests/carga/carga-combinada.k6.js`, `picos.k6.js`, `estres.k6.js`, `resistencia.k6.js`, `caos.sh`), fuera de la VM contra el entorno de pruebas, con `killauru.ingesta.retraso_cola_s`; Ingesta no tiene script propio |
 | T036 | Local | Marcar `checklists/trazabilidad.md` (los pendientes de `research.md` ya están confirmados por el autor) |
 
