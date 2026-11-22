@@ -28,8 +28,11 @@ internal class PrimerUsoViewModel @Inject constructor(
     private val _estado = MutableStateFlow<EstadoPrimerUso>(EstadoPrimerUso.Cargando)
     val estado: StateFlow<EstadoPrimerUso> = _estado
 
-    /** Términos a mostrar cuando el usuario pulse «Comenzar» en la bienvenida. */
-    private var terminosPendientes: EstadoPrimerUso.MostrarTerminos? = null
+    /** Términos de esta sesión del flujo: se muestran al pulsar «Comenzar» y al volver desde el vehículo. */
+    private var terminos: EstadoPrimerUso.MostrarTerminos? = null
+
+    /** Primera vez = nunca aceptó: solo entonces hay bienvenida a la que volver. */
+    private var primeraVez = false
 
     init {
         viewModelScope.launch { _estado.value = pasoInicial() }
@@ -39,14 +42,15 @@ internal class PrimerUsoViewModel @Inject constructor(
         is ResultadoVersiones.Vigente -> if (prefs.obtenerCategoria() == null) EstadoPrimerUso.SeleccionarVehiculo
             else EstadoPrimerUso.Completado
         is ResultadoVersiones.PedirAceptacion -> {
-            val terminos = EstadoPrimerUso.MostrarTerminos(r.terminosTexto, r.politicaTexto, r.terminosVersion, r.politicaVersion)
-            if (prefs.obtenerTerminosVersion() == null) EstadoPrimerUso.Bienvenida.also { terminosPendientes = terminos }
-            else terminos
+            val pendientes = EstadoPrimerUso.MostrarTerminos(r.terminosTexto, r.politicaTexto, r.terminosVersion, r.politicaVersion)
+            terminos = pendientes
+            primeraVez = prefs.obtenerTerminosVersion() == null
+            if (primeraVez) EstadoPrimerUso.Bienvenida else pendientes
         }
     }
 
     fun comenzar() {
-        terminosPendientes?.let { _estado.value = it }
+        terminos?.let { _estado.value = it }
     }
 
     fun aceptarTerminos(terminosVersion: String, politicaVersion: String) {
@@ -67,4 +71,23 @@ internal class PrimerUsoViewModel @Inject constructor(
     fun permisosListos() { _estado.value = EstadoPrimerUso.CuentaONo }
 
     fun completar() { _estado.value = EstadoPrimerUso.Completado }
+
+    /** «Atrás» del prototipo: un paso hacia el inicio; si no hay paso anterior, se queda (no borra nada guardado). */
+    fun volver() {
+        _estado.value = when (_estado.value) {
+            EstadoPrimerUso.CuentaONo -> EstadoPrimerUso.SolicitarPermisos
+            EstadoPrimerUso.SolicitarPermisos -> EstadoPrimerUso.SeleccionarVehiculo
+            EstadoPrimerUso.SeleccionarVehiculo -> terminos ?: return
+            is EstadoPrimerUso.MostrarTerminos -> if (primeraVez) EstadoPrimerUso.Bienvenida else return
+            else -> return
+        }
+    }
+
+    /** Hay un paso anterior al que volver (para mostrar o no la flecha). */
+    fun puedeVolver(estado: EstadoPrimerUso): Boolean = when (estado) {
+        EstadoPrimerUso.CuentaONo, EstadoPrimerUso.SolicitarPermisos -> true
+        EstadoPrimerUso.SeleccionarVehiculo -> terminos != null
+        is EstadoPrimerUso.MostrarTerminos -> primeraVez
+        else -> false
+    }
 }

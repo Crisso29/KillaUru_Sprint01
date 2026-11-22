@@ -42,7 +42,7 @@ class PrimerUsoPantallasTest {
         // Arrange + Act
         compose.setContent { TerminosPantalla("t", "p", version = "1.2", onAceptar = {}) }
         // Assert
-        compose.onNodeWithText("Versión 1.2. Si cambia, te la mostraremos otra vez.", substring = true).performScrollTo()
+        compose.onNodeWithText("Versión 1.2. Si cambia, te la mostraremos otra vez.", substring = true).assertExists()
     }
 
     @Test fun `tocar la descripcion de una opcion elige ese vehiculo`() {
@@ -51,7 +51,7 @@ class PrimerUsoPantallasTest {
         compose.setContent { VehiculoPantalla(onSeleccionar = { elegido = it }) }
         // Act
         pulsar("Auto, camioneta, station wagon o colectivo")
-        pulsar("Continuar")
+        compose.onNodeWithText("Continuar").performClick() // el botón vive en el pie fijo, fuera del desplazamiento
         // Assert
         compose.onNodeWithText("Liviano").assertIsSelected()
         assertEquals(CategoriaVehiculo.LIVIANO, elegido)
@@ -65,7 +65,7 @@ class PrimerUsoPantallasTest {
         compose.onNodeWithText("Detecta baches, ve el mapa y recibe alertas").performScrollTo()
         compose.onNodeWithText("Mapa y alertas con más anticipación. No detecta.").performScrollTo()
         compose.onNodeWithText("Mapa y alertas. No detecta.").performScrollTo()
-        compose.onNodeWithText("Celular en un soporte fijo.").performScrollTo()
+        compose.onNodeWithText("Celular en un soporte fijo.", substring = true).performScrollTo()
         compose.onNodeWithText("En turnos largos, conéctalo al cargador.", substring = true).performScrollTo()
     }
 
@@ -74,7 +74,7 @@ class PrimerUsoPantallasTest {
         var llamado = false
         compose.setContent { VehiculoPantalla(onSeleccionar = { llamado = true }) }
         // Act
-        compose.onNodeWithText("Continuar").performScrollTo().assertIsNotEnabled()
+        compose.onNodeWithText("Continuar").assertIsNotEnabled()
         // Assert
         assertEquals(false, llamado)
     }

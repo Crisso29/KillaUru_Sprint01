@@ -113,6 +113,34 @@ class PrimerUsoViewModelTest {
         assertEquals(CategoriaVehiculo.LIVIANO, prefs.categoria)
     }
 
+    /** Prototipo: cada paso tiene «atrás». Retroceder no borra lo ya guardado; solo cambia la pantalla. */
+    @Test fun `atras recorre los pasos al reves hasta la bienvenida`() {
+        // Arrange
+        val vm = crear()
+        vm.comenzar()
+        vm.aceptarTerminos(VIGENTE_T, VIGENTE_P)
+        vm.seleccionarVehiculo(CategoriaVehiculo.LIVIANO)
+        vm.permisosListos()
+        // Act
+        val pasos = List(4) { vm.volver(); vm.estado.value }
+        // Assert
+        assertEquals(EstadoPrimerUso.SolicitarPermisos, pasos[0])
+        assertEquals(EstadoPrimerUso.SeleccionarVehiculo, pasos[1])
+        assertIs<EstadoPrimerUso.MostrarTerminos>(pasos[2])
+        assertEquals(EstadoPrimerUso.Bienvenida, pasos[3])
+    }
+
+    @Test fun `con una version nueva de los terminos atras no lleva a la bienvenida`() {
+        // Arrange
+        aceptadoTodo()
+        prefs.terminosVersion = "t-anterior"
+        val vm = crear()
+        // Act
+        vm.volver()
+        // Assert
+        assertIs<EstadoPrimerUso.MostrarTerminos>(vm.estado.value)
+    }
+
     private companion object {
         const val VIGENTE_T = "t-2026.1"
         const val VIGENTE_P = "p-2026.1"

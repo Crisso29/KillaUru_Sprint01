@@ -1,7 +1,7 @@
 // T066 — AccionesModeracion: botones RN-07 con tooltip y confirmación (FR-027, FR-030)
 import { useState } from 'react'
 import { Boton } from '@/compartido/ui'
-import { accionesDisponibles, esAccionDisponible, textoNoDisponible } from '../modelo/acciones'
+import { esAccionDisponible, textoNoDisponible } from '../modelo/acciones'
 import { useModerar } from '../api/useModerar'
 import { DialogoModeracion } from './DialogoModeracion'
 import { TEXTOS_MODERACION as T } from '../textos'
@@ -27,7 +27,6 @@ export function AccionesModeracion({ detalle, onModerado }: Props) {
   const moderar = useModerar()
 
   const idCorto = detalle.id.slice(0, 8)
-  const disponibles = accionesDisponibles(detalle.estado, detalle.porRevisar)
 
   async function confirmar() {
     if (!accionPendiente) return
@@ -46,15 +45,16 @@ export function AccionesModeracion({ detalle, onModerado }: Props) {
   }
 
   return (
-    <section aria-label="Acciones de moderación" style={{ marginTop: 'var(--s-13)' }}>
-      {errorMensaje && <p role="alert" style={{ marginBottom: 'var(--s-08)' }}>{errorMensaje}</p>}
-      <div style={{ display: 'flex', gap: 'var(--s-08)', flexWrap: 'wrap' }}>
+    <section aria-label="Acciones de moderación" style={{ display: 'grid', gap: 'var(--s-8)' }}>
+      {errorMensaje && <p role="alert" className="note bad">{errorMensaje}</p>}
+      <div style={{ display: 'flex', gap: 'var(--s-8)', flexWrap: 'wrap' }}>
         {TODAS_ACCIONES.map((accion) => {
           const disponible = esAccionDisponible(accion, detalle.estado, detalle.porRevisar)
           return (
             <Boton
               key={accion}
-              variante={disponibles.includes(accion) ? 'primario' : 'secundario'}
+              variante={!disponible ? 'secundario' : accion === 'Descartar' ? 'secundario' : 'primario'}
+              className={accion === 'Descartar' && disponible ? 'dng' : undefined}
               onClick={() => disponible && setAccionPendiente(accion)}
               disabled={!disponible}
               title={!disponible ? textoNoDisponible(accion, detalle.estado) : undefined}

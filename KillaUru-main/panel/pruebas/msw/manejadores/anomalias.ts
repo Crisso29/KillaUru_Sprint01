@@ -17,8 +17,4 @@ export const manejadoresAnomalias = [
     if (!feature) return HttpResponse.json({ codigo: 'no_encontrado' }, { status: 404 })
     return HttpResponse.json(feature.properties)
   }),
-
-  http.patch(`${BASE}/api/v1/anomalies/:id/estado`, () =>
-    HttpResponse.json({ ok: true }),
-  ),
 ]

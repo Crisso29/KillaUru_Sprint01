@@ -1,7 +1,9 @@
 // T084 — textos UI del módulo exportación
 export const TEXTOS_EXPORTACION = {
-  titulo: 'Exportar dataset',
-  subtitulo: 'Descarga las anomalías registradas en CSV o GeoJSON.',
+  titulo: 'Exportaciones',
+  subtitulo: 'Anomalías en CSV o GeoJSON para analizarlas fuera del panel.',
+  nueva: 'Nueva exportación',
+  todosEstados: 'Todos los estados',
   labelFormato: 'Formato',
   labelDesde: 'Desde',
   labelHasta: 'Hasta',

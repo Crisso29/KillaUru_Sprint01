@@ -1,5 +1,6 @@
 // T046 — BarraFiltros: menús con casillas para estado, tipo, severidad y período (FR-022)
 import { MenuFiltro } from '@/compartido/ui'
+import { textoEstado } from '@/compartido/textos/estados'
 import { TEXTOS_MAPA } from '../textos'
 import type { FiltrosMapa, Periodo } from '../modelo/filtros'
 
@@ -16,18 +17,21 @@ interface Props {
 
 export function BarraFiltros({ filtros, onChange }: Props) {
   return (
-    <div style={{ display: 'flex', gap: 'var(--s-13)', alignItems: 'center', padding: 'var(--s-5) var(--s-21)' }}>
-      <MenuFiltro etiqueta={TEXTOS_MAPA.estadoLabel} opciones={ESTADOS_OPTS.map(e => ({ valor: e, etiqueta: e }))} seleccionadas={[...filtros.estados]} onChange={vals => onChange({ ...filtros, estados: ESTADOS_OPTS.filter(e => vals.includes(e)) })} />
+    <div className="mtb" role="group" aria-label="Filtros del mapa">
       <MenuFiltro etiqueta={TEXTOS_MAPA.tipoLabel} opciones={TIPOS_OPTS.map(t => ({ valor: t, etiqueta: t }))} seleccionadas={[...filtros.tipos]} onChange={vals => onChange({ ...filtros, tipos: TIPOS_OPTS.filter(t => vals.includes(t)) })} />
       <MenuFiltro etiqueta={TEXTOS_MAPA.severidadLabel} opciones={SEVERIDADES_OPTS.map(s => ({ valor: String(s), etiqueta: String(s) }))} seleccionadas={filtros.severidades.map(String)} onChange={vals => onChange({ ...filtros, severidades: vals.map(Number) })} />
-      <select
-        aria-label={TEXTOS_MAPA.periodoLabel}
-        value={filtros.periodo}
-        onChange={e => onChange({ ...filtros, periodo: e.target.value as Periodo })}
-        style={{ fontSize: 'var(--t-13)' }}
-      >
-        {PERIODOS_OPTS.map(p => <option key={p} value={p}>{ETIQ_PERIODO[p]}</option>)}
-      </select>
+      <MenuFiltro etiqueta={TEXTOS_MAPA.estadoLabel} opciones={ESTADOS_OPTS.map(e => ({ valor: e, etiqueta: textoEstado(e) }))} seleccionadas={[...filtros.estados]} onChange={vals => onChange({ ...filtros, estados: ESTADOS_OPTS.filter(e => vals.includes(e)) })} />
+      <label className="fbtn">
+        {TEXTOS_MAPA.periodoLabel}:
+        <select
+          aria-label={TEXTOS_MAPA.periodoLabel}
+          value={filtros.periodo}
+          onChange={e => onChange({ ...filtros, periodo: e.target.value as Periodo })}
+          style={{ border: 0, background: 'transparent', fontWeight: 600, color: 'var(--ink)', cursor: 'pointer' }}
+        >
+          {PERIODOS_OPTS.map(p => <option key={p} value={p}>{ETIQ_PERIODO[p]}</option>)}
+        </select>
+      </label>
     </div>
   )
 }

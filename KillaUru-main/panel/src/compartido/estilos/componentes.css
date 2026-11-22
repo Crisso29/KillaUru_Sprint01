@@ -1,0 +1,52 @@
+/*
+ * Componentes base del sistema de diseño (botones, severidad, hito, campos, avisos).
+ * Portado sin cambios de referencia/prototipo/killauru-diseno.html (líneas 91-132); los nombres de clase son los
+ * del prototipo para poder rastrear cada regla. Adaptaciones: ver los comentarios «Adaptado».
+ */
+.ico{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--s-8);min-height:44px;padding:0 var(--s-21);border-radius:8px;border:1px solid transparent;font-family:var(--f-body);font-weight:700;font-size:var(--t-16);cursor:pointer;text-decoration:none;line-height:1;white-space:nowrap}
+.btn-primary{background:var(--killa);color:var(--killa-ink)}
+.btn-primary:hover{filter:brightness(1.07)}
+.btn-primary:disabled,.btn-danger:disabled{background:var(--sunken);color:var(--ink-3);cursor:not-allowed;filter:none}
+.btn-ghost{background:var(--surface);border-color:var(--line-2);color:var(--ink)}
+.btn-ghost:hover{background:var(--hover)}
+.btn-ghost:disabled{color:var(--ink-3);border-color:var(--line);cursor:not-allowed;background:transparent}
+.btn-danger{background:var(--bad);color:var(--on-s45)}
+.btn-text{background:transparent;color:var(--killa);padding:0 var(--s-5);min-height:40px}
+.btn-block{width:100%}
+.btn-xl{min-height:55px;font-size:var(--t-16);border-radius:13px}
+.sev{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;font-family:var(--f-display);font-weight:900;font-size:13px;flex:none;line-height:1;padding-top:1px}
+.sev.s1{background:var(--s1);color:var(--on-s13)}.sev.s2{background:var(--s2);color:var(--on-s13)}.sev.s3{background:var(--s3);color:var(--on-s13)}
+.sev.s4{background:var(--s4);color:var(--on-s45);box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px var(--s4)}
+.sev.s5{background:var(--s5);color:var(--on-s45);box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px var(--s5)}
+.sev.lg{width:42px;height:42px;font-size:21px}
+.sev.sm{width:20px;height:20px;font-size:11px}
+.sev.sm.s4,.sev.sm.s5{box-shadow:0 0 0 1.5px var(--surface),0 0 0 3px var(--s4)}
+.sev.sm.s5{box-shadow:0 0 0 1.5px var(--surface),0 0 0 3px var(--s5)}
+.hito{display:inline-flex;flex-direction:column;border:1.5px solid var(--ink);border-radius:6px 6px 2px 2px;overflow:hidden;font-family:var(--f-display);line-height:1;flex:none;background:var(--surface)}
+.hito i{display:block;height:4px;background:var(--luna)}
+.hito span{padding:2px 6px 3px;font-weight:900;font-size:13px;color:var(--ink);text-align:center;font-variant-numeric:tabular-nums}
+.hito span em{font-style:normal;display:block;font-size:8px;letter-spacing:.14em;color:var(--ink-3);font-weight:800}
+.check{display:flex;gap:var(--s-8);align-items:flex-start;font-size:15px;cursor:pointer}
+.check input{width:20px;height:20px;accent-color:var(--killa);flex:none;margin:1px 0 0}
+.field{display:grid;gap:var(--s-5)}
+.field label{font-weight:600;font-size:14px;color:var(--ink-2)}
+.field input,.field select{min-height:44px;border:1px solid var(--line-2);border-radius:8px;background:var(--surface);padding:0 var(--s-13);width:100%}
+.field input:focus,.field select:focus{border-color:var(--killa);outline:none;box-shadow:0 0 0 3px var(--killa-soft)}
+.hint{font-size:var(--t-13);color:var(--ink-3)}
+.switch{position:relative;width:44px;height:26px;flex:none}
+.switch input{position:absolute;opacity:0;inset:0;cursor:pointer;margin:0;z-index:1}
+.switch span{position:absolute;inset:0;background:var(--line-2);border-radius:999px;transition:.2s}
+.switch span::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--surface);box-shadow:var(--shadow);transition:.2s}
+.switch input:checked+span{background:var(--killa)}
+.switch input:checked+span::after{transform:translateX(18px)}
+.switch input:focus-visible+span{outline:2px solid var(--killa);outline-offset:2px}
+.note{display:flex;gap:var(--s-8);padding:var(--s-8) var(--s-13);border-radius:8px;font-size:14px;align-items:flex-start;line-height:1.35}
+.note .ico{margin-top:1px}
+.note.info{background:var(--info-soft)}.note.warn{background:var(--warn-soft)}.note.bad{background:var(--bad-soft)}.note.killa{background:var(--killa-soft)}.note.ok{background:var(--ok-soft)}
+
+
+/* Barra de progreso y fila (prototipo, líneas 243-245). */
+.bar{height:6px;background:var(--sunken);border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--killa);border-radius:999px}
+.row{display:flex;align-items:center;gap:var(--s-13);justify-content:space-between}

@@ -1,11 +1,20 @@
-interface Props { tamano?: 'sm' | 'md' | 'lg' }
+import { LogoSenal } from './LogoSenal'
 
-export function Marca({ tamano = 'md' }: Props) {
-  const tamanoPx = tamano === 'sm' ? 'var(--t-16)' : tamano === 'lg' ? 'var(--t-34)' : 'var(--t-21)'
+interface Props {
+  tamano?: 'sm' | 'md' | 'lg'
+  /** Muestra «Ops» junto al nombre, como la barra lateral del prototipo (`.ops-logo`). */
+  conOps?: boolean
+}
+
+const LADO = { sm: 28, md: 34, lg: 55 } as const
+
+/** Marca de KillaUru: logo «Señal» y el nombre en Overpass (prototipo `.ops-logo` y `.brand`). */
+export function Marca({ tamano = 'md', conOps = false }: Props) {
   return (
-    <span style={{ fontFamily: 'var(--f-display)', fontWeight: 700, fontSize: tamanoPx, letterSpacing: '-0.02em' }}>
-      <span style={{ color: 'var(--killa)' }}>Killa</span>
-      <span style={{ color: 'var(--luna)' }}>Uru</span>
+    <span className={`marca marca--${tamano}`}>
+      <LogoSenal tamano={LADO[tamano]} />
+      <b className="marca__nombre">KillaUru</b>
+      {conOps && <small className="marca__ops">Ops</small>}
     </span>
   )
 }

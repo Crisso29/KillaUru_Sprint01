@@ -27,7 +27,7 @@ export function DialogoModeracion({ accion, idCorto, cargando, onConfirmar, onCa
     >
       <h2 style={{ marginBottom: 'var(--s-13)' }}>{tituloDialogo(accion, idCorto)}</h2>
       <p style={{ marginBottom: 'var(--s-13)' }}>{T.auditoria}</p>
-      <div style={{ display: 'flex', gap: 'var(--s-08)', justifyContent: 'flex-end' }}>
+      <div style={{ display: 'flex', gap: 'var(--s-8)', justifyContent: 'flex-end' }}>
         <Boton variante="secundario" onClick={onCancelar} disabled={cargando}>
           {T.cancelar}
         </Boton>

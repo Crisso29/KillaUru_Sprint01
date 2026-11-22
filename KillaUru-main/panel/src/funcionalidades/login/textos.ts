@@ -3,12 +3,14 @@ import { minutosRestantes, horaEnLima } from './modelo/bloqueo'
 
 export const TEXTOS_LOGIN = {
   titulo: 'KillaUru Ops',
-  subtitulo: 'Panel de administración',
+  subtitulo: 'Panel de operación · solo personal autorizado',
+  encabezado: 'Iniciar sesión',
   labelCorreo: 'Correo electrónico',
   labelContrasena: 'Contraseña',
   botonEntrar: 'Entrar',
-  linkRecuperar: '¿Olvidaste tu contraseña?',
+  linkRecuperar: 'Olvidé mi contraseña',
   cargando: 'Entrando…',
+  notaSesion: 'La sesión dura como máximo 8 h. Los intentos fallidos se registran en la auditoría.',
 } as const
 
 export const TEXTOS_RECUPERAR = {

@@ -6,12 +6,13 @@ import { crearCanalSesion } from './canalSesion'
 import { msDeltaRenovacion } from './planificador'
 import { entorno } from '@/config/entorno'
 import { relojReal } from '@/compartido/reloj'
+import { leerSesionPanel, type DatosSesion } from './sesionPanel'
 import type { Reloj } from '@/compartido/reloj'
 
 interface ContextoSesionVal {
   sesion: EstadoSesion
   cerrarSesion: () => Promise<void>
-  notificarLogin: (expiraAccesoUtc: Date) => void
+  notificarLogin: (sesion: DatosSesion) => void
 }
 
 export const ContextoSesion = createContext<ContextoSesionVal | null>(null)
@@ -34,15 +35,10 @@ export function ProveedorSesion({
       despachar({ tipo: 'renovar_401' })
       throw new Error('401')
     }
-    const body = await r.json() as { acceso_vence_utc: string; sesion_vence_utc?: string }
-    const expira = new Date(body.acceso_vence_utc)
-    const ahora = reloj.ahora()
-    const sesionVence = body.sesion_vence_utc
-      ? new Date(body.sesion_vence_utc)
-      : new Date(ahora.getTime() + 8 * 3600_000)
-    const desfaseMs = expira.getTime() - 5 * 60_000 - ahora.getTime()
-    despachar({ tipo: 'renovar_ok', expiraAccesoUtc: expira, sesionVenceUtc: sesionVence, desfaseMs })
-    return expira
+    const { expiraAccesoUtc, sesionVenceUtc } = leerSesionPanel(await r.json())
+    const desfaseMs = expiraAccesoUtc.getTime() - 5 * 60_000 - reloj.ahora().getTime()
+    despachar({ tipo: 'renovar_ok', expiraAccesoUtc, sesionVenceUtc, desfaseMs })
+    return expiraAccesoUtc
   }, [reloj])
 
   const { renovarSesion } = useMemo(() => crearRenovador(llamarRenovar), [llamarRenovar])
@@ -60,14 +56,13 @@ export function ProveedorSesion({
   }, [renovarSesion, programarRenovacion])
 
   const cerrarSesion = useCallback(async () => {
-    await fetch(`${entorno.urlApi}/api/v1/auth/cerrar`, { method: 'POST', credentials: 'include' })
+    await fetch(`${entorno.urlApi}/api/v1/auth/cerrar-sesion`, { method: 'POST', credentials: 'include' })
     despachar({ tipo: 'salir' })
   }, [])
 
-  const notificarLogin = useCallback((expiraAccesoUtc: Date) => {
-    const ahora = reloj.ahora()
-    const desfaseMs = expiraAccesoUtc.getTime() - 5 * 60_000 - ahora.getTime()
-    const sesionVenceUtc = new Date(ahora.getTime() + 8 * 3600_000)
+  // La hora de fin de sesión es la del servidor (8 h desde el login, contrato 003), no una calculada aquí.
+  const notificarLogin = useCallback(({ expiraAccesoUtc, sesionVenceUtc }: DatosSesion) => {
+    const desfaseMs = expiraAccesoUtc.getTime() - 5 * 60_000 - reloj.ahora().getTime()
     despachar({ tipo: 'login_ok', expiraAccesoUtc, sesionVenceUtc, desfaseMs })
     programarRenovacion(expiraAccesoUtc)
   }, [reloj, programarRenovacion])

@@ -4,13 +4,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 
-/** FR-008: barra de navegación inferior con Mapa, Historial y Ajustes. */
+/** FR-008: barra de navegación inferior con Mapa, Mis viajes y Ajustes, con los íconos del prototipo. */
 @Composable
 internal fun BarraInferior(
     rutaActual: String,
@@ -19,9 +15,9 @@ internal fun BarraInferior(
     onAjustes: () -> Unit,
 ) {
     NavigationBar {
-        ElementoBarra(rutaActual == Rutas.Mapa.ruta, onMapa, Icons.Default.LocationOn, "Mapa")
-        ElementoBarra(rutaActual == Rutas.Historial.ruta, onHistorial, Icons.Default.History, "Mis viajes")
-        ElementoBarra(rutaActual == Rutas.Ajustes.ruta, onAjustes, Icons.Default.Settings, "Ajustes")
+        ElementoBarra(rutaActual == Rutas.Mapa.ruta, onMapa, IconosKillaUru.de("map"), "Mapa")
+        ElementoBarra(rutaActual == Rutas.Historial.ruta, onHistorial, IconosKillaUru.de("hist"), "Mis viajes")
+        ElementoBarra(rutaActual == Rutas.Ajustes.ruta, onAjustes, IconosKillaUru.de("gear"), "Ajustes")
     }
 }
 

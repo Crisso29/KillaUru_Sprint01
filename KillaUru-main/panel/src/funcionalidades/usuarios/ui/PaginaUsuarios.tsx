@@ -10,6 +10,7 @@ import { AvisoRevision } from './AvisoRevision'
 import { DialogoInvitar } from './DialogoInvitar'
 import { DialogoRevision } from './DialogoRevision'
 import { TEXTOS_USUARIOS as T } from '../textos'
+import { Icono } from '@/compartido/ui'
 
 interface Props { correoActual: string }
 
@@ -53,57 +54,48 @@ export function PaginaUsuarios({ correoActual }: Props) {
 
   if (isError) {
     return (
-      <div style={{ padding: 'var(--s-34)' }}>
-        <p>{T.errorRed}</p>
-        <button type="button" onClick={() => refetch()}>{T.reintentar}</button>
+      <div role="alert" className="note bad" style={{ display: 'flex', alignItems: 'center', gap: 'var(--s-13)' }}>
+        <p style={{ flex: 1 }}>{T.errorRed}</p>
+        <button type="button" className="ob" onClick={() => void refetch()}>{T.reintentar}</button>
       </div>
     )
   }
 
   return (
-    <div style={{ padding: 'var(--s-21) var(--s-34)' }}>
-      {revision && (
-        <AvisoRevision
-          venceUtc={revision.venceUtc}
-          onAbrir={() => setDialogoAbierto('revision')}
-        />
-      )}
-
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--s-21)' }}>
-        <h1 style={{ fontSize: 'var(--t-21)', fontWeight: 700, margin: 0 }}>{T.titulo}</h1>
-        <button type="button" onClick={() => setDialogoAbierto('invitar')}>{T.invitar}</button>
+    <>
+      <div className="pg-h">
+        <div><h2>{T.titulo}</h2><p>{T.subtitulo}</p></div>
+        <div className="acts">
+          <button type="button" className="ob pri" onClick={() => setDialogoAbierto('invitar')}>
+            <Icono nombre="plus" tamano={14} />{T.invitar}
+          </button>
+        </div>
       </div>
 
-      <FiltrosUsuarios
-        texto={texto}
-        rol={rol}
-        estado={estado}
-        onChange={handleCampo}
-        onBuscar={aplicarBusqueda}
-      />
+      {revision && <AvisoRevision venceUtc={revision.venceUtc} onAbrir={() => setDialogoAbierto('revision')} />}
 
-      <p style={{ fontSize: 'var(--t-13)', color: 'var(--ink-3)', marginBottom: 'var(--s-13)' }}>
-        {elementos.length} {T.de} {total} {T.usuariosLabel}
-      </p>
+      <FiltrosUsuarios texto={texto} rol={rol} estado={estado} onChange={handleCampo} onBuscar={aplicarBusqueda} />
 
-      {elementos.length === 0
-        ? <p role="status">{T.sinResultados}</p>
-        : <TablaUsuarios usuarios={elementos} correoActual={correoActual} />}
-
-      {total > (data?.tamano ?? 50) && (
-        <div style={{ display: 'flex', gap: 'var(--s-8)', justifyContent: 'center', marginTop: 'var(--s-21)' }}>
-          <button type="button" disabled={pagina <= 1} onClick={() => setPagina(p => p - 1)}>‹</button>
-          <span>{pagina}</span>
-          <button type="button" disabled={pagina * (data?.tamano ?? 50) >= total} onClick={() => setPagina(p => p + 1)}>›</button>
+      <div className="card">
+        {elementos.length === 0
+          ? <p role="status" className="card-b hint">{T.sinResultados}</p>
+          : <TablaUsuarios usuarios={elementos} correoActual={correoActual} />}
+        <div className="tfoot">
+          <span>{elementos.length} {T.de} {total} {T.usuariosLabel}</span>
+          {total > (data?.tamano ?? 50) ? (
+            <span style={{ display: 'inline-flex', gap: 'var(--s-5)', alignItems: 'center' }}>
+              <button type="button" className="ob sm" aria-label="Página anterior" disabled={pagina <= 1} onClick={() => setPagina(p => p - 1)}>‹</button>
+              <span>Página {pagina}</span>
+              <button type="button" className="ob sm" aria-label="Página siguiente" disabled={pagina * (data?.tamano ?? 50) >= total} onClick={() => setPagina(p => p + 1)}>›</button>
+            </span>
+          ) : <span>{T.pieTabla}</span>}
         </div>
-      )}
+      </div>
 
-      {dialogoAbierto === 'invitar' && (
-        <DialogoInvitar onCerrar={() => setDialogoAbierto(null)} />
-      )}
+      {dialogoAbierto === 'invitar' && <DialogoInvitar onCerrar={() => setDialogoAbierto(null)} />}
       {dialogoAbierto === 'revision' && revision && (
         <DialogoRevision revision={revision} onCerrar={() => setDialogoAbierto(null)} />
       )}
-    </div>
+    </>
   )
 }

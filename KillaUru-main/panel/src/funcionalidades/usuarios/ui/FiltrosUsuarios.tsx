@@ -1,5 +1,6 @@
-// T056 — FiltrosUsuarios: búsqueda, rol y estado (FR-031)
+// T056 — FiltrosUsuarios: búsqueda, rol y estado (FR-031; prototipo `.toolbar`)
 import type { Rol, EstadoUsuario } from '@/api/dtos/001-identidad'
+import { Icono } from '@/compartido/ui'
 import { TEXTOS_USUARIOS as T } from '../textos'
 
 interface Props {
@@ -10,11 +11,12 @@ interface Props {
   onBuscar: () => void
 }
 
+/** Las etiquetas quedan para lectores de pantalla (`aria-label`); a la vista, como en el prototipo, solo los campos. */
 export function FiltrosUsuarios({ texto, rol, estado, onChange, onBuscar }: Props) {
   return (
-    <div style={{ display: 'flex', gap: 'var(--s-13)', flexWrap: 'wrap', marginBottom: 'var(--s-21)' }}>
-      <label style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s-5)', flex: 1, minWidth: 200 }}>
-        <span style={{ fontSize: 'var(--t-13)', fontWeight: 500 }}>{T.labelBuscar}</span>
+    <div className="toolbar" role="search" aria-label="Filtros de usuarios">
+      <label className="search" style={{ margin: 0, maxWidth: 280, height: 30, background: 'var(--surface)', borderColor: 'var(--line-2)' }}>
+        <Icono nombre="search" tamano={14} />
         <input
           type="search"
           role="searchbox"
@@ -23,38 +25,19 @@ export function FiltrosUsuarios({ texto, rol, estado, onChange, onBuscar }: Prop
           placeholder={T.buscarPlaceholder}
           onChange={e => onChange('texto', e.target.value)}
           onKeyDown={e => e.key === 'Enter' && onBuscar()}
-          style={{ padding: 'var(--s-8) var(--s-13)', border: '1px solid var(--border)', borderRadius: 'var(--r-8)' }}
         />
       </label>
-
-      <label style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s-5)' }}>
-        <span style={{ fontSize: 'var(--t-13)', fontWeight: 500 }}>{T.labelRol}</span>
-        <select
-          aria-label={T.labelRol}
-          value={rol}
-          onChange={e => onChange('rol', e.target.value)}
-          style={{ padding: 'var(--s-8) var(--s-13)', border: '1px solid var(--border)', borderRadius: 'var(--r-8)' }}
-        >
-          <option value="">{T.todoRol}</option>
-          <option value="Administrador">Administrador</option>
-          <option value="ConductorRegistrado">Conductor registrado</option>
-        </select>
-      </label>
-
-      <label style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s-5)' }}>
-        <span style={{ fontSize: 'var(--t-13)', fontWeight: 500 }}>{T.labelEstado}</span>
-        <select
-          aria-label={T.labelEstado}
-          value={estado}
-          onChange={e => onChange('estado', e.target.value)}
-          style={{ padding: 'var(--s-8) var(--s-13)', border: '1px solid var(--border)', borderRadius: 'var(--r-8)' }}
-        >
-          <option value="">{T.todoEstado}</option>
-          <option value="Activa">Activa</option>
-          <option value="Desactivada">Desactivada</option>
-          <option value="InvitacionPendiente">Invitación pendiente</option>
-        </select>
-      </label>
+      <select className="tsel" aria-label={T.labelRol} value={rol} onChange={e => onChange('rol', e.target.value)}>
+        <option value="">{T.todoRol}</option>
+        <option value="Administrador">Administrador</option>
+        <option value="ConductorRegistrado">Conductor registrado</option>
+      </select>
+      <select className="tsel" aria-label={T.labelEstado} value={estado} onChange={e => onChange('estado', e.target.value)}>
+        <option value="">{T.todoEstado}</option>
+        <option value="Activa">Activa</option>
+        <option value="Desactivada">Desactivada</option>
+        <option value="InvitacionPendiente">Invitación pendiente</option>
+      </select>
     </div>
   )
 }

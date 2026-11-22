@@ -1,6 +1,10 @@
-// T067 — TablaPorRevisar: filas con MantenerDescartada (sin diálogo) y Reabrir (con diálogo)
+// T067 — TablaPorRevisar: filas con MantenerDescartada (sin diálogo) y Reabrir (con diálogo); prototipo tabla `.dt`
 import { useState } from 'react'
-import { Boton } from '@/compartido/ui'
+import { Link } from 'react-router'
+import { Boton, Severidad } from '@/compartido/ui'
+import { formatearKm } from '@/compartido/formato/km'
+import { formatearRelativo } from '@/compartido/formato/relativo'
+import { relojReal } from '@/compartido/reloj'
 import { useModerar } from '../api/useModerar'
 import { DialogoModeracion } from './DialogoModeracion'
 import { TEXTOS_MODERACION as T } from '../textos'
@@ -11,7 +15,7 @@ interface Props {
 }
 
 export function TablaPorRevisar({ items }: Props) {
-  const [reabrirId, setRreabrirId] = useState<string | null>(null)
+  const [reabrirId, setReabrirId] = useState<string | null>(null)
   const moderar = useModerar()
 
   async function mantener(id: string) {
@@ -21,62 +25,64 @@ export function TablaPorRevisar({ items }: Props) {
   async function reabrir() {
     if (!reabrirId) return
     await moderar.mutateAsync({ id: reabrirId, accion: 'Reabrir' })
-    setRreabrirId(null)
+    setReabrirId(null)
   }
 
   if (items.length === 0) {
-    return <p>{T.vacioPorRevisar}</p>
+    return <div className="card"><p className="card-b hint">{T.vacioPorRevisar}</p></div>
   }
 
+  const ahora = relojReal.ahora()
   return (
     <>
-      <table>
-        <thead>
-          <tr>
-            <th>Tipo</th>
-            <th>km Vía</th>
-            <th>Severidad</th>
-            <th>Vehículos 7d</th>
-            <th>Reportes</th>
-            <th>Última detección</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((item) => (
-            <tr key={item.id}>
-              <td>{item.tipo}</td>
-              <td>{item.kmVia.toFixed(1)}</td>
-              <td>{item.severidadMostrada}</td>
-              <td>{item.vehiculos7d}</td>
-              <td>{item.reportes}</td>
-              <td>{new Date(item.ultimaDeteccionUtc).toLocaleString('es-PE')}</td>
-              <td style={{ display: 'flex', gap: 'var(--s-08)' }}>
-                <Boton
-                  variante="secundario"
-                  onClick={() => mantener(item.id)}
-                  disabled={moderar.isPending}
-                >
-                  {T.accionMantenerDescartada}
-                </Boton>
-                <Boton
-                  variante="primario"
-                  onClick={() => setRreabrirId(item.id)}
-                >
-                  {T.accionReabrir}
-                </Boton>
-              </td>
+      <div className="card">
+        <table className="dt">
+          <thead>
+            <tr>
+              <th scope="col">Anomalía</th>
+              <th scope="col">Ubicación</th>
+              <th scope="col" className="r">Vehículos en 7 d</th>
+              <th scope="col" className="r">Reportes</th>
+              <th scope="col">Último reporte</th>
+              <th scope="col" className="r">Decisión</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {items.map((item) => (
+              <tr key={item.id}>
+                <td>
+                  <span style={{ display: 'inline-flex', gap: 'var(--s-5)', alignItems: 'center' }}>
+                    <Severidad nivel={item.severidadMostrada} tamano="sm" />
+                    <b>{item.tipo}</b> <span className="mono">{item.id.slice(0, 8)}</span>
+                  </span>
+                </td>
+                <td><Link to={`/mapa?anomalia=${item.id}`}>km {formatearKm(item.kmVia)}</Link></td>
+                <td className="r"><b>{item.vehiculos7d}</b></td>
+                <td className="r">{item.reportes}</td>
+                <td>{formatearRelativo(item.ultimaDeteccionUtc, ahora)}</td>
+                <td className="r">
+                  <span style={{ display: 'inline-flex', gap: 'var(--s-5)' }}>
+                    <Boton variante="secundario" onClick={() => void mantener(item.id)} disabled={moderar.isPending}>
+                      {T.accionMantenerDescartada}
+                    </Boton>
+                    <Boton variante="primario" onClick={() => setReabrirId(item.id)}>{T.accionReabrir}</Boton>
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div className="tfoot">
+          <span>{items.length} {items.length === 1 ? 'elemento' : 'elementos'}</span><span>RN-06 · RN-07</span>
+        </div>
+      </div>
       {reabrirId && (
         <DialogoModeracion
           accion="Reabrir"
           idCorto={reabrirId.slice(0, 8)}
           cargando={moderar.isPending}
           onConfirmar={reabrir}
-          onCancelar={() => setRreabrirId(null)}
+          onCancelar={() => setReabrirId(null)}
         />
       )}
     </>

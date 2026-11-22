@@ -1,10 +1,11 @@
-// T076 — RequiereAtencion: 4 filas (FR-018, data-model §5)
+// T076 — RequiereAtencion: temas que piden acción (FR-018, data-model §5; prototipo `.att`)
 import { Link } from 'react-router'
 import type { ElementoPorRevisar, ElementoPendiente } from '@/api/dtos/003-anomalias'
 import type { EstadoRevision } from '@/api/dtos/001-identidad'
 import { contarTemas, primerPendiente } from '../modelo/atencion'
 import { TEXTOS_RESUMEN } from '../textos'
 import { entorno } from '@/config/entorno'
+import { Icono } from '@/compartido/ui'
 
 interface Props {
   porRevisar: ElementoPorRevisar[]
@@ -17,43 +18,48 @@ export function RequiereAtencion({ porRevisar, pendientes, revision, ahora = new
   const temas = revision
     ? contarTemas(porRevisar.length, pendientes.length, revision, ahora)
     : porRevisar.length + pendientes.length
-
   const primero = primerPendiente(pendientes, ahora)
 
   return (
-    <section aria-label="Requiere atención">
-      <h2>Requiere atención <span aria-label={TEXTOS_RESUMEN.atencion.temas(temas)}>{temas}</span></h2>
-      <ul>
+    <section className="card" aria-label="Requiere atención">
+      <div className="card-h">
+        <h3>Requiere atención</h3>
+        <small aria-label={TEXTOS_RESUMEN.atencion.temas(temas)}>{TEXTOS_RESUMEN.atencion.temas(temas)}</small>
+      </div>
+      <ul className="att" style={{ marginTop: 'var(--s-8)', listStyle: 'none' }}>
         <li>
-          <Link to="/moderacion?pestana=por-revisar">
-            <span>{TEXTOS_RESUMEN.atencion.porRevisar}</span>
-            <span aria-label="Descripción">{TEXTOS_RESUMEN.atencion.porRevisarDetalle}</span>
+          <Link to="/moderacion?pestana=por-revisar" className="fila-att">
+            <span className="sd pendiente" aria-hidden="true" />
+            <span><b>{TEXTOS_RESUMEN.atencion.porRevisar}</b><small>{TEXTOS_RESUMEN.atencion.porRevisarDetalle}</small></span>
+            <span className="n">{porRevisar.length}</span>
+            <Icono nombre="chev" tamano={14} />
           </Link>
-          <span>{porRevisar.length}</span>
         </li>
         <li>
-          <Link to="/moderacion?pestana=pendientes">
-            <span>{TEXTOS_RESUMEN.atencion.pendientes}</span>
-            {primero && <span aria-label="Primero">{primero}</span>}
+          <Link to="/moderacion?pestana=pendientes" className="fila-att">
+            <span className="sd pendiente" aria-hidden="true" />
+            <span><b>{TEXTOS_RESUMEN.atencion.pendientes}</b>{primero && <small aria-label="Primero">{primero}</small>}</span>
+            <span className="n">{pendientes.length}</span>
+            <Icono nombre="chev" tamano={14} />
           </Link>
-          <span>{pendientes.length}</span>
         </li>
         {revision && (
           <li>
-            <Link to="/usuarios">
-              <span>{TEXTOS_RESUMEN.atencion.revision}</span>
+            <Link to="/usuarios" className="fila-att">
+              <span className="sd reparada" aria-hidden="true" />
+              <span><b>{TEXTOS_RESUMEN.atencion.revision}</b></span>
+              <span className="n" />
+              <Icono nombre="chev" tamano={14} />
             </Link>
           </li>
         )}
         <li>
-          <a
-            href={entorno.urlEstado}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`${TEXTOS_RESUMEN.atencion.estado} (abre en otra pestaña)`}
-          >
-            <span>{TEXTOS_RESUMEN.atencion.estado}</span>
-            <span>{TEXTOS_RESUMEN.atencion.estadoDetalle}</span>
+          <a href={entorno.urlEstado} target="_blank" rel="noopener noreferrer" className="fila-att"
+            aria-label={`${TEXTOS_RESUMEN.atencion.estado} (abre en otra pestaña)`}>
+            <span className="sd activa" aria-hidden="true" />
+            <span><b>{TEXTOS_RESUMEN.atencion.estado}</b><small>{TEXTOS_RESUMEN.atencion.estadoDetalle}</small></span>
+            <span className="n" />
+            <Icono nombre="ext" tamano={14} />
           </a>
         </li>
       </ul>

@@ -1,4 +1,6 @@
-// T057 — AvisoRevision: banner que avisa días restantes o vencimiento
+// T057 — AvisoRevision: aviso con los días que faltan para la revisión de privilegios (prototipo `.banner-ops`)
+import { Icono } from '@/compartido/ui'
+import { formatearFechaLima } from '@/compartido/formato/fechas'
 import { TEXTOS_USUARIOS as T } from '../textos'
 import { diasRestantes } from '../modelo/revision'
 
@@ -7,33 +9,20 @@ interface Props {
   onAbrir: () => void
 }
 
+/** En rojo si ya venció; si no, informativo con la fecha y los días que faltan. */
 export function AvisoRevision({ venceUtc, onAbrir }: Props) {
   const dias = diasRestantes(venceUtc, new Date())
   const vencida = dias < 0
-
   return (
-    <div
-      role="alert"
-      style={{
-        padding: 'var(--s-13) var(--s-21)',
-        backgroundColor: vencida ? 'var(--error-bg, #fff0f0)' : 'var(--warn-bg, #fffbe6)',
-        border: `1px solid ${vencida ? 'var(--error)' : 'var(--warn, #d4b200)'}`,
-        borderRadius: 'var(--r-8)',
-        marginBottom: 'var(--s-21)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 'var(--s-13)',
-      }}
-    >
-      <span>
+    <div role="alert" className="banner-ops" style={vencida ? { background: 'var(--bad-soft)', borderColor: 'var(--bad)' } : undefined}>
+      <Icono nombre="shield" />
+      <p>
+        <b>{T.dialogoRevisionTitulo}</b>
         {vencida
-          ? T.revisionVencida
-          : `${T.revisionAvisoVence} ${dias} ${T.revisionDias}.`}
-      </span>
-      <button type="button" onClick={onAbrir} style={{ whiteSpace: 'nowrap' }}>
-        {T.dialogoRevisionTitulo}
-      </button>
+          ? ` · ${T.revisionVencida}`
+          : ` · vence el ${formatearFechaLima(venceUtc)} (en ${dias} ${T.revisionDias}). ${T.revisionConfirmar}`}
+      </p>
+      <button type="button" className="ob" onClick={onAbrir}>Hacer revisión</button>
     </div>
   )
 }

@@ -66,8 +66,10 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 </details>
 
 <details>
-<summary>Unitarias (29 archivos)</summary>
+<summary>Unitarias (31 archivos)</summary>
 
+- [sesionPanel.unitaria.test.ts](../../panel/src/sesion/sesionPanel.unitaria.test.ts): lee `SesionPanel` del contrato 003 y rechaza el formato viejo
+- [paginasRutas.unitaria.test.ts](../../panel/src/app/paginasRutas.unitaria.test.ts): ninguna página de las rutas es un `lazy` dentro de otro (el Mapa no abría)
 - [problema.unitaria.test.ts](../../panel/src/api/problema.unitaria.test.ts)
 - [fechas.unitaria.test.ts](../../panel/src/compartido/formato/fechas.unitaria.test.ts)
 - [ids.unitaria.test.ts](../../panel/src/compartido/formato/ids.unitaria.test.ts)
@@ -101,8 +103,10 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 </details>
 
 <details>
-<summary>Componentes con jsdom (18 archivos)</summary>
+<summary>Componentes con jsdom (20 archivos)</summary>
 
+- [armazon.componente.test.tsx](../../panel/src/app/marco/armazon.componente.test.tsx): menú con página actual, migas, contador y marca DEMO
+- [PestanaEnDireccion.componente.test.tsx](../../panel/src/funcionalidades/moderacion/ui/PestanaEnDireccion.componente.test.tsx): `?pestana=pendientes` abre esa pestaña
 - [BusquedaRapida.componente.test.tsx](../../panel/src/app/marco/BusquedaRapida.componente.test.tsx)
 - [Marco.componente.test.tsx](../../panel/src/app/marco/Marco.componente.test.tsx)
 - [Avisos.componente.test.tsx](../../panel/src/compartido/ui/Avisos.componente.test.tsx)
@@ -132,15 +136,17 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 </details>
 
 <details>
-<summary>Arquitectura (1 archivo)</summary>
+<summary>Arquitectura (2 archivos)</summary>
 
+- [variablesCss.arquitectura.test.ts](../../panel/pruebas/arquitectura/variablesCss.arquitectura.test.ts): toda `var(--x)` usada existe en las hojas (había 10 inexistentes)
 - [lineas.arquitectura.test.ts](../../panel/pruebas/arquitectura/lineas.arquitectura.test.ts)
 
 </details>
 
 <details>
-<summary>Contratos de datos simulados (1 archivo)</summary>
+<summary>Contratos (2 archivos)</summary>
 
+- [rutas.contrato.test.ts](../../panel/pruebas/contrato/rutas.contrato.test.ts): toda ruta del panel y de MSW existe en `specs/*/contracts/*.yaml` (detectó `auth/iniciar` y `auth/cerrar`)
 - [datosSimulados.contrato.test.ts](../../panel/pruebas/contrato/datosSimulados.contrato.test.ts)
 
 </details>

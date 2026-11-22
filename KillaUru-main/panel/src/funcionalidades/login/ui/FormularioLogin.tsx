@@ -5,10 +5,11 @@ import { mensajeDeError } from '@/compartido/textos/errores'
 import type { ErrorApi } from '@/api/problema'
 import { TEXTOS_LOGIN } from '../textos'
 import { Turnstile } from './Turnstile'
+import type { DatosSesion } from '@/sesion/sesionPanel'
 import { AvisoBloqueo } from './AvisoBloqueo'
 
 interface Props {
-  onExito?: (expiraAccesoUtc: Date) => void
+  onExito?: (sesion: DatosSesion) => void
 }
 
 export function FormularioLogin({ onExito }: Props) {
@@ -60,11 +61,12 @@ export function FormularioLogin({ onExito }: Props) {
   }
 
   return (
-    <form onSubmit={enviar}>
-      <div>
+    <form onSubmit={enviar} className="formulario-login" noValidate={false}>
+      <div className="field">
         <label htmlFor="correo">{TEXTOS_LOGIN.labelCorreo}</label>
         <input
           id="correo"
+          name="correo"
           type="email"
           autoComplete="email"
           value={correo}
@@ -72,10 +74,11 @@ export function FormularioLogin({ onExito }: Props) {
           required
         />
       </div>
-      <div>
+      <div className="field">
         <label htmlFor="contrasena">{TEXTOS_LOGIN.labelContrasena}</label>
         <input
           id="contrasena"
+          name="contrasena"
           type="password"
           autoComplete="current-password"
           value={contrasena}
@@ -84,8 +87,8 @@ export function FormularioLogin({ onExito }: Props) {
         />
       </div>
       <Turnstile onToken={manejarToken} resetRef={resetRef} />
-      {error && <p role="alert">{error}</p>}
-      <button type="submit" disabled={isPending || !token}>
+      {error && <p role="alert" className="note bad">{error}</p>}
+      <button type="submit" className="btn btn-primary btn-block" disabled={isPending || !token} style={{ minHeight: 40, fontSize: 14 }}>
         {isPending ? TEXTOS_LOGIN.cargando : TEXTOS_LOGIN.botonEntrar}
       </button>
     </form>

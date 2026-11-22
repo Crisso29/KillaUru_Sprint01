@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
 import { armarError } from '@/api/problema'
 import { entorno } from '@/config/entorno'
+import { leerSesionPanel, type DatosSesion } from '@/sesion/sesionPanel'
 
 interface CuerpoLogin {
   correo: string
@@ -11,7 +12,7 @@ interface CuerpoLogin {
 }
 
 interface Opciones {
-  onExito?: (expiraAccesoUtc: Date) => void
+  onExito?: (sesion: DatosSesion) => void
 }
 
 export function useIniciarSesion({ onExito }: Opciones = {}) {
@@ -19,18 +20,17 @@ export function useIniciarSesion({ onExito }: Opciones = {}) {
 
   return useMutation({
     mutationFn: async (cuerpo: CuerpoLogin) => {
-      const r = await fetch(`${entorno.urlApi}/api/v1/auth/iniciar`, {
+      const r = await fetch(`${entorno.urlApi}/api/v1/auth/inicio-sesion`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...cuerpo, canal: 'panel' }),
       })
       if (!r.ok) throw await armarError(r)
-      const data = await r.json() as { acceso_vence_utc: string }
-      return new Date(data.acceso_vence_utc)
+      return leerSesionPanel(await r.json())
     },
-    onSuccess: (expiraAccesoUtc) => {
-      onExito?.(expiraAccesoUtc)
+    onSuccess: (sesion) => {
+      onExito?.(sesion)
       void navigate('/resumen')
     },
   })

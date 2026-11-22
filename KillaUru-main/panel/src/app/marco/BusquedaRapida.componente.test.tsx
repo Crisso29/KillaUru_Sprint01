@@ -22,13 +22,16 @@ function renderBusqueda() {
 }
 
 describe('BusquedaRapida', () => {
-  it('Ctrl+K abre el campo de búsqueda', async () => {
+  // Prototipo `.search`: el campo está siempre en la barra superior; Ctrl+K lleva el foco a él.
+  it('el campo está siempre visible y Ctrl+K lo enfoca', async () => {
+    // Arrange
     renderBusqueda()
-    expect(screen.queryByRole('searchbox')).toBeNull()
+    const campo = screen.getByRole('searchbox')
+    expect(document.activeElement).not.toBe(campo)
+    // Act
     fireEvent.keyDown(document.body, { key: 'k', ctrlKey: true, bubbles: true })
-    await waitFor(() => {
-      expect(screen.getByRole('searchbox')).toBeTruthy()
-    })
+    // Assert
+    await waitFor(() => expect(document.activeElement).toBe(campo))
   })
 
   it('Enter con UUID navega a /mapa?anomalia=', async () => {

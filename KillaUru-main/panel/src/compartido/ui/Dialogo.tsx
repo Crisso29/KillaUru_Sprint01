@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Boton } from './Boton'
+import { Icono } from './Icono'
 
 interface Props {
   abierto: boolean
@@ -22,21 +22,21 @@ export function Dialogo({ abierto, titulo, onCerrar, children, acciones }: Props
 
   if (!abierto) return null
 
+  // Prototipo `.veil` + `.modal`: encabezado, cuerpo y pie con las acciones.
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="dialogo-titulo"
-      ref={dialogoRef}
-      tabIndex={-1}
-      style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-    >
-      <div onClick={onCerrar} style={{ position: 'absolute', inset: 0, background: 'var(--shade)' }} aria-hidden="true" />
-      <div style={{ position: 'relative', background: 'var(--surface)', borderRadius: 'var(--s-8)', padding: 'var(--s-21)', minWidth: 320, maxWidth: 480 }}>
-        <h2 id="dialogo-titulo" style={{ fontSize: 'var(--t-21)', marginBottom: 'var(--s-13)' }}>{titulo}</h2>
-        <div>{children}</div>
-        {acciones && <div style={{ marginTop: 'var(--s-21)', display: 'flex', gap: 'var(--s-8)', justifyContent: 'flex-end' }}>{acciones}</div>}
-        <Boton variante="fantasma" onClick={onCerrar} aria-label="Cerrar" style={{ position: 'absolute', top: 'var(--s-8)', right: 'var(--s-8)' }}>✕</Boton>
+    <div className="veil" style={{ position: 'fixed', zIndex: 100 }}>
+      <div onClick={onCerrar} style={{ position: 'absolute', inset: 0 }} aria-hidden="true" />
+      <div role="dialog" aria-modal="true" aria-labelledby="dialogo-titulo" ref={dialogoRef} tabIndex={-1}
+        className="modal" style={{ position: 'relative' }}>
+        <div className="modal-h">
+          <h3 id="dialogo-titulo">{titulo}</h3>
+        </div>
+        <div className="modal-b">{children}</div>
+        {acciones && <div className="modal-f" style={{ justifyContent: 'flex-end' }}><div>{acciones}</div></div>}
+        <button type="button" className="ob ic" onClick={onCerrar} aria-label="Cerrar"
+          style={{ position: 'absolute', top: 'var(--s-8)', right: 'var(--s-8)', border: 0 }}>
+          <Icono nombre="close" tamano={16} />
+        </button>
       </div>
     </div>
   )

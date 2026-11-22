@@ -4,6 +4,7 @@ import { Link } from 'react-router'
 import { useRecuperar } from '../api/useRecuperar'
 import { mensajeDeError } from '@/compartido/textos/errores'
 import type { ErrorApi } from '@/api/problema'
+import { PaginaAcceso } from '@/compartido/ui'
 import { TEXTOS_RECUPERAR } from '../textos'
 
 export function PaginaRecuperar() {
@@ -23,16 +24,16 @@ export function PaginaRecuperar() {
   }
 
   return (
-    <main id="contenido" className="pagina-recuperar">
-      <h1>{TEXTOS_RECUPERAR.titulo}</h1>
+    <PaginaAcceso titulo={TEXTOS_RECUPERAR.titulo}>
       {exito ? (
-        <p role="status">{TEXTOS_RECUPERAR.exito}</p>
+        <p role="status" className="note ok">{TEXTOS_RECUPERAR.exito}</p>
       ) : (
-        <form onSubmit={enviar}>
-          <div>
+        <form onSubmit={enviar} className="formulario-login">
+          <div className="field">
             <label htmlFor="correo">{TEXTOS_RECUPERAR.labelCorreo}</label>
             <input
               id="correo"
+              name="correo"
               type="email"
               autoComplete="email"
               value={correo}
@@ -40,15 +41,13 @@ export function PaginaRecuperar() {
               required
             />
           </div>
-          {error && <p role="alert">{error}</p>}
-          <button type="submit" disabled={isPending}>
+          {error && <p role="alert" className="note bad">{error}</p>}
+          <button type="submit" className="btn btn-primary btn-block" disabled={isPending} style={{ minHeight: 40, fontSize: 14 }}>
             {isPending ? TEXTOS_RECUPERAR.cargando : TEXTOS_RECUPERAR.botonEnviar}
           </button>
         </form>
       )}
-      <nav>
-        <Link to="/login">{TEXTOS_RECUPERAR.linkVolver}</Link>
-      </nav>
-    </main>
+      <Link to="/login" className="lnk">{TEXTOS_RECUPERAR.linkVolver}</Link>
+    </PaginaAcceso>
   )
 }

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">KillaUru</string>
+    <!-- HU-17: página pública de estado (UptimeRobot); la misma que el panel (VITE_URL_ESTADO en panel/.env.example). -->
+    <string name="url_estado_servicio" translatable="false">https://estado.killauru.pe</string>
 
     <!-- DescargaMapaPantalla (FR-041, FR-008) -->
     <string name="descarga_mapa_titulo">Descarga del mapa</string>

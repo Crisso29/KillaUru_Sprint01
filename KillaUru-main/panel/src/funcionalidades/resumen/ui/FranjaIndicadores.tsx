@@ -1,4 +1,4 @@
-// T075 — FranjaIndicadores: 6 tarjetas en fila (FR-015)
+// T075 — FranjaIndicadores: 6 tarjetas en una sola tira (FR-015; prototipo `.card.kstrip`)
 import type { IndicadoresDashboard } from '@/api/dtos/004-dashboard'
 import type { ClaveIndicador } from '../modelo/indicadores'
 import { TarjetaIndicador } from './TarjetaIndicador'
@@ -18,14 +18,10 @@ interface Props {
 
 export function FranjaIndicadores({ indicadores }: Props) {
   return (
-    <section aria-label="Indicadores de negocio">
-      <div role="list">
-        {ORDEN.map((clave) => (
-          <div key={clave} role="listitem">
-            <TarjetaIndicador clave={clave} dato={indicadores[clave]} />
-          </div>
-        ))}
-      </div>
+    <section aria-label="Indicadores de negocio" className="card kstrip">
+      {ORDEN.map((clave) => (
+        <TarjetaIndicador key={clave} clave={clave} dato={indicadores[clave]} />
+      ))}
     </section>
   )
 }

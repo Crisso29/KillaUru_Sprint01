@@ -12,6 +12,13 @@ Depende de contratos 001–007 y del entorno real.
 
 UI y 389 casos Vitest aprobados. Playwright descubre casos organizados por propósito; eso no demuestra que se ejecuten con éxito.
 
+**Fidelidad al prototipo (2026-11-22):** el panel se veía sin estilos (hojas CSS sin importar, `Boton` con clases
+inexistentes, `Marco` sin montar) y el Mapa nunca abría (lazy doble, capas antes del `load`, eventos sobre la fuente, íconos
+sin preparar y fuera de FR-023). Se portó el CSS del prototipo con sus nombres de clase, se montó el armazón, se rehicieron
+las 7 vistas y el login, y se alinearon con el contrato 003 `inicio-sesion`, `cerrar-sesion`, `SesionPanel` y `/me`. Nuevas
+pruebas: rutas frente a los contratos, variables CSS, páginas de las rutas, sesión, armazón y pestaña en la dirección.
+**416 Vitest, ESLint y `tsc -b` en verde.** [Evidencia: prototipo junto a lo real](../../docs/seguimiento/evidencias/pruebas/2026-11-22-panel-prototipo/README.md).
+
 ## Qué falta localmente
 
 15 casos vacíos convertidos a fixme; varios flujos con skip. Faltan 11 tareas E2E/calidad, datos de prueba, CORS, CI completo y aceptación. Desde el 21 de noviembre, e2e:pruebas usa configuración separada sin servidor local y requiere PANEL_URL; todavía no tiene archivos *.pruebas.ts. Preparar entorno, datos y escenarios reales antes de ejecutar.

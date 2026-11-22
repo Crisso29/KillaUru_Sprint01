@@ -52,8 +52,8 @@ export function MenuUsuario({ usuario, correoActual }: Props) {
           role="menu"
           style={{
             position: 'absolute', right: 0, top: '100%', zIndex: 10,
-            background: 'var(--surface)', border: '1px solid var(--border)',
-            borderRadius: 'var(--r-8)', listStyle: 'none', padding: 'var(--s-5)', margin: 0,
+            background: 'var(--surface)', border: '1px solid var(--line)',
+            borderRadius: '8px', listStyle: 'none', padding: 'var(--s-5)', margin: 0,
             minWidth: 180, boxShadow: '0 2px 8px rgba(0,0,0,.12)',
           }}
         >

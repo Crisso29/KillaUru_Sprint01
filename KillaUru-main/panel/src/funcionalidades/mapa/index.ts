@@ -1,5 +1,3 @@
-// T048 — exports públicos de la funcionalidad mapa
-import { lazy } from 'react'
-
-export const PaginaMapa = lazy(() => import('./ui/PaginaMapa').then(m => ({ default: m.PaginaMapa })))
+// T048 — exports ligeros de la funcionalidad mapa (sin MapLibre). La página va en `./pagina` para cargarla aparte.
 export { parsearBusqueda } from './modelo/busqueda'
+export { useMapaAdminFranja } from './api/useMapaAdmin'

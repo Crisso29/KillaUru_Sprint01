@@ -3,6 +3,8 @@ import { type FormEvent, useRef, useState } from 'react'
 import { tokenDelFragmento } from '../modelo/tokenDelFragmento'
 import { validarConfirmacion, validarContrasena } from '../modelo/contrasena'
 import { useFijarContrasena } from '../api/useEnlaces'
+import { Link } from 'react-router'
+import { PaginaAcceso } from '@/compartido/ui'
 import { TEXTOS_CUENTA as T } from '../textos'
 
 interface Props {
@@ -33,9 +35,10 @@ export function PaginaFijarContrasena({ modo = 'restablecer' }: Props) {
   if (mutation.isSuccess) {
     const msg = modo === 'restablecer' ? T.okRestablecer : T.okInvitacion
     return (
-      <div style={{ padding: 'var(--s-34)', textAlign: 'center' }}>
-        <p>{msg}</p>
-      </div>
+      <PaginaAcceso titulo={T.fijarContrasena}>
+        <p role="status" className="note ok">{msg}</p>
+        <Link to="/login" className="lnk">Ir al inicio de sesión</Link>
+      </PaginaAcceso>
     )
   }
 
@@ -44,23 +47,23 @@ export function PaginaFijarContrasena({ modo = 'restablecer' }: Props) {
     : null
 
   return (
-    <div style={{ padding: 'var(--s-34)' }}>
-      <form onSubmit={handleSubmit}>
-        <div>
+    <PaginaAcceso titulo={T.fijarContrasena}>
+      <form onSubmit={handleSubmit} className="formulario-login">
+        <div className="field">
           <label htmlFor="nueva">{T.fijarContrasena}</label>
-          <input id="nueva" type="password" name="nueva" />
+          <input id="nueva" type="password" name="nueva" autoComplete="new-password" />
         </div>
-        <div>
+        <div className="field">
           <label htmlFor="confirmar">{T.confirmarContrasena}</label>
-          <input id="confirmar" type="password" name="confirmar" />
+          <input id="confirmar" type="password" name="confirmar" autoComplete="new-password" />
         </div>
         {(errorLocal ?? errorApi) && (
-          <p role="alert">{errorLocal ?? errorApi}</p>
+          <p role="alert" className="note bad">{errorLocal ?? errorApi}</p>
         )}
-        <button type="submit" disabled={mutation.isPending}>
+        <button type="submit" className="btn btn-primary btn-block" disabled={mutation.isPending} style={{ minHeight: 40, fontSize: 14 }}>
           {mutation.isPending ? T.guardando : T.guardar}
         </button>
       </form>
-    </div>
+    </PaginaAcceso>
   )
 }

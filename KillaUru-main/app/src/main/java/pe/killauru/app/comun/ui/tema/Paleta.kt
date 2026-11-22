@@ -54,6 +54,8 @@ internal data class Paleta(
         return base.copy(
             primary = killa, onPrimary = sobreKilla, primaryContainer = killaSuave, onPrimaryContainer = tinta,
             secondary = tinta2, onSecondary = superficie,
+            // La píldora de la pestaña elegida y los chips: color de marca suave, no el lila por defecto de Material.
+            secondaryContainer = killaSuave, onSecondaryContainer = killa,
             tertiary = luna, onTertiary = tinta, tertiaryContainer = lunaSuave, onTertiaryContainer = tinta,
             background = fondo, onBackground = tinta, surface = superficie, onSurface = tinta,
             surfaceVariant = hundido, onSurfaceVariant = tinta2, surfaceContainer = fondo,

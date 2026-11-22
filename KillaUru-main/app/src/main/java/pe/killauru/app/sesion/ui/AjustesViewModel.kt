@@ -30,6 +30,8 @@ internal class AjustesViewModel @Inject constructor(
             usarDatosMoviles = prefs.obtenerUsarDatosMoviles(),
             mapaVersion = prefs.obtenerMapaVersion(),
             modeloVersion = prefs.obtenerModeloVersion(),
+            terminosVersion = prefs.obtenerTerminosVersion(),
+            terminosAceptadoUtcMs = prefs.obtenerTerminosAceptadoUtc(),
         )
     }
 
@@ -61,4 +63,7 @@ internal data class EstadoAjustes(
     val usarDatosMoviles: Boolean = false,
     val mapaVersion: String? = null,
     val modeloVersion: String? = null,
+    /** Versión y fecha (ms UTC) de los términos aceptados: «Aceptaste la v1.2 el 14 oct 2026» (FR-007). */
+    val terminosVersion: String? = null,
+    val terminosAceptadoUtcMs: Long? = null,
 )

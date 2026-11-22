@@ -83,8 +83,10 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 </details>
 
 <details>
-<summary>JVM — comun (14 archivos)</summary>
+<summary>JVM — comun (16 archivos)</summary>
 
+- [ComponentesPrototipoTest.kt](../../app/src/test/java/pe/killauru/app/comun/ui/ComponentesPrototipoTest.kt): íconos del prototipo, encabezado con pasos y atrás, tarjeta y fila pulsables enteras
+- [TextoConNegritasTest.kt](../../app/src/test/java/pe/killauru/app/comun/ui/TextoConNegritasTest.kt): `**negrita**` de los textos legales
 - [TemaCoherenteConPanelTest.kt](../../app/src/test/java/pe/killauru/app/comun/ui/tema/TemaCoherenteConPanelTest.kt): la paleta de la app (claro, oscuro y ventana) es la de `panel/.../tokens.css`
 - [PaletaSeveridadTest.kt](../../app/src/test/java/pe/killauru/app/comun/ui/tema/PaletaSeveridadTest.kt): color de cada severidad y de su número (prototipo `.sev`)
 - [NavGrafoTest.kt](../../app/src/test/java/pe/killauru/app/comun/ui/NavGrafoTest.kt): T024/T126 — primer uso → mapa sin volver atrás, pestañas en 1 toque, detalle en 2 (sustituye a `ToquesAccionesPrincipalesTest`, que solo comprobaba un conjunto definido en la misma prueba)
@@ -136,8 +138,9 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 </details>
 
 <details>
-<summary>JVM — historial (1 archivo)</summary>
+<summary>JVM — historial (2 archivos)</summary>
 
+- [TextosViajeTest.kt](../../app/src/test/java/pe/killauru/app/historial/ui/TextosViajeTest.kt): tramo por pueblos y duración de «Mis viajes»
 - [AcumuladorRecorridoTest.kt](../../app/src/test/java/pe/killauru/app/historial/dominio/AcumuladorRecorridoTest.kt)
 
 </details>
@@ -156,8 +159,10 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 </details>
 
 <details>
-<summary>JVM — sesion (13 archivos)</summary>
+<summary>JVM — sesion (16 archivos)</summary>
 
+- [VersionesLegalesCoherentesTest.kt](../../app/src/test/java/pe/killauru/app/sesion/datos/VersionesLegalesCoherentesTest.kt): la versión legal del APK es la vigente del backend (estaba 1.0 contra 1.2) y nombra a los proveedores
+- [TextoAceptacionTest.kt](../../app/src/test/java/pe/killauru/app/sesion/ui/TextoAceptacionTest.kt): «Aceptaste la v1.2 el 14 oct 2026» en hora de Lima
 - [PrimerUsoPantallasTest.kt](../../app/src/test/java/pe/killauru/app/sesion/ui/PrimerUsoPantallasTest.kt): textos del prototipo, «Acepto y continúo» y filas pulsables enteras (términos y vehículo)
 - [PrimerUsoViewModelTest.kt](../../app/src/test/java/pe/killauru/app/sesion/ui/PrimerUsoViewModelTest.kt): bienvenida solo la primera vez, versión nueva sin repetir vehículo (R-024), retoma en el vehículo
 - [PermisosUbicacionTest.kt](../../app/src/test/java/pe/killauru/app/sesion/ui/PermisosUbicacionTest.kt): FR-006 — ubicación en dos pasos (precisa y luego «todo el tiempo»)

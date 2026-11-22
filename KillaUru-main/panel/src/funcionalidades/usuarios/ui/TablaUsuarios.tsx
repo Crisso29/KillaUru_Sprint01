@@ -1,5 +1,9 @@
-// T056 — TablaUsuarios: lista de usuarios con MenuUsuario por fila
+// T056 — TablaUsuarios: cuentas con su menú por fila (FR-031; prototipo tabla `.dt` con avatar)
 import type { Usuario } from '@/api/dtos/001-identidad'
+import { iniciales } from '@/compartido/formato/iniciales'
+import { formatearFechaLima } from '@/compartido/formato/fechas'
+import { formatearRelativo } from '@/compartido/formato/relativo'
+import { relojReal } from '@/compartido/reloj'
 import { MenuUsuario } from './MenuUsuario'
 
 interface Props {
@@ -7,45 +11,50 @@ interface Props {
   correoActual: string
 }
 
-function etiquetaEstado(estado: string) {
-  if (estado === 'InvitacionPendiente') return 'Invitación pendiente'
-  return estado
+const ESTADO: Record<string, { texto: string; clase: string }> = {
+  Activa: { texto: 'Activa', clase: 'activa' },
+  Desactivada: { texto: 'Desactivada', clase: 'expirada' },
+  InvitacionPendiente: { texto: 'Invitación pendiente', clase: 'pendiente' },
 }
 
-function etiquetaRol(rol: string) {
-  if (rol === 'ConductorRegistrado') return 'Conductor'
-  return rol
-}
+const ROL: Record<string, string> = { ConductorRegistrado: 'Conductor registrado', Administrador: 'Administrador' }
 
 export function TablaUsuarios({ usuarios, correoActual }: Props) {
+  const ahora = relojReal.ahora()
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--t-13)' }}>
-        <thead>
-          <tr style={{ borderBottom: '2px solid var(--border)', textAlign: 'left' }}>
-            <th style={{ padding: 'var(--s-8) var(--s-13)', fontWeight: 600 }}>Correo</th>
-            <th style={{ padding: 'var(--s-8) var(--s-13)', fontWeight: 600 }}>Rol</th>
-            <th style={{ padding: 'var(--s-8) var(--s-13)', fontWeight: 600 }}>Estado</th>
-            <th style={{ padding: 'var(--s-8) var(--s-13)', fontWeight: 600 }}>Alta</th>
-            <th style={{ padding: 'var(--s-8) var(--s-13)', width: 48 }}></th>
-          </tr>
-        </thead>
-        <tbody>
-          {usuarios.map(u => (
-            <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
-              <td style={{ padding: 'var(--s-8) var(--s-13)' }}>{u.correo}</td>
-              <td style={{ padding: 'var(--s-8) var(--s-13)' }}>{etiquetaRol(u.rol)}</td>
-              <td style={{ padding: 'var(--s-8) var(--s-13)' }}>{etiquetaEstado(u.estado)}</td>
-              <td style={{ padding: 'var(--s-8) var(--s-13)', color: 'var(--ink-3)' }}>
-                {u.fechaAltaUtc.slice(0, 10)}
+    <table className="dt">
+      <thead>
+        <tr>
+          <th scope="col">Usuario</th>
+          <th scope="col">Rol</th>
+          <th scope="col">Estado</th>
+          <th scope="col">Correo verificado</th>
+          <th scope="col">Alta</th>
+          <th scope="col">Última sesión</th>
+          <th scope="col"><span className="sr-only">Acciones</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {usuarios.map(u => {
+          const estado = ESTADO[u.estado] ?? { texto: u.estado, clase: 'expirada' }
+          return (
+            <tr key={u.id}>
+              <td>
+                <span style={{ display: 'flex', gap: 'var(--s-8)', alignItems: 'center' }}>
+                  <span className="av" aria-hidden="true">{iniciales(u.correo)}</span>
+                  <span><b style={{ display: 'block' }}>{u.correo}</b><span className="mono">{u.id.slice(0, 8)}</span></span>
+                </span>
               </td>
-              <td style={{ padding: 'var(--s-8) var(--s-5)' }}>
-                <MenuUsuario usuario={u} correoActual={correoActual} />
-              </td>
+              <td>{ROL[u.rol] ?? u.rol}</td>
+              <td><span className={`sd ${estado.clase}`}><span>{estado.texto}</span></span></td>
+              <td style={{ color: u.correoVerificado ? undefined : 'var(--ink-3)' }}>{u.correoVerificado ? 'Sí' : 'Pendiente'}</td>
+              <td>{formatearFechaLima(u.fechaAltaUtc)}</td>
+              <td>{u.ultimaSesionUtc ? formatearRelativo(u.ultimaSesionUtc, ahora) : '—'}</td>
+              <td className="r"><MenuUsuario usuario={u} correoActual={correoActual} /></td>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          )
+        })}
+      </tbody>
+    </table>
   )
 }

@@ -10,6 +10,7 @@ import { useMapaAdmin } from '../api/useMapaAdmin'
 import { LienzoMapa } from './LienzoMapa'
 import { PanelLateral } from './PanelLateral'
 import { BarraFiltros } from './BarraFiltros'
+import { Leyenda } from './Leyenda'
 
 export function PaginaMapa() {
   const [params, setParams] = useSearchParams()
@@ -48,23 +49,23 @@ export function PaginaMapa() {
     return <EstadoError error={error as ErrorApi} onReintentar={() => void refetch()} />
   }
 
+  // Prototipo `.mapl`: mapa (61,8 %) con filtros flotantes y leyenda, y a la derecha el panel Detalle / Lista (38,2 %).
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <BarraFiltros filtros={filtros} onChange={cambiarFiltros} />
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <div style={{ flex: 1, position: 'relative' }}>
-          <LienzoMapa datos={data} anomaliaId={anomaliaId} onSeleccionar={seleccionar} />
-        </div>
-        <div style={{ width: 320, borderLeft: '1px solid var(--border)', overflowY: 'auto' }}>
-          <PanelLateral
-            features={features}
-            total={total}
-            anomaliaId={anomaliaId}
-            onSeleccionar={seleccionar}
-            onCerrarDetalle={cerrarDetalle}
-          />
-        </div>
+    <div className="mapl" style={{ height: '100%' }}>
+      <div style={{ position: 'relative', minHeight: 0 }}>
+        <LienzoMapa datos={data} anomaliaId={anomaliaId} onSeleccionar={seleccionar} />
+        <BarraFiltros filtros={filtros} onChange={cambiarFiltros} />
+        <Leyenda />
       </div>
+      <aside className="rp" aria-label="Detalle y lista de anomalías">
+        <PanelLateral
+          features={features}
+          total={total}
+          anomaliaId={anomaliaId}
+          onSeleccionar={seleccionar}
+          onCerrarDetalle={cerrarDetalle}
+        />
+      </aside>
     </div>
   )
 }

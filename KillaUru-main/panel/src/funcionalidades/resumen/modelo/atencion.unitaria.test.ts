@@ -65,3 +65,25 @@ describe('primerPendiente', () => {
     expect(resultado).toContain('a1b2c3d4')
   })
 })
+
+// Prototipo «A-1061 expira en 18 h»: la que vence antes y nunca horas negativas. Patrón AAA.
+describe('primerPendiente: la más urgente', () => {
+  it('elige la que vence antes, no la primera de la lista', () => {
+    // Arrange
+    const h = (n: number) => new Date(AHORA.getTime() + n * 3600_000).toISOString()
+    const lista = [pendiente('tardia00', h(40)), pendiente('urgente0', h(5))]
+    // Act
+    const resultado = primerPendiente(lista, AHORA)
+    // Assert
+    expect(resultado).toBe('urgente0 expira en 5 h')
+  })
+
+  it('si el plazo ya pasó no muestra horas negativas', () => {
+    // Arrange
+    const vencida = new Date(AHORA.getTime() - 320 * 3600_000).toISOString()
+    // Act
+    const resultado = primerPendiente([pendiente('vieja000', vencida)], AHORA)
+    // Assert
+    expect(resultado).toBe('vieja000 expira en menos de 1 h')
+  })
+})

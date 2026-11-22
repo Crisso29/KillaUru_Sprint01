@@ -80,6 +80,15 @@ es el círculo `.sev`. Términos y vehículo siguen al prototipo (textos, «Acep
 cargador, RN-18) con filas pulsables enteras (`FilaMarcable`). Verificado en emulador, claro y oscuro. Pendiente: los
 marcadores del mapa son todos rojos (`MapaPantalla`), se rehace con el paso de la CDN. **283 pruebas JVM y lint en verde.**
 
+**Fidelidad al prototipo (2026-11-22, tarde):** ícono adaptativo y monocromo con el logo «Señal» (generado por
+`herramientas/marca/generar_logo_android.py`); componentes del prototipo en `comun/ui/` (`PantallaApp` con «Paso N de 5»
+y pie fijo, `TarjetaOpcion`, `Aviso`, `FilaAjuste`, `BotonPrincipal`, `IconosKillaUru` generados del prototipo);
+Bienvenida, Términos, Vehículo, Permisos, Cuenta, Ajustes y Mis viajes rehechos; «atrás» en cada paso del primer uso.
+**Hallazgo:** el APK traía los textos legales 1.0 y el backend exige la 1.2, así que el registro desde la app habría
+fallado con `aceptacion_requerida`; ahora trae la 1.2 del prototipo, que además nombra a los proveedores (Ley 29733), y
+`VersionesLegalesCoherentesTest` lo vigila. **302 pruebas JVM, lint y `assembleDebug` en verde.**
+[Evidencia: prototipo junto a lo real](../../docs/seguimiento/evidencias/pruebas/2026-11-22-app-prototipo/README.md).
+
 **Pendiente, en curso:** `enDemo` no viene en el contrato; debe calcularse con `ZonaDemo` (data-model §1). El polígono
 se descarga de la CDN (FR-042, research `cdn.killauru.pe`, `cdn.openapi.yaml` con `tipo: tramoDemo`), pero
 `CargadorZonaDemo` lo busca en los assets del APK y nadie lo usa; además el archivo depende de 006/T002. Mientras tanto

@@ -15,7 +15,7 @@ function PaginaActual() {
 // T029 — FormularioLogin: canal=panel, turnstileToken, respuestas y desafíos
 
 const BASE = import.meta.env.VITE_URL_API ?? 'https://api.killauru.pe'
-const URL_LOGIN = `${BASE}/api/v1/auth/iniciar`
+const URL_LOGIN = `${BASE}/api/v1/auth/inicio-sesion`
 
 // Doble de Turnstile: simula que el widget entrega un token al hacer clic
 vi.mock('./Turnstile', () => ({
@@ -59,7 +59,7 @@ describe('FormularioLogin', () => {
     server.use(
       http.post(URL_LOGIN, async ({ request }) => {
         cuerpo = await request.json()
-        return HttpResponse.json({ acceso_vence_utc: '2026-11-05T10:05:00Z' })
+        return HttpResponse.json({ expiraAccesoUtc: '2026-11-05T10:05:00Z', sesionVenceUtc: '2026-11-05T18:00:00Z', rol: 'Administrador' })
       }),
     )
     renderFormulario()
@@ -72,7 +72,7 @@ describe('FormularioLogin', () => {
   it('200 → navega a /resumen', async () => {
     server.use(
       http.post(URL_LOGIN, () =>
-        HttpResponse.json({ acceso_vence_utc: '2026-11-05T10:05:00Z' }),
+        HttpResponse.json({ expiraAccesoUtc: '2026-11-05T10:05:00Z', sesionVenceUtc: '2026-11-05T18:00:00Z', rol: 'Administrador' }),
       ),
     )
     renderFormulario()
@@ -158,7 +158,7 @@ describe('FormularioLogin', () => {
     server.use(
       http.post(URL_LOGIN, () =>
         new Promise<Response>((res) => {
-          pendiente.resolver = () => res(HttpResponse.json({ acceso_vence_utc: '2026-11-05T10:05:00Z' }))
+          pendiente.resolver = () => res(HttpResponse.json({ expiraAccesoUtc: '2026-11-05T10:05:00Z', sesionVenceUtc: '2026-11-05T18:00:00Z', rol: 'Administrador' }))
         }),
       ),
     )

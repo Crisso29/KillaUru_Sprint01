@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { TEXTOS_AUDITORIA } from '../textos'
+import { Esqueleto, Icono } from '@/compartido/ui'
 import { FiltrosAuditoria, type ValoresFiltros } from './FiltrosAuditoria'
 import { TablaAuditoria } from './TablaAuditoria'
 import { detectarTipoActor } from '../modelo/actor'
@@ -92,37 +93,33 @@ export function PaginaAuditoria() {
   }
 
   return (
-    <main>
-      <header>
-        <h1>{T.titulo}</h1>
-        <span>{T.insignia}</span>
-      </header>
+    <>
+      <div className="pg-h">
+        <div><h2>{T.titulo}</h2><p>Registro de acciones sensibles. Inmutable: nadie puede editarlo ni borrarlo.</p></div>
+        <span className="badge expirada"><Icono nombre="lock" tamano={12} />{T.insignia}</span>
+      </div>
 
       <FiltrosAuditoria valores={filtros} onChange={handleFiltrosChange} />
 
-      {sinCuenta && <p role="alert">{T.sinCuenta}</p>}
-
-      {isLoading && <p>{T.cargando}</p>}
-      {isError && <p>{T.error}</p>}
+      {sinCuenta && <p role="alert" className="note warn">{T.sinCuenta}</p>}
+      {isLoading && <Esqueleto filas={5} alto={40} />}
+      {isError && <p role="alert" className="note bad">{T.error}</p>}
 
       {data && (
-        <>
-          <p>{T.contadorTotal(data.total)}</p>
+        <div className="card">
           <TablaAuditoria registros={data.elementos} correosActores={correosActores} />
-          <nav aria-label="paginación">
-            <button disabled={pagina <= 1} onClick={() => setPagina(p => p - 1)}>
-              Anterior
-            </button>
-            <span>Página {pagina}</span>
-            <button
-              disabled={pagina * (data.tamano || 50) >= data.total}
-              onClick={() => setPagina(p => p + 1)}
-            >
-              Siguiente
-            </button>
-          </nav>
-        </>
+          <div className="tfoot">
+            <span>{T.contadorTotal(data.total)}</span>
+            <nav aria-label="Paginación" style={{ display: 'inline-flex', gap: 'var(--s-5)', alignItems: 'center' }}>
+              <button type="button" className="ob sm" disabled={pagina <= 1} onClick={() => setPagina(p => p - 1)}>Anterior</button>
+              <span>Página {pagina}</span>
+              <button type="button" className="ob sm" disabled={pagina * (data.tamano || 50) >= data.total} onClick={() => setPagina(p => p + 1)}>
+                Siguiente
+              </button>
+            </nav>
+          </div>
+        </div>
       )}
-    </main>
+    </>
   )
 }

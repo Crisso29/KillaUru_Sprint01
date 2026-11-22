@@ -1,13 +1,22 @@
 import { describe, it, expect } from 'vitest'
-import { formaParaEstado, tieneAnillo, claveIcono, ESTADOS_MAPA, SEVERIDADES } from './simbolos'
+import { marcaParaEstado, tieneAnillo, claveIcono, ESTADOS_MAPA, SEVERIDADES } from './simbolos'
 
 // T038 — simbolos: formas únicas por estado, anillo en Activa 4-5, 25 combinaciones
 
 const ESTADOS = ['Activa', 'PendienteConfirmacion', 'Expirada', 'Reparada', 'Descartada']
 
-describe('formaParaEstado', () => {
-  it('cada estado tiene una forma distinta', () => {
-    const formas = ESTADOS.map(formaParaEstado)
+describe('marcaParaEstado', () => {
+  // FR-023: «Activa: círculo lleno, con anillo en 4 y 5; Pendiente: borde punteado; Expirada: anillo gris;
+  // Reparada: círculo con ✓; Descartada: círculo con ✕», siempre con su número de severidad.
+  it('cada estado tiene la marca que pide FR-023', () => {
+    // Arrange + Act
+    const marcas = ESTADOS_MAPA.map(marcaParaEstado)
+    // Assert
+    expect(marcas).toEqual(['lleno', 'punteado', 'anillo', 'check', 'cruz'])
+  })
+
+  it('cada estado tiene una marca distinta', () => {
+    const formas = ESTADOS.map(marcaParaEstado)
     expect(new Set(formas).size).toBe(5)
   })
 

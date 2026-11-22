@@ -31,3 +31,18 @@ export function enLima(iso: string): Date {
   const limaOffset = -5 * 60 * 60_000
   return new Date(utc.getTime() + limaOffset)
 }
+
+const FMT_DIA_LARGO = new Intl.DateTimeFormat('es-PE', { timeZone: ZONA, weekday: 'long', day: 'numeric', month: 'long' })
+
+/** «Martes 20 de octubre» en hora de Lima (subtítulo del Resumen en el prototipo). */
+export function formatearDiaLargoLima(iso: string): string {
+  const texto = FMT_DIA_LARGO.format(new Date(iso)).replace(',', '')
+  return texto.charAt(0).toUpperCase() + texto.slice(1)
+}
+
+const FMT_UTC_CORTO = new Intl.DateTimeFormat('es-PE', { timeZone: 'UTC', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false })
+
+/** «20 oct 10:12 UTC»: historial, vencimientos y auditoría se muestran en UTC (prototipo). */
+export function formatearUtcCorto(iso: string): string {
+  return `${FMT_UTC_CORTO.format(new Date(iso)).replace('.', '').replace(',', '')} UTC`
+}

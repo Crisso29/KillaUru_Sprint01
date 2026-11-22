@@ -21,7 +21,7 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
  * ajustes de Android; si el usuario niega uno, puede continuar igual (el indicador del mapa explica qué se pierde).
  */
 @Composable
-internal fun PermisosRuta(alContinuar: () -> Unit) {
+internal fun PermisosRuta(alContinuar: () -> Unit, alVolver: (() -> Unit)? = null) {
     val contexto = LocalContext.current
     var estado by remember { mutableStateOf(EstadoPermisos.leer(contexto)) }
     LifecycleResumeEffect(Unit) {
@@ -40,6 +40,7 @@ internal fun PermisosRuta(alContinuar: () -> Unit) {
         },
         onSolicitarBateria = { contexto.startActivity(intentExclusionBateria(contexto.packageName)) },
         onContinuar = alContinuar,
+        alVolver = alVolver,
     )
 }
 

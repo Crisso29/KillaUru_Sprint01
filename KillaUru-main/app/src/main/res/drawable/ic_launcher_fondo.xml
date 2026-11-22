@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generado por herramientas/marca/generar_logo_android.py: no editar a mano. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt" android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+<group android:scaleX="0.9" android:scaleY="0.9"><path android:pathData="M0,0 H120 V120 H0Z"><aapt:attr name="android:fillColor"><gradient android:type="linear" android:startX="0" android:startY="0" android:endX="0" android:endY="120"><item android:offset="0" android:color="#FF0B2433"/><item android:offset="1" android:color="#FF11475A"/></gradient></aapt:attr></path></group>
+</vector>

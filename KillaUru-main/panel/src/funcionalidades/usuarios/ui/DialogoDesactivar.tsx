@@ -44,7 +44,7 @@ export function DialogoDesactivar({ usuarioId, onCerrar }: Props) {
           />
         </label>
         {(errorLocal || mutation.error) && (
-          <p role="alert" style={{ color: 'var(--error)' }}>
+          <p role="alert" style={{ color: 'var(--bad)' }}>
             {errorLocal || T.errorAccionSobreSiMismo}
           </p>
         )}

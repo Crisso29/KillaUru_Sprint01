@@ -50,7 +50,7 @@ export function DialogoInvitar({ onCerrar }: Props) {
             <option value="Administrador">Administrador</option>
           </select>
         </label>
-        {error && <p role="alert" style={{ color: 'var(--error)' }}>{error}</p>}
+        {error && <p role="alert" style={{ color: 'var(--bad)' }}>{error}</p>}
         <div style={{ display: 'flex', gap: 'var(--s-8)', justifyContent: 'flex-end', marginTop: 'var(--s-21)' }}>
           <button type="button" onClick={onCerrar}>{T.cancelar}</button>
           <button type="submit" disabled={mutation.isPending}>{T.invitar}</button>

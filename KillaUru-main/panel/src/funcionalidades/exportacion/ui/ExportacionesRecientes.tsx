@@ -1,5 +1,6 @@
 // T084 — ExportacionesRecientes: lista las últimas exportaciones del dataset
 import { useRecientes } from '../api/useRecientes'
+import { formatearFechaLima, formatearHoraLima } from '@/compartido/formato/fechas'
 import { useActores } from '@/funcionalidades/usuarios/api/useActores'
 import { TEXTOS_EXPORTACION as T } from '../textos'
 
@@ -11,23 +12,23 @@ export function ExportacionesRecientes({ correoActual }: Props) {
   const actores = useActores(actorIds)
 
   if (registros.length === 0) {
-    return <p style={{ color: 'var(--ink-3)' }}>{T.sinRecientes}</p>
+    return <p className="card-b hint">{T.sinRecientes}</p>
   }
 
   return (
-    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-      {registros.map(r => {
-        const correoActor = r.actorId ? (actores[r.actorId] ?? r.actorId) : 'sistema'
-        const esTu = correoActor === correoActual
-        return (
-          <li key={r.id} style={{ padding: 'var(--s-5) 0', borderBottom: '1px solid var(--border)' }}>
-            <span style={{ marginRight: 'var(--s-8)' }}>
-              {new Date(r.ocurridoUtc).toLocaleString('es-PE', { timeZone: 'America/Lima' })}
-            </span>
-            <strong>{esTu ? T.tu : correoActor}</strong>
-          </li>
-        )
-      })}
-    </ul>
+    <table className="dt" style={{ marginTop: 'var(--s-8)' }}>
+      <thead><tr><th scope="col">Fecha</th><th scope="col">Quién</th></tr></thead>
+      <tbody>
+        {registros.map(r => {
+          const correoActor = r.actorId ? (actores[r.actorId] ?? r.actorId) : 'sistema'
+          return (
+            <tr key={r.id}>
+              <td><b>{formatearFechaLima(r.ocurridoUtc)} {formatearHoraLima(r.ocurridoUtc)}</b></td>
+              <td>{correoActor === correoActual ? T.tu : correoActor}</td>
+            </tr>
+          )
+        })}
+      </tbody>
+    </table>
   )
 }

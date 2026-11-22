@@ -1,4 +1,4 @@
-/* Reset y base global */
+/* Base global, igual que referencia/prototipo/killauru-diseno.html (líneas 61-70). */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { font-size: 16px; -webkit-text-size-adjust: 100%; }
@@ -6,24 +6,34 @@ html { font-size: 16px; -webkit-text-size-adjust: 100%; }
 body {
   font-family: var(--f-body);
   font-size: var(--t-16);
-  line-height: 1.5;
+  line-height: 1.38;
   background-color: var(--bg);
   color: var(--ink);
   min-height: 100dvh;
 }
 
+button, input, select, textarea { font: inherit; color: inherit; }
+
+h1, h2, h3, h4 { font-family: var(--f-display); line-height: 1.12; text-wrap: balance; letter-spacing: -.01em; }
+
 a { color: var(--killa); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
-button, input, select, textarea {
-  font-family: inherit;
-  font-size: inherit;
-}
+img { display: block; max-width: 100%; }
 
-img, svg { display: block; max-width: 100%; }
+.num { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--f-data); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-/* Foco visible — accesibilidad */
-:focus-visible {
-  outline: 2px solid var(--killa);
-  outline-offset: 2px;
-}
+/* Foco visible — accesibilidad (WCAG 2.4.7). */
+:focus-visible { outline: 2px solid var(--killa); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* Marca (logo «Señal» + nombre): prototipo `.ops-logo` y `.brand`. */
+.marca { display: inline-flex; align-items: center; gap: var(--s-8); }
+.marca__nombre { font-family: var(--f-display); font-weight: 900; letter-spacing: -.02em; color: var(--ink); }
+.marca--sm .marca__nombre { font-size: 16px; }
+.marca--md .marca__nombre { font-size: var(--t-21); }
+.marca--lg .marca__nombre { font-size: var(--t-34); }
+.marca__ops { font-size: 11px; color: var(--ink-3); font-weight: 600; margin-left: 2px; }

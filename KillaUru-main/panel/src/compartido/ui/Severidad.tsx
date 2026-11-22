@@ -1,18 +1,18 @@
-interface Props { nivel: number; className?: string }
+interface Props {
+  nivel: number
+  tamano?: 'sm' | 'md' | 'lg'
+}
 
-const ETIQUETAS = ['', 'Baja', 'Leve', 'Moderada', 'Alta', 'Crítica']
+/** Nombre de cada nivel (prototipo `SEV`): se lee en voz alta junto al número. */
+export const NOMBRE_SEVERIDAD = ['', 'Muy leve', 'Leve', 'Moderada', 'Alta', 'Muy alta'] as const
 
-export function Severidad({ nivel, className }: Props) {
+/** Círculo de severidad del prototipo (`.sev`): color del nivel, número y anillo en 4 y 5. */
+export function Severidad({ nivel, tamano = 'md' }: Props) {
+  const n = Math.min(5, Math.max(1, Math.round(nivel)))
   return (
-    <span
-      className={className}
-      data-nivel={nivel}
-      style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--s-5)' }}
-    >
-      <span className={`severidad`} data-nivel={nivel} aria-label={`Severidad ${nivel}: ${ETIQUETAS[nivel] ?? nivel}`}>
-        {nivel}
-        <span aria-hidden="true">{ETIQUETAS[nivel]}</span>
-      </span>
+    <span className={`sev s${n}${tamano === 'md' ? '' : ` ${tamano}`}`} role="img"
+      aria-label={`Severidad ${n}: ${NOMBRE_SEVERIDAD[n]}`}>
+      {n}
     </span>
   )
 }

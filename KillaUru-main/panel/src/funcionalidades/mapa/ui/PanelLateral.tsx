@@ -28,23 +28,23 @@ export function PanelLateral({ features, total, anomaliaId, onSeleccionar, onCer
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      <Pestanas pestanas={pestanas} activa={activa} onChange={setActiva} />
+      <Pestanas pestanas={pestanas} activa={activa} onChange={setActiva} estilo="panel" />
       {activa === 'detalle' && (
-        <div data-testid="detalle-anomalia" style={{ flex: 1, overflowY: 'auto' }}>
+        <div data-testid="detalle-anomalia" style={{ flex: 1, minHeight: 0 }}>
           {anomaliaId
             ? <DetalleAnomalia id={anomaliaId} onCerrar={onCerrarDetalle} />
-            : <p style={{ padding: 'var(--s-21)', color: 'var(--ink-3)', fontSize: 'var(--t-13)' }}>
+            : <p className="hint" style={{ padding: 'var(--s-21)' }}>
                 Selecciona una anomalía del mapa o la lista.
               </p>}
         </div>
       )}
       {activa === 'lista' && (
-        <ListaAnomalias
+        <div className="rp-body"><ListaAnomalias
           features={features}
           total={total}
           idSeleccionada={anomaliaId}
           onSeleccionar={onSeleccionar}
-        />
+        /></div>
       )}
     </div>
   )

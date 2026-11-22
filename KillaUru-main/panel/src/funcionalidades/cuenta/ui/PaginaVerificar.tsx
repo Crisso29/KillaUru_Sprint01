@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { tokenDelFragmento } from '../modelo/tokenDelFragmento'
 import { useVerificarCorreo } from '../api/useEnlaces'
+import { Link } from 'react-router'
+import { PaginaAcceso } from '@/compartido/ui'
 import { TEXTOS_CUENTA as T } from '../textos'
 
 export function PaginaVerificar() {
@@ -23,23 +25,25 @@ export function PaginaVerificar() {
 
   if (sinToken || mutation.isError) {
     return (
-      <div style={{ padding: 'var(--s-34)', textAlign: 'center' }}>
-        <p role="alert">{T.enlaceInvalido}</p>
-      </div>
+      <PaginaAcceso titulo="Verificar correo">
+        <p role="alert" className="note bad">{T.enlaceInvalido}</p>
+        <Link to="/login" className="lnk">Ir al inicio de sesión</Link>
+      </PaginaAcceso>
     )
   }
 
   if (mutation.isSuccess) {
     return (
-      <div style={{ padding: 'var(--s-34)', textAlign: 'center' }}>
-        <p>{T.verificadoOk}</p>
-      </div>
+      <PaginaAcceso titulo="Verificar correo">
+        <p role="status" className="note ok">{T.verificadoOk}</p>
+        <Link to="/login" className="lnk">Ir al inicio de sesión</Link>
+      </PaginaAcceso>
     )
   }
 
   return (
-    <div style={{ padding: 'var(--s-34)', textAlign: 'center' }}>
-      <p>{T.verificandoTitulo}</p>
-    </div>
+    <PaginaAcceso titulo="Verificar correo">
+      <p role="status" aria-busy="true">{T.verificandoTitulo}</p>
+    </PaginaAcceso>
   )
 }

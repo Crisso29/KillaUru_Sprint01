@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client'
 import '@/compartido/estilos/tokens.css'
 import '@/compartido/estilos/base.css'
 import '@/compartido/estilos/fuentes.css'
+import '@/compartido/estilos/componentes.css'
+import '@/compartido/estilos/ops.css'
 import { App } from '@/app/App'
 
 const raiz = document.getElementById('raiz')

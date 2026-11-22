@@ -3,7 +3,7 @@ import { relojReal } from '@/compartido/reloj'
 import { formatearKm } from '@/compartido/formato/km'
 import { formatearRelativo } from '@/compartido/formato/relativo'
 import { idCorto } from '@/compartido/formato/ids'
-import { EstadoVacio } from '@/compartido/ui'
+import { EstadoVacio, Severidad, InsigniaEstado } from '@/compartido/ui'
 import type { AnomaliaFeature } from '@/api/dtos/002-mapa'
 import { TEXTOS_MAPA } from '../textos'
 
@@ -23,7 +23,7 @@ export function ListaAnomalias({ features, total, idSeleccionada, onSeleccionar 
 
   return (
     <div>
-      <p style={{ padding: 'var(--s-5) var(--s-13)', fontSize: 'var(--t-13)', color: 'var(--ink-3)' }}>
+      <p className="hint" style={{ padding: 'var(--s-8) var(--s-13)' }}>
         {features.length} de {total} anomalías
       </p>
       <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -31,20 +31,14 @@ export function ListaAnomalias({ features, total, idSeleccionada, onSeleccionar 
           const p = f.properties
           return (
             <li key={p.id}>
-              <button
-                type="button"
-                onClick={() => onSeleccionar(p.id)}
-                style={{
-                  width: '100%', textAlign: 'left', padding: 'var(--s-8) var(--s-13)',
-                  background: idSeleccionada === p.id ? 'var(--surface-2)' : 'transparent',
-                  border: 'none', cursor: 'pointer',
-                }}
-                aria-pressed={idSeleccionada === p.id}
-              >
-                <span style={{ fontWeight: 600 }}>{p.tipo} · km {formatearKm(p.kmVia)}</span>
-                <span style={{ display: 'block', fontSize: 'var(--t-13)', color: 'var(--ink-3)' }}>
-                  {idCorto(p.id)} · {formatearRelativo(p.ultimaDeteccionUtc, ahora)}
+              <button type="button" className="lrow" onClick={() => onSeleccionar(p.id)}
+                aria-pressed={idSeleccionada === p.id} aria-selected={idSeleccionada === p.id}>
+                <Severidad nivel={p.severidad} tamano="sm" />
+                <span>
+                  <b>{p.tipo} · km {formatearKm(p.kmVia)}</b>
+                  <small style={{ display: 'block' }}>{idCorto(p.id)} · {formatearRelativo(p.ultimaDeteccionUtc, ahora)}</small>
                 </span>
+                <InsigniaEstado estado={p.estado} />
               </button>
             </li>
           )

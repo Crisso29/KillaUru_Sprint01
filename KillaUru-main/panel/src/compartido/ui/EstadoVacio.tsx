@@ -5,7 +5,7 @@ export function EstadoVacio({ mensaje, className }: Props) {
     <div
       className={className}
       role="status"
-      style={{ padding: 'var(--s-34)', textAlign: 'center', color: 'var(--ink-3)', fontSize: 'var(--t-16)' }}
+      style={{ padding: 'var(--s-34)', textAlign: 'center', color: 'var(--ink-3)', fontSize: 13 }}
     >
       {mensaje}
     </div>

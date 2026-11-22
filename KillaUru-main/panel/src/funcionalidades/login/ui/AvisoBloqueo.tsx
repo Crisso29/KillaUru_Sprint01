@@ -30,7 +30,7 @@ export function AvisoBloqueo({ bloqueadoHastaUtc, onDesbloqueado, reloj = relojR
   const hora = horaEnLima(bloqueadoHastaUtc)
 
   return (
-    <p role="alert" className="aviso-bloqueo">
+    <p role="alert" className="note bad">
       {`Cuenta bloqueada ${mins} min por intentos fallidos. Vuelve a intentar a las ${hora}.`}
     </p>
   )

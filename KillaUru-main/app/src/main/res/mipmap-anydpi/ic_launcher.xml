@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ícono adaptativo con el logo «Señal» (herramientas/marca/generar_logo_android.py). minSdk 26: no hace falta PNG. El monocromo es la silueta para los íconos temáticos de Android 13+. -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@drawable/ic_launcher_fondo" />
+    <foreground android:drawable="@drawable/ic_launcher_figura" />
+    <monochrome android:drawable="@drawable/ic_launcher_monocromo" />
+</adaptive-icon>

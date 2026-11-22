@@ -3,12 +3,13 @@ import { Routes, Route } from 'react-router'
 import { useSesion } from '@/sesion/useSesion'
 import { RutaProtegida } from './RutaProtegida'
 import { PaginaNoEncontrada } from './PaginaNoEncontrada'
+import { MarcoConectado } from './marco/MarcoConectado'
 import { Esqueleto } from '@/compartido/ui'
 
 // FR-001: rutas perezosas — cada funcionalidad se carga solo cuando se navega
 const PaginaLogin = lazy(() => import('@/funcionalidades/login').then(m => ({ default: m.PaginaLogin })))
 const PaginaResumen = lazy(() => import('./ResumenConectado').then(m => ({ default: m.ResumenConectado })))
-const PaginaMapa = lazy(() => import('@/funcionalidades/mapa').then(m => ({ default: m.PaginaMapa })))
+const PaginaMapa = lazy(() => import('@/funcionalidades/mapa/pagina').then(m => ({ default: m.PaginaMapa })))
 const PaginaModeracion = lazy(() => import('@/funcionalidades/moderacion').then(m => ({ default: m.PaginaModeracion })))
 const PaginaUsuarios = lazy(() => import('@/funcionalidades/usuarios').then(m => ({ default: m.PaginaUsuarios })))
 const PaginaAuditoria = lazy(() => import('@/funcionalidades/auditoria').then(m => ({ default: m.PaginaAuditoria })))
@@ -29,13 +30,16 @@ export function Rutas() {
         <Route path="/recuperar" element={<PaginaRecuperar />} />
         <Route path="/verificar" element={<PaginaVerificar />} />
         <Route path="/establecer-contrasena" element={<PaginaFijarContrasena />} />
-        <Route path="/resumen" element={<RutaProtegida><PaginaResumen /></RutaProtegida>} />
-        <Route path="/mapa" element={<RutaProtegida><PaginaMapa /></RutaProtegida>} />
-        <Route path="/moderacion" element={<RutaProtegida><PaginaModeracion /></RutaProtegida>} />
-        <Route path="/usuarios" element={<RutaProtegida><PaginaUsuarios correoActual={correoActual} /></RutaProtegida>} />
-        <Route path="/auditoria" element={<RutaProtegida><PaginaAuditoria /></RutaProtegida>} />
-        <Route path="/exportacion" element={<RutaProtegida><PaginaExportacion correoActual={correoActual} /></RutaProtegida>} />
-        <Route path="/" element={<RutaProtegida><PaginaResumen /></RutaProtegida>} />
+        {/* Páginas protegidas dentro del armazón del prototipo (barra lateral y superior). */}
+        <Route element={<RutaProtegida><MarcoConectado /></RutaProtegida>}>
+          <Route path="/resumen" element={<PaginaResumen />} />
+          <Route path="/mapa" element={<PaginaMapa />} />
+          <Route path="/moderacion" element={<PaginaModeracion />} />
+          <Route path="/usuarios" element={<PaginaUsuarios correoActual={correoActual} />} />
+          <Route path="/auditoria" element={<PaginaAuditoria />} />
+          <Route path="/exportacion" element={<PaginaExportacion correoActual={correoActual} />} />
+          <Route path="/" element={<PaginaResumen />} />
+        </Route>
         <Route path="*" element={<PaginaNoEncontrada />} />
       </Routes>
     </Suspense>
