@@ -27,7 +27,8 @@ internal class PerfilViewModel @Inject constructor(
             val sesion = repoSesion.obtener()
             if (sesion != null) {
                 _estado.value = PerfilUiState(
-                    perfil = PerfilUsuario(sesion.usuarioId, "", null, "", false)
+                    // FR-068: los datos reales vienen de GET /api/v1/me (pendiente); la sesión ya no guarda el id
+                    perfil = PerfilUsuario("", "", null, sesion.rol.name, false)
                 )
             } else {
                 _estado.value = PerfilUiState(error = "No hay sesión activa.")

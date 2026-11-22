@@ -155,9 +155,12 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 </details>
 
 <details>
-<summary>JVM — sesion (6 archivos)</summary>
+<summary>JVM — sesion (9 archivos)</summary>
 
-- [CasosCuentaTest.kt](../../app/src/test/java/pe/killauru/app/sesion/dominio/CasosCuentaTest.kt)
+- [ContratoIdentidadTest.kt](../../app/src/test/java/pe/killauru/app/sesion/datos/ContratoIdentidadTest.kt): registro, inicio de sesión, reenvío y eliminación contra `identidad.openapi.yaml`
+- [EliminarCuentaUseCaseTest.kt](../../app/src/test/java/pe/killauru/app/sesion/dominio/EliminarCuentaUseCaseTest.kt)
+- [IniciarSesionUseCaseTest.kt](../../app/src/test/java/pe/killauru/app/sesion/dominio/IniciarSesionUseCaseTest.kt)
+- [RegistrarCuentaUseCaseTest.kt](../../app/src/test/java/pe/killauru/app/sesion/dominio/RegistrarCuentaUseCaseTest.kt)
 - [CicloSesionTest.kt](../../app/src/test/java/pe/killauru/app/sesion/dominio/CicloSesionTest.kt)
 - [ConsentimientoTest.kt](../../app/src/test/java/pe/killauru/app/sesion/dominio/ConsentimientoTest.kt)
 - [PermisoLocalTest.kt](../../app/src/test/java/pe/killauru/app/sesion/dominio/PermisoLocalTest.kt)

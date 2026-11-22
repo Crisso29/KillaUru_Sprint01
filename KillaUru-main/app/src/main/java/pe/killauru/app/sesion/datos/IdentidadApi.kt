@@ -2,27 +2,32 @@ package pe.killauru.app.sesion.datos
 
 import retrofit2.Response
 import retrofit2.http.Body
-import retrofit2.http.DELETE
+import retrofit2.http.HTTP
+import retrofit2.http.Header
 import retrofit2.http.POST
-import retrofit2.http.Path
 
-/** FR-063, FR-065, FR-067: endpoints de la API de identidad. */
+/**
+ * FR-060…FR-067, ADR-009: operaciones del contrato `specs/003-modulo-identidad-accesos/contracts/identidad.openapi.yaml`
+ * que usa la app. Las rutas son las del contrato sin la barra inicial (la URL base termina en `/`).
+ */
 internal interface IdentidadApi {
-    @POST("v1/auth/register")
-    suspend fun registrar(@Body req: RegistroRequestDto): Response<TokenResponseDto>
+    @POST("api/v1/auth/registro")
+    suspend fun registrar(@Body solicitud: RegistroSolicitudDto): Response<SesionAppDto>
 
-    @POST("v1/auth/login")
-    suspend fun login(@Body req: LoginRequestDto): Response<TokenResponseDto>
+    @POST("api/v1/auth/inicio-sesion")
+    suspend fun iniciarSesion(@Body solicitud: InicioSesionSolicitudDto): Response<SesionAppDto>
 
-    @POST("v1/auth/verify-email")
-    suspend fun solicitarVerificacion(@Body req: Map<String, String>): Response<Unit>
+    @POST("api/v1/auth/renovar")
+    suspend fun renovar(@Body solicitud: RenovarSolicitudDto): Response<SesionAppDto>
 
-    @DELETE("v1/users/{id}")
-    suspend fun eliminar(@Path("id") id: String): Response<Unit>
+    /** Exige sesión: aquí el token va explícito porque lo usa la revocación pendiente, fuera del flujo normal. */
+    @POST("api/v1/auth/cerrar-sesion")
+    suspend fun cerrarSesion(@Header("Authorization") autorizacion: String): Response<Unit>
 
-    @POST("v1/auth/refresh")
-    suspend fun renovarToken(@Body req: Map<String, String>): Response<TokenResponseDto>
+    @POST("api/v1/me/reenviar-verificacion")
+    suspend fun reenviarVerificacion(): Response<Unit>
 
-    @POST("v1/auth/logout")
-    suspend fun cerrarSesion(@Body req: Map<String, String>): Response<Unit>
+    /** `DELETE` con cuerpo: Retrofit lo exige declarado con `@HTTP(hasBody = true)`. */
+    @HTTP(method = "DELETE", path = "api/v1/me", hasBody = true)
+    suspend fun eliminarCuenta(@Body confirmacion: ConfirmacionContrasenaDto): Response<Unit>
 }

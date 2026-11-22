@@ -1,7 +1,7 @@
 # Cierre de spec 008 — App Android
 
 **Revisado:** 2026-11-15. **Estado:** cierre de producción no acreditado.
-**Seguimiento:** 103/128 tareas marcadas; 25 pendientes en tasks.md.
+**Seguimiento:** 101/128 tareas marcadas; 27 pendientes en tasks.md (T107 y T112 reabiertas el 2026-11-22).
 [Requisitos](spec.md) · [Tareas](tasks.md) · [Pruebas](pruebas.md) · [Plan de cierre global](../../docs/guias/cierre-y-despliegue.md)
 
 ## Dependencias
@@ -38,14 +38,24 @@ Implementación y tests JVM por funcionalidad. Configuración actual: Gradle 9.7
   Los datos de prueba se validan contra `ColeccionAnomalias` del YAML. `ValidadorContrato.esquema` quita el `type: object`
   que el parser de Swagger añade junto a `const`.
 - **Resultado:** 242 pruebas JVM, 0 fallidas, 0 omitidas (2026-11-22).
+- **Cuenta alineada con el contrato 003** (`ContratoIdentidadTest` y pruebas por caso de uso, en rojo antes del cambio):
+  `Sesion` = `SesionApp` (token de acceso de 5 min, `tokenRenovacion`, `sesionVenceUtc` como permiso local y `rol`);
+  rutas `api/v1/auth/registro`, `inicio-sesion` (con `canal = app`), `renovar`, `cerrar-sesion`, `me/reenviar-verificacion`
+  y `DELETE api/v1/me` con contraseña. El registro envía las versiones aceptadas; la app rechaza cuentas de administración
+  (R-033); eliminar distingue 204 de 403 `confirmacion_invalida`. Ambos tokens se guardan cifrados y se renueva con
+  `tokenRenovacion`. La prueba de contrato atrapó que `canal` no se enviaba (valor por defecto + `encodeDefaults = false`).
+  Mensajes corregidos: el de credenciales estaba cambiado por el de R-033 y el registro pedía 8 caracteres en vez de 10.
+  `LectorProblema` (común) lee el `codigo` de ProblemDetails para Ingesta e Identidad. **255 pruebas JVM, 0 fallidas.**
 
 **Pendiente, en curso:** `enDemo` no viene en el contrato; debe calcularse con `ZonaDemo` (data-model §1). El polígono
 se descarga de la CDN (FR-042, research `cdn.killauru.pe`, `cdn.openapi.yaml` con `tipo: tramoDemo`), pero
 `CargadorZonaDemo` lo busca en los assets del APK y nadie lo usa; además el archivo depende de 006/T002. Mientras tanto
-vale `false`, y FR-051 (borrar `enDemo = 0` al cerrar sesión) vaciaría toda la copia. Identidad (003) sigue sin coincidir con
-su contrato; CDN por revisar.
+vale `false`, y FR-051 (borrar `enDemo = 0` al cerrar sesión) vaciaría toda la copia. CDN por revisar.
 `InterceptorToken` y `RenovadorToken` existen pero **no se añaden a OkHttp**, e `InterceptorSeudonimo` se provee con
-`{ null }`: la app no envía ni token ni seudónimo en el resto de peticiones (se corrige con Identidad).
+`{ null }`: la app no envía ni token ni seudónimo (paso 3 de Identidad). Además: `InterceptorToken` no añade nada aunque se conecte.
+Cerrar sesión (FR-066) no llama a `cerrar-sesion`; la revocación diferida sin red debe diseñarse, porque `cerrar-sesion` exige el
+token de acceso, que dura 5 min. Faltan `ObtenerMisDatosUseCase` (FR-068) y que `LimpiezaLocalSesion` recorte al demo y borre el
+historial (FR-051, FR-069), aunque su comentario lo afirme.
 FR-035: el adaptador ya entrega el `Retry-After`, pero ningún caso de uso usa `reintentarEn` para programar el reintento.
 Detekt marca 2 funciones de más de 20 líneas (`DescargaMapaPantalla`, `DescargaReanudable.descargar`); `RepositorioAnomaliasHttp.obtener` ya se dividió.
 

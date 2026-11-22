@@ -1,8 +1,7 @@
 package pe.killauru.app.sincronizacion.datos
 
 import kotlinx.coroutines.CancellationException
-import kotlinx.serialization.json.Json
-import pe.killauru.app.comun.datos.red.ProblemaDto
+import pe.killauru.app.comun.datos.red.LectorProblema
 import pe.killauru.app.comun.datos.red.RetryAfter
 import pe.killauru.app.sincronizacion.dominio.ApiLotes
 import pe.killauru.app.sincronizacion.dominio.Lote
@@ -31,25 +30,18 @@ internal class ClienteLotesHttp @Inject constructor(
     private fun traducir(resp: Response<RespuestaLoteDto>): RespuestaLoteApi = when (resp.code()) {
         200 -> resp.body()?.let { RespuestaLoteApi.Exitosa(MapeadorLote.aDominio(it)) }
             ?: RespuestaLoteApi.ErrorRed(IllegalStateException("200 sin cuerpo"))
-        400 -> RespuestaLoteApi.Error400(codigo(resp))
-        401 -> RespuestaLoteApi.Error401(codigo(resp))
-        403 -> RespuestaLoteApi.Error403(codigo(resp))
-        413 -> RespuestaLoteApi.Error413(codigo(resp))
+        400 -> RespuestaLoteApi.Error400(LectorProblema.codigo(resp))
+        401 -> RespuestaLoteApi.Error401(LectorProblema.codigo(resp))
+        403 -> RespuestaLoteApi.Error403(LectorProblema.codigo(resp))
+        413 -> RespuestaLoteApi.Error413(LectorProblema.codigo(resp))
         429 -> RespuestaLoteApi.Error429(reintentarEnMs(resp) ?: ESPERA_SIN_RETRY_AFTER_MS)
         503 -> RespuestaLoteApi.Error503(reintentarEnMs(resp))
         else -> RespuestaLoteApi.ErrorRed(IllegalStateException("HTTP ${resp.code()}"))
     }
 
-    /** `codigo` del ProblemDetails; null si el cuerpo no es un ProblemDetails (p. ej. un proxy intermedio). */
-    private fun codigo(resp: Response<*>): String? = resp.errorBody()?.string()?.let { cuerpo ->
-        runCatching { json.decodeFromString<ProblemaDto>(cuerpo).codigo }.getOrNull()
-    }
-
     private fun reintentarEnMs(resp: Response<*>): Long? = RetryAfter.de(resp.raw())?.toMillis()
 
     private companion object {
-        val json = Json { ignoreUnknownKeys = true }
-
         /** El contrato siempre manda `Retry-After` con el 429; si falta, se usa el primer escalón de FR-036 (30 s). */
         const val ESPERA_SIN_RETRY_AFTER_MS = 30_000L
     }

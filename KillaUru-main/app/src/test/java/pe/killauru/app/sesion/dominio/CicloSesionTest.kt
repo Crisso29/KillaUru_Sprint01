@@ -2,67 +2,53 @@ package pe.killauru.app.sesion.dominio
 
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-import pe.killauru.app.sesion.dominio.casos.*
-import pe.killauru.app.soporte.*
-import kotlin.test.*
+import pe.killauru.app.sesion.dominio.casos.AceptarVersionesUseCase
+import pe.killauru.app.sesion.dominio.casos.AplicarSesionInvalidaUseCase
+import pe.killauru.app.sesion.dominio.casos.CerrarSesionUseCase
+import pe.killauru.app.sesion.dominio.casos.LimpiezaLocalSesion
+import pe.killauru.app.soporte.PreferenciasMemoria
+import pe.killauru.app.soporte.SesionMemoria
+import pe.killauru.app.soporte.SesionesDePrueba
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
+/** FR-003, FR-063, RN-21 c: consentimiento y limpieza de la identidad local. Iniciar, registrar y eliminar tienen su archivo. */
 class CicloSesionTest {
-    private val sesion = Sesion("u1", "token", 1000, null)
 
-    @Test fun `login guarda exitos y conserva la sesion ante error`() = runTest {
-        val repo = SesionMemoria()
-        val api = ApiCuentaDoble(ResultadoCuenta.Exitoso(sesion))
-        val caso = IniciarSesionUseCase(api, repo)
-        assertIs<ResultadoCuenta.Exitoso>(caso.ejecutar("a@b.pe", "clave"))
-        assertEquals(sesion, repo.actual)
-        api.resultado = ResultadoCuenta.CredencialesInvalidas
-        assertIs<ResultadoCuenta.CredencialesInvalidas>(caso.ejecutar("a@b.pe", "mal"))
-        assertEquals(sesion, repo.actual)
-    }
-
-    @Test fun `cierre e invalidacion limpian identidad`() = runTest {
-        val repo = SesionMemoria(sesion)
+    /** RN-21 c: ante `cuenta_desactivada` o `sesion_invalida` se borran tokens, permiso y preferencias de identidad. */
+    @Test fun `sesion invalida limpia la identidad local`() = runTest {
+        // Arrange
+        val repo = SesionMemoria(SesionesDePrueba.de(Rol.ConductorRegistrado))
         val prefs = PreferenciasMemoria()
-        CerrarSesionUseCase(repo, prefs).ejecutar()
-        assertNull(repo.actual)
-        assertEquals(1, prefs.limpiezas)
-        repo.guardar(sesion)
-        AplicarSesionInvalidaUseCase(repo, LimpiezaLocalSesion(repo, prefs)).ejecutar()
-        assertNull(repo.actual)
-        assertEquals(2, prefs.limpiezas)
-    }
-
-    @Test fun `eliminar requiere sesion y solo limpia si servidor acepta`() = runTest {
-        val repo = SesionMemoria()
-        val prefs = PreferenciasMemoria()
-        val api = ApiCuentaDoble(ResultadoCuenta.Exitoso(sesion))
-        val caso = EliminarCuentaUseCase(api, repo, LimpiezaLocalSesion(repo, prefs))
-        assertIs<ResultadoCuenta.Error>(caso.ejecutar("clave"))
-        assertEquals(0, api.eliminaciones)
-        repo.guardar(sesion)
-        api.elimina = false
-        assertIs<ResultadoCuenta.Error>(caso.ejecutar("clave"))
-        assertEquals(sesion, repo.actual)
-        api.elimina = true
-        assertIs<ResultadoCuenta.Exitoso>(caso.ejecutar("clave"))
+        val caso = AplicarSesionInvalidaUseCase(repo, LimpiezaLocalSesion(repo, prefs))
+        // Act
+        caso.ejecutar()
+        // Assert
         assertNull(repo.actual)
         assertEquals(1, prefs.limpiezas)
     }
 
-    @Test fun `registro y login propagan el resultado del servidor`() = runTest {
-        val api = ApiCuentaDoble(ResultadoCuenta.Exitoso(sesion))
-        val repo = SesionMemoria()
-        assertIs<ResultadoCuenta.Exitoso>(RegistrarCuentaUseCase(api).ejecutar("a@b.pe", "ClaveSegura1!"))
-        assertIs<ResultadoCuenta.Exitoso>(RegistrarseUseCase(api, repo).ejecutar("a@b.pe", "ClaveSegura1!"))
-        assertEquals(sesion, repo.actual)
-        api.resultado = ResultadoCuenta.CredencialesInvalidas
-        assertIs<ResultadoCuenta.CredencialesInvalidas>(RegistrarseUseCase(api, repo).ejecutar("a@b.pe", "ClaveSegura1!"))
-        assertIs<ResultadoCuenta.CredencialesInvalidas>(LoginUseCase(api, repo).ejecutar("a@b.pe", "mal"))
+    /** FR-066 (parcial): hoy solo limpia lo local; la llamada a `cerrar-sesion` y la revocación pendiente van aparte. */
+    @Test fun `cerrar sesion limpia la identidad local`() = runTest {
+        // Arrange
+        val repo = SesionMemoria(SesionesDePrueba.de(Rol.ConductorRegistrado))
+        val prefs = PreferenciasMemoria()
+        val caso = CerrarSesionUseCase(repo, prefs)
+        // Act
+        caso.ejecutar()
+        // Assert
+        assertNull(repo.actual)
+        assertEquals(1, prefs.limpiezas)
     }
 
+    /** FR-003: ambas versiones se guardan con la misma hora de aceptación. */
     @Test fun `consentimiento persiste ambas versiones con la misma hora`() = runTest {
+        // Arrange
         val prefs = PreferenciasMemoria()
-        AceptarVersionesUseCase(prefs) { 1234 }.aceptar("2", "3")
+        val caso = AceptarVersionesUseCase(prefs) { 1234 }
+        // Act
+        caso.aceptar("2", "3")
+        // Assert
         assertEquals("2", prefs.terminosVersion)
         assertEquals("3", prefs.politicaVersion)
         assertEquals(1234L, prefs.terminosAceptadoUtc)

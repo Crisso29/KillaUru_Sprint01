@@ -38,7 +38,7 @@ internal class RevocacionPendienteWorker @AssistedInject constructor(
     override suspend fun doWork(): Result {
         val token = inputData.getString(KEY_TOKEN) ?: return Result.success()
         return try {
-            val r = api.cerrarSesion(mapOf("token" to token))
+            val r = api.cerrarSesion("Bearer $token")
             if (r.isSuccessful) Result.success() else Result.retry()
         } catch (_: Exception) {
             Result.retry()
