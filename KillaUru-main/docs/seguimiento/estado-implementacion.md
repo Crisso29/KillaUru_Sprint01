@@ -97,6 +97,7 @@ La deuda técnica ya demostrada (procesamiento, pools, *healthcheck*, prueba int
   bajo ráfaga daba 500 por error 53300. Ya está configurado y vigilado por `PoolDeConexionesTests`. Quedan 3 pools (techo real 90).
 - **Pruebas y cobertura del backend (2026-11-22):** [1 153 pruebas, 0 fallidas, 3 pendientes; dominio ≥ 97 %, backend 78,8 %](evidencias/pruebas/2026-11-22-backend/README.md),
   generado con `backend/tests/generar-resultados.ps1`.
+- **Pruebas y cobertura del panel (2026-11-22):** [389 Vitest aprobadas; 75,1 % de líneas; E2E: solo `resumen.spec.ts` implementado, 147 casos `skip/fixme`](evidencias/pruebas/2026-11-22-panel/README.md).
 - **Suite backend completa (2026-11-21, Docker, 2 ejecuciones seguidas):** 1141 casos: 1138 aprobados, 0 fallidos y 3 omitidos (E2E pendientes).
 - **Panel:** escenarios `skip/fixme`; E2E locales con MSW y configuración desplegada separada, aún sin archivos `*.pruebas.ts`
   para acreditar el backend real.
