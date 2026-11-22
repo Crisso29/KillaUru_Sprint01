@@ -2,6 +2,7 @@ package pe.killauru.app.sesion.dominio.casos
 
 import pe.killauru.app.sesion.dominio.RepositorioPreferencias
 import pe.killauru.app.sesion.dominio.RepositorioSesion
+import pe.killauru.app.historial.dominio.RepositorioRecorridos
 import javax.inject.Inject
 
 /**
@@ -11,9 +12,11 @@ import javax.inject.Inject
 internal class LimpiezaLocalSesion @Inject constructor(
     private val repoSesion: RepositorioSesion,
     private val repoPrefs: RepositorioPreferencias,
+    private val recorridos: RepositorioRecorridos,
 ) {
     suspend fun ejecutar() {
         repoSesion.cerrar()
         repoPrefs.limpiarSesion()
+        recorridos.borrarTodo() // FR-069: Mis viajes solo existe con cuenta
     }
 }

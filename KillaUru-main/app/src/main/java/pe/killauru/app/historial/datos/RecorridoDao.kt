@@ -15,4 +15,7 @@ internal interface RecorridoDao {
 
     @Query("DELETE FROM recorrido WHERE finUtc < :limiteMs")
     suspend fun purgar(limiteMs: Long)
+
+    @Query("DELETE FROM recorrido")
+    suspend fun borrarTodo()
 }

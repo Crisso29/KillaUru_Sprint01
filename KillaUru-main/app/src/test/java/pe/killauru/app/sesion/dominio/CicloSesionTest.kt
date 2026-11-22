@@ -4,10 +4,10 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import pe.killauru.app.sesion.dominio.casos.AceptarVersionesUseCase
 import pe.killauru.app.sesion.dominio.casos.AplicarSesionInvalidaUseCase
-import pe.killauru.app.sesion.dominio.casos.CerrarSesionUseCase
 import pe.killauru.app.sesion.dominio.casos.LimpiezaLocalSesion
 import pe.killauru.app.soporte.PreferenciasMemoria
 import pe.killauru.app.soporte.SesionMemoria
+import pe.killauru.app.soporte.RecorridosMemoria
 import pe.killauru.app.soporte.SesionesDePrueba
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -20,20 +20,7 @@ class CicloSesionTest {
         // Arrange
         val repo = SesionMemoria(SesionesDePrueba.de(Rol.ConductorRegistrado))
         val prefs = PreferenciasMemoria()
-        val caso = AplicarSesionInvalidaUseCase(repo, LimpiezaLocalSesion(repo, prefs))
-        // Act
-        caso.ejecutar()
-        // Assert
-        assertNull(repo.actual)
-        assertEquals(1, prefs.limpiezas)
-    }
-
-    /** FR-066 (parcial): hoy solo limpia lo local; la llamada a `cerrar-sesion` y la revocación pendiente van aparte. */
-    @Test fun `cerrar sesion limpia la identidad local`() = runTest {
-        // Arrange
-        val repo = SesionMemoria(SesionesDePrueba.de(Rol.ConductorRegistrado))
-        val prefs = PreferenciasMemoria()
-        val caso = CerrarSesionUseCase(repo, prefs)
+        val caso = AplicarSesionInvalidaUseCase(repo, LimpiezaLocalSesion(repo, prefs, RecorridosMemoria()))
         // Act
         caso.ejecutar()
         // Assert

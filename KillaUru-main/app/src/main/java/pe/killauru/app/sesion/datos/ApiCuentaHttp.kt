@@ -7,6 +7,8 @@ import pe.killauru.app.sesion.dominio.ResultadoEliminacion
 import pe.killauru.app.sesion.dominio.SolicitudRegistro
 import retrofit2.Response
 import javax.inject.Inject
+import pe.killauru.app.sesion.dominio.MisDatos
+import pe.killauru.app.sesion.dominio.ResultadoRecuperacion
 import javax.inject.Singleton
 
 /** FR-060…FR-067: implementación HTTP de [ApiCuenta] con el contrato 003; traduce cada código a un resultado de dominio. */
@@ -26,6 +28,25 @@ internal class ApiCuentaHttp @Inject constructor(
 
     override suspend fun eliminarCuenta(contrasena: String): ResultadoEliminacion =
         protegido({ ResultadoEliminacion.Error(it) }) { eliminacion(api.eliminarCuenta(ConfirmacionContrasenaDto(contrasena))) }
+
+    override suspend fun recuperarContrasena(correo: String): ResultadoRecuperacion =
+        protegido({ ResultadoRecuperacion.Error }) {
+            when (api.recuperar(RecuperacionSolicitudDto(correo)).code()) {
+                ACEPTADO -> ResultadoRecuperacion.Enviado
+                400 -> ResultadoRecuperacion.CorreoInvalido
+                429 -> ResultadoRecuperacion.LimiteExcedido
+                else -> ResultadoRecuperacion.Error
+            }
+        }
+
+    override suspend fun misDatos(): MisDatos? =
+        protegido({ null }) { api.misDatos().takeIf { it.isSuccessful }?.body()?.let(MapeadorMisDatos::aDominio) }
+
+    override suspend fun revocarSesion(tokenAcceso: String, tokenRenovacion: String): Boolean =
+        protegido({ false }) {
+            val r = api.cerrarSesion("Bearer $tokenAcceso", RenovarSolicitudDto(tokenRenovacion))
+            r.isSuccessful || r.code() == 401
+        }
 
     /** 200/201 traen `SesionApp`; el resto de códigos son los del contrato para registro e inicio de sesión. */
     private fun sesion(resp: Response<SesionAppDto>): ResultadoCuenta = when (resp.code()) {

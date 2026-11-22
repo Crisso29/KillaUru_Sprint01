@@ -2,6 +2,7 @@ package pe.killauru.app.sesion.datos
 
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.HTTP
 import retrofit2.http.Header
 import retrofit2.http.POST
@@ -22,10 +23,19 @@ internal interface IdentidadApi {
 
     /** Exige sesión: aquí el token va explícito porque lo usa la revocación pendiente, fuera del flujo normal. */
     @POST("api/v1/auth/cerrar-sesion")
-    suspend fun cerrarSesion(@Header("Authorization") autorizacion: String): Response<Unit>
+    suspend fun cerrarSesion(
+        @Header("Authorization") autorizacion: String,
+        @Body solicitud: RenovarSolicitudDto,
+    ): Response<Unit>
 
     @POST("api/v1/me/reenviar-verificacion")
     suspend fun reenviarVerificacion(): Response<Unit>
+
+    @POST("api/v1/auth/recuperar")
+    suspend fun recuperar(@Body solicitud: RecuperacionSolicitudDto): Response<Unit>
+
+    @GET("api/v1/me")
+    suspend fun misDatos(): Response<MisDatosDto>
 
     /** `DELETE` con cuerpo: Retrofit lo exige declarado con `@HTTP(hasBody = true)`. */
     @HTTP(method = "DELETE", path = "api/v1/me", hasBody = true)

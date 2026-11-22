@@ -47,20 +47,24 @@ internal fun CuentaONoPantalla(
         titulo = "Último paso",
         alVolver = alVolver,
         paso = Paso(PASOS_PRIMER_USO, PASOS_PRIMER_USO),
-        pie = {
-            BotonPrincipal("Crear cuenta gratis", onCrearCuenta)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                TextButton(onClick = onContinuarSinCuenta) { Text("Seguir sin cuenta", fontWeight = FontWeight.Bold) }
-                if (onYaTengoCuenta != null) {
-                    TextButton(onClick = onYaTengoCuenta) { Text("Ya tengo cuenta", fontWeight = FontWeight.Bold) }
-                }
-            }
-        },
+        pie = { PieCuenta(onCrearCuenta, onContinuarSinCuenta, onYaTengoCuenta) },
     ) {
         Text("¿Creas una cuenta gratis?", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
         Text("Puedes usar KillaUru sin cuenta. Con cuenta ves toda la vía y te avisamos antes de cada bache.",
             style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Comparacion()
+    }
+}
+
+/** «Crear cuenta gratis» destacado; «Seguir sin cuenta» y «Ya tengo cuenta» como enlaces (prototipo). */
+@Composable
+private fun PieCuenta(onCrearCuenta: () -> Unit, onContinuarSinCuenta: () -> Unit, onYaTengoCuenta: (() -> Unit)?) {
+    BotonPrincipal("Crear cuenta gratis", onCrearCuenta)
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        TextButton(onClick = onContinuarSinCuenta) { Text("Seguir sin cuenta", fontWeight = FontWeight.Bold) }
+        if (onYaTengoCuenta != null) {
+            TextButton(onClick = onYaTengoCuenta) { Text("Ya tengo cuenta", fontWeight = FontWeight.Bold) }
+        }
     }
 }
 

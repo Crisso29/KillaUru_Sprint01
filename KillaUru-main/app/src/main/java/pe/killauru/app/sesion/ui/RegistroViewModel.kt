@@ -7,28 +7,35 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import pe.killauru.app.sesion.dominio.ResultadoCuenta
+import pe.killauru.app.sesion.dominio.RepositorioPreferencias
 import pe.killauru.app.sesion.dominio.casos.RegistrarCuentaUseCase
 import javax.inject.Inject
 
-internal data class RegistroUiState(val error: String? = null, val cargando: Boolean = false)
+/** [politicaVersion]: la que aceptó en el primer uso y se enviará al registrarse (prototipo «Acepto la política (v1.2)»). */
+internal data class RegistroUiState(val error: String? = null, val cargando: Boolean = false, val politicaVersion: String? = null)
 
 @HiltViewModel
 internal class RegistroViewModel @Inject constructor(
     private val registrar: RegistrarCuentaUseCase,
+    private val prefs: RepositorioPreferencias,
 ) : ViewModel() {
 
     private val _estado = MutableStateFlow(RegistroUiState())
     val estado: StateFlow<RegistroUiState> = _estado
 
+    init {
+        viewModelScope.launch { _estado.value = _estado.value.copy(politicaVersion = prefs.obtenerPoliticaVersion()) }
+    }
+
     fun registrar(correo: String, contrasena: String, onRegistrado: () -> Unit) {
         viewModelScope.launch {
-            _estado.value = RegistroUiState(cargando = true)
+            _estado.value = _estado.value.copy(cargando = true, error = null)
             val resultado = registrar.ejecutar(correo, contrasena)
             if (resultado is ResultadoCuenta.Exitoso) {
-                _estado.value = RegistroUiState()
+                _estado.value = _estado.value.copy(cargando = false)
                 onRegistrado()
             } else {
-                _estado.value = RegistroUiState(error = mensaje(resultado))
+                _estado.value = _estado.value.copy(cargando = false, error = mensaje(resultado))
             }
         }
     }

@@ -41,3 +41,21 @@ internal data class SesionAppDto(
     val sesionVenceUtc: String,
     val rol: String,
 )
+
+/** `POST /auth/recuperar` (contrato 003). */
+@Serializable
+internal data class RecuperacionSolicitudDto(val correo: String)
+
+/** Contrato 003 `MisDatos.aceptaciones[]`. */
+@Serializable
+internal data class AceptacionDto(val documento: String, val version: String, val aceptadoUtc: String)
+
+/** Contrato 003 `MisDatos` (`GET /api/v1/me`). */
+@Serializable
+internal data class MisDatosDto(
+    val correo: String,
+    val rol: String,
+    val fechaAltaUtc: String,
+    val correoVerificado: Boolean,
+    val aceptaciones: List<AceptacionDto>,
+)

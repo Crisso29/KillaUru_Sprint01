@@ -71,18 +71,25 @@ private fun FilaPermiso(icono: String, titulo: String, paraQue: String, sinEl: S
                 Text(titulo, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 Text(paraQue, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text("Sin él: $sinEl", fontSize = 13.sp, color = paleta.tinta3)
-                if (concedido) {
-                    Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(IconosKillaUru.de("check"), contentDescription = null, tint = paleta.ok, modifier = Modifier.size(16.dp))
-                        Text(" Permitido", color = paleta.ok, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    }
-                } else {
-                    OutlinedButton(onClick = alPedir, modifier = Modifier.padding(top = 8.dp)) {
-                        Text("Permitir", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                    }
-                }
+                EstadoPermiso(concedido, alPedir)
             }
         }
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+    }
+}
+
+/** «✓ Permitido» (con ícono y texto, no solo color) o el botón para pedirlo. */
+@Composable
+private fun EstadoPermiso(concedido: Boolean, alPedir: () -> Unit) {
+    val paleta = KillaUruTema.paleta
+    if (concedido) {
+        Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(IconosKillaUru.de("check"), contentDescription = null, tint = paleta.ok, modifier = Modifier.size(16.dp))
+            Text(" Permitido", color = paleta.ok, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+        }
+    } else {
+        OutlinedButton(onClick = alPedir, modifier = Modifier.padding(top = 8.dp)) {
+            Text("Permitir", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+        }
     }
 }

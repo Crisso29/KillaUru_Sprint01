@@ -1,6 +1,8 @@
 package pe.killauru.app.soporte
 
 import pe.killauru.app.sesion.dominio.ApiCuenta
+import pe.killauru.app.sesion.dominio.MisDatos
+import pe.killauru.app.sesion.dominio.ResultadoRecuperacion
 import pe.killauru.app.sesion.dominio.ResultadoCuenta
 import pe.killauru.app.sesion.dominio.ResultadoEliminacion
 import pe.killauru.app.sesion.dominio.SolicitudRegistro
@@ -9,10 +11,14 @@ import pe.killauru.app.sesion.dominio.SolicitudRegistro
 internal class ApiCuentaDoble(
     var resultado: ResultadoCuenta = ResultadoCuenta.CredencialesInvalidas,
     var resultadoEliminacion: ResultadoEliminacion = ResultadoEliminacion.Eliminada,
+    var resultadoRecuperacion: ResultadoRecuperacion = ResultadoRecuperacion.Enviado,
+    var datos: MisDatos? = null,
 ) : ApiCuenta {
     var llamadas = 0
     var ultimaSolicitudRegistro: SolicitudRegistro? = null
     var ultimaContrasenaEliminacion: String? = null
+    var revocacionExitosa = true
+    var ultimaRevocacion: String? = null
 
     override suspend fun registrar(solicitud: SolicitudRegistro): ResultadoCuenta {
         llamadas++
@@ -31,5 +37,18 @@ internal class ApiCuentaDoble(
         llamadas++
         ultimaContrasenaEliminacion = contrasena
         return resultadoEliminacion
+    }
+
+    override suspend fun recuperarContrasena(correo: String): ResultadoRecuperacion {
+        llamadas++
+        return resultadoRecuperacion
+    }
+
+    override suspend fun misDatos(): MisDatos? = datos
+
+    override suspend fun revocarSesion(tokenAcceso: String, tokenRenovacion: String): Boolean {
+        llamadas++
+        ultimaRevocacion = tokenRenovacion
+        return revocacionExitosa
     }
 }

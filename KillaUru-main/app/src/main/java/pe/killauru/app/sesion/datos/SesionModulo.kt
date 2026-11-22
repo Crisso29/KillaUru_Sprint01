@@ -9,6 +9,7 @@ import pe.killauru.app.sesion.dominio.RepositorioSesion
 import okhttp3.Interceptor
 import pe.killauru.app.comun.datos.red.NombresInterceptor
 import javax.inject.Named
+import pe.killauru.app.sesion.dominio.RevocacionPendiente
 import javax.inject.Singleton
 
 /** Bindings Hilt para el módulo de sesión (FR-063, FR-065, FR-067). */
@@ -23,6 +24,12 @@ internal abstract class SesionModulo {
     @Binds
     @Singleton
     abstract fun bindRepositorioSesion(impl: RepositorioSesionCifrado): RepositorioSesion
+
+    @Binds
+    abstract fun bindAlmacenRevocacion(impl: AlmacenRevocacionCifrado): AlmacenRevocacion
+
+    @Binds
+    abstract fun bindRevocacionPendiente(impl: RevocacionPendienteWorkManager): RevocacionPendiente
 
     /** FR-062: el token de acceso y su renovación entran al cliente HTTP común por nombre (RedModulo). */
     @Binds

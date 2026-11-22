@@ -35,7 +35,7 @@ internal class LoginViewModel @Inject constructor(
 
     /** FR-061: ante 401 siempre el mismo mensaje (RN-19), exista o no la cuenta; R-033 para administración. */
     private fun mensaje(resultado: ResultadoCuenta): String = when (resultado) {
-        ResultadoCuenta.CredencialesInvalidas -> "Correo o contraseña incorrectos."
+        ResultadoCuenta.CredencialesInvalidas -> "Correo o contraseña incorrectos. Si fallas varias veces, espera unos minutos."
         ResultadoCuenta.CuentaDeAdministracion -> "Esta cuenta es de administración; usa el panel."
         ResultadoCuenta.LimiteExcedido -> "Demasiados intentos. Espera un momento y vuelve a intentarlo."
         else -> "No se pudo iniciar sesión. Revisa tu conexión."

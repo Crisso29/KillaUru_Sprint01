@@ -19,7 +19,10 @@ import pe.killauru.app.comun.ui.tema.KillaUruTema
 private val FORMA = RoundedCornerShape(13.dp)
 private const val ALTO_DP = 55 // prototipo `.btn-xl`: botones grandes, fáciles de tocar con el vehículo detenido
 
-/** Botón principal a todo el ancho (prototipo `.btn-primary.btn-xl`). `luna = true`: el dorado de la bienvenida. */
+/**
+ * Botón principal a todo el ancho (prototipo `.btn-primary.btn-xl`). `luna = true`: el dorado de la bienvenida;
+ * `peligro = true`: rojo, para acciones que no se pueden deshacer (`.btn-danger`).
+ */
 @Composable
 internal fun BotonPrincipal(
     texto: String,
@@ -27,12 +30,13 @@ internal fun BotonPrincipal(
     modifier: Modifier = Modifier,
     habilitado: Boolean = true,
     luna: Boolean = false,
+    peligro: Boolean = false,
 ) {
     val paleta = KillaUruTema.paleta
-    val colores = if (luna) {
-        ButtonDefaults.buttonColors(containerColor = paleta.luna, contentColor = paleta.tinta)
-    } else {
-        ButtonDefaults.buttonColors()
+    val colores = when {
+        luna -> ButtonDefaults.buttonColors(containerColor = paleta.luna, contentColor = paleta.tinta)
+        peligro -> ButtonDefaults.buttonColors(containerColor = paleta.mal, contentColor = paleta.sobreSeveridadAlta)
+        else -> ButtonDefaults.buttonColors()
     }
     Button(
         onClick = alPulsar,

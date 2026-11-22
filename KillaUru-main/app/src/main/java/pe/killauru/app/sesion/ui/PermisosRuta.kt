@@ -34,14 +34,16 @@ internal fun PermisosRuta(alContinuar: () -> Unit, alVolver: (() -> Unit)? = nul
         tieneNotificaciones = estado.notificaciones,
         tieneBateria = estado.bateria,
         onSolicitarUbicacion = { pedir.launch(estado.ubicacionPendiente) },
-        onSolicitarNotificaciones = {
-            // Antes de Android 13 no hay permiso que pedir (EstadoPermisos ya las da por concedidas).
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) pedir.launch(arrayOf(POST_NOTIFICATIONS))
-        },
+        onSolicitarNotificaciones = { pedirNotificaciones(pedir::launch) },
         onSolicitarBateria = { contexto.startActivity(intentExclusionBateria(contexto.packageName)) },
         onContinuar = alContinuar,
         alVolver = alVolver,
     )
+}
+
+/** Antes de Android 13 no hay permiso que pedir (EstadoPermisos ya da las notificaciones por concedidas). */
+private fun pedirNotificaciones(pedir: (Array<String>) -> Unit) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) pedir(arrayOf(POST_NOTIFICATIONS))
 }
 
 /** La detección corre en segundo plano todo el viaje (FR-009): por eso se pide salir del ahorro de batería. */

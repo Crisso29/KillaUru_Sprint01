@@ -17,6 +17,7 @@
         android:usesCleartextTraffic="false" tools:targetApi="s"
         android:name=".KillaUruApp">
         <activity android:name=".MainActivity"
+            android:windowSoftInputMode="adjustResize"
             android:exported="true"
             android:theme="@style/Theme.KillaUru">
             <intent-filter>

@@ -1,7 +1,7 @@
 # Cierre de spec 008 — App Android
 
 **Revisado:** 2026-11-15. **Estado:** cierre de producción no acreditado.
-**Seguimiento:** 100/128 tareas marcadas; 28 pendientes en tasks.md (T024, T107 y T112 reabiertas el 2026-11-22).
+**Seguimiento:** 102/128 tareas marcadas; 26 pendientes en tasks.md (T024 y T110 cerradas el 2026-11-22; T107 y T112 abiertas solo por el recorte al demo, FR-051, que depende de la CDN; T109 sin `aceptaciones` ni `legal/versiones`).
 [Requisitos](spec.md) · [Tareas](tasks.md) · [Pruebas](pruebas.md) · [Plan de cierre global](../../docs/guias/cierre-y-despliegue.md)
 
 ## Dependencias
@@ -106,6 +106,13 @@ Gradle se detuvo antes de los tests por errores de compilación en producción:
 (`obtenerSesion` inexistente) y `ActualizarAnomaliasUseCase.kt:80` (`ahoraMs` inexistente).
 El SDK local existe, pero requirió definir ANDROID_HOME para la ejecución.
 No existen src/androidTest ni src/test/resources. ClasificadorLiteRtTest existe pero comprueba normalización/mapeo: falta el alcance LiteRT completo de T044. TamanoBaseTest existe: T065 requiere revisar y ejecutar su evidencia, no recrear el archivo.
+
+**Cuenta y navegación parte 2 (2026-11-22, noche):** 7 pantallas de cuenta según el prototipo (16–23) conectadas a
+`NavGrafo`; `ObtenerMisDatosUseCase`, `RecuperarContrasenaUseCase` y `CerrarSesionUseCase` con revocación en el servidor
+y revocación pendiente cifrada (R-023); `LimpiezaLocalSesion` borra el historial (FR-069); teclado que no tapa el botón;
+etiquetas accesibles. 19 funciones de más de 20 líneas partidas (detekt sin hallazgos). **Resultado:** 350 pruebas JVM,
+0 fallidas; lint y detekt sin hallazgos. Sin API en el emulador: registro y sesión reales quedan pendientes.
+[Evidencia](../../docs/seguimiento/evidencias/pruebas/2026-11-22-app-cuenta/README.md).
 
 ## Qué falta en el entorno desplegado
 

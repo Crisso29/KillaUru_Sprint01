@@ -12,6 +12,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,15 +39,18 @@ import pe.killauru.app.comun.ui.tema.FuenteDatos
 internal fun AjustesPantalla(
     onVerTerminos: () -> Unit = {},
     onVerPerfil: () -> Unit = {},
+    onCrearCuenta: () -> Unit = {},
+    onIniciarSesion: () -> Unit = {},
     viewModel: AjustesViewModel = hiltViewModel(),
 ) {
     val estado by viewModel.estado.collectAsState()
+    LaunchedEffect(Unit) { viewModel.recargar() } // al volver de iniciar o cerrar sesión
     Surface(Modifier.fillMaxSize()) {
         Column(Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 21.dp, vertical = 13.dp)) {
             Text("Ajustes", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
             Deteccion(estado, viewModel)
             MapaSinConexion(estado, viewModel)
-            CuentaYPrivacidad(estado, onVerPerfil, onVerTerminos)
+            CuentaYPrivacidad(estado, AccionesCuenta(onVerPerfil, onCrearCuenta, onIniciarSesion), onVerTerminos)
         }
     }
 }
@@ -79,17 +83,25 @@ private fun MapaSinConexion(estado: EstadoAjustes, viewModel: AjustesViewModel) 
 }
 
 @Composable
-private fun CuentaYPrivacidad(estado: EstadoAjustes, onVerPerfil: () -> Unit, onVerTerminos: () -> Unit) {
+private fun CuentaYPrivacidad(estado: EstadoAjustes, cuenta: AccionesCuenta, onVerTerminos: () -> Unit) {
     val abrir = LocalUriHandler.current
     val urlEstado = stringResource(R.string.url_estado_servicio)
     TituloSeccion("Cuenta y privacidad")
-    FilaAjuste("Mi perfil", detalle = "Tu cuenta y tus datos", alPulsar = onVerPerfil)
+    if (estado.conCuenta) {
+        FilaAjuste("Mi perfil", detalle = "Tu cuenta y tus datos", alPulsar = cuenta.verPerfil)
+    } else {
+        FilaAjuste("Crear cuenta", detalle = "Gratis: alertas en ruta y tu historial de viajes", alPulsar = cuenta.crear)
+        FilaAjuste("Iniciar sesión", detalle = "Si ya tienes una cuenta", alPulsar = cuenta.iniciarSesion)
+    }
     FilaAjuste("Términos y privacidad", detalle = textoAceptacion(estado), alPulsar = onVerTerminos)
     FilaAjuste("Estado del servicio", detalle = "¿Funciona KillaUru ahora?", alPulsar = { abrir.openUri(urlEstado) }) {
         Icon(IconosKillaUru.de("ext"), contentDescription = "Abre en el navegador", modifier = Modifier.size(18.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
+
+/** A dónde llevan las filas de cuenta: perfil con sesión; crear o iniciar sesión sin ella. */
+private class AccionesCuenta(val verPerfil: () -> Unit, val crear: () -> Unit, val iniciarSesion: () -> Unit)
 
 /** «Aceptaste la v1.2 el 14 oct 2026» (FR-007), en hora de Lima. */
 internal fun textoAceptacion(estado: EstadoAjustes): String {

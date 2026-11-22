@@ -38,41 +38,43 @@ internal fun DescargaMapaPantalla(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            when (val s = estado) {
-                is DescargaViewModel.Estado.Esperando -> {
-                    CircularProgressIndicator()
-                    Spacer(Modifier.height(16.dp))
-                    Text(stringResource(R.string.descarga_mapa_esperando))
-                }
-                is DescargaViewModel.Estado.Descargando -> {
-                    LinearProgressIndicator(
-                        progress = { s.progreso / 100f },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text("${s.progreso} %")
-                    Spacer(Modifier.height(8.dp))
-                    // Explica al usuario que puede cerrar la app y la descarga sigue
-                    Text(
-                        text = stringResource(R.string.descarga_mapa_reanudable),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                is DescargaViewModel.Estado.Completado -> {
-                    Text(stringResource(R.string.descarga_mapa_listo))
-                    Spacer(Modifier.height(16.dp))
-                    Button(onClick = alSalir) {
-                        Text(stringResource(R.string.descarga_mapa_abrir))
-                    }
-                }
-                is DescargaViewModel.Estado.Fallido -> {
-                    Text(
-                        text = stringResource(R.string.descarga_mapa_error),
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
-            }
+            ContenidoDescarga(estado, alSalir)
         }
     }
+}
+
+@Composable
+private fun ContenidoDescarga(estado: DescargaViewModel.Estado, alSalir: () -> Unit) = when (estado) {
+    is DescargaViewModel.Estado.Esperando -> Esperando()
+    is DescargaViewModel.Estado.Descargando -> Descargando(estado.progreso)
+    is DescargaViewModel.Estado.Completado -> Completado(alSalir)
+    is DescargaViewModel.Estado.Fallido -> Text(stringResource(R.string.descarga_mapa_error), color = MaterialTheme.colorScheme.error)
+}
+
+@Composable
+private fun Esperando() {
+    CircularProgressIndicator()
+    Spacer(Modifier.height(16.dp))
+    Text(stringResource(R.string.descarga_mapa_esperando))
+}
+
+/** Barra y porcentaje; avisa que se puede cerrar la app y la descarga sigue (FR-044, reanudable). */
+@Composable
+private fun Descargando(progreso: Int) {
+    LinearProgressIndicator(progress = { progreso / 100f }, modifier = Modifier.fillMaxWidth())
+    Spacer(Modifier.height(8.dp))
+    Text("$progreso %")
+    Spacer(Modifier.height(8.dp))
+    Text(
+        text = stringResource(R.string.descarga_mapa_reanudable),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+@Composable
+private fun Completado(alSalir: () -> Unit) {
+    Text(stringResource(R.string.descarga_mapa_listo))
+    Spacer(Modifier.height(16.dp))
+    Button(onClick = alSalir) { Text(stringResource(R.string.descarga_mapa_abrir)) }
 }

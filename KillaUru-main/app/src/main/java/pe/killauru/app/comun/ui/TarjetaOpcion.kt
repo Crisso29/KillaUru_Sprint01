@@ -23,6 +23,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.RowScope
 import pe.killauru.app.comun.ui.tema.KillaUruTema
 
 private val FORMA = RoundedCornerShape(13.dp)
@@ -52,17 +53,29 @@ internal fun TarjetaOpcion(
         horizontalArrangement = Arrangement.spacedBy(13.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.size(48.dp).background(paleta.hundido, RoundedCornerShape(13.dp)), contentAlignment = Alignment.Center) {
-            Icon(IconosKillaUru.de(icono), contentDescription = null, modifier = Modifier.size(28.dp), tint = paleta.tinta)
+        IconoOpcion(icono)
+        TextosOpcion(titulo, descripcion, efecto, colorEfecto)
+    }
+}
+
+/** Título, descripción y, si lo hay, el efecto de elegirla (p. ej. «Detecta y envía»). */
+@Composable
+private fun RowScope.TextosOpcion(titulo: String, descripcion: String, efecto: String?, colorEfecto: Color) {
+    Column(Modifier.weight(1f)) {
+        Text(titulo, style = MaterialTheme.typography.titleLarge.copy(fontSize = 18.sp))
+        Text(descripcion, style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (efecto != null) {
+            Text(efecto, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = colorEfecto, modifier = Modifier.padding(top = 2.dp))
         }
-        Column(Modifier.weight(1f)) {
-            Text(titulo, style = MaterialTheme.typography.titleLarge.copy(fontSize = 18.sp))
-            Text(descripcion, style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-            if (efecto != null) {
-                Text(efecto, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = colorEfecto,
-                    modifier = Modifier.padding(top = 2.dp))
-            }
-        }
+    }
+}
+
+/** Icono en un cuadro hundido (`.opt-ic`); decorativo: el título ya dice qué es. */
+@Composable
+private fun IconoOpcion(icono: String) {
+    val paleta = KillaUruTema.paleta
+    Box(Modifier.size(48.dp).background(paleta.hundido, RoundedCornerShape(13.dp)), contentAlignment = Alignment.Center) {
+        Icon(IconosKillaUru.de(icono), contentDescription = null, modifier = Modifier.size(28.dp), tint = paleta.tinta)
     }
 }

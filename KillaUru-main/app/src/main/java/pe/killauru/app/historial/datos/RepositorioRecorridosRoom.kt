@@ -34,4 +34,6 @@ internal class RepositorioRecorridosRoom @Inject constructor(
         }
 
     override suspend fun purgar(limiteMs: Long) = dao.purgar(limiteMs)
+
+    override suspend fun borrarTodo() = dao.borrarTodo()
 }

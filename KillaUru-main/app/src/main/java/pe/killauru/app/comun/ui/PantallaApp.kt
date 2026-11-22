@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.ui.unit.dp
 
 /** Paso actual del primer uso («Paso 2 de 5», prototipo `.steps`). */
@@ -45,7 +46,8 @@ internal fun PantallaApp(
     contenido: @Composable ColumnScope.() -> Unit,
 ) {
     Surface(modifier = modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize()) {
+        // imePadding: con el teclado abierto, el pie con el botón sube sobre él (Android 15 dibuja de borde a borde).
+        Column(Modifier.fillMaxSize().imePadding()) {
             Encabezado(titulo, alVolver)
             if (paso != null) IndicadorPasos(paso)
             Column(
@@ -54,16 +56,20 @@ internal fun PantallaApp(
                 verticalArrangement = Arrangement.spacedBy(13.dp),
                 content = contenido,
             )
-            if (pie != null) {
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(start = 21.dp, end = 21.dp, top = 13.dp, bottom = 21.dp),
-                    verticalArrangement = Arrangement.spacedBy(5.dp),
-                    content = pie,
-                )
-            }
+            if (pie != null) Pie(pie)
         }
     }
+}
+
+/** Pie fijo con los botones (`.foot`): siempre a la vista, fuera de lo que se desplaza. */
+@Composable
+private fun Pie(contenido: @Composable ColumnScope.() -> Unit) {
+    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(start = 21.dp, end = 21.dp, top = 13.dp, bottom = 21.dp),
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+        content = contenido,
+    )
 }
 
 @Composable

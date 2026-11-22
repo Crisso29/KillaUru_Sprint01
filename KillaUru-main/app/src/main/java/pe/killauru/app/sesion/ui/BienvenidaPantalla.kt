@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import pe.killauru.app.R
+import androidx.compose.foundation.layout.ColumnScope
 import pe.killauru.app.comun.ui.BotonPrincipal
 
 // Colores fijos de la ilustración nocturna del prototipo (cielo #0B2433 → #11475A): la escena es de noche también en
@@ -39,31 +40,35 @@ private val TEXTO_SUAVE = Color(0xFFA6BAC0)
 @Composable
 internal fun BienvenidaPantalla(onComenzar: () -> Unit) {
     Column(Modifier.fillMaxSize().background(SUELO)) {
-        Box(Modifier.weight(0.618f).fillMaxWidth().background(CIELO), contentAlignment = Alignment.Center) {
-            Image(
-                painter = painterResource(R.drawable.logo_senal),
-                contentDescription = "KillaUru: una luciérnaga con forma de marcador alumbra la vía entre montañas",
-                modifier = Modifier.size(233.dp),
-            )
-        }
-        Column(
-            modifier = Modifier.weight(0.382f).fillMaxWidth().padding(horizontal = 21.dp, vertical = 21.dp),
-            verticalArrangement = Arrangement.spacedBy(13.dp),
-        ) {
-            Text(
-                "Baches avisados a tiempo.",
-                style = MaterialTheme.typography.displayMedium,
-                color = TEXTO,
-                modifier = Modifier.semantics { heading() },
-            )
-            Text(
-                "Tu celular los detecta solo mientras manejas por la Vía Los Libertadores. Entre todos armamos el mapa.",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Normal,
-                color = TEXTO_SUAVE,
-            )
-            Box(Modifier.weight(1f))
-            BotonPrincipal("Empezar", onComenzar, luna = true)
-        }
+        Portada()
+        Lema(onComenzar)
+    }
+}
+
+/** Lema, explicación y «Empezar» en la parte de abajo (0,382). */
+@Composable
+private fun ColumnScope.Lema(onComenzar: () -> Unit) {
+    Column(
+        modifier = Modifier.weight(0.382f).fillMaxWidth().padding(horizontal = 21.dp, vertical = 21.dp),
+        verticalArrangement = Arrangement.spacedBy(13.dp),
+    ) {
+        Text("Baches avisados a tiempo.", style = MaterialTheme.typography.displayMedium, color = TEXTO,
+            modifier = Modifier.semantics { heading() })
+        Text("Tu celular los detecta solo mientras manejas por la Vía Los Libertadores. Entre todos armamos el mapa.",
+            fontSize = 16.sp, fontWeight = FontWeight.Normal, color = TEXTO_SUAVE)
+        Box(Modifier.weight(1f))
+        BotonPrincipal("Empezar", onComenzar, luna = true)
+    }
+}
+
+/** Cielo nocturno con el logo en la proporción áurea de arriba (0,618), como el prototipo. */
+@Composable
+private fun ColumnScope.Portada() {
+    Box(Modifier.weight(0.618f).fillMaxWidth().background(CIELO), contentAlignment = Alignment.Center) {
+        Image(
+            painter = painterResource(R.drawable.logo_senal),
+            contentDescription = "KillaUru: una luciérnaga con forma de marcador alumbra la vía entre montañas",
+            modifier = Modifier.size(233.dp),
+        )
     }
 }

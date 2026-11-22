@@ -6,15 +6,16 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import pe.killauru.app.sesion.dominio.PerfilUsuario
-import pe.killauru.app.sesion.dominio.RepositorioSesion
+import pe.killauru.app.sesion.dominio.MisDatos
+import pe.killauru.app.sesion.dominio.casos.ObtenerMisDatosUseCase
 import javax.inject.Inject
 
-internal data class PerfilUiState(val perfil: PerfilUsuario? = null, val error: String? = null)
+internal data class PerfilUiState(val cargando: Boolean = true, val datos: MisDatos? = null, val error: String? = null)
 
+/** FR-068, HU-24 (prototipo «Mi perfil»): todo lo que KillaUru guarda de la cuenta, pedido al servidor. */
 @HiltViewModel
 internal class PerfilViewModel @Inject constructor(
-    private val repoSesion: RepositorioSesion,
+    private val obtener: ObtenerMisDatosUseCase,
 ) : ViewModel() {
 
     private val _estado = MutableStateFlow(PerfilUiState())
@@ -22,17 +23,13 @@ internal class PerfilViewModel @Inject constructor(
 
     init { cargar() }
 
-    private fun cargar() {
+    /** También sirve para «Reintentar» cuando no hubo red. */
+    fun cargar() {
         viewModelScope.launch {
-            val sesion = repoSesion.obtener()
-            if (sesion != null) {
-                _estado.value = PerfilUiState(
-                    // FR-068: los datos reales vienen de GET /api/v1/me (pendiente); la sesión ya no guarda el id
-                    perfil = PerfilUsuario("", "", null, sesion.rol.name, false)
-                )
-            } else {
-                _estado.value = PerfilUiState(error = "No hay sesión activa.")
-            }
+            _estado.value = PerfilUiState(cargando = true)
+            val datos = obtener.ejecutar()
+            _estado.value = if (datos != null) PerfilUiState(cargando = false, datos = datos)
+            else PerfilUiState(cargando = false, error = "No se pudieron cargar tus datos. Revisa tu conexión.")
         }
     }
 }

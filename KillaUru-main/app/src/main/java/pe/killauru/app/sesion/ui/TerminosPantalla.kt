@@ -53,14 +53,17 @@ internal fun TerminosPantalla(
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         Casilla(terminos, { terminos = it }, "Acepto los términos de uso")
         Casilla(privacidad, { privacidad = it }, "Acepto el aviso de privacidad")
-        Text(
-            "Versión $version. Si cambia, te la mostraremos otra vez. Para solo ver el mapa sin enviar datos, " +
-                "actívalo luego en Ajustes.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        NotaVersion(version)
     }
 }
+
+/** FR-007: qué versión se acepta y que se volverá a pedir si cambia. */
+@Composable
+private fun NotaVersion(version: String) = Text(
+    "Versión $version. Si cambia, te la mostraremos otra vez. Para solo ver el mapa sin enviar datos, actívalo luego en Ajustes.",
+    style = MaterialTheme.typography.bodySmall,
+    color = MaterialTheme.colorScheme.onSurfaceVariant,
+)
 
 /** Bloque del prototipo (`.blk`): título con ícono y una viñeta por línea del texto legal. */
 @Composable

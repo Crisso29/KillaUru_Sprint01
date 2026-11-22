@@ -83,13 +83,15 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 </details>
 
 <details>
-<summary>JVM — comun (16 archivos)</summary>
+<summary>JVM — comun (20 archivos)</summary>
 
 - [ComponentesPrototipoTest.kt](../../app/src/test/java/pe/killauru/app/comun/ui/ComponentesPrototipoTest.kt): íconos del prototipo, encabezado con pasos y atrás, tarjeta y fila pulsables enteras
 - [TextoConNegritasTest.kt](../../app/src/test/java/pe/killauru/app/comun/ui/TextoConNegritasTest.kt): `**negrita**` de los textos legales
 - [TemaCoherenteConPanelTest.kt](../../app/src/test/java/pe/killauru/app/comun/ui/tema/TemaCoherenteConPanelTest.kt): la paleta de la app (claro, oscuro y ventana) es la de `panel/.../tokens.css`
 - [PaletaSeveridadTest.kt](../../app/src/test/java/pe/killauru/app/comun/ui/tema/PaletaSeveridadTest.kt): color de cada severidad y de su número (prototipo `.sev`)
 - [NavGrafoTest.kt](../../app/src/test/java/pe/killauru/app/comun/ui/NavGrafoTest.kt): T024/T126 — primer uso → mapa sin volver atrás, pestañas en 1 toque, detalle en 2 (sustituye a `ToquesAccionesPrincipalesTest`, que solo comprobaba un conjunto definido en la misma prueba)
+- [NavGrafoCuentaTest.kt](../../app/src/test/java/pe/killauru/app/comun/ui/NavGrafoCuentaTest.kt): T024 parte 2 — crear cuenta / ya tengo cuenta desde el primer uso (sobre el mapa), registro → revisa tu correo con el correo intacto (`+`), login y olvidé desde Ajustes, perfil a 2 toques, cerrar sesión, cancelar y eliminar vuelven al sitio correcto, Mis viajes sin cuenta → registro. Comparte [PantallasDobles.kt](../../app/src/test/java/pe/killauru/app/comun/ui/PantallasDobles.kt) y [PruebaNavegacion.kt](../../app/src/test/java/pe/killauru/app/comun/ui/PruebaNavegacion.kt) con `NavGrafoTest`
+- [CampoFormularioTest.kt](../../app/src/test/java/pe/killauru/app/comun/ui/CampoFormularioTest.kt): campo con el nombre de su etiqueta sin repetirlo a TalkBack, tocar la etiqueta enfoca el campo y la tecla ✓ envía (WCAG 1.3.1, 4.1.2)
 - [SerializadorCifradoTest.kt](../../app/src/test/java/pe/killauru/app/comun/datos/almacen/SerializadorCifradoTest.kt)
 - [CodigosEstablesTest.kt](../../app/src/test/java/pe/killauru/app/comun/datos/bd/CodigosEstablesTest.kt)
 - [DisparadoresTest.kt](../../app/src/test/java/pe/killauru/app/comun/datos/bd/DisparadoresTest.kt)
@@ -159,7 +161,7 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 </details>
 
 <details>
-<summary>JVM — sesion (16 archivos)</summary>
+<summary>JVM — sesion (21 archivos)</summary>
 
 - [VersionesLegalesCoherentesTest.kt](../../app/src/test/java/pe/killauru/app/sesion/datos/VersionesLegalesCoherentesTest.kt): la versión legal del APK es la vigente del backend (estaba 1.0 contra 1.2) y nombra a los proveedores
 - [TextoAceptacionTest.kt](../../app/src/test/java/pe/killauru/app/sesion/ui/TextoAceptacionTest.kt): «Aceptaste la v1.2 el 14 oct 2026» en hora de Lima
@@ -168,10 +170,16 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 - [PermisosUbicacionTest.kt](../../app/src/test/java/pe/killauru/app/sesion/ui/PermisosUbicacionTest.kt): FR-006 — ubicación en dos pasos (precisa y luego «todo el tiempo»)
 - [RedAutenticadaTest.kt](../../app/src/test/java/pe/killauru/app/sesion/datos/RedAutenticadaTest.kt): cadena real de OkHttp — token, rutas públicas, renovación única y sesión invalidada
 - [ContratoIdentidadTest.kt](../../app/src/test/java/pe/killauru/app/sesion/datos/ContratoIdentidadTest.kt): registro, inicio de sesión, reenvío y eliminación contra `identidad.openapi.yaml`
+- [ContratoCuentaTest.kt](../../app/src/test/java/pe/killauru/app/sesion/datos/ContratoCuentaTest.kt): T109 — `GET /me` con el esquema `MisDatos`, `recuperar` (202/400/429) y `cerrar-sesion` (Bearer + `RenovarSolicitud`; 204/401 terminan, 503 y sin red reintentan)
+- [EnviarRevocacionPendienteTest.kt](../../app/src/test/java/pe/killauru/app/sesion/datos/EnviarRevocacionPendienteTest.kt): T107 / R-023 — la revocación pendiente renueva y cierra con los tokens nuevos; 401 la da por terminada; sin red conserva el token
+- [CerrarSesionUseCaseTest.kt](../../app/src/test/java/pe/killauru/app/sesion/dominio/CerrarSesionUseCaseTest.kt): T107 — cerrar sesión con red, sin red (revocación programada) y sin sesión; siempre borra tokens, preferencias e historial (FR-069)
+- [CasosCuentaNuevosTest.kt](../../app/src/test/java/pe/killauru/app/sesion/dominio/casos/CasosCuentaNuevosTest.kt): HU-25 — un correo sin «@» no gasta una petición; FR-068 — mis datos
+- [CuentaViewModelsTest.kt](../../app/src/test/java/pe/killauru/app/sesion/ui/CuentaViewModelsTest.kt): perfil con datos y reintento, recuperar sin revelar cuentas, eliminar con contraseña equivocada, login con mensaje genérico (RN-19), Ajustes con y sin cuenta, reenviar verificación una vez, pendientes al cerrar sesión, versión de privacidad en el registro
+- [CuentaUiTest.kt](../../app/src/test/java/pe/killauru/app/sesion/ui/CuentaUiTest.kt): T110 — las 7 pantallas de cuenta del prototipo: consentimiento obligatorio, «Revisa tu correo» sin bloquear, error genérico, olvidé, perfil completo, «3 detecciones por enviar», eliminar con contraseña y «Entiendo»
 - [EliminarCuentaUseCaseTest.kt](../../app/src/test/java/pe/killauru/app/sesion/dominio/EliminarCuentaUseCaseTest.kt)
 - [IniciarSesionUseCaseTest.kt](../../app/src/test/java/pe/killauru/app/sesion/dominio/IniciarSesionUseCaseTest.kt)
 - [RegistrarCuentaUseCaseTest.kt](../../app/src/test/java/pe/killauru/app/sesion/dominio/RegistrarCuentaUseCaseTest.kt)
-- [CicloSesionTest.kt](../../app/src/test/java/pe/killauru/app/sesion/dominio/CicloSesionTest.kt)
+- [CicloSesionTest.kt](../../app/src/test/java/pe/killauru/app/sesion/dominio/CicloSesionTest.kt): consentimiento y sesión inválida (cerrar sesión pasó a `CerrarSesionUseCaseTest`)
 - [ConsentimientoTest.kt](../../app/src/test/java/pe/killauru/app/sesion/dominio/ConsentimientoTest.kt)
 - [PermisoLocalTest.kt](../../app/src/test/java/pe/killauru/app/sesion/dominio/PermisoLocalTest.kt)
 - [RevisarVersionesLegalesUseCaseTest.kt](../../app/src/test/java/pe/killauru/app/sesion/dominio/RevisarVersionesLegalesUseCaseTest.kt)

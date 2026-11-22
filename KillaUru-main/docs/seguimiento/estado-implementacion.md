@@ -24,10 +24,10 @@ Conteos de casillas en `tasks.md`; no son cobertura ni certificación de producc
 | 005 | Ingesta | 29/41 | 12 |
 | 006 | Consulta de mapa | 20/33 | 13 |
 | 007 | Dashboard | 24/26 | 2 |
-| 008 | Android | 100/128 | 28 |
+| 008 | Android | 102/128 | 26 |
 | 009 | Dataset/modelo | 46/74 | 28 |
 | 010 | Panel | 77/94 | 17 |
-| **Total** | | **523/641** | **118** |
+| **Total** | | **525/641** | **116** |
 
 Panel tenía 88 tareas marcadas. Se reabrieron 11 por E2E vacíos u omitidos:
 T032, T033, T034, T050, T058, T062, T068, T081, T085, T086 y T087.
