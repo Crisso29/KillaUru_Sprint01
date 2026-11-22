@@ -1,7 +1,7 @@
 # Cierre de spec 008 — App Android
 
 **Revisado:** 2026-11-15. **Estado:** cierre de producción no acreditado.
-**Seguimiento:** 101/128 tareas marcadas; 27 pendientes en tasks.md (T107 y T112 reabiertas el 2026-11-22).
+**Seguimiento:** 100/128 tareas marcadas; 28 pendientes en tasks.md (T024, T107 y T112 reabiertas el 2026-11-22).
 [Requisitos](spec.md) · [Tareas](tasks.md) · [Pruebas](pruebas.md) · [Plan de cierre global](../../docs/guias/cierre-y-despliegue.md)
 
 ## Dependencias
@@ -54,6 +54,11 @@ Implementación y tests JVM por funcionalidad. Configuración actual: Gradle 9.7
   Mutaciones verificadas: sin la exclusión, `inicio-sesion` llevaba `Bearer acceso-vencido`; sin la comprobación de
   concurrencia, 4 peticiones hacían 4 renovaciones. Cada funcionalidad entrega su interceptor por `@Named`
   (`NombresInterceptor`), así `comun` no depende de sesión ni de seudónimo. **261 pruebas JVM, lint y compilación en verde.**
+
+**⚠️ Bloqueante para «primera versión funcional» (T024 reabierta):** `NavGrafo` solo registra Bienvenida, Mapa, Ajustes e
+Historial, y cada una muestra un texto fijo. Ninguna de las 19 pantallas programadas (Mapa, Login, Registro, Perfil,
+Términos, Permisos, Detalle, Historial, Descarga…) se llama desde la navegación, y `PerfilViewModel` no lo usa nadie.
+Las capas de dominio y datos están probadas, pero el usuario no puede llegar a ellas.
 
 **Pendiente, en curso:** `enDemo` no viene en el contrato; debe calcularse con `ZonaDemo` (data-model §1). El polígono
 se descarga de la CDN (FR-042, research `cdn.killauru.pe`, `cdn.openapi.yaml` con `tipo: tramoDemo`), pero
