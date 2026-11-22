@@ -25,8 +25,16 @@ Implementación y tests JVM por funcionalidad. Configuración actual: Gradle 9.7
   `ContadorRechazosRoomTest` lo demostró (esperado 2, obtenido 1) y ahora `ContadorDao.sumar` usa `INSERT OR IGNORE`
   + `UPDATE valor = valor + n` en una transacción (`ON CONFLICT DO UPDATE` requiere Android 11; `minSdk` es 26).
 
-**Pendiente, en curso:** los clientes HTTP no siguen los contratos (rutas sin `/api` y en inglés, campos y tipos distintos):
-Ingesta (005), Mapa (006), Identidad (003); CDN por revisar.
+- **Cliente de Ingesta alineado con el contrato 005** (`ContratoIngestaTest`, 6 casos, en rojo 5/6 antes del cambio):
+  ruta `api/v1/anomalies/batch` (era `v1/ingest/batch`), campos `latitud`/`longitud`/`precisionMetros`, `tipo` como texto,
+  `seudonimo` en cada evento y en la cabecera `X-KillaUru-Seudonimo` del lote (D2), `codigo` del ProblemDetails y
+  `Retry-After` real en 429/503. La traducción vive en `MapeadorLote`; el cuerpo se valida contra el esquema `Lote` del YAML
+  y se comparan los nombres de campo, porque `Evento` es permisivo (D5) y no detectaría `lat` en lugar de `latitud`.
+
+**Pendiente, en curso:** Mapa (006) e Identidad (003) siguen sin coincidir con sus contratos; CDN por revisar.
+`InterceptorToken` y `RenovadorToken` existen pero **no se añaden a OkHttp**, e `InterceptorSeudonimo` se provee con
+`{ null }`: la app no envía ni token ni seudónimo en el resto de peticiones (se corrige con Identidad).
+FR-035: el adaptador ya entrega el `Retry-After`, pero ningún caso de uso usa `reintentarEn` para programar el reintento.
 Detekt marca 3 funciones de más de 20 líneas (`DescargaMapaPantalla`, `RepositorioAnomaliasHttp.obtener`, `DescargaReanudable.descargar`).
 
 

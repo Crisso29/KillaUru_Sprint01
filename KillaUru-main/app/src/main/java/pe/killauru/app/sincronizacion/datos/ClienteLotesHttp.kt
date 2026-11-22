@@ -1,63 +1,56 @@
 package pe.killauru.app.sincronizacion.datos
 
+import kotlinx.coroutines.CancellationException
+import kotlinx.serialization.json.Json
+import pe.killauru.app.comun.datos.red.ProblemaDto
+import pe.killauru.app.comun.datos.red.RetryAfter
 import pe.killauru.app.sincronizacion.dominio.ApiLotes
 import pe.killauru.app.sincronizacion.dominio.Lote
 import pe.killauru.app.sincronizacion.dominio.RespuestaLoteApi
-import pe.killauru.app.sincronizacion.dominio.RespuestaLote
-import java.time.Instant
+import retrofit2.Response
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** FR-021, FR-034: implementación HTTP de ApiLotes vía Retrofit. */
+/**
+ * FR-021, FR-034, FR-035: envía un lote con el contrato 005 y traduce el código HTTP a [RespuestaLoteApi].
+ * Los errores llevan el `codigo` del ProblemDetails (p. ej. `lote_invalido`) y el `Retry-After` del servidor.
+ */
 @Singleton
 internal class ClienteLotesHttp @Inject constructor(
     private val api: IngestaApi,
 ) : ApiLotes {
 
     override suspend fun enviar(lote: Lote): RespuestaLoteApi = try {
-        val request = crearPeticion(lote)
-        val resp = api.enviarLote(request)
-        when (resp.code()) {
-            200 -> respuestaExitosa(resp.body()!!)
-            400 -> RespuestaLoteApi.Error400(resp.code().toString())
-            401 -> RespuestaLoteApi.Error401(resp.code().toString())
-            403 -> RespuestaLoteApi.Error403(resp.code().toString())
-            413 -> RespuestaLoteApi.Error413(resp.code().toString())
-            429 -> RespuestaLoteApi.Error429(60_000L)
-            503 -> RespuestaLoteApi.Error503(null)
-            else -> RespuestaLoteApi.ErrorRed(RuntimeException("HTTP ${resp.code()}"))
-        }
+        traducir(api.enviarLote(lote.seudonimo, MapeadorLote.aDto(lote)))
+    } catch (e: CancellationException) {
+        throw e // cancelar la corrutina no es un error de red: hay que propagarlo
     } catch (e: Exception) {
         RespuestaLoteApi.ErrorRed(e)
     }
-    private fun crearPeticion(lote: Lote): LoteRequestDto {
-        return LoteRequestDto(
-            seudonimo = lote.seudonimo,
-            eventos = lote.eventos.map { e ->
-                EventoDto(
-                    eventoId = e.eventoId,
-                    detectadoUtc = Instant.ofEpochMilli(e.detectadoUtc.toEpochMilli()).toString(),
-                    lat = e.lat,
-                    lon = e.lon,
-                    precisionM = e.precisionM,
-                    tipo = e.tipo.codigo,
-                    severidad = e.severidad,
-                    confidence = e.confidence,
-                    modeloVersion = e.modeloVersion,
-                )
-            },
-        )
+
+    private fun traducir(resp: Response<RespuestaLoteDto>): RespuestaLoteApi = when (resp.code()) {
+        200 -> resp.body()?.let { RespuestaLoteApi.Exitosa(MapeadorLote.aDominio(it)) }
+            ?: RespuestaLoteApi.ErrorRed(IllegalStateException("200 sin cuerpo"))
+        400 -> RespuestaLoteApi.Error400(codigo(resp))
+        401 -> RespuestaLoteApi.Error401(codigo(resp))
+        403 -> RespuestaLoteApi.Error403(codigo(resp))
+        413 -> RespuestaLoteApi.Error413(codigo(resp))
+        429 -> RespuestaLoteApi.Error429(reintentarEnMs(resp) ?: ESPERA_SIN_RETRY_AFTER_MS)
+        503 -> RespuestaLoteApi.Error503(reintentarEnMs(resp))
+        else -> RespuestaLoteApi.ErrorRed(IllegalStateException("HTTP ${resp.code()}"))
     }
 
-    private fun respuestaExitosa(body: LoteResponseDto): RespuestaLoteApi {
-                return RespuestaLoteApi.Exitosa(
-                    RespuestaLote(
-                        aceptados = body.aceptados,
-                        rechazados = body.rechazados.map {
-                            pe.killauru.app.sincronizacion.dominio.Rechazo(it.id, it.indice, it.motivo.orEmpty())
-                        },
-                        duplicados = body.duplicados,
-                    )
-                )
+    /** `codigo` del ProblemDetails; null si el cuerpo no es un ProblemDetails (p. ej. un proxy intermedio). */
+    private fun codigo(resp: Response<*>): String? = resp.errorBody()?.string()?.let { cuerpo ->
+        runCatching { json.decodeFromString<ProblemaDto>(cuerpo).codigo }.getOrNull()
+    }
+
+    private fun reintentarEnMs(resp: Response<*>): Long? = RetryAfter.de(resp.raw())?.toMillis()
+
+    private companion object {
+        val json = Json { ignoreUnknownKeys = true }
+
+        /** El contrato siempre manda `Retry-After` con el 429; si falta, se usa el primer escalón de FR-036 (30 s). */
+        const val ESPERA_SIN_RETRY_AFTER_MS = 30_000L
     }
 }

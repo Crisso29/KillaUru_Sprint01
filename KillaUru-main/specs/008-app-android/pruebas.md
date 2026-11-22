@@ -10,7 +10,7 @@
 |---|---|
 | Unitarias JVM | [Ejemplo: política de reintento](../../app/src/test/java/pe/killauru/app/sincronizacion/dominio/PoliticaReintentoTest.kt); inventario por funcionalidad al final |
 | Integración local con Room | [Repositorio del mapa](../../app/src/test/java/pe/killauru/app/mapa/datos/RepositorioAnomaliasRoomTest.kt) |
-| Contratos | [Lector de contratos](../../app/src/test/java/pe/killauru/app/contratos/ValidadorContratoTest.kt) y [contrato del mapa](../../app/src/test/java/pe/killauru/app/mapa/datos/ContratoMapaTest.kt) |
+| Contratos | [Lector de contratos](../../app/src/test/java/pe/killauru/app/contratos/ValidadorContratoTest.kt) [contrato de Ingesta](../../app/src/test/java/pe/killauru/app/sincronizacion/datos/ContratoIngestaTest.kt) y [contrato del mapa](../../app/src/test/java/pe/killauru/app/mapa/datos/ContratoMapaTest.kt) |
 | Componentes UI en JVM | [Mapa](../../app/src/test/java/pe/killauru/app/mapa/ui/MapaUiTest.kt) |
 | Instrumentadas: dispositivo/emulador | `app/src/androidTest/`, pendiente de crear e implementar |
 | Arquitectura | [Paquete arquitectura](../../app/src/test/java/pe/killauru/app/arquitectura/) |
@@ -175,8 +175,10 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 </details>
 
 <details>
-<summary>JVM — sincronizacion (6 archivos)</summary>
+<summary>JVM — sincronizacion (8 archivos)</summary>
 
+- [ContadorRechazosRoomTest.kt](../../app/src/test/java/pe/killauru/app/sincronizacion/datos/ContadorRechazosRoomTest.kt): suma real en Room (FR-031)
+- [ContratoIngestaTest.kt](../../app/src/test/java/pe/killauru/app/sincronizacion/datos/ContratoIngestaTest.kt): petición y respuestas contra `ingesta.openapi.yaml`
 - [EnviarLoteUseCaseTest.kt](../../app/src/test/java/pe/killauru/app/sincronizacion/dominio/EnviarLoteUseCaseTest.kt)
 - [InterpretarRespuestaLoteTest.kt](../../app/src/test/java/pe/killauru/app/sincronizacion/dominio/InterpretarRespuestaLoteTest.kt)
 - [MantenimientoEventosTest.kt](../../app/src/test/java/pe/killauru/app/sincronizacion/dominio/MantenimientoEventosTest.kt)
