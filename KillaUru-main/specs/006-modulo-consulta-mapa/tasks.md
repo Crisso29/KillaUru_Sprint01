@@ -59,13 +59,15 @@ description: "Tareas del módulo Consulta de Mapa"
 
 - [ ] T019 [P] [US1] `FuenteCeldasAnomaliasTests`: con alcance `Anonimo`, una celda de borde filtra punto por punto; una celda `Fuera` no se consulta — `MaT/Infrastructure/FuenteCeldasAnomaliasTests.cs` · (FR-004)
 - [x] T020 [US1] Recorte anónimo en `CorredorMapa` (celdas `Dentro` ∪ `Borde`) y en `FuenteCeldasAnomalias` — `Ma/Application/CorredorMapa.cs`, `Ma/Infrastructure/FuenteCeldasAnomalias.cs` · (FR-003, FR-004)
-- [ ] T021 [US1] `RecorteRolApiTests`: escenarios 1 y 2 del quickstart; `bbox` sin el demo → colección vacía; 100 % de respuestas anónimas dentro del polígono — `tests/KillaUru.Integracion.Tests/specs/006-modulo-consulta-mapa/integracion/RecorteRolApiTests.cs` · (SC-003, EQ-11, RNF-27)
+- [x] T021 [US1] `RecorteRolApiTests`: escenarios 1 y 2 del quickstart; `bbox` sin el demo → colección vacía; 100 % de respuestas anónimas dentro del polígono — `tests/KillaUru.Integracion.Tests/specs/006-modulo-consulta-mapa/integracion/RecorteRolApiTests.cs` · (SC-003, EQ-11, RNF-27)
+  **Hecha 2026-11-23:** 4 casos con PostgreSQL real y un demo de prueba cuyos bordes caen a mitad de celda (así hay celdas de borde). Mutación «sin filtro punto por punto» → falla el caso del 100 %. La mutación «sin recorte por celdas» sobrevive: por HTTP da lo mismo y la detecta T019 (unitaria, pendiente) — [evidencia](../../docs/seguimiento/evidencias/pruebas/2026-11-23-mapa-api/README.md).
 
 ## Phase 5: User Story 4 — El administrador ve todo y filtra (P1)
 
 - [x] T022 [P] [US4] `ConsultarFiltradoUseCaseTests` (dobles): administrador sin `estado` → los 5 estados; conductor → `[Activa]`; anónimo → `ZonaDemo.Contiene`; `bbox` ausente → envolvente del corredor — `MaT/Application/ConsultarFiltradoUseCaseTests.cs` · (FR-010, FR-011; R-004, R-005)
 - [x] T023 [US4] `ConsultarFiltradoUseCase` — `Ma/Application/ConsultarFiltradoUseCase.cs`
-- [ ] T024 [US4] `FiltrosApiTests`: escenarios 5–8 y 13 del quickstart (`estado` con token de conductor y sin token → 403); sin `ETag`; cabeceras por rol — `tests/KillaUru.Integracion.Tests/specs/006-modulo-consulta-mapa/integracion/FiltrosApiTests.cs` · (RF-17, FR-011; T-SEG20)
+- [x] T024 [US4] `FiltrosApiTests`: escenarios 5–8 y 13 del quickstart (`estado` con token de conductor y sin token → 403); sin `ETag`; cabeceras por rol — `tests/KillaUru.Integracion.Tests/specs/006-modulo-consulta-mapa/integracion/FiltrosApiTests.cs` · (RF-17, FR-011; T-SEG20)
+  **Hecha 2026-11-23:** 5 casos (escenarios 5, 6, 7, 8 y 13). Mutaciones «ignorar severidad» y «conductor puede pedir estado» → fallan — [evidencia](../../docs/seguimiento/evidencias/pruebas/2026-11-23-mapa-api/README.md).
 
 ## Phase 6: User Story 3 — Copia offline con `updatedSince` (P1)
 

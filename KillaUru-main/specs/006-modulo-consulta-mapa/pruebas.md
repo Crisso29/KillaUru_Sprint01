@@ -81,8 +81,10 @@ Las suites de arquitectura, carga y E2E compartidas se detallan en [pruebas de p
 </details>
 
 <details>
-<summary>Integración HTTP (1 archivo)</summary>
+<summary>Integración HTTP (3 archivos)</summary>
 
+- [RecorteRolApiTests.cs](../../backend/tests/KillaUru.Integracion.Tests/specs/006-modulo-consulta-mapa/integracion/RecorteRolApiTests.cs) — T021: el anónimo solo ve el demo; el conductor todo el corredor; caché por rol (escenarios 1 y 2)
+- [FiltrosApiTests.cs](../../backend/tests/KillaUru.Integracion.Tests/specs/006-modulo-consulta-mapa/integracion/FiltrosApiTests.cs) — T024: filtros del administrador y del conductor; `estado` solo para el administrador (escenarios 5–8 y 13)
 - [ErroresMapaApiTests.cs](../../backend/tests/KillaUru.Integracion.Tests/specs/006-modulo-consulta-mapa/integracion/ErroresMapaApiTests.cs) — los errores del mapa son `problem+json`, no GeoJSON (2026-11-23)
 
 </details>

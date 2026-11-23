@@ -10,24 +10,24 @@
 
 - [ ] CHK001 HU-07 · anónimo: solo el tramo demo aunque pida un `bbox` mayor (recorte en el servidor) → FR-002…FR-004 → T019…T021
 - [ ] CHK002 HU-08 · registrado: 335.073 km, `Activa`, severidad y tiempo relativo; datos para usar sin señal → FR-002, FR-005, FR-012 → T011…T018, T025…T027
-- [ ] CHK003 HU-12 · administrador: filtros por tipo, severidad, fecha y estado; incluye no confirmadas → FR-010, FR-011 → T022…T024
+- [x] CHK003 HU-12 · administrador: filtros por tipo, severidad, fecha y estado; incluye no confirmadas → FR-010, FR-011 → T022…T024
 - [ ] CHK004 RF-14 · GeoJSON, filtros, `estado` solo administrador, `updatedSince` con bajas `{id, eliminada: true}`, `ETag`, borde solo anónimo → FR-001…FR-013 → T010…T027
-- [ ] CHK005 RF-17 · mapa completo del administrador con filtros (sin `estado`, los 5 estados, D6) → FR-002, FR-010, FR-011 → T022…T024
+- [x] CHK005 RF-17 · mapa completo del administrador con filtros (sin `estado`, los 5 estados, D6) → FR-002, FR-010, FR-011 → T022…T024
 - [ ] CHK006 RF-08 (parte servidor) · el servidor aplica la restricción del demo → FR-003, FR-004, FR-012 → T019…T021, T025
 - [ ] CHK007 RF-26 (parte servidor) · `venceUtc` en cada anomalía (nulo en estados finales); incremental con bajas → FR-005, FR-012 → T010, T025…T027
 
 ## Reglas de negocio
 
-- [ ] CHK008 RN-08 · tabla de alcance por rol; el recorte lo hace siempre el servidor → T006, T021
+- [x] CHK008 RN-08 · tabla de alcance por rol; el recorte lo hace siempre el servidor → T006, T021
 
 ## Calidad y decisiones
 
 - [ ] CHK009 RNF-01 · p95 < 250 ms en la API; ≥ 80 % de aciertos anónimos en el borde; aciertos de la caché propia → FR-016 → T030, T031, T033
 - [x] CHK010 RNF-11 · política `consultas` (60/h anónimo, 1 000/h conductor, 3 000/h administrador) → T016
-- [ ] CHK011 RNF-27 · 100 % de respuestas anónimas recortadas → T021
+- [x] CHK011 RNF-27 · 100 % de respuestas anónimas recortadas → T021
 - [ ] CHK012 ADR-006 · caché en memoria del módulo (HybridCache), Observer tras el *commit*, claves por celda y alcance, `public` solo sin token → T013, T014, T016, T030
 - [x] CHK013 ADR-011 · el mapa base no pasa por la API → (fuera de alcance, sin tarea)
-- [ ] CHK014 EQ-11 · mismo `bbox` con y sin token a través de la caché → T021
+- [x] CHK014 EQ-11 · mismo `bbox` con y sin token a través de la caché → T021
 - [ ] CHK015 EQ-14 · 300 consultando y 300 sincronizando, p95 < 250 ms → T031 (scripts de 001, D11)
 
 ## Diseño (`diseño-interno` §4, §6.5; `patrones-de-diseño.md`)
@@ -36,7 +36,7 @@
 - [x] CHK017 *Observer* `InvalidarCeldasMapa` → T014
 - [x] CHK018 `ZonaDemo` precalcula celdas dentro y en el borde; borde filtrado antes de cachear → T005, T020
 - [ ] CHK019 `ETag` con instante de arranque, alcance y versiones → T009
-- [ ] CHK020 Filtros sin caché por celdas, sin `ETag` → T022…T024
+- [x] CHK020 Filtros sin caché por celdas, sin `ETag` → T022…T024
 - [ ] CHK021 Valor ya serializado; respuesta por concatenación → T010, T016
 - [x] CHK022 Sin esquema, `DbContext` ni SQL (regla 3) → FR-014 → T017
 
@@ -49,9 +49,13 @@
 - [ ] CHK027 `kmVia` en cada *feature*, todos los roles (R-011) → D13 → FR-005 → T010
 - [ ] CHK028 `venceUtc` nulo en estados finales → T-PO08 → FR-005 → T010
 - [ ] CHK029 Bajas del anónimo solo dentro del polígono demo (R-012) → T-SEG16 → FR-012 → T025, T027
-- [ ] CHK030 Regla 401/403: `estado` de otro rol → 403 con o sin token → T-SEG20 → FR-011 → T024
+- [x] CHK030 Regla 401/403: `estado` de otro rol → 403 con o sin token → T-SEG20 → FR-011 → T024
 - [ ] CHK031 Métrica `killauru.mapa.cache{resultado}` de baja cardinalidad (R-013) → T-OPS15 → FR-016 → T033
 
 ## Conciliación de seguimiento (2026-11-15)
 
 Se reabrieron 20 marcas que referencian tareas todavía abiertas. Esto no elimina implementación: evita presentar un requisito completo mientras una de sus comprobaciones o entregables sigue pendiente. Véase [cierre.md](../cierre.md).
+
+## Conciliación de seguimiento (2026-11-23)
+
+Con T021 y T024 hechas se marcan CHK003, CHK005, CHK008, CHK011, CHK014, CHK020, CHK030. CHK001 y CHK006 siguen abiertas por T019 (prueba unitaria de que una celda «Fuera» no se consulta).

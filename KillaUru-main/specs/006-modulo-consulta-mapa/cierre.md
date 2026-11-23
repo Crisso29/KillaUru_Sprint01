@@ -1,7 +1,7 @@
 # Cierre de spec 006 — Consulta de mapa
 
-**Revisado:** 2026-11-21. **Estado:** cierre de producción no acreditado.
-**Seguimiento:** 21/33 tareas marcadas; 12 pendientes en tasks.md (T002 cerrada el 2026-11-22: polígono demo real de 115 vértices, R-010 revisado).
+**Revisado:** 2026-11-23. **Estado:** cierre de producción no acreditado.
+**Seguimiento:** 23/33 tareas marcadas; 10 pendientes en tasks.md (T002 cerrada el 2026-11-22: polígono demo real de 115 vértices, R-010 revisado; T021 y T024 cerradas el 2026-11-23 con pruebas de integración y mutaciones).
 [Requisitos](spec.md) · [Tareas](tasks.md) · [Pruebas](pruebas.md) · [Plan de cierre global](../../docs/guias/cierre-y-despliegue.md)
 
 ## Dependencias
@@ -40,8 +40,6 @@ de la revisión. “Local” incluye implementación/documentación y preparaci�
 | T018 | Local | `CacheEtagApiTests`: escenarios 3, 4, 11 y 12 del quickstart |
 | T033 | Local | `MetricasMapa` (medidor `KillaUru.Mapa`, contador `killauru.mapa.cache{resultado}`) contado en `FuenteCeldasCacheada` (`acierto`/`fallo`) y en `ConsultarPorCeldasUseCase` (`no_modificado`); prueba `MetricasMapaTests` con `MeterListener`: solo esos 3 valores de etiqueta |
 | T019 | Local | `FuenteCeldasAnomaliasTests`: con alcance `Anonimo`, una celda de borde filtra punto por punto; una celda `Fuera` no se consulta |
-| T021 | Local | `RecorteRolApiTests`: escenarios 1 y 2 del quickstart; `bbox` sin el demo → colección vacía; 100 % de respuestas anónimas dentro del polígono |
-| T024 | Local | `FiltrosApiTests`: escenarios 5–8 y 13 del quickstart (`estado` con token de conductor y sin token → 403); sin `ETag`; cabeceras por rol |
 | T027 | Local | `CambiosApiTests`: escenarios 9 y 10 del quickstart |
 | T030 | Desplegado/campo | Regla de caché de Cloudflare (cachear `GET /api/v1/anomalies` solo sin `Authorization` ni cookie `ku_acceso`, respetando `Cache-Control` del origen) documentada en `deploy/runbooks/monitoreo.md` y comprobada como en el quickstart §4; la tasa de aciertos en el borde se lee en las analíticas de Cloudflare y se anota en ese *runbook* |
 | T031 | Desplegado/campo | Medir SC-001 con las pruebas de carga de 001 (`tests/carga/carga-combinada.k6.js`: 300 consultando el mapa + 300 sincronizando, 10 min; y `picos.k6.js`), fuera de la VM contra el entorno de pruebas; anotar el p95 del mapa. 006 no tiene script propio. **Ejecución local previa (2026-11-21):** [progresiva hasta 2 000](../../docs/seguimiento/evidencias/carga/2026-11-21-local-progresiva-2000/README.md); no cierra la tarea (falta la VM). |

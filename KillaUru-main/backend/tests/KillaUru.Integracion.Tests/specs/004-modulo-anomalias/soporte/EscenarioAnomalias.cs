@@ -28,13 +28,16 @@ internal sealed class EscenarioAnomalias : IDisposable
     internal double Longitud { get; } = -76 + Interlocked.Increment(ref secuencia) * 0.003;
     internal static CancellationToken Ct => TestContext.Current.CancellationToken;
 
-    internal EscenarioAnomalias(BaseDatosPrueba bd)
+    /// <param name="bd">Base de pruebas compartida.</param>
+    /// <param name="configurar">Ajustes extra del host para otros módulos (p. ej. la zona demo del mapa, 006).</param>
+    internal EscenarioAnomalias(BaseDatosPrueba bd, Action<IServiceCollection>? configurar = null)
     {
         Api = new FabricaApi(bd).WithWebHostBuilder(b => b.ConfigureTestServices(s =>
         {
             s.AddSingleton<TimeProvider>(Reloj);
             s.AddSingleton(Publicador);
             s.AddSingleton(Metricas);
+            configurar?.Invoke(s);
         }));
     }
 
