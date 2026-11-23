@@ -1,0 +1,68 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.14, pytest-9.2.0, pluggy-1.7.0
+rootdir: C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\KillaUru-main\ml
+configfile: pyproject.toml
+testpaths: tests
+plugins: cov-7.1.0
+collected 174 items
+
+tests\arquitectura\test_funciones_cortas.py .                            [  0%]
+tests\arquitectura\test_limite_lineas.py .                               [  1%]
+tests\e2e\test_pipeline_sintetico.py ...                                 [  2%]
+tests\integracion\test_catalogo.py ..                                    [  4%]
+tests\integracion\test_cli.py .......                                    [  8%]
+tests\integracion\test_comun.py .........                                [ 13%]
+tests\integracion\test_cuantizar.py .....                                [ 16%]
+tests\integracion\test_entrenar.py ...                                   [ 17%]
+tests\integracion\test_estado.py .....                                   [ 20%]
+tests\integracion\test_etapa_puerta.py ..                                [ 21%]
+tests\integracion\test_grabacion.py ......                               [ 25%]
+tests\integracion\test_ingerir.py ...                                    [ 27%]
+tests\integracion\test_manifiesto.py ......                              [ 30%]
+tests\integracion\test_particion_sin_fuga.py .                           [ 31%]
+tests\unitarias\test_acuerdo.py .........                                [ 36%]
+tests\unitarias\test_candidatos.py ....                                  [ 38%]
+tests\unitarias\test_features.py .........                               [ 43%]
+tests\unitarias\test_integridad.py .......                               [ 47%]
+tests\unitarias\test_metricas.py .....                                   [ 50%]
+tests\unitarias\test_modelo.py .....                                     [ 53%]
+tests\unitarias\test_no_fuga.py ...........                              [ 59%]
+tests\unitarias\test_particion.py .....                                  [ 62%]
+tests\unitarias\test_prefiltro.py ......                                 [ 66%]
+tests\unitarias\test_puerta_completa.py ..................               [ 76%]
+tests\unitarias\test_senal.py .........                                  [ 81%]
+tests\unitarias\test_tamano.py ........                                  [ 86%]
+tests\unitarias\test_validar_etiquetas.py .............                  [ 93%]
+tests\unitarias\test_ventaneo.py ...........                             [100%]
+
+============================== warnings summary ===============================
+tests/e2e/test_pipeline_sintetico.py::test_todo_sintetico_sale_sin_excepcion
+tests/e2e/test_pipeline_sintetico.py::test_todo_sintetico_crea_archivo_tflite
+tests/e2e/test_pipeline_sintetico.py::test_todo_sintetico_guarda_la_evidencia_y_sin_aprobar_no_publica_manifiesto
+tests/integracion/test_cuantizar.py::test_el_archivo_pesa_menos_de_5_mb
+  C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\KillaUru-main\ml\.venv\Lib\site-packages\tensorflow\lite\python\convert.py:997: UserWarning: Statistics for quantized inputs were expected, but not specified; continuing anyway.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\KillaUru-main\docs\seguimiento\evidencias\pruebas\2026-11-23-ml\resultados.xml -
+=============================== tests coverage ================================
+______________ coverage: platform win32, python 3.11.14-final-0 _______________
+
+Name                                          Stmts   Miss Branch BrPart  Cover   Missing
+-----------------------------------------------------------------------------------------
+killauru_ml\__main__.py                          85      4      8      1    95%   87-89, 128
+killauru_ml\estado.py                            32      3      8      1    90%   53-54, 60
+killauru_ml\etiquetado\acuerdo.py                53      2     10      2    94%   67, 92
+killauru_ml\etiquetado\validar_etiquetas.py      31      1     16      1    96%   37
+killauru_ml\evaluacion\registro.py               31      3      2      1    88%   38, 47-48
+killauru_ml\lectura\catalogo.py                  31      1      4      1    94%   55
+killauru_ml\lectura\ingerir.py                   49      4      8      2    89%   21, 51, 99-100
+killauru_ml\lectura\integridad.py                53      2     12      3    92%   39, 46, 74->78
+killauru_ml\senal\componentes.py                 20      3      4      2    79%   20-21, 39
+killauru_ml\ventanas\ventaneo.py                 72      1     24      2    97%   81->79, 138
+-----------------------------------------------------------------------------------------
+TOTAL                                          1057     24    176     16    97%
+
+37 files skipped due to complete coverage.
+Coverage XML written to file ../docs/seguimiento/evidencias/pruebas/2026-11-23-ml/cobertura.xml
+================= 174 passed, 4 warnings in 76.68s (0:01:16) ==================

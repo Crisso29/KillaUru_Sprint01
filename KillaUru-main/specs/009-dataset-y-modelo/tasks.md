@@ -70,8 +70,8 @@ description: "Tareas del dataset y el modelo de detección (HU-28)"
 - [x] T024 [P] [US2] `test_candidatos.py`: ninguna pasada sintética sobre un patrón queda fuera; cada fila trae hora, km, velocidad y segundo del video — `MT/test_candidatos.py` · (FR-008)
 - [x] T025 [P] [US2] `test_validar_etiquetas.py`: Normal con severidad → error; Bache sin severidad → error; severidad 0 y 6 → error, 1 y 5 pasan; subtipo con Bache → error; tipo `Rompemuelles` → error (es subtipo); patrón con otra severidad → error — `MT/test_validar_etiquetas.py` · (FR-009, FR-010)
 - [x] T026 [P] [US2] `test_acuerdo.py`: emparejamiento a ± 250 ms; κ 0.79 falla y 0.80 pasa; severidad ± 1 en 89 % falla y 90 % pasa — `MT/test_acuerdo.py` · (FR-011)
-- [ ] T027 [P] [US2] `test_ventaneo.py`: 25 muestras sin solapamiento; el pico en la última muestra pertenece a esa ventana; vecina a 249 ms = zona gris y a 250 ms no; dos eventos → mayor severidad (empate → Bache); fuera de RN-03 o con hueco → excluida; la salida no tiene latitud ni longitud; aumento ± 200 ms solo en entrenamiento — `MT/test_ventaneo.py` · (FR-005, FR-012)
-  **Reabierta 2026-11-23:** `ventilar` recibe la velocidad pero no excluye ventanas fuera de RN-03 ni con hueco; tampoco hay prueba del pico en la última muestra.
+- [x] T027 [P] [US2] `test_ventaneo.py`: 25 muestras sin solapamiento; el pico en la última muestra pertenece a esa ventana; vecina a 249 ms = zona gris y a 250 ms no; dos eventos → mayor severidad (empate → Bache); fuera de RN-03 o con hueco → excluida; la salida no tiene latitud ni longitud; aumento ± 200 ms solo en entrenamiento — `MT/test_ventaneo.py` · (FR-005, FR-012)
+  **Corregida 2026-11-23:** `ventanas/aptitud.py` excluye ventanas fuera de RN-03 (> 5 km/h sostenidos ≥ 10 s) o con hueco > 200 ms; 11 casos con límites exactos (5,0/5,1 km/h, 200/201 ms, 249/250 ms) — [evidencias](../../docs/seguimiento/evidencias/pruebas/2026-11-23-ml/README.md).
 
 ### Implementación
 
@@ -87,15 +87,16 @@ description: "Tareas del dataset y el modelo de detección (HU-28)"
 
 ### Pruebas
 
-- [ ] T033 [P] [US3] `test_particion.py`: recorrido en dos conjuntos → error; recorrido del catálogo sin conjunto → error; 199 ventanas de Hundimiento en prueba → error y 200 pasa; 2 celulares en prueba → error; un solo sentido → error; validación 99/100; entrenamiento 399/400; `celularNoVisto` solo en prueba; cambiar una partición congelada cambia la huella — `MT/test_particion.py` · (FR-013, FR-014)
-  **Reabierta 2026-11-23:** existen 6 casos de reparto; 199/200 por clase ya está en `test_tamano.py` (3 casos). Faltan: recorrido sin conjunto, 2 celulares en prueba, un solo sentido, 99/100, 399/400 y `celularNoVisto`. `partir()` reparte con semilla y fracciones, no por recorrido declarado (confirmar con FR-013).
-- [ ] T034 [P] [US3] `test_no_fuga.py`: pares (recorrido, celular) disjuntos; la normalización, el prefiltro y la temperatura ajustados con datos de prueba se detectan y fallan; ninguna huella de ventana de prueba en entrenamiento — `MT/test_no_fuga.py` · (FR-013, FR-015)
-  **Reabierta 2026-11-23:** solo se prueba el cruce de recorridos; falta detectar normalización, prefiltro y temperatura ajustados con prueba, y la huella de ventanas.
+- [x] T033 [P] [US3] `test_particion.py`: recorrido en dos conjuntos → error; recorrido del catálogo sin conjunto → error; 199 ventanas de Hundimiento en prueba → error y 200 pasa; 2 celulares en prueba → error; un solo sentido → error; validación 99/100; entrenamiento 399/400; `celularNoVisto` solo en prueba; cambiar una partición congelada cambia la huella — `MT/test_particion.py` · (FR-013, FR-014)
+  **Corregida 2026-11-23:** decisión del autor: partición declarada a mano en `particion.yaml` (FR-013, ≈ 70/15/15); `partir()` la aplica y `declaracion.py` calcula su huella; FR-014 completo en `tamano.py`. Casos en `test_particion.py` (5) y `test_tamano.py` (8) — [evidencias](../../docs/seguimiento/evidencias/pruebas/2026-11-23-ml/README.md).
+- [x] T034 [P] [US3] `test_no_fuga.py`: pares (recorrido, celular) disjuntos; la normalización, el prefiltro y la temperatura ajustados con datos de prueba se detectan y fallan; ninguna huella de ventana de prueba en entrenamiento — `MT/test_no_fuga.py` · (FR-013, FR-015)
+  **Corregida 2026-11-23:** `no_fuga.py` comprueba huellas de ventana, recorridos, pares (recorrido, celular) y los `RegistroAjuste` de normalización, prefiltro y temperatura (8 casos nuevos) — [evidencias](../../docs/seguimiento/evidencias/pruebas/2026-11-23-ml/README.md).
 
 ### Implementación
 
 - [x] T035 [US3] `particion.py`, `tamano.py`, `no_fuga.py` — `KM/particion/` · (FR-013, FR-014, FR-015)
-- [x] T036 [US3] Declarar y congelar `ds-1` (antes de entrenar) — `ml/config/particion.yaml` · (FR-013, FR-014; R-008)
+- [ ] T036 [US3] Declarar y congelar `ds-1` (antes de entrenar) — `ml/config/particion.yaml` · (FR-013, FR-014; R-008)
+  **Reabierta 2026-11-23:** el archivo decía `Estado: borrador` y `Recorridos: []`; no se puede congelar sin la campaña (T022). Ya tiene el formato del data-model §6: falta llenarlo y poner `congelada: true`.
 - [x] T037 [US3] `registro.py` (agrega una fila por cada uso de la prueba y se niega a repetir una versión) — `KM/evaluacion/registro.py`, `ml/modelos/registro-evaluaciones.csv` · (FR-015)
 
 ---
@@ -105,17 +106,22 @@ description: "Tareas del dataset y el modelo de detección (HU-28)"
 ### Pruebas
 
 - [x] T038 [P] [US4] `test_caracteristicas.py`: 20 valores `float32` en el orden de `data-model.md` §4; curtosis 0 con señal constante; orden +1/−1; razón; energía relativa; velocidad del último fix — `MT/test_caracteristicas.py` · (FR-017)
+  **Corregida 2026-11-23:** las 20 características no eran las del data-model §4 (calculaba asimetría, IQR, espectro…); ahora sí, con 9 casos (archivo real: `test_features.py`). La app aún no las calcula: 008 T130.
 - [x] T039 [P] [US4] `test_prefiltro.py`: el umbral deja pasar ≥ 99 % de las anomalías de entrenamiento (98,9 % falla); ventana bajo el umbral → Normal sin llamar al modelo — `MT/test_prefiltro.py` · (FR-018)
+  **Corregida 2026-11-23:** el prefiltro usaba la varianza; ahora usa `v_pap` y elige el umbral que pierde ≤ 1 % de las anomalías (98,9 % falla, 99 % pasa).
 - [ ] T040 [P] [US4] `test_decision.py`: confidence 0.74 → Normal, 0.75 y 0.76 → anomalía; temperatura aplicada antes del softmax; `ConfidenceMinimo` leído de `puerta.yaml` — `MT/test_decision.py` · (FR-020, FR-021)
 - [x] T041 [P] [US4] `test_metricas.py`: *precision* y *recall* por clase en una matriz conocida; 0,899 no cumple y 0,900 sí; severidad ± 1 solo sobre anomalías detectadas con el tipo correcto (79 %/80 %); matriz en orden `Normal, Bache, Hundimiento` — `MT/test_metricas.py` · (FR-021)
-- [ ] T042 [P] [US4] `test_entrenamiento.py`: dos corridas con la semilla 2828 → misma huella de pesos; la pérdida de severidad ignora Normal; la red tiene ≤ 2 capas ocultas y salidas `tipo_logits` (3) y `severidad` (1) — `MT/test_entrenamiento.py` · (FR-016, FR-019)
-  **Reabierta 2026-11-23:** la misma semilla da los mismos pesos (probado), pero el modelo tiene una sola salida softmax; faltan la salida `severidad` y su pérdida que ignora Normal.
+  **Completada 2026-11-23:** se añadió la severidad ± 1 solo sobre anomalías detectadas con el tipo correcto (79 % / 80 %). Los límites 0,899/0,900 los aplica la puerta (`test_puerta_completa.py`).
+- [x] T042 [P] [US4] `test_entrenamiento.py`: dos corridas con la semilla 2828 → misma huella de pesos; la pérdida de severidad ignora Normal; la red tiene ≤ 2 capas ocultas y salidas `tipo_logits` (3) y `severidad` (1) — `MT/test_entrenamiento.py` · (FR-016, FR-019)
+  **Corregida 2026-11-23:** MLP con `normalizacion` adaptada a entrenamiento → 32 → 16 → `tipo_logits` (3) y `severidad` (1); pérdida con pesos de clase + 0,5 × Huber enmascarada en Normal (una severidad absurda en Normales no cambia ni un peso). Archivo real: `test_entrenar.py` + `test_modelo.py` — [evidencias](../../docs/seguimiento/evidencias/pruebas/2026-11-23-ml/README.md).
 - [ ] T043 [P] [US4] `test_calibracion.py`: la temperatura baja la NLL de validación en un modelo sintético sobreconfiado y no lee prueba; `test_linea_base.py`: la línea base de umbrales clasifica las señales sintéticas — `MT/test_calibracion.py`, `MT/test_linea_base.py` · (FR-020, FR-021)
 
 ### Implementación
 
 - [x] T044 [US4] `caracteristicas.py` y `prefiltro.py` — `KM/caracteristicas/` · (FR-017, FR-018)
+  **Corregida 2026-11-23:** ver T038 y T039 (archivos reales: `features/features.py`, `features/prefiltro.py`).
 - [x] T045 [US4] `red.py` (Normalization → 32 → 16 → dos cabezas) y `entrenamiento.py` (pesos de clase, máscara, parada temprana) — `KM/modelo/` · (FR-019; R-011)
+  **Corregida 2026-11-23:** era un `Sequential` sin normalización y con una salida; ver T042 (archivos reales: `modelo/arquitectura.py`, `modelo/entrenar.py`).
 - [ ] T046 [US4] `calibracion.py` y `linea_base.py` — `KM/modelo/` · (FR-020, FR-021; R-013)
 - [ ] T047 [US4] `decision.py`, `metricas.py`, `matriz.py` (incluye por celular, «baches no vistos», balanceado y `argmax` sin umbral) — `KM/evaluacion/` · (FR-021; R-012)
 - [ ] T048 [US4] `informe.py`: `informe.json`, `informe.md` y matriz CSV/JSON con commit, `datasetVersion`, huella, semilla y entorno — `KM/evaluacion/informe.py` · (FR-016, FR-022)
@@ -127,8 +133,8 @@ description: "Tareas del dataset y el modelo de detección (HU-28)"
 
 ### Pruebas
 
-- [ ] T050 [P] [US5] `test_cuantizacion.py`: `.tflite` < 5 MB; entrada `caracteristicas [1,20] float32`; salidas `tipo_logits [1,3]` y `severidad [1,1]` `float32`; operaciones int8 — `MT/test_cuantizacion.py` · (FR-019, FR-023)
-  **Reabierta 2026-11-23:** < 5 MB y coherencia con Keras probados; faltan las dos salidas del contrato y la comprobación de operaciones int8.
+- [x] T050 [P] [US5] `test_cuantizacion.py`: `.tflite` < 5 MB; entrada `caracteristicas [1,20] float32`; salidas `tipo_logits [1,3]` y `severidad [1,1]` `float32`; operaciones int8 — `MT/test_cuantizacion.py` · (FR-019, FR-023)
+  **Corregida 2026-11-23:** firma TFLite `caracteristicas [1,20]` → `tipo_logits [1,3]` y `severidad [1,1]` en float32, tensores int8 internos, < 5 MB y misma decisión que Keras (archivo real: `test_cuantizar.py`) — [evidencias](../../docs/seguimiento/evidencias/pruebas/2026-11-23-ml/README.md).
 - [ ] T051 [P] [US5] `test_equivalencia.py`: tipo igual 98,9 % falla y 99 % pasa; Δ confidence p99 0.051 falla; un modelo con un peso alterado falla — `MT/test_equivalencia.py` · (FR-024)
 - [ ] T052 [P] [US5] `test_vectores_prueba.py`: ≥ 60 casos, 20 por clase, con casos cerca del umbral del prefiltro y de 0.75; recomputar características y salidas con el pipeline da lo guardado — `MT/test_vectores_prueba.py` · (FR-025)
 - [ ] T053 [P] [US5] `test_benchmark.py`: p95 49,9 ms pasa y 50,0 no; celular de 5 GB de RAM o de hace 5 años no cuenta como gama media; menos de 3 celulares válidos → falla — `MT/test_benchmark.py` · (FR-026)
@@ -148,16 +154,17 @@ description: "Tareas del dataset y el modelo de detección (HU-28)"
 
 ### Pruebas
 
-- [ ] T060 [P] [US6] `test_puerta.py`: falla (código ≠ 0) por cada condición sola: una clase bajo 0,90; severidad bajo 0,80; < 200 por clase; latencia; equivalencia; tamaño; clases ≠ RN-01; acuerdo; partición; pasa con todo en verde — `MT/test_puerta.py` · (FR-028)
-  **Reabierta 2026-11-23:** se prueban tamaño, métricas por clase y severidad; faltan latencia, equivalencia, clases ≠ RN-01, acuerdo y partición, y la etapa `puerta` de la CLI aún devuelve 2.
-- [ ] T061 [P] [US6] `test_manifiesto.py`: valida contra `contracts/manifiesto-modelo.schema.json`; SHA-256 y tamaño = archivo; no trae `ConfidenceMinimo`; URLs en `cdn.killauru.pe/modelo/<versión>/` — `MT/test_manifiesto.py` · (FR-029)
-  **Reabierta 2026-11-23:** `generar_manifiesto` produce 4 campos y el contrato exige 21; `test_manifiesto_cumple_el_contrato_que_lee_la_app` queda como `xfail` estricto hasta corregirlo.
+- [x] T060 [P] [US6] `test_puerta.py`: falla (código ≠ 0) por cada condición sola: una clase bajo 0,90; severidad bajo 0,80; < 200 por clase; latencia; equivalencia; tamaño; clases ≠ RN-01; acuerdo; partición; pasa con todo en verde — `MT/test_puerta.py` · (FR-028)
+  **Corregida 2026-11-23:** 7 condiciones en `puerta.py`, cada una falla sola (11 casos con límites exactos); sin evidencia, falla; `puerta --version X` devuelve 0/1 y escribe el manifiesto solo si aprueba (`test_etapa_puerta.py`). Archivo real: `test_puerta_completa.py` — [evidencias](../../docs/seguimiento/evidencias/pruebas/2026-11-23-ml/README.md).
+- [x] T061 [P] [US6] `test_manifiesto.py`: valida contra `contracts/manifiesto-modelo.schema.json`; SHA-256 y tamaño = archivo; no trae `ConfidenceMinimo`; URLs en `cdn.killauru.pe/modelo/<versión>/` — `MT/test_manifiesto.py` · (FR-029)
+  **Corregida 2026-11-23:** `generar_manifiesto` cumple el contrato (21 campos), SHA-256 y tamaño del archivo, sin confidence, URLs de su versión; el `xfail` se convirtió en prueba normal — [evidencias](../../docs/seguimiento/evidencias/pruebas/2026-11-23-ml/README.md).
 - [ ] T062 [P] [US6] `test_versiones.py`: cambia el catálogo → MAYOR; cambia `preprocesamientoVersion` → MENOR y sube `versionMinimaApp`; mismo contrato → PARCHE; `ds-<n>` y su huella — `MT/test_versiones.py` · (FR-027)
 
 ### Implementación
 
 - [ ] T063 [US6] `versiones.py` — `KM/comun/versiones.py` · (FR-027; R-016)
 - [x] T064 [US6] `puerta.py` (lee `puerta.yaml`, informe, *benchmarks*, equivalencia, acuerdo y partición; escribe `manifiesto.json` solo si pasa) y `manifiesto.py` — `KM/publicacion/` · (FR-028, FR-029)
+  **Corregida 2026-11-23:** la puerta no leía la evidencia ni escribía el manifiesto; ver T060 (`modelo/puerta.py`, `evidencia_puerta.py`, `etapa_puerta.py`, `manifiesto.py`).
 - [ ] T065 [US6] `publicar_r2.sh`: falla si la ruta de la versión existe; sube `.tflite`, matriz e informe con `immutable`; verifica con `curl` + `sha256sum` desde `cdn.killauru.pe`; sube el manifiesto al final; modo `--volver-atras <versión>` — `ml/scripts/publicar_r2.sh` · (FR-030, FR-031; R-017)
 - [ ] T066 [US6] `publicar-modelo.yml` (`workflow_dispatch`: `version`, `volver_atras`; entorno `modelos`; secretos `KU_R2_MODELOS_ACCESS_KEY_ID`, `KU_R2_MODELOS_SECRET_ACCESS_KEY`, `KU_R2_ENDPOINT`): *lock* → `puerta` → `publicar_r2.sh` — `.github/workflows/publicar-modelo.yml` · (FR-030; D10, RNF-34, R-018)
 - [ ] T067 [US6] Simulacro en el prefijo `modelo-prueba/`: publicar una versión sintética, publicar otra y volver atrás; comprobar que los archivos de la primera no cambiaron — `ml/README.md` (registro del simulacro) · (FR-031)

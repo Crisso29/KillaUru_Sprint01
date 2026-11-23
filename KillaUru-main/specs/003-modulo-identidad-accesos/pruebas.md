@@ -123,3 +123,10 @@ Las suites de arquitectura, carga y E2E compartidas se detallan en [pruebas de p
 - [ConsolaPrivacidadTests.cs](../../backend/tests/KillaUru.Integracion.Tests/specs/003-modulo-identidad-accesos/seguridad/ConsolaPrivacidadTests.cs)
 
 </details>
+
+<details>
+<summary>Soporte de pruebas probado (1 archivo)</summary>
+
+- [SinkDePruebaTests.cs](../../backend/tests/KillaUru.Integracion.Tests/specs/003-modulo-identidad-accesos/soporte/SinkDePruebaTests.cs) — el sink que captura logs es seguro entre hilos (DT-04, 001/T084); unitaria, sin base de datos
+
+</details>

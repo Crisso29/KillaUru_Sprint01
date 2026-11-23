@@ -47,6 +47,11 @@ Recepción HTTP (T012, cerrada): 17/17 escenarios del quickstart aprobados el 20
 | C. Lote inválido y límites | `RecepcionLimitesApiTests.cs` | #7, #8, #12 | ✅ 6/6 casos (el #8 sobre Kestrel real) |
 | D. Seguridad y seudónimo | `RecepcionSeguridadApiTests.cs` | #9, #10, #11, #18, #19, #20 | ✅ 7/7 casos |
 
+**2026-11-23:** `Lote_de_50_buenos_se_guarda_entero_y_pasa_a_procesado` fallaba de vez en cuando en la suite completa.
+Ya sondeaba la base cada 200 ms; el problema era el tope de 15 s: un lote lo procesa un solo trabajador, evento tras
+evento, a ~186 ms (DT-01), y se midieron 11,3 s en la suite y 17 s con el equipo cargado. El tope pasa a 60 s (no
+alarga la prueba: el sondeo sale en cuanto termina) y el mensaje de falla dice cuántos eventos siguen sin procesar.
+
 Envían lotes por HTTP a la API en memoria con PostgreSQL real y comprueban la respuesta **y** las filas de
 `ingesta.evento_recibido`. El #1 espera, con un plazo de 15 s, a que el procesamiento real deje las filas en Procesado.
 Se verificó por mutación que detectan errores: anular la marca de duplicados entre envíos hace fallar el #3,

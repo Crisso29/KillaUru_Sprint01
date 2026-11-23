@@ -78,7 +78,7 @@ nueva. En las pruebas: hilos de Room y la `Application` real se colaban entre pr
 | Medida | Resultado |
 |---|---|
 | Pruebas (`tests/generar-resultados.ps1`, PostgreSQL real con Testcontainers) | **1 153**: 1 149 aprobadas, 3 omitidas (pendientes), **1 fallida** |
-| La fallida | `RecepcionApiTests.Lote_de_50_buenos_se_guarda_entero_y_pasa_a_procesado`: sola **pasa** (17 s). Espera un tiempo fijo a que se procesen 50 eventos; con el equipo cargado no alcanza. Es una prueba **dependiente del tiempo**: hay que esperar una condición, no un plazo fijo |
+| La fallida | `RecepcionApiTests.Lote_de_50_buenos_se_guarda_entero_y_pasa_a_procesado`: sola **pasa** (17 s). **Corrección del 2026-11-23:** aquí se dijo que esperaba un tiempo fijo; no es así, ya sondeaba la base cada 200 ms. El problema era el tope de 15 s, menor que lo que tarda con el equipo cargado. Arreglado en [parte 3](../2026-11-23-backend-parte3/README.md) |
 | Cobertura del dominio (puerta de CI 90 %) | Anomalías, Auditoría, Dashboard, Identidad, Ingesta y Shared **100 %**; Mapa **97 %** |
 | Reglas automáticas que ya existían | capas y módulos que no se mezclan, un tipo por archivo sin `partial`, métodos cortos, archivos < 200 líneas, APIs prohibidas (`DateTime.Now`), pool de conexiones — 497 pruebas de arquitectura |
 | Patrón AAA | **105 de 465** pruebas sin marcar las secciones (23 %). Algunas son de una sola línea (`=> Assert…`), donde el AAA es implícito; otras son largas sin separar (p. ej. `ProcesarLoteUseCaseTests`, `ContextoTransaccionTests`) |
@@ -103,5 +103,5 @@ nueva. En las pruebas: hilos de Room y la `Application` real se colaban entre pr
 2. Panel: AAA en las 369 pruebas y llevar `fetch` de `PaginaAuditoria` a `auditoria/api/`.
 3. Panel: implementar los E2E pendientes por prioridad (login, mapa, moderación, accesibilidad).
 4. Backend: AAA en las 105 pruebas; renombrar las variables de una letra que no son fórmulas.
-5. Backend: la prueba de 50 eventos debe esperar una condición (sondeo con plazo) en vez de un tiempo fijo.
+5. ~~Backend: la prueba de 50 eventos~~ — hecho el 2026-11-23 ([parte 3](../2026-11-23-backend-parte3/README.md)): el tope era corto, no la forma de esperar.
 

@@ -1,0 +1,93 @@
+2026-11-23 12:27:21.718170: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2026-11-23 12:27:23.542353: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2026-11-23 12:27:31.500165: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: SSE3 SSE4.1 SSE4.2 AVX AVX2 AVX512F AVX512_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2026-11-23 12:27:31.794734: E tensorflow/core/framework/node_def_util.cc:676] NodeDef mentions attribute use_unbounded_threadpool which is not in the op definition: Op<name=MapDataset; signature=input_dataset:variant, other_arguments: -> handle:variant; attr=f:func; attr=Targuments:list(type),min=0; attr=output_types:list(type),min=1; attr=output_shapes:list(shape),min=1; attr=use_inter_op_parallelism:bool,default=true; attr=preserve_cardinality:bool,default=false; attr=force_synchronous:bool,default=false; attr=metadata:string,default=""> This may be expected if your graph generating binary is newer  than this binary. Unknown attributes will be ignored. NodeDef: {{node ParallelMapDatasetV2/_18}}
+[sintetico] entrenando 0.0.1-ci (5 épocas)…
+Saved artifact at 'C:\Users\Intel\AppData\Local\Temp\tmpz0fwxusd'. The following endpoints are available:
+
+* Endpoint 'serve'
+  args_0 (POSITIONAL_ONLY): TensorSpec(shape=(None, 20), dtype=tf.float32, name='caracteristicas')
+Output Type:
+  Dict[['tipo_logits', TensorSpec(shape=(None, 3), dtype=tf.float32, name=None)], ['severidad', TensorSpec(shape=(None, 1), dtype=tf.float32, name=None)]]
+Captures:
+  1350581342800: TensorSpec(shape=(1, 20), dtype=tf.float32, name=None)
+  1350581344144: TensorSpec(shape=(1, 20), dtype=tf.float32, name=None)
+  1350581343952: TensorSpec(shape=(), dtype=tf.resource, name=None)
+  1350581343184: TensorSpec(shape=(), dtype=tf.resource, name=None)
+  1350581343760: TensorSpec(shape=(), dtype=tf.resource, name=None)
+  1350581344336: TensorSpec(shape=(), dtype=tf.resource, name=None)
+  1350581343376: TensorSpec(shape=(), dtype=tf.resource, name=None)
+  1350581342416: TensorSpec(shape=(), dtype=tf.resource, name=None)
+  1350581344528: TensorSpec(shape=(), dtype=tf.resource, name=None)
+  1350581345296: TensorSpec(shape=(), dtype=tf.resource, name=None)
+C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\KillaUru-main\ml\.venv\Lib\site-packages\tensorflow\lite\python\convert.py:997: UserWarning: Statistics for quantized inputs were expected, but not specified; continuing anyway.
+  warnings.warn(
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+W0000 00:00:1795454856.146059    4016 tf_tfl_flatbuffer_helpers.cc:365] Ignored output_format.
+W0000 00:00:1795454856.146223    4016 tf_tfl_flatbuffer_helpers.cc:368] Ignored drop_control_dependency.
+2026-11-23 12:27:36.147254: I tensorflow/cc/saved_model/reader.cc:83] Reading SavedModel from: C:\Users\Intel\AppData\Local\Temp\tmpz0fwxusd
+2026-11-23 12:27:36.149219: I tensorflow/cc/saved_model/reader.cc:52] Reading meta graph with tags { serve }
+2026-11-23 12:27:36.149262: I tensorflow/cc/saved_model/reader.cc:147] Reading SavedModel debug info (if present) from: C:\Users\Intel\AppData\Local\Temp\tmpz0fwxusd
+I0000 00:00:1795454856.161842    4016 mlir_graph_optimization_pass.cc:401] MLIR V1 optimization pass is not enabled
+2026-11-23 12:27:36.163097: I tensorflow/cc/saved_model/loader.cc:236] Restoring SavedModel bundle.
+2026-11-23 12:27:36.233650: I tensorflow/cc/saved_model/loader.cc:220] Running initialization op on SavedModel bundle at path: C:\Users\Intel\AppData\Local\Temp\tmpz0fwxusd
+2026-11-23 12:27:36.248034: I tensorflow/cc/saved_model/loader.cc:466] SavedModel load for tags { serve }; Status: success: OK. Took 100824 microseconds.
+2026-11-23 12:27:36.266496: I tensorflow/compiler/mlir/tensorflow/utils/dump_mlir_util.cc:268] disabling MLIR crash reproducer, set env var `MLIR_CRASH_REPRODUCER_DIRECTORY` to enable.
+fully_quantize: 0, inference_type: 6, input_inference_type: FLOAT32, output_inference_type: FLOAT32
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+Puerta 0.0.1-ci: RECHAZADA
+  [FALLA] rnf35 precision Normal=0.333; precision Bache=0.200; precision Hundimiento=0.800; recall Normal=0.750; recall Bache=0.100; recall Hundimiento=0.200; severidad ±1=0.000
+  [FALLA] rnf04 0 celulares de gama media; p95 ≥ 50 ms: []
+  [FALLA] equivalencia sin evidencia
+  [OK] tamano 0.006 MB
+  [OK] clases ['Normal', 'Bache', 'Hundimiento']
+  [FALLA] acuerdo sin evidencia
+  [FALLA] particion sin evidencia
+2026-11-23 12:27:38.122923: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2026-11-23 12:27:39.874626: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2026-11-23 12:27:47.532220: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: SSE3 SSE4.1 SSE4.2 AVX AVX2 AVX512F AVX512_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2026-11-23 12:27:47.817469: E tensorflow/core/framework/node_def_util.cc:676] NodeDef mentions attribute use_unbounded_threadpool which is not in the op definition: Op<name=MapDataset; signature=input_dataset:variant, other_arguments: -> handle:variant; attr=f:func; attr=Targuments:list(type),min=0; attr=output_types:list(type),min=1; attr=output_shapes:list(shape),min=1; attr=use_inter_op_parallelism:bool,default=true; attr=preserve_cardinality:bool,default=false; attr=force_synchronous:bool,default=false; attr=metadata:string,default=""> This may be expected if your graph generating binary is newer  than this binary. Unknown attributes will be ignored. NodeDef: {{node ParallelMapDatasetV2/_18}}
+[sintetico] entrenando 0.0.1-ci (5 épocas)…
+Saved artifact at 'C:\Users\Intel\AppData\Local\Temp\tmpi3jfo3ym'. The following endpoints are available:
+
+* Endpoint 'serve'
+  args_0 (POSITIONAL_ONLY): TensorSpec(shape=(None, 20), dtype=tf.float32, name='caracteristicas')
+Output Type:
+  Dict[['tipo_logits', TensorSpec(shape=(None, 3), dtype=tf.float32, name=None)], ['severidad', TensorSpec(shape=(None, 1), dtype=tf.float32, name=None)]]
+Captures:
+  2466044432976: TensorSpec(shape=(1, 20), dtype=tf.float32, name=None)
+  2466044434320: TensorSpec(shape=(1, 20), dtype=tf.float32, name=None)
+  2466044434128: TensorSpec(shape=(), dtype=tf.resource, name=None)
+  2466044433360: TensorSpec(shape=(), dtype=tf.resource, name=None)
+  2466044433936: TensorSpec(shape=(), dtype=tf.resource, name=None)
+  2466044434512: TensorSpec(shape=(), dtype=tf.resource, name=None)
+  2466044433552: TensorSpec(shape=(), dtype=tf.resource, name=None)
+  2466044432592: TensorSpec(shape=(), dtype=tf.resource, name=None)
+  2466044434704: TensorSpec(shape=(), dtype=tf.resource, name=None)
+  2466044435472: TensorSpec(shape=(), dtype=tf.resource, name=None)
+C:\Users\Intel\Downloads\LAB DE ARQUITECTURA DE SOFTWARE\KillaUru\KillaUru-main\ml\.venv\Lib\site-packages\tensorflow\lite\python\convert.py:997: UserWarning: Statistics for quantized inputs were expected, but not specified; continuing anyway.
+  warnings.warn(
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+W0000 00:00:1795454872.850049   31548 tf_tfl_flatbuffer_helpers.cc:365] Ignored output_format.
+W0000 00:00:1795454872.850451   31548 tf_tfl_flatbuffer_helpers.cc:368] Ignored drop_control_dependency.
+2026-11-23 12:27:52.852512: I tensorflow/cc/saved_model/reader.cc:83] Reading SavedModel from: C:\Users\Intel\AppData\Local\Temp\tmpi3jfo3ym
+2026-11-23 12:27:52.854839: I tensorflow/cc/saved_model/reader.cc:52] Reading meta graph with tags { serve }
+2026-11-23 12:27:52.854894: I tensorflow/cc/saved_model/reader.cc:147] Reading SavedModel debug info (if present) from: C:\Users\Intel\AppData\Local\Temp\tmpi3jfo3ym
+I0000 00:00:1795454872.869207   31548 mlir_graph_optimization_pass.cc:401] MLIR V1 optimization pass is not enabled
+2026-11-23 12:27:52.870786: I tensorflow/cc/saved_model/loader.cc:236] Restoring SavedModel bundle.
+2026-11-23 12:27:52.946932: I tensorflow/cc/saved_model/loader.cc:220] Running initialization op on SavedModel bundle at path: C:\Users\Intel\AppData\Local\Temp\tmpi3jfo3ym
+2026-11-23 12:27:52.967631: I tensorflow/cc/saved_model/loader.cc:466] SavedModel load for tags { serve }; Status: success: OK. Took 115131 microseconds.
+2026-11-23 12:27:52.990982: I tensorflow/compiler/mlir/tensorflow/utils/dump_mlir_util.cc:268] disabling MLIR crash reproducer, set env var `MLIR_CRASH_REPRODUCER_DIRECTORY` to enable.
+fully_quantize: 0, inference_type: 6, input_inference_type: FLOAT32, output_inference_type: FLOAT32
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+Puerta 0.0.1-ci: RECHAZADA
+  [FALLA] rnf35 precision Normal=0.333; precision Bache=0.200; precision Hundimiento=0.800; recall Normal=0.750; recall Bache=0.100; recall Hundimiento=0.200; severidad ±1=0.000
+  [FALLA] rnf04 0 celulares de gama media; p95 ≥ 50 ms: []
+  [FALLA] equivalencia sin evidencia
+  [OK] tamano 0.006 MB
+  [OK] clases ['Normal', 'Bache', 'Hundimiento']
+  [FALLA] acuerdo sin evidencia
+  [FALLA] particion sin evidencia
+SHA-256 reproducible: d21b7e8de6a58a33c106ad7bc37719843523c51db2c89be9c2eb7b80c8b1a050

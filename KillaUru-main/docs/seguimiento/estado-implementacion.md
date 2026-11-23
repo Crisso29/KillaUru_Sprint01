@@ -17,21 +17,27 @@ Conteos de casillas en `tasks.md`; no son cobertura ni certificación de producc
 
 | Spec | Área | Marcadas / total | Pendientes |
 |---|---|---:|---:|
-| 001 | Plataforma | 71/84 | 13 |
+| 001 | Plataforma | 73/84 | 11 |
 | 002 | Auditoría | 35/38 | 3 |
 | 003 | Identidad | 65/65 | 0 |
 | 004 | Anomalías | 56/58 | 2 |
 | 005 | Ingesta | 29/41 | 12 |
 | 006 | Consulta de mapa | 21/33 | 12 |
 | 007 | Dashboard | 24/26 | 2 |
-| 008 | Android | 104/129 | 25 |
-| 009 | Dataset/modelo | 46/74 | 28 |
+| 008 | Android | 104/130 | 26 |
+| 009 | Dataset/modelo | 45/74 | 29 |
 | 010 | Panel | 77/94 | 17 |
-| **Total** | | **528/642** | **114** |
+| **Total** | | **529/643** | **114** |
 
 Panel tenía 88 tareas marcadas. Se reabrieron 11 por E2E vacíos u omitidos:
 T032, T033, T034, T050, T058, T062, T068, T081, T085, T086 y T087.
 No se retiró funcionalidad: se corrigió el seguimiento para reflejar la evidencia.
+
+ML tenía 46 tareas marcadas. El 2026-11-23 se reabrieron 7 al contrastarlas con las pruebas reales (T027, T033, T034,
+T042, T050, T060 y T061) y se corrigieron ese mismo día, junto con T038, T039, T044, T045 y T064, que también estaban
+marcadas sin cumplir lo prometido. T036 se reabrió: la partición no estaba declarada ni congelada. Android suma T130
+(la app debe adoptar el contrato `p1` del modelo) y T129 (antes numerada T128 por error)
+([evidencias](evidencias/pruebas/2026-11-23-ml/README.md)).
 
 ## Actualización documental y verificación de pendientes
 
@@ -64,6 +70,8 @@ Los resultados corresponden al árbol de trabajo, no al estado remoto de CI.
 | Panel: `npm run e2e -- --list` | 159 casos en 13 archivos, incluidos pendientes y repetición por navegador; solo descubrimiento |
 | ML: `python -m pytest` | Primera ejecución: 127 aprobados, 1 fallo de codificación de fixture en Windows |
 | ML tras corregir UTF-8 | `python -m pytest tests/integracion/test_estado.py tests/arquitectura`: 6/6 aprobados |
+| **ML, suite completa 2026-11-23** | **174 aprobadas, 0 fallidas, 0 omitidas**; cobertura 97 % (líneas y ramas); ruff limpio; `.tflite` reproducible byte a byte — [evidencias](evidencias/pruebas/2026-11-23-ml/README.md) |
+| **Backend completo 2026-11-23** (`generar-resultados.ps1`) | **1 155: 1 152 aprobadas, 0 fallidas, 3 omitidas**; dominio 97–100 %; DT-03 y DT-04 resueltos — [evidencias](evidencias/pruebas/2026-11-23-backend-parte3/README.md) |
 | Integración backend | Compila y xUnit lista los casos; no ejecutada contra PostgreSQL |
 
 Desde `backend/`: `dotnet test --project tests/KillaUru.<Modulo>.Tests --no-build`.

@@ -8,8 +8,11 @@ namespace KillaUru.Integracion.Tests.Ingesta;
 /// </summary>
 public sealed class RecepcionApiTests(BaseDatosPrueba bd)
 {
-    // El procesamiento real es asíncrono (cola + trabajadores); el quickstart pide «en segundos».
-    private static readonly TimeSpan PlazoProcesamiento = TimeSpan.FromSeconds(15);
+    // El procesamiento real es asíncrono (cola + trabajadores). Es el TOPE para declarar la falla, no lo que se espera:
+    // el sondeo sale en cuanto todo está procesado. Un lote lo procesa un solo trabajador, evento tras evento, a
+    // ~186 ms cada uno (DT-01): 50 eventos ≈ 9 s. Medido el 2026-11-23: 11,3 s en la suite completa y 17 s con el
+    // equipo cargado; con 15 s la prueba fallaba de vez en cuando. 60 s ≈ 3,5 veces el peor caso medido.
+    private static readonly TimeSpan PlazoProcesamiento = TimeSpan.FromSeconds(60);
 
     /// <summary>#1 — 50 buenos: 200 con los 50 aceptados, guardados con el loteId del servidor y procesados.</summary>
     [Fact]
@@ -31,6 +34,8 @@ public sealed class RecepcionApiTests(BaseDatosPrueba bd)
         Assert.Empty(respuesta.Rechazados);
         Assert.Equal(50, filas.Count);
         Assert.All(filas, f => Assert.Equal(respuesta.LoteId, f.LoteId));
+        var pendientes = filas.Count(f => f.Estado == 0);
+        Assert.True(pendientes == 0, $"{pendientes} de 50 siguen en Recibido tras {PlazoProcesamiento.TotalSeconds} s (DT-01)");
         Assert.All(filas, f => Assert.Equal(1, f.Estado));
     }
 

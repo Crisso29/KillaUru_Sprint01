@@ -179,8 +179,10 @@ description: "Tareas de la plataforma base del backend"
 ## Deuda técnica detectada con k6 (2026-11-22)
 
 - [ ] T082 Un solo `NpgsqlDataSource` (con NetTopologySuite) compartido por todos los `DbContext` y los chequeos de salud, para que el tope de 30 conexiones sea real (hoy hay 3 pools, techo 90). Detalle en `docs/seguimiento/deuda-tecnica.md` DT-02 · (`diseño-interno-de-modulos.md` §3.7; ARQ-22)
-- [ ] T083 *Healthcheck* de PostgreSQL por TCP (`pg_isready -h 127.0.0.1`) en `deploy/docker-compose.yml` y `docker-compose.pruebas.yml`, para evitar la carrera del primer arranque (DT-03)
-- [ ] T084 `SinkDePrueba` seguro entre hilos en `003/ConsolaPrivacidadTests`, para eliminar la prueba intermitente (DT-04)
+- [x] T083 *Healthcheck* de PostgreSQL por TCP (`pg_isready -h 127.0.0.1`) en `deploy/docker-compose.yml` y `docker-compose.pruebas.yml`, para evitar la carrera del primer arranque (DT-03)
+  **Hecha 2026-11-23:** los dos compose usan `-h 127.0.0.1`; `ChequeoDeSaludPostgresTests` revisa todo `deploy/docker-compose*.yml` (rojo con 2 archivos, luego verde) — [evidencia](../../docs/seguimiento/evidencias/pruebas/2026-11-23-backend-parte3/README.md).
+- [x] T084 `SinkDePrueba` seguro entre hilos en `003/ConsolaPrivacidadTests`, para eliminar la prueba intermitente (DT-04)
+  **Hecha 2026-11-23:** la causa era leer el texto sin candado, no escribirlo; `SinkDePrueba` solo deja leer con `Capturado`. `SinkDePruebaTests`: 3/3 en rojo con `chunkLength` antes, 5/5 en verde después — [evidencia](../../docs/seguimiento/evidencias/pruebas/2026-11-23-backend-parte3/README.md).
 
 ## Dependencies & Execution Order
 

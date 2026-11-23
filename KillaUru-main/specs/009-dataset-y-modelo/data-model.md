@@ -146,3 +146,6 @@ confidenceMinimo: 0.75                                                          
 ```
 
 Regla de comparación: «≥» para mínimos (0,900 pasa, 0,899 no) y «<» estricto para la latencia (49,9 pasa, 50,0 no).
+El archivo real usa los mismos valores con claves planas (`PrecisionMinimaPorClase`, `LatenciaP95MaximaMs`,
+`RamMaximaGb`, `KappaMinimo`…); `UmbralesPuerta.leer` hace la correspondencia. La puerta lee la evidencia de
+`modelos/<versión>/evidencia-puerta.json` y, sin evidencia de una condición, falla.

@@ -119,11 +119,13 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 </details>
 
 <details>
-<summary>Arquitectura compartida (8 archivos)</summary>
+<summary>Arquitectura compartida (10 archivos)</summary>
 
 - [ApisBanidasTests.cs](../../backend/tests/KillaUru.Arquitectura.Tests/ApisBanidasTests.cs)
+- [ChequeoDeSaludPostgresTests.cs](../../backend/tests/KillaUru.Arquitectura.Tests/ChequeoDeSaludPostgresTests.cs) — todo compose chequea PostgreSQL por TCP (DT-03, T083)
 - [LegibilidadTests.cs](../../backend/tests/KillaUru.Arquitectura.Tests/LegibilidadTests.cs)
 - [LimiteDeLineasTests.cs](../../backend/tests/KillaUru.Arquitectura.Tests/LimiteDeLineasTests.cs)
+- [PoolDeConexionesTests.cs](../../backend/tests/KillaUru.Arquitectura.Tests/PoolDeConexionesTests.cs) — tope de 30 conexiones en cada cadena (§3.7)
 - [ReglasAnomaliasTests.cs](../../backend/tests/KillaUru.Arquitectura.Tests/ReglasAnomaliasTests.cs)
 - [ReglasDeCapasTests.cs](../../backend/tests/KillaUru.Arquitectura.Tests/ReglasDeCapasTests.cs)
 - [ReglasDeDominioTests.cs](../../backend/tests/KillaUru.Arquitectura.Tests/ReglasDeDominioTests.cs)

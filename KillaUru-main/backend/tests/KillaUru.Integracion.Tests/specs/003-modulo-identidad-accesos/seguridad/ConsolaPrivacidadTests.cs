@@ -47,9 +47,9 @@ public sealed class ConsolaPrivacidadTests(BaseDatosPrueba bd)
     public async Task Enlace_inicial_aparece_solo_en_la_consola_y_no_en_los_logs()
     {
         // Arrange
-        using var logs = new StringWriter();
+        var logs = new SinkDePrueba();
         using var consola = new StringWriter();
-        using var logger = new LoggerConfiguration().MinimumLevel.Verbose().WriteTo.Sink(new SinkDePrueba(logs)).CreateLogger();
+        using var logger = new LoggerConfiguration().MinimumLevel.Verbose().WriteTo.Sink(logs).CreateLogger();
         using var api = HostConLogsCapturados(logger);
         EscribirLineaDeControl(api.Services);
 
@@ -59,7 +59,7 @@ public sealed class ConsolaPrivacidadTests(BaseDatosPrueba bd)
         // Assert
         Assert.Equal(0, codigoSalida);
         var token = consola.ToString().Split("#token=", StringSplitOptions.None)[1].Trim();
-        var registrado = logs.ToString();
+        var registrado = logs.Capturado;
         Assert.Contains("Captura activa", registrado);
         Assert.All(new[] { token, "semilla@example.com", "#token=" }, secreto => Assert.DoesNotContain(secreto, registrado));
     }

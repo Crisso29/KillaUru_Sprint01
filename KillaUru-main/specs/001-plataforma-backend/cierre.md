@@ -1,7 +1,7 @@
 # Cierre de spec 001 — Plataforma backend
 
 **Revisado:** 2026-11-15. **Estado:** cierre de producción no acreditado.
-**Seguimiento:** 71/84 tareas marcadas; 13 pendientes en tasks.md (T082–T084 añadidas el 2026-11-22 como deuda técnica).
+**Seguimiento:** 73/84 tareas marcadas; 11 pendientes en tasks.md (T082–T084 añadidas el 2026-11-22 como deuda técnica; T083 y T084 hechas el 2026-11-23).
 [Requisitos](spec.md) · [Tareas](tasks.md) · [Pruebas](pruebas.md) · [Plan de cierre global](../../docs/guias/cierre-y-despliegue.md)
 
 ## Dependencias
@@ -45,8 +45,6 @@ de la revisión. “Local” incluye implementación/documentación y preparaci�
 | T056 | Local | Ejecutar `quickstart.md` completo y marcar `checklists/trazabilidad.md` |
 | T057 | Desplegado/campo | Revisar costo: alertas de presupuesto en Oracle y Cloudflare a US$ 8 |
 | T082 | Local | Un solo `NpgsqlDataSource` para que el tope de 30 conexiones sea real (hoy 3 pools). [DT-02](../../docs/seguimiento/deuda-tecnica.md) |
-| T083 | Local | *Healthcheck* de PostgreSQL por TCP en los compose de la VM. [DT-03](../../docs/seguimiento/deuda-tecnica.md) |
-| T084 | Local | `SinkDePrueba` seguro entre hilos (prueba intermitente de 003). [DT-04](../../docs/seguimiento/deuda-tecnica.md) |
 
 ## Criterio de cierre
 

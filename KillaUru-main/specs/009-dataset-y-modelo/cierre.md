@@ -1,7 +1,7 @@
 # Cierre de spec 009 — Dataset y modelo
 
 **Revisado:** 2026-11-23. **Estado:** cierre de producción no acreditado.
-**Seguimiento:** 39/74 tareas marcadas; 35 pendientes en tasks.md (7 reabiertas el 2026-11-23 tras contrastarlas con las pruebas reales).
+**Seguimiento:** 45/74 tareas marcadas; 29 pendientes en tasks.md (2026-11-23: se reabrieron 7 al contrastarlas con las pruebas, se corrigieron ese mismo día junto con otras 5 que también prometían más de lo hecho, y se reabrió T036).
 [Requisitos](spec.md) · [Tareas](tasks.md) · [Pruebas](pruebas.md) · [Plan de cierre global](../../docs/guias/cierre-y-despliegue.md)
 
 ## Dependencias
@@ -14,13 +14,16 @@ Funciones de señal, partición, entrenamiento, conversión y pipeline sintétic
 
 Tareas documentales cerradas en esta revisión: T072. Eso no certifica ejecución funcional.
 
-**Revisión del 2026-11-23** ([evidencias](../../docs/seguimiento/evidencias/pruebas/2026-11-23-ml/README.md)): 148
-pruebas aprobadas y 1 `xfail` estricto; cobertura 95 % con puerta de 90 % en CI; funciones ≤ 20 líneas como prueba de
-arquitectura; AAA y nombres sin excepciones. Defectos corregidos: κ `nan` con una sola clase (rechazaba un acuerdo
-perfecto) y `tamano.py` sin pruebas. Defecto abierto: el manifiesto no cumple su contrato (T061).
+**Revisión del 2026-11-23** ([evidencias](../../docs/seguimiento/evidencias/pruebas/2026-11-23-ml/README.md)): 174
+pruebas aprobadas, 0 fallidas, 0 omitidas; cobertura 97 % (CI exige 90 %); funciones ≤ 20 líneas como prueba de
+arquitectura; AAA y nombres sin excepciones; dos corridas dan el mismo `.tflite` byte a byte. Se alineó el pipeline
+con su contrato: 20 características del data-model §4, modelo con `tipo_logits` y `severidad`, ventaneo con RN-03,
+partición declarada a mano con su huella, no-fuga con huellas y ajustes, prefiltro por `v_pap`, puerta con las 7
+condiciones de FR-028 y manifiesto que cumple el esquema. La app todavía usa el formato antiguo: 008 T130.
+
 ## Qué falta localmente
 
-El CLI solo despacha parte de las etapas. todo sin --sintetico y puerta devuelven 2; los subcomandos declarados no equivalen a implementación completa. Faltan calibración/decisión/informes, equivalencia/vectores/benchmark/versionado, integración del CLI y publicación.
+El CLI despacha `ingerir`, `validar-etiquetas`, `particion`, `estado`, `puerta` (0 aprobada / 1 rechazada) y `todo --sintetico`; `todo` con datos reales devuelve 2 hasta tener la campaña. Faltan calibración/decisión/informes, la medición de equivalencia/vectores/benchmark que alimenta la puerta, versionado y publicación.
 
 ## Qué falta en el entorno desplegado
 
@@ -40,16 +43,12 @@ de la revisión. “Local” incluye implementación/documentación y preparaci�
 | T022 | Desplegado/campo | Campaña: ≥ 10 recorridos en ambos sentidos con 3 celulares a la vez y ≥ 20 baches patrón medidos |
 | T023 | Desplegado/campo | Borrado de video a los 90 días del congelamiento (lista de grabaciones con video y fecha límite; lo corre el autor) |
 | T032 | Desplegado/campo | Etiquetar la campaña y el 10 % doble; `acuerdo` en verde |
-| T027 | Local | `ventilar` debe excluir ventanas fuera de RN-03 o con hueco; prueba del pico en la última muestra |
-| T033 | Local | Casos de partición pendientes (recorrido sin conjunto, 2 celulares, un sentido, 99/100, 399/400, `celularNoVisto`); confirmar reparto por semilla frente a FR-013 |
-| T034 | Local | Detectar fuga por normalización, prefiltro y temperatura; huella de ventanas |
+| T036 | Desplegado/campo | Llenar `particion.yaml` con los recorridos de la campaña (≈ 70/15/15, ambos sentidos y ≥ 3 celulares en prueba) y poner `congelada: true` antes de entrenar |
 | T040 | Local | `test_decision.py`: confidence 0.74 → Normal, 0.75 y 0.76 → anomalía; temperatura aplicada antes del softmax; `ConfidenceMinimo` leído de `puerta.yaml` |
-| T042 | Local | Segunda salida `severidad` y su pérdida que ignora Normal |
 | T043 | Local | `test_calibracion.py`: la temperatura baja la NLL de validación en un modelo sintético sobreconfiado y no lee prueba; `test_linea_base.py`: la línea base de umbrales clasifica las señales sintéticas |
 | T046 | Local | `calibracion.py` y `linea_base.py` |
 | T047 | Local | `decision.py`, `metricas.py`, `matriz.py` (incluye por celular, «baches no vistos», balanceado y `argmax` sin umbral) |
 | T048 | Local | `informe.py`: `informe.json`, `informe.md` y matriz CSV/JSON con commit, `datasetVersion`, huella, semilla y entorno |
-| T050 | Local | Comprobar las dos salidas del contrato y las operaciones int8 |
 | T051 | Local | `test_equivalencia.py`: tipo igual 98,9 % falla y 99 % pasa; Δ confidence p99 0.051 falla; un modelo con un peso alterado falla |
 | T052 | Local | `test_vectores_prueba.py`: ≥ 60 casos, 20 por clase, con casos cerca del umbral del prefiltro y de 0.75; recomputar características y salidas con el pipeline da lo guardado |
 | T053 | Local | `test_benchmark.py`: p95 49,9 ms pasa y 50,0 no; celular de 5 GB de RAM o de hace 5 años no cuenta como gama media; menos de 3 celulares válidos → falla |
@@ -58,8 +57,6 @@ de la revisión. “Local” incluye implementación/documentación y preparaci�
 | T057 | Local | `BenchmarkModelo.kt` (un intérprete, 1 hilo, 100 + 1 000), `Percentiles.kt` y `PantallaBenchmark.kt` (escribe el JSON) |
 | T058 | Local | `benchmark.py`: valida los JSON de `benchmark/` (gama media, ≥ 3 celulares, p95) |
 | T059 | Desplegado/campo | Medir la candidata en ≥ 3 celulares de gama media |
-| T060 | Local | Puerta con latencia, equivalencia, clases, acuerdo y partición; etapa `puerta` de la CLI |
-| T061 | Local | Manifiesto según `manifiesto-modelo.schema.json` (hoy 4 de 21 campos; prueba en `xfail` estricto) |
 | T062 | Local | `test_versiones.py`: cambia el catálogo → MAYOR; cambia `preprocesamientoVersion` → MENOR y sube `versionMinimaApp`; mismo contrato → PARCHE; `ds-<n>` y su huella |
 | T063 | Local | `versiones.py` |
 | T065 | Local | `publicar_r2.sh`: falla si la ruta de la versión existe; sube `.tflite`, matriz e informe con `immutable`; verifica con `curl` + `sha256sum` desde `cdn.killauru.pe`; sube el manifiesto al final; modo `--volver-atras <versión>` |

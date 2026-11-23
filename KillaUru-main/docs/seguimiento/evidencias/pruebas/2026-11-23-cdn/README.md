@@ -58,6 +58,6 @@ CDN local: el manifiesto responde **200 con ETag** y **304** con `If-None-Match`
 ## Lo que queda, con su motivo
 
 - **Publicar en R2**: correr `app-datos-r2` con `ensayo: true` y luego real (T127), con los secretos del autor.
-- **T128**: sombreado del tramo demo y aviso fuera del demo (prototipo 08).
+- **T129** (numerada T128 por error hasta el 2026-11-23): sombreado del tramo demo y aviso fuera del demo (prototipo 08).
 - **Panel**: apuntar `VITE_URL_ESTILO_MAPA` al estilo publicado en `/mapa/estilo.vN.json`.
 - Encima del mapa: estado de la detección, velocidad, hito y alertas (prototipos 07, 10–12): llegan con la detección.

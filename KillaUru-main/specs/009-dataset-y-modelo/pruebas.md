@@ -32,9 +32,9 @@ no equivale a una auditoría de ciberseguridad.
 
 ## Último resultado (2026-11-23)
 
-**148 aprobadas, 0 fallidas, 1 `xfail` estricto** (manifiesto fuera de contrato, T061) en 27 archivos:
-unitarias 96, integración 48, e2e 3, arquitectura 2. Cobertura de `killauru_ml` **95 %** (líneas y ramas; CI exige
-90 %). ruff sin hallazgos. Detalle, defectos encontrados y auditoría de tareas en
+**174 aprobadas, 0 fallidas, 0 omitidas** en 28 archivos: unitarias 120, integración 49, e2e 3, arquitectura 2.
+Cobertura de `killauru_ml` **97 %** (líneas y ramas; CI exige 90 %). ruff sin hallazgos. Dos corridas de
+`scripts/verificar_reproducibilidad.py` dan el mismo `.tflite` byte a byte. Detalle, defectos encontrados y auditoría de tareas en
 [evidencias 2026-11-23-ml](../../docs/seguimiento/evidencias/pruebas/2026-11-23-ml/README.md).
 
 Con cobertura: `python -m pytest --cov=killauru_ml --cov-branch`.
@@ -73,7 +73,7 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 </details>
 
 <details>
-<summary>Integración (10 archivos)</summary>
+<summary>Integración (11 archivos)</summary>
 
 - [test_catalogo.py](../../ml/tests/integracion/test_catalogo.py) — orden de clases = APK = contrato de la CDN
 - [test_cli.py](../../ml/tests/integracion/test_cli.py) — etapas de la línea de órdenes y sus códigos de salida
@@ -81,6 +81,7 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 - [test_cuantizar.py](../../ml/tests/integracion/test_cuantizar.py)
 - [test_entrenar.py](../../ml/tests/integracion/test_entrenar.py)
 - [test_estado.py](../../ml/tests/integracion/test_estado.py)
+- [test_etapa_puerta.py](../../ml/tests/integracion/test_etapa_puerta.py) — `puerta --version`: 0 y manifiesto si aprueba; 1 y nada si no
 - [test_grabacion.py](../../ml/tests/integracion/test_grabacion.py)
 - [test_ingerir.py](../../ml/tests/integracion/test_ingerir.py) — catálogo, huella sin video y grabación ilegible
 - [test_manifiesto.py](../../ml/tests/integracion/test_manifiesto.py)
@@ -102,7 +103,7 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 - [test_prefiltro.py](../../ml/tests/unitarias/test_prefiltro.py)
 - [test_puerta_completa.py](../../ml/tests/unitarias/test_puerta_completa.py)
 - [test_senal.py](../../ml/tests/unitarias/test_senal.py)
-- [test_tamano.py](../../ml/tests/unitarias/test_tamano.py) — mínimo de 200 ventanas reales por clase en prueba
+- [test_tamano.py](../../ml/tests/unitarias/test_tamano.py) — FR-014: mínimos por clase en cada conjunto, ≥ 3 celulares y ambos sentidos en prueba
 - [test_validar_etiquetas.py](../../ml/tests/unitarias/test_validar_etiquetas.py)
 - [test_ventaneo.py](../../ml/tests/unitarias/test_ventaneo.py)
 

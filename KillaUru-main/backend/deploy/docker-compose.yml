@@ -35,7 +35,9 @@ services:
       POSTGRES_PASSWORD: ${KU_PG_SUPERUSUARIO:?}
     volumes: [pgdata:/var/lib/postgresql/data]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d killauru"]
+      # Por TCP (DT-03): en el primer arranque la imagen levanta un servidor temporal solo por socket y se reinicia;
+      # sin -h el migrador podía conectarse justo en ese reinicio y fallar (exit 2, 2026-11-22).
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d killauru"]
       interval: 10s
       retries: 6
     cpus: "1.5"
