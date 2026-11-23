@@ -1,4 +1,4 @@
-# Calidad del código y de las pruebas (app Android y herramientas de la CDN)
+# Calidad del código y de las pruebas (app, backend, panel y herramientas de la CDN)
 
 > Medido sobre el código, no declarado. Alcance: lo hecho del 2026-11-22 al 2026-11-23 (cuenta, CDN, mapa) y las
 > reglas de la constitución (principio VIII y AGENTS.md). [Volver a evidencias](../../README.md).
@@ -72,3 +72,36 @@ Ver [cuenta](../2026-11-22-app-cuenta/README.md) y [CDN](../2026-11-23-cdn/READM
 el token y el seudónimo a la CDN pública; la sincronización y la purga nunca se programaban; cerrar sesión no
 revocaba en el servidor ni borraba el historial; `enDemo` nunca se calculaba; una carga vieja del mapa podía pisar a la
 nueva. En las pruebas: hilos de Room y la `Application` real se colaban entre pruebas.
+
+## 7. Backend (.NET) — revisión del 2026-11-23
+
+| Medida | Resultado |
+|---|---|
+| Pruebas (`tests/generar-resultados.ps1`, PostgreSQL real con Testcontainers) | **1 153**: 1 149 aprobadas, 3 omitidas (pendientes), **1 fallida** |
+| La fallida | `RecepcionApiTests.Lote_de_50_buenos_se_guarda_entero_y_pasa_a_procesado`: sola **pasa** (17 s). Espera un tiempo fijo a que se procesen 50 eventos; con el equipo cargado no alcanza. Es una prueba **dependiente del tiempo**: hay que esperar una condición, no un plazo fijo |
+| Cobertura del dominio (puerta de CI 90 %) | Anomalías, Auditoría, Dashboard, Identidad, Ingesta y Shared **100 %**; Mapa **97 %** |
+| Reglas automáticas que ya existían | capas y módulos que no se mezclan, un tipo por archivo sin `partial`, métodos cortos, archivos < 200 líneas, APIs prohibidas (`DateTime.Now`), pool de conexiones — 497 pruebas de arquitectura |
+| Patrón AAA | **105 de 465** pruebas sin marcar las secciones (23 %). Algunas son de una sola línea (`=> Assert…`), donde el AAA es implícito; otras son largas sin separar (p. ej. `ProcesarLoteUseCaseTests`, `ContextoTransaccionTests`) |
+| Nombres | 40 variables de una letra; la mayoría son contadores o fórmulas (`i`, `x`, `y`); deben cambiarse `var r`, `var a`, `var d` en controladores, repositorios y el Dashboard |
+
+## 8. Panel (React) — revisión del 2026-11-23
+
+| Medida | Resultado |
+|---|---|
+| Pruebas Vitest | **416 de 416** aprobadas (58 archivos) |
+| Cobertura | **79,9 %** de líneas, 83,4 % de ramas |
+| Tipos (`tsc -b`) y ESLint | sin errores ni avisos |
+| E2E (Playwright) | **4 implementadas, 39 en `skip`/`fixme`** — el hueco más visible del panel |
+| Patrón AAA | **369 de 387** pruebas sin marcar las secciones |
+| Funciones de más de 20 líneas (constitución, regla no aplicada por ESLint) | **61 en 57 archivos** de producción; las mayores: `PaginaAuditoria` (95), `MenuUsuario` (80), `LienzoMapa` (76), `FormularioLogin` (75), `PaginaUsuarios` (75). Varias las reescribí yo en la sesión anterior |
+| Nombres | 76 nombres de una letra (`const r = await fetch…`, `const m`, `const s`…) |
+| Diseño | `PaginaAuditoria.tsx` llama a `fetch` desde la pantalla (dos veces) en lugar de usar su capa `api/`, como hacen las demás funcionalidades |
+
+## 9. Plan para cerrar la deuda (por impacto ante los revisores)
+
+1. Panel: activar `max-lines-per-function: 20` en ESLint y partir las 61 funciones (con las pruebas de componentes como red).
+2. Panel: AAA en las 369 pruebas y llevar `fetch` de `PaginaAuditoria` a `auditoria/api/`.
+3. Panel: implementar los E2E pendientes por prioridad (login, mapa, moderación, accesibilidad).
+4. Backend: AAA en las 105 pruebas; renombrar las variables de una letra que no son fórmulas.
+5. Backend: la prueba de 50 eventos debe esperar una condición (sondeo con plazo) en vez de un tiempo fijo.
+
