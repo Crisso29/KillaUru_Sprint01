@@ -12,5 +12,6 @@ matplotlib>=3.8
 
 # Dev / test
 pytest>=8.1
+pytest-cov>=6.0
 ruff>=0.4
 pip-tools>=7.4

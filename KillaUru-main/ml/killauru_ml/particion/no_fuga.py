@@ -16,10 +16,10 @@ def verificar_no_fuga(particion: dict[str, list[VentanaDataset]]) -> None:
     conjuntos = list(particion.items())
     for i in range(len(conjuntos)):
         nombre_i, ventanas_i = conjuntos[i]
-        recs_i = {v.recorrido for v in ventanas_i}
+        recs_i = {ventana.recorrido for ventana in ventanas_i}
         for j in range(i + 1, len(conjuntos)):
             nombre_j, ventanas_j = conjuntos[j]
-            recs_j = {v.recorrido for v in ventanas_j}
+            recs_j = {ventana.recorrido for ventana in ventanas_j}
             cruce = recs_i & recs_j
             if cruce:
                 recorridos_str = ", ".join(sorted(cruce))

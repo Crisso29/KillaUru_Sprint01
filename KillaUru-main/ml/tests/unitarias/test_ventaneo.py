@@ -11,11 +11,11 @@ _NS_POR_MS = 1_000_000
 
 def _señal(n_ventanas: int = 10) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Señal sintética de n_ventanas ventanas: timestamps, a_v, velocidad, km."""
-    n = n_ventanas * _MUESTRAS
-    t_ns = np.arange(n) * (1_000_000_000 // _HZ)
-    a_v = np.zeros(n, dtype=np.float32)
-    velocidad_ms = np.full(n, 10.0, dtype=np.float32)  # > 5 km/h todo el tiempo
-    km = np.arange(n, dtype=np.float32) * 0.001
+    muestras = n_ventanas * _MUESTRAS
+    t_ns = np.arange(muestras) * (1_000_000_000 // _HZ)
+    a_v = np.zeros(muestras, dtype=np.float32)
+    velocidad_ms = np.full(muestras, 10.0, dtype=np.float32)  # > 5 km/h todo el tiempo
+    km = np.arange(muestras, dtype=np.float32) * 0.001
     return t_ns, a_v, velocidad_ms, km
 
 
@@ -27,7 +27,7 @@ def test_ventanas_tienen_25_muestras(tmp_path) -> None:
     # Act
     ventanas = ventilar(t_ns, a_v, vel, km, etiquetas=[], conjunto="prueba")
     # Assert — cada ventana tiene exactamente 25 muestras
-    assert all(len(v.a_v) == 25 for v in ventanas)
+    assert all(len(ventana.a_v) == 25 for ventana in ventanas)
 
 
 def test_ventanas_no_se_solapan(tmp_path) -> None:
@@ -51,7 +51,7 @@ def test_vecina_a_249_ms_es_zona_gris(tmp_path) -> None:
     # Act
     ventanas = ventilar(t_ns, a_v, vel, km, etiquetas=etiquetas, conjunto="entrenamiento")
     # Assert — la ventana vecina (< 250 ms) debe ser zona gris
-    vecinas = [v for v in ventanas if v.zona_gris and abs(v.t_fin_ns - pico_ns) <= 250 * _NS_POR_MS]
+    vecinas = [ventana for ventana in ventanas if ventana.zona_gris and abs(ventana.t_fin_ns - pico_ns) <= 250 * _NS_POR_MS]
     assert len(vecinas) >= 1
 
 
@@ -65,7 +65,7 @@ def test_vecina_a_250_ms_no_es_zona_gris(tmp_path) -> None:
     # Act
     ventanas = ventilar(t_ns, a_v, vel, km, etiquetas=etiquetas, conjunto="entrenamiento")
     # Assert — ventana 2 (borde a 500 ms del pico): NOT zona gris
-    ventana2 = [v for v in ventanas if v.t_inicio_ns == t_ns[25]][0]
+    ventana2 = [ventana for ventana in ventanas if ventana.t_inicio_ns == t_ns[25]][0]
     assert not ventana2.zona_gris
 
 
@@ -81,7 +81,7 @@ def test_dos_eventos_en_misma_ventana_gana_mayor_severidad(tmp_path) -> None:
     ]
     # Act
     ventanas = ventilar(t_ns, a_v, vel, km, etiquetas=etiquetas, conjunto="entrenamiento")
-    ventana2 = [v for v in ventanas if v.t_inicio_ns == t_ns[25]][0]
+    ventana2 = [ventana for ventana in ventanas if ventana.t_inicio_ns == t_ns[25]][0]
     # Assert — gana la severidad mayor
     assert ventana2.severidad == 4
 
@@ -96,7 +96,7 @@ def test_empate_de_severidad_gana_bache(tmp_path) -> None:
     ]
     # Act
     ventanas = ventilar(t_ns, a_v, vel, km, etiquetas=etiquetas, conjunto="entrenamiento")
-    ventana2 = [v for v in ventanas if v.t_inicio_ns == t_ns[25]][0]
+    ventana2 = [ventana for ventana in ventanas if ventana.t_inicio_ns == t_ns[25]][0]
     # Assert — empate → Bache (FR-012)
     assert ventana2.tipo == "Bache"
 
@@ -109,9 +109,9 @@ def test_salida_no_tiene_latitud_ni_longitud(tmp_path) -> None:
     # Act
     ventanas = ventilar(t_ns, a_v, vel, km, etiquetas=[], conjunto="prueba")
     # Assert — FR-005: sin lat ni lon en el dataset derivado
-    for v in ventanas:
-        assert not hasattr(v, "lat")
-        assert not hasattr(v, "lon")
+    for ventana in ventanas:
+        assert not hasattr(ventana, "lat")
+        assert not hasattr(ventana, "lon")
 
 
 # --- aumento solo en entrenamiento ---
@@ -124,7 +124,7 @@ def test_aumento_solo_en_entrenamiento(tmp_path) -> None:
     ventanas_ent = ventilar(t_ns, a_v, vel, km, etiquetas=etiquetas, conjunto="entrenamiento", aumentar=True)
     ventanas_prueba = ventilar(t_ns, a_v, vel, km, etiquetas=etiquetas, conjunto="prueba", aumentar=True)
     # Assert — aumentadas solo en entrenamiento
-    aumentadas_ent = [v for v in ventanas_ent if v.aumentada]
-    aumentadas_prueba = [v for v in ventanas_prueba if v.aumentada]
+    aumentadas_ent = [ventana for ventana in ventanas_ent if ventana.aumentada]
+    aumentadas_prueba = [ventana for ventana in ventanas_prueba if ventana.aumentada]
     assert len(aumentadas_ent) > 0
     assert len(aumentadas_prueba) == 0

@@ -70,7 +70,8 @@ description: "Tareas del dataset y el modelo de detección (HU-28)"
 - [x] T024 [P] [US2] `test_candidatos.py`: ninguna pasada sintética sobre un patrón queda fuera; cada fila trae hora, km, velocidad y segundo del video — `MT/test_candidatos.py` · (FR-008)
 - [x] T025 [P] [US2] `test_validar_etiquetas.py`: Normal con severidad → error; Bache sin severidad → error; severidad 0 y 6 → error, 1 y 5 pasan; subtipo con Bache → error; tipo `Rompemuelles` → error (es subtipo); patrón con otra severidad → error — `MT/test_validar_etiquetas.py` · (FR-009, FR-010)
 - [x] T026 [P] [US2] `test_acuerdo.py`: emparejamiento a ± 250 ms; κ 0.79 falla y 0.80 pasa; severidad ± 1 en 89 % falla y 90 % pasa — `MT/test_acuerdo.py` · (FR-011)
-- [x] T027 [P] [US2] `test_ventaneo.py`: 25 muestras sin solapamiento; el pico en la última muestra pertenece a esa ventana; vecina a 249 ms = zona gris y a 250 ms no; dos eventos → mayor severidad (empate → Bache); fuera de RN-03 o con hueco → excluida; la salida no tiene latitud ni longitud; aumento ± 200 ms solo en entrenamiento — `MT/test_ventaneo.py` · (FR-005, FR-012)
+- [ ] T027 [P] [US2] `test_ventaneo.py`: 25 muestras sin solapamiento; el pico en la última muestra pertenece a esa ventana; vecina a 249 ms = zona gris y a 250 ms no; dos eventos → mayor severidad (empate → Bache); fuera de RN-03 o con hueco → excluida; la salida no tiene latitud ni longitud; aumento ± 200 ms solo en entrenamiento — `MT/test_ventaneo.py` · (FR-005, FR-012)
+  **Reabierta 2026-11-23:** `ventilar` recibe la velocidad pero no excluye ventanas fuera de RN-03 ni con hueco; tampoco hay prueba del pico en la última muestra.
 
 ### Implementación
 
@@ -86,8 +87,10 @@ description: "Tareas del dataset y el modelo de detección (HU-28)"
 
 ### Pruebas
 
-- [x] T033 [P] [US3] `test_particion.py`: recorrido en dos conjuntos → error; recorrido del catálogo sin conjunto → error; 199 ventanas de Hundimiento en prueba → error y 200 pasa; 2 celulares en prueba → error; un solo sentido → error; validación 99/100; entrenamiento 399/400; `celularNoVisto` solo en prueba; cambiar una partición congelada cambia la huella — `MT/test_particion.py` · (FR-013, FR-014)
-- [x] T034 [P] [US3] `test_no_fuga.py`: pares (recorrido, celular) disjuntos; la normalización, el prefiltro y la temperatura ajustados con datos de prueba se detectan y fallan; ninguna huella de ventana de prueba en entrenamiento — `MT/test_no_fuga.py` · (FR-013, FR-015)
+- [ ] T033 [P] [US3] `test_particion.py`: recorrido en dos conjuntos → error; recorrido del catálogo sin conjunto → error; 199 ventanas de Hundimiento en prueba → error y 200 pasa; 2 celulares en prueba → error; un solo sentido → error; validación 99/100; entrenamiento 399/400; `celularNoVisto` solo en prueba; cambiar una partición congelada cambia la huella — `MT/test_particion.py` · (FR-013, FR-014)
+  **Reabierta 2026-11-23:** existen 6 casos de reparto; 199/200 por clase ya está en `test_tamano.py` (3 casos). Faltan: recorrido sin conjunto, 2 celulares en prueba, un solo sentido, 99/100, 399/400 y `celularNoVisto`. `partir()` reparte con semilla y fracciones, no por recorrido declarado (confirmar con FR-013).
+- [ ] T034 [P] [US3] `test_no_fuga.py`: pares (recorrido, celular) disjuntos; la normalización, el prefiltro y la temperatura ajustados con datos de prueba se detectan y fallan; ninguna huella de ventana de prueba en entrenamiento — `MT/test_no_fuga.py` · (FR-013, FR-015)
+  **Reabierta 2026-11-23:** solo se prueba el cruce de recorridos; falta detectar normalización, prefiltro y temperatura ajustados con prueba, y la huella de ventanas.
 
 ### Implementación
 
@@ -105,7 +108,8 @@ description: "Tareas del dataset y el modelo de detección (HU-28)"
 - [x] T039 [P] [US4] `test_prefiltro.py`: el umbral deja pasar ≥ 99 % de las anomalías de entrenamiento (98,9 % falla); ventana bajo el umbral → Normal sin llamar al modelo — `MT/test_prefiltro.py` · (FR-018)
 - [ ] T040 [P] [US4] `test_decision.py`: confidence 0.74 → Normal, 0.75 y 0.76 → anomalía; temperatura aplicada antes del softmax; `ConfidenceMinimo` leído de `puerta.yaml` — `MT/test_decision.py` · (FR-020, FR-021)
 - [x] T041 [P] [US4] `test_metricas.py`: *precision* y *recall* por clase en una matriz conocida; 0,899 no cumple y 0,900 sí; severidad ± 1 solo sobre anomalías detectadas con el tipo correcto (79 %/80 %); matriz en orden `Normal, Bache, Hundimiento` — `MT/test_metricas.py` · (FR-021)
-- [x] T042 [P] [US4] `test_entrenamiento.py`: dos corridas con la semilla 2828 → misma huella de pesos; la pérdida de severidad ignora Normal; la red tiene ≤ 2 capas ocultas y salidas `tipo_logits` (3) y `severidad` (1) — `MT/test_entrenamiento.py` · (FR-016, FR-019)
+- [ ] T042 [P] [US4] `test_entrenamiento.py`: dos corridas con la semilla 2828 → misma huella de pesos; la pérdida de severidad ignora Normal; la red tiene ≤ 2 capas ocultas y salidas `tipo_logits` (3) y `severidad` (1) — `MT/test_entrenamiento.py` · (FR-016, FR-019)
+  **Reabierta 2026-11-23:** la misma semilla da los mismos pesos (probado), pero el modelo tiene una sola salida softmax; faltan la salida `severidad` y su pérdida que ignora Normal.
 - [ ] T043 [P] [US4] `test_calibracion.py`: la temperatura baja la NLL de validación en un modelo sintético sobreconfiado y no lee prueba; `test_linea_base.py`: la línea base de umbrales clasifica las señales sintéticas — `MT/test_calibracion.py`, `MT/test_linea_base.py` · (FR-020, FR-021)
 
 ### Implementación
@@ -123,7 +127,8 @@ description: "Tareas del dataset y el modelo de detección (HU-28)"
 
 ### Pruebas
 
-- [x] T050 [P] [US5] `test_cuantizacion.py`: `.tflite` < 5 MB; entrada `caracteristicas [1,20] float32`; salidas `tipo_logits [1,3]` y `severidad [1,1]` `float32`; operaciones int8 — `MT/test_cuantizacion.py` · (FR-019, FR-023)
+- [ ] T050 [P] [US5] `test_cuantizacion.py`: `.tflite` < 5 MB; entrada `caracteristicas [1,20] float32`; salidas `tipo_logits [1,3]` y `severidad [1,1]` `float32`; operaciones int8 — `MT/test_cuantizacion.py` · (FR-019, FR-023)
+  **Reabierta 2026-11-23:** < 5 MB y coherencia con Keras probados; faltan las dos salidas del contrato y la comprobación de operaciones int8.
 - [ ] T051 [P] [US5] `test_equivalencia.py`: tipo igual 98,9 % falla y 99 % pasa; Δ confidence p99 0.051 falla; un modelo con un peso alterado falla — `MT/test_equivalencia.py` · (FR-024)
 - [ ] T052 [P] [US5] `test_vectores_prueba.py`: ≥ 60 casos, 20 por clase, con casos cerca del umbral del prefiltro y de 0.75; recomputar características y salidas con el pipeline da lo guardado — `MT/test_vectores_prueba.py` · (FR-025)
 - [ ] T053 [P] [US5] `test_benchmark.py`: p95 49,9 ms pasa y 50,0 no; celular de 5 GB de RAM o de hace 5 años no cuenta como gama media; menos de 3 celulares válidos → falla — `MT/test_benchmark.py` · (FR-026)
@@ -143,8 +148,10 @@ description: "Tareas del dataset y el modelo de detección (HU-28)"
 
 ### Pruebas
 
-- [x] T060 [P] [US6] `test_puerta.py`: falla (código ≠ 0) por cada condición sola: una clase bajo 0,90; severidad bajo 0,80; < 200 por clase; latencia; equivalencia; tamaño; clases ≠ RN-01; acuerdo; partición; pasa con todo en verde — `MT/test_puerta.py` · (FR-028)
-- [x] T061 [P] [US6] `test_manifiesto.py`: valida contra `contracts/manifiesto-modelo.schema.json`; SHA-256 y tamaño = archivo; no trae `ConfidenceMinimo`; URLs en `cdn.killauru.pe/modelo/<versión>/` — `MT/test_manifiesto.py` · (FR-029)
+- [ ] T060 [P] [US6] `test_puerta.py`: falla (código ≠ 0) por cada condición sola: una clase bajo 0,90; severidad bajo 0,80; < 200 por clase; latencia; equivalencia; tamaño; clases ≠ RN-01; acuerdo; partición; pasa con todo en verde — `MT/test_puerta.py` · (FR-028)
+  **Reabierta 2026-11-23:** se prueban tamaño, métricas por clase y severidad; faltan latencia, equivalencia, clases ≠ RN-01, acuerdo y partición, y la etapa `puerta` de la CLI aún devuelve 2.
+- [ ] T061 [P] [US6] `test_manifiesto.py`: valida contra `contracts/manifiesto-modelo.schema.json`; SHA-256 y tamaño = archivo; no trae `ConfidenceMinimo`; URLs en `cdn.killauru.pe/modelo/<versión>/` — `MT/test_manifiesto.py` · (FR-029)
+  **Reabierta 2026-11-23:** `generar_manifiesto` produce 4 campos y el contrato exige 21; `test_manifiesto_cumple_el_contrato_que_lee_la_app` queda como `xfail` estricto hasta corregirlo.
 - [ ] T062 [P] [US6] `test_versiones.py`: cambia el catálogo → MAYOR; cambia `preprocesamientoVersion` → MENOR y sube `versionMinimaApp`; mismo contrato → PARCHE; `ds-<n>` y su huella — `MT/test_versiones.py` · (FR-027)
 
 ### Implementación

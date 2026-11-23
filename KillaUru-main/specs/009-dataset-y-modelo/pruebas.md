@@ -30,6 +30,15 @@ python -m pytest tests/arquitectura
 La separación de particiones evita contaminación de la evaluación;
 no equivale a una auditoría de ciberseguridad.
 
+## Último resultado (2026-11-23)
+
+**148 aprobadas, 0 fallidas, 1 `xfail` estricto** (manifiesto fuera de contrato, T061) en 27 archivos:
+unitarias 96, integración 48, e2e 3, arquitectura 2. Cobertura de `killauru_ml` **95 %** (líneas y ramas; CI exige
+90 %). ruff sin hallazgos. Detalle, defectos encontrados y auditoría de tareas en
+[evidencias 2026-11-23-ml](../../docs/seguimiento/evidencias/pruebas/2026-11-23-ml/README.md).
+
+Con cobertura: `python -m pytest --cov=killauru_ml --cov-branch`.
+
 ## Qué falta acreditar
 
 La campaña de campo, el benchmark en dispositivos y la publicación final siguen sujetos
@@ -49,8 +58,9 @@ Abre una categoría para ir al archivo exacto. Se listan archivos con pruebas, n
 helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecutarlos.
 
 <details>
-<summary>Arquitectura (1 archivo)</summary>
+<summary>Arquitectura (2 archivos)</summary>
 
+- [test_funciones_cortas.py](../../ml/tests/arquitectura/test_funciones_cortas.py) — ninguna función de más de 20 líneas
 - [test_limite_lineas.py](../../ml/tests/arquitectura/test_limite_lineas.py)
 
 </details>
@@ -63,20 +73,23 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 </details>
 
 <details>
-<summary>Integración (7 archivos)</summary>
+<summary>Integración (10 archivos)</summary>
 
+- [test_catalogo.py](../../ml/tests/integracion/test_catalogo.py) — orden de clases = APK = contrato de la CDN
+- [test_cli.py](../../ml/tests/integracion/test_cli.py) — etapas de la línea de órdenes y sus códigos de salida
 - [test_comun.py](../../ml/tests/integracion/test_comun.py)
 - [test_cuantizar.py](../../ml/tests/integracion/test_cuantizar.py)
 - [test_entrenar.py](../../ml/tests/integracion/test_entrenar.py)
 - [test_estado.py](../../ml/tests/integracion/test_estado.py)
 - [test_grabacion.py](../../ml/tests/integracion/test_grabacion.py)
+- [test_ingerir.py](../../ml/tests/integracion/test_ingerir.py) — catálogo, huella sin video y grabación ilegible
 - [test_manifiesto.py](../../ml/tests/integracion/test_manifiesto.py)
 - [test_particion_sin_fuga.py](../../ml/tests/integracion/test_particion_sin_fuga.py)
 
 </details>
 
 <details>
-<summary>Unitarias (13 archivos)</summary>
+<summary>Unitarias (14 archivos)</summary>
 
 - [test_acuerdo.py](../../ml/tests/unitarias/test_acuerdo.py)
 - [test_candidatos.py](../../ml/tests/unitarias/test_candidatos.py)
@@ -89,6 +102,7 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 - [test_prefiltro.py](../../ml/tests/unitarias/test_prefiltro.py)
 - [test_puerta_completa.py](../../ml/tests/unitarias/test_puerta_completa.py)
 - [test_senal.py](../../ml/tests/unitarias/test_senal.py)
+- [test_tamano.py](../../ml/tests/unitarias/test_tamano.py) — mínimo de 200 ventanas reales por clase en prueba
 - [test_validar_etiquetas.py](../../ml/tests/unitarias/test_validar_etiquetas.py)
 - [test_ventaneo.py](../../ml/tests/unitarias/test_ventaneo.py)
 

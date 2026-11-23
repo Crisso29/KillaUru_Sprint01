@@ -22,7 +22,7 @@ def verificar_tamano(
     """
     ventanas = particion.get(conjunto, [])
     conteo = Counter(
-        v.tipo for v in ventanas if not v.aumentada
+        ventana.tipo for ventana in ventanas if not ventana.aumentada
     )
     faltantes = [
         f"{cls}: {conteo.get(cls, 0)} < {minimo}"
@@ -41,5 +41,5 @@ def resumen_tamano(
     """Devuelve {conjunto → {tipo → n}} para diagnóstico."""
     resultado: dict[str, dict[str, int]] = {}
     for nombre, ventanas in particion.items():
-        resultado[nombre] = dict(Counter(v.tipo for v in ventanas if not v.aumentada))
+        resultado[nombre] = dict(Counter(ventana.tipo for ventana in ventanas if not ventana.aumentada))
     return resultado

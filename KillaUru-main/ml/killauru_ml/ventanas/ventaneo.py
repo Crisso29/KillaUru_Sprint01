@@ -38,61 +38,42 @@ def ventilar(
     - Ventana dentro de < 250 ms de un pico vecino = zona gris.
     - Aumento ±200 ms solo en conjunto='entrenamiento'.
     """
-    t_ns = np.asarray(t_ns, dtype=np.int64)
-    a_v = np.asarray(a_v, dtype=np.float32)
-    n = len(t_ns)
+    ventanas = _cortar(np.asarray(t_ns, dtype=np.int64), np.asarray(a_v, dtype=np.float32), etiquetas)
+    if aumentar and conjunto == "entrenamiento":
+        ventanas += _aumentar(ventanas, etiquetas)
+    return ventanas
+
+
+def _cortar(t_ns: np.ndarray, a_v: np.ndarray, etiquetas: list[dict]) -> list[VentanaDataset]:
+    """Ventanas consecutivas de 25 muestras, cada una con su etiqueta ganadora y si cae en zona gris."""
+    total = len(t_ns)
+    paso_ns = int(t_ns[1] - t_ns[0]) if total > 1 else 20_000_000  # muestreo uniforme (50 Hz)
     ventanas: list[VentanaDataset] = []
-
-    # Paso temporal entre muestras (asumimos uniforme)
-    paso_ns = int(t_ns[1] - t_ns[0]) if n > 1 else 20_000_000
-
-    n_ventanas = n // _MUESTRAS_VENTANA
-    for i in range(n_ventanas):
-        inicio = i * _MUESTRAS_VENTANA
+    for numero in range(total // _MUESTRAS_VENTANA):
+        inicio = numero * _MUESTRAS_VENTANA
         fin = inicio + _MUESTRAS_VENTANA
         t_ini = int(t_ns[inicio])
-        # t_fin = timestamp del primer sample de la siguiente ventana
-        t_fin = int(t_ns[fin]) if fin < n else int(t_ns[fin - 1]) + paso_ns
-
-        # Etiqueta ganadora
+        # t_fin = hora de la primera muestra de la ventana siguiente
+        t_fin = int(t_ns[fin]) if fin < total else int(t_ns[fin - 1]) + paso_ns
         tipo, severidad = _etiqueta_ventana(t_ini, t_fin, etiquetas)
-
-        # Zona gris: algún pico vecino (fuera de esta ventana) a < 250 ms
-        zona_gris = _es_zona_gris(t_ini, t_fin, etiquetas)
-
-        ventanas.append(
-            VentanaDataset(
-                a_v=a_v[inicio:fin].copy(),
-                t_inicio_ns=t_ini,
-                t_fin_ns=t_fin,
-                tipo=tipo,
-                severidad=severidad,
-                zona_gris=zona_gris,
-                aumentada=False,
-            )
-        )
-
-    # Aumento solo en entrenamiento
-    if aumentar and conjunto == "entrenamiento":
-        for etq in etiquetas:
-            t_pico = etq["t_pico_ns"]
-            for delta_ns in (-_AUMENTO_NS, +_AUMENTO_NS):
-                t_aug = t_pico + delta_ns
-                # Buscar ventana base más cercana
-                base = _ventana_mas_cercana(ventanas, t_aug)
-                if base is not None:
-                    aug = VentanaDataset(
-                        a_v=base.a_v.copy(),
-                        t_inicio_ns=base.t_inicio_ns,
-                        t_fin_ns=base.t_fin_ns,
-                        tipo=etq.get("tipo", "Normal"),
-                        severidad=etq.get("severidad"),
-                        zona_gris=base.zona_gris,
-                        aumentada=True,
-                    )
-                    ventanas.append(aug)
-
+        ventanas.append(VentanaDataset(a_v=a_v[inicio:fin].copy(), t_inicio_ns=t_ini, t_fin_ns=t_fin, tipo=tipo,
+                                       severidad=severidad, zona_gris=_es_zona_gris(t_ini, t_fin, etiquetas)))
     return ventanas
+
+
+def _aumentar(ventanas: list[VentanaDataset], etiquetas: list[dict]) -> list[VentanaDataset]:
+    """Solo para entrenamiento: copia la ventana más cercana a ±200 ms de cada pico, con la etiqueta de ese pico."""
+    aumentadas = []
+    for etiqueta in etiquetas:
+        for desfase_ns in (-_AUMENTO_NS, +_AUMENTO_NS):
+            base = _ventana_mas_cercana(ventanas, etiqueta["t_pico_ns"] + desfase_ns)
+            if base is not None:
+                aumentadas.append(VentanaDataset(
+                    a_v=base.a_v.copy(), t_inicio_ns=base.t_inicio_ns, t_fin_ns=base.t_fin_ns,
+                    tipo=etiqueta.get("tipo", "Normal"), severidad=etiqueta.get("severidad"),
+                    zona_gris=base.zona_gris, aumentada=True,
+                ))
+    return aumentadas
 
 
 # ---------------------------------------------------------------------------
@@ -107,15 +88,15 @@ def _etiqueta_ventana(
 ) -> tuple[str, int | None]:
     """Devuelve (tipo, severidad) ganadora para la ventana [t_ini, t_fin)."""
     candidatas = [
-        e for e in etiquetas
-        if t_ini <= e["t_pico_ns"] < t_fin
+        etiqueta for etiqueta in etiquetas
+        if t_ini <= etiqueta["t_pico_ns"] < t_fin
     ]
     if not candidatas:
         return "Normal", None
 
-    def _clave(e: dict) -> tuple[int, int]:
-        sev = e.get("severidad") or 0
-        prio = _PRIORIDAD.get(e.get("tipo", "Normal"), 0)
+    def _clave(etiqueta: dict) -> tuple[int, int]:
+        sev = etiqueta.get("severidad") or 0
+        prio = _PRIORIDAD.get(etiqueta.get("tipo", "Normal"), 0)
         return (sev, prio)
 
     ganadora = max(candidatas, key=_clave)
@@ -124,8 +105,8 @@ def _etiqueta_ventana(
 
 def _es_zona_gris(t_ini: int, t_fin: int, etiquetas: list[dict]) -> bool:
     """True si algún pico FUERA de esta ventana está a < 250 ms de sus bordes."""
-    for e in etiquetas:
-        t_pico = e["t_pico_ns"]
+    for etiqueta in etiquetas:
+        t_pico = etiqueta["t_pico_ns"]
         # Pico dentro de la ventana no cuenta
         if t_ini <= t_pico < t_fin:
             continue
@@ -140,7 +121,7 @@ def _ventana_mas_cercana(
     ventanas: list[VentanaDataset], t_ns: int
 ) -> VentanaDataset | None:
     """Ventana cuyo intervalo contiene t_ns o es la más cercana."""
-    for v in ventanas:
-        if v.t_inicio_ns <= t_ns < v.t_fin_ns:
-            return v
+    for ventana in ventanas:
+        if ventana.t_inicio_ns <= t_ns < ventana.t_fin_ns:
+            return ventana
     return None

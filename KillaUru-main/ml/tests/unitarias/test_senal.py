@@ -28,9 +28,9 @@ def test_gravedad_es_media_de_100_muestras() -> None:
     rng = np.random.default_rng(2828)
     accel = np.tile([0.0, 0.0, 9.81], (100, 1)) + rng.normal(0, 0.01, (100, 3))
     # Act
-    g = estimar_gravedad(accel)
+    estimada = estimar_gravedad(accel)
     # Assert — debe ser muy cercano a [0, 0, 9.81]
-    np.testing.assert_allclose(g, [0.0, 0.0, 9.81], atol=0.1)
+    np.testing.assert_allclose(estimada, [0.0, 0.0, 9.81], atol=0.1)
 
 
 # ---------------------------------------------------------------------------

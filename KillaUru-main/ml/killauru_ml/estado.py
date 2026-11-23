@@ -42,8 +42,8 @@ def _contar_catalogo(ruta: pathlib.Path) -> tuple[int, int]:
     total = 0
     aptas = 0
     try:
-        with ruta.open(newline="", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
+        with ruta.open(newline="", encoding="utf-8") as archivo:
+            reader = csv.DictReader(archivo)
             for fila in reader:
                 total += 1
                 if fila.get("estado", "").strip() == "Apta":

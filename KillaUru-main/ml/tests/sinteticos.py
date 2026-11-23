@@ -23,33 +23,43 @@ def _generar_acelerometro(
     patron: str,
     t0_ns: int,
 ) -> list[tuple[int, float, float, float]]:
-    """Genera muestras de acelerómetro según el patrón indicado."""
+    """Genera muestras de acelerómetro: gravedad + ruido, más la forma del patrón ("liso" no añade nada)."""
     dt_ns = _NS_POR_S // _HZ
-    gravedad = np.array([0.0, 0.0, 9.81])
     ruido = rng.normal(0, 0.05, (n_muestras, 3))
-    señal = np.tile(gravedad, (n_muestras, 1)) + ruido
+    senal = np.tile(np.array([0.0, 0.0, 9.81]), (n_muestras, 1)) + ruido
+    _PATRONES.get(patron, _liso)(senal, ruido)
+    return [(t0_ns + i * dt_ns, float(ax), float(ay), float(az)) for i, (ax, ay, az) in enumerate(senal)]
 
-    if patron == "bache":
-        pico = n_muestras // 2
-        señal[pico, 2] += 12.0
-        señal[pico + 2, 2] -= 8.0
-    elif patron == "hundimiento":
-        pico = n_muestras // 2
-        señal[pico, 2] -= 10.0
-    elif patron == "rompemuelles":
-        pico = n_muestras // 2
-        señal[pico, 2] += 6.0
-    # "liso" y "inclinado" solo usan ruido / gravedad modificada
 
-    if patron == "inclinado":
-        angulo = np.radians(30)
-        señal[:, 1] += 9.81 * np.sin(angulo)
-        señal[:, 2] = 9.81 * np.cos(angulo) + ruido[:, 2]
+def _liso(senal: np.ndarray, ruido: np.ndarray) -> None:
+    """Solo gravedad y ruido."""
 
-    filas = []
-    for i, (ax, ay, az) in enumerate(señal):
-        filas.append((t0_ns + i * dt_ns, float(ax), float(ay), float(az)))
-    return filas
+
+def _bache(senal: np.ndarray, ruido: np.ndarray) -> None:
+    """Golpe hacia arriba y rebote hacia abajo 40 ms después."""
+    pico = len(senal) // 2
+    senal[pico, 2] += 12.0
+    senal[pico + 2, 2] -= 8.0
+
+
+def _hundimiento(senal: np.ndarray, ruido: np.ndarray) -> None:
+    """Caída de la rueda: aceleración vertical negativa."""
+    senal[len(senal) // 2, 2] -= 10.0
+
+
+def _rompemuelles(senal: np.ndarray, ruido: np.ndarray) -> None:
+    """Subida suave: debe clasificarse Normal, no Bache."""
+    senal[len(senal) // 2, 2] += 6.0
+
+
+def _inclinado(senal: np.ndarray, ruido: np.ndarray) -> None:
+    """Celular inclinado 30°: la gravedad se reparte entre los ejes y y z."""
+    angulo = np.radians(30)
+    senal[:, 1] += 9.81 * np.sin(angulo)
+    senal[:, 2] = 9.81 * np.cos(angulo) + ruido[:, 2]
+
+
+_PATRONES = {"bache": _bache, "hundimiento": _hundimiento, "rompemuelles": _rompemuelles, "inclinado": _inclinado}
 
 
 def _generar_giroscopio(
@@ -78,10 +88,10 @@ def _generar_gps(
 
 
 def _escribir_csv(ruta: pathlib.Path, encabezado: str, filas: list) -> None:
-    with ruta.open("w", encoding="utf-8") as f:
-        f.write(encabezado + "\n")
+    with ruta.open("w", encoding="utf-8") as archivo:
+        archivo.write(encabezado + "\n")
         for fila in filas:
-            f.write(",".join(str(v) for v in fila) + "\n")
+            archivo.write(",".join(str(valor) for valor in fila) + "\n")
 
 
 def crear_grabacion(
@@ -94,25 +104,27 @@ def crear_grabacion(
     es_video: bool = False,
 ) -> pathlib.Path:
     """Crea una carpeta de grabación sintética y devuelve su ruta."""
-    fecha = "20261026"
-    grabacion_id = f"{fecha}-{recorrido}-{celular_alias}"
+    grabacion_id = f"20261026-{recorrido}-{celular_alias}"
     carpeta = directorio_salida / grabacion_id
     carpeta.mkdir(parents=True, exist_ok=True)
+    meta = _meta(grabacion_id, recorrido, celular_alias, sentido, es_video)
+    (carpeta / "meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
+    _escribir_sensores(carpeta, patron, duracion_s)
+    if es_video:
+        video_meta = {"t_ns_primer_cuadro": _T0_NS, "fps": 30}
+        (carpeta / "video.json").write_text(json.dumps(video_meta), encoding="utf-8")
+        (carpeta / "video.mp4").write_bytes(b"")
+    return carpeta
 
-    rng = np.random.default_rng(_SEMILLA)
-    n_muestras = duracion_s * _HZ
 
-    meta = {
+def _meta(grabacion_id: str, recorrido: str, celular_alias: str, sentido: str, es_video: bool) -> dict:
+    """meta.json según contracts/formato-grabacion.md: solo alias, nunca IMEI, placa ni nombres (FR-005)."""
+    return {
         "grabacionId": grabacion_id,
         "recorrido": recorrido,
         "grabadorVersion": "1.0.0",
-        "celular": {
-            "alias": celular_alias,
-            "marcaModelo": "Samsung Galaxy A34",
-            "ramGb": 4,
-            "anioLanzamiento": 2023,
-            "android": "14",
-        },
+        "celular": {"alias": celular_alias, "marcaModelo": "Samsung Galaxy A34", "ramGb": 4, "anioLanzamiento": 2023,
+                    "android": "14"},
         "vehiculo": {"alias": "V1", "categoria": "Liviano"},
         "soporte": {"tipo": "rejilla", "posicion": "centro-tablero"},
         "tramo": {"kmInicio": 268.0, "kmFin": 335.073, "sentido": sentido},
@@ -120,22 +132,14 @@ def crear_grabacion(
         "esCelularVideo": es_video,
         "parametros": {"samplingPeriodUs": 20000, "maxReportLatencyUs": 1000000, "gpsIntervaloMs": 1000},
     }
-    (carpeta / "meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
 
-    accel = _generar_acelerometro(rng, n_muestras, patron, _T0_NS)
-    _escribir_csv(carpeta / "acelerometro.csv", "t_ns,x,y,z", accel)
 
-    giro = _generar_giroscopio(rng, n_muestras, _T0_NS)
-    _escribir_csv(carpeta / "giroscopio.csv", "t_ns,x,y,z", giro)
-
+def _escribir_sensores(carpeta: pathlib.Path, patron: str, duracion_s: int) -> None:
+    """Los cuatro CSV. La semilla fija hace que la misma llamada produzca siempre los mismos archivos."""
+    rng = np.random.default_rng(_SEMILLA)
+    n_muestras = duracion_s * _HZ
+    _escribir_csv(carpeta / "acelerometro.csv", "t_ns,x,y,z", _generar_acelerometro(rng, n_muestras, patron, _T0_NS))
+    _escribir_csv(carpeta / "giroscopio.csv", "t_ns,x,y,z", _generar_giroscopio(rng, n_muestras, _T0_NS))
     gps = _generar_gps(duracion_s, velocidad_ms=8.33, t0_ns=_T0_NS)
     _escribir_csv(carpeta / "gps.csv", "t_ns,utc_ms,lat,lon,precision_m,velocidad_ms,rumbo", gps)
-
     _escribir_csv(carpeta / "marcas.csv", "t_ns,origen", [])
-
-    if es_video:
-        video_meta = {"t_ns_primer_cuadro": _T0_NS, "fps": 30}
-        (carpeta / "video.json").write_text(json.dumps(video_meta), encoding="utf-8")
-        (carpeta / "video.mp4").write_bytes(b"")
-
-    return carpeta

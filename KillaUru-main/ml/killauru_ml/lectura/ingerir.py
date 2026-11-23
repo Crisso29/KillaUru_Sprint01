@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import pathlib
+import subprocess
 import tarfile
 import tempfile
 
@@ -10,8 +11,8 @@ import pandas as pd
 
 from killauru_ml.comun.huella import sha256_archivo
 from killauru_ml.lectura.catalogo import FilaCatalogo, agregar_fila
-from killauru_ml.lectura.grabacion import GrabacionError, leer_grabacion
-from killauru_ml.lectura.integridad import verificar_integridad
+from killauru_ml.lectura.grabacion import Grabacion, GrabacionError, leer_grabacion
+from killauru_ml.lectura.integridad import ResultadoIntegridad, verificar_integridad
 
 
 def _horas_en_marcha(gps: pd.DataFrame) -> float:
@@ -37,57 +38,63 @@ def ingerir(
     ruta_catalogo: pathlib.Path | None = None,
     subir: bool = False,
 ) -> FilaCatalogo:
-    """Verifica la grabación, calcula SHA-256 y registra en el catálogo."""
-    kwargs = {"ruta": ruta_catalogo} if ruta_catalogo else {}
-    motivos: list[str] = []
-
+    """Verifica la grabación, calcula SHA-256 y registra en el catálogo; si es apta y se pide, la sube a R2."""
+    opciones_catalogo = {"ruta": ruta_catalogo} if ruta_catalogo else {}
     try:
         grabacion = leer_grabacion(carpeta)
-    except GrabacionError as exc:
-        fila = FilaCatalogo(
-            grabacion_id=carpeta.name, recorrido="", celular="", vehiculo="",
-            sentido="", horas=0.0, hz_efectivo=0.0, huecos_pct=0.0,
-            sha256="", estado="NoApta", motivo=f"MetaIncompleta: {exc}",
-        )
-        agregar_fila(fila, **kwargs)
-        return fila
+    except GrabacionError as error:
+        fila = _fila_no_legible(carpeta, error)
+    else:
+        fila = _fila_verificada(carpeta, grabacion)
+    agregar_fila(fila, **opciones_catalogo)
+    if subir and fila.estado == "Apta":
+        _subir_a_r2(carpeta)
+    return fila
 
+
+def _fila_no_legible(carpeta: pathlib.Path, error: GrabacionError) -> FilaCatalogo:
+    """Fila NoApta para una carpeta que ni siquiera se puede leer (meta.json o CSV ausentes o inválidos)."""
+    return FilaCatalogo(
+        grabacion_id=carpeta.name, recorrido="", celular="", vehiculo="", sentido="", horas=0.0, hz_efectivo=0.0,
+        huecos_pct=0.0, sha256="", estado="NoApta", motivo=f"MetaIncompleta: {error}",
+    )
+
+
+def _fila_verificada(carpeta: pathlib.Path, grabacion: Grabacion) -> FilaCatalogo:
+    """Fila con la integridad medida, la huella sin el video y los alias (nunca datos personales) del meta.json."""
+    resultado = _verificar(grabacion)
     meta = grabacion.meta
-    t_ns = grabacion.acelerometro["t_ns"].to_numpy(dtype=np.int64)
-    t_giro_ns = grabacion.giroscopio["t_ns"].to_numpy(dtype=np.int64)
-    precision_m = grabacion.gps["precision_m"].to_numpy() if "precision_m" in grabacion.gps.columns else None
-    t_gps = grabacion.gps["t_ns"].to_numpy(dtype=np.int64) if "t_ns" in grabacion.gps.columns else None
-
-    resultado = verificar_integridad(t_ns, t_giro_ns, precision_m, t_gps)
-    for m in resultado.motivos:
-        motivos.append(m.value)
-
-    with tempfile.TemporaryDirectory() as tmp:
-        tar_path = _tar_sin_video(carpeta, pathlib.Path(tmp))
-        sha = sha256_archivo(tar_path)
-
-    horas = _horas_en_marcha(grabacion.gps)
-    estado = resultado.estado.value
-    tramo = meta.get("tramo", {})
-
-    fila = FilaCatalogo(
+    return FilaCatalogo(
         grabacion_id=meta.get("grabacionId", carpeta.name),
         recorrido=meta.get("recorrido", ""),
         celular=meta.get("celular", {}).get("alias", ""),
         vehiculo=meta.get("vehiculo", {}).get("alias", ""),
-        sentido=tramo.get("sentido", ""),
-        horas=horas,
+        sentido=meta.get("tramo", {}).get("sentido", ""),
+        horas=_horas_en_marcha(grabacion.gps),
         hz_efectivo=resultado.hz_efectivo,
         huecos_pct=resultado.huecos_pct,
-        sha256=sha,
-        estado=estado,
-        motivo=",".join(motivos),
+        sha256=_huella_sin_video(carpeta),
+        estado=resultado.estado.value,
+        motivo=",".join(motivo.value for motivo in resultado.motivos),
     )
-    agregar_fila(fila, **kwargs)
 
-    if subir and estado == "Apta":
-        import subprocess
-        script = pathlib.Path(__file__).parents[3] / "scripts" / "subir_grabacion.sh"
-        subprocess.run(["bash", str(script), str(carpeta)], check=True)
 
-    return fila
+def _verificar(grabacion: Grabacion) -> ResultadoIntegridad:
+    gps = grabacion.gps
+    return verificar_integridad(
+        grabacion.acelerometro["t_ns"].to_numpy(dtype=np.int64),
+        grabacion.giroscopio["t_ns"].to_numpy(dtype=np.int64),
+        gps["precision_m"].to_numpy() if "precision_m" in gps.columns else None,
+        gps["t_ns"].to_numpy(dtype=np.int64) if "t_ns" in gps.columns else None,
+    )
+
+
+def _huella_sin_video(carpeta: pathlib.Path) -> str:
+    with tempfile.TemporaryDirectory() as temporal:
+        return sha256_archivo(_tar_sin_video(carpeta, pathlib.Path(temporal)))
+
+
+def _subir_a_r2(carpeta: pathlib.Path) -> None:
+    """Delega en scripts/subir_grabacion.sh (las credenciales de R2 nunca pasan por Python)."""
+    script = pathlib.Path(__file__).parents[3] / "scripts" / "subir_grabacion.sh"
+    subprocess.run(["bash", str(script), str(carpeta)], check=True)

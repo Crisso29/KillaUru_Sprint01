@@ -16,4 +16,4 @@ def filtrar_prefiltro(
 
     Señales casi planas indican vehículo detenido o sensor tapado.
     """
-    return [v for v in ventanas if float(np.var(v.a_v)) > umbral_var]
+    return [ventana for ventana in ventanas if float(np.var(ventana.a_v)) > umbral_var]

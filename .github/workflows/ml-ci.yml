@@ -43,8 +43,9 @@ jobs:
       - name: Ruff — lint y formato
         run: ruff check killauru_ml/ tests/
 
-      - name: Pytest — suite completa
-        run: pytest tests/ -v
+      # Misma puerta que Kover en la app: 90 % de cobertura de killauru_ml contando líneas y ramas
+      - name: Pytest — suite completa con cobertura
+        run: pytest tests/ -v --cov=killauru_ml --cov-branch --cov-report=term-missing:skip-covered --cov-fail-under=90
 
       # FR-033 — ningún .py ni .kt > 199 líneas (redundante con test_limite_lineas pero falla el CI rápido)
       - name: Verificar límite de 199 líneas

@@ -44,10 +44,10 @@ def test_conjuntos_no_vacios() -> None:
 def test_total_ventanas_conservado() -> None:
     # Arrange
     agrupado = _agrupado(10)
-    total_entrada = sum(len(v) for v in agrupado.values())
+    total_entrada = sum(len(grupo) for grupo in agrupado.values())
     # Act
     particion = partir(agrupado)
-    total_salida = sum(len(v) for v in particion.values())
+    total_salida = sum(len(grupo) for grupo in particion.values())
     # Assert — ninguna ventana se pierde
     assert total_salida == total_entrada
 
@@ -61,8 +61,8 @@ def test_misma_semilla_mismo_resultado() -> None:
     p1 = partir(agrupado, semilla=2828)
     p2 = partir(agrupado, semilla=2828)
     # Assert — mismos recorridos en prueba
-    rec1 = {v.recorrido for v in p1["prueba"]}
-    rec2 = {v.recorrido for v in p2["prueba"]}
+    rec1 = {ventana.recorrido for ventana in p1["prueba"]}
+    rec2 = {ventana.recorrido for ventana in p2["prueba"]}
     assert rec1 == rec2
 
 
@@ -73,8 +73,8 @@ def test_semillas_distintas_distinto_resultado() -> None:
     p1 = partir(agrupado, semilla=2828)
     p2 = partir(agrupado, semilla=42)
     # Assert — al menos un recorrido de prueba distinto
-    rec1 = {v.recorrido for v in p1["prueba"]}
-    rec2 = {v.recorrido for v in p2["prueba"]}
+    rec1 = {ventana.recorrido for ventana in p1["prueba"]}
+    rec2 = {ventana.recorrido for ventana in p2["prueba"]}
     assert rec1 != rec2
 
 
@@ -88,7 +88,7 @@ def test_recorrido_aparece_en_un_solo_conjunto() -> None:
     # Assert — cada recorrido en exactamente un conjunto
     por_recorrido: dict[str, list[str]] = {}
     for nombre, ventanas in particion.items():
-        for v in ventanas:
-            por_recorrido.setdefault(v.recorrido, []).append(nombre)
+        for ventana in ventanas:
+            por_recorrido.setdefault(ventana.recorrido, []).append(nombre)
     for rec, conjuntos in por_recorrido.items():
         assert len(set(conjuntos)) == 1, f"{rec} aparece en {set(conjuntos)}"

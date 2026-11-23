@@ -1,13 +1,14 @@
 """T048 / FR-019, RNF-35 — métricas por clase: precisión y recall ≥ 0.90."""
 import pytest
 
+from killauru_ml.comun.catalogo import CLASES
 from killauru_ml.evaluacion.metricas import (
     MetricaError,
     calcular_metricas,
     verificar_puerta_metricas,
 )
 
-_CLASES = ["Normal", "Bache", "Hundimiento"]
+_CLASES = list(CLASES)  # orden del tensor: catálogo único
 
 
 def test_prediccion_perfecta_precision_recall_1() -> None:
@@ -49,8 +50,8 @@ def test_metricas_contiene_todas_las_claves() -> None:
 
 def test_metricas_ok_no_lanza() -> None:
     # Arrange — exactamente en el umbral mínimo (0.90)
-    metricas = {f"precision_{c}": 0.90 for c in _CLASES}
-    metricas.update({f"recall_{c}": 0.90 for c in _CLASES})
+    metricas = {f"precision_{clase}": 0.90 for clase in _CLASES}
+    metricas.update({f"recall_{clase}": 0.90 for clase in _CLASES})
     metricas["severidad_mas_menos_uno"] = 0.80
     # Act + Assert
     verificar_puerta_metricas(metricas)
@@ -58,8 +59,8 @@ def test_metricas_ok_no_lanza() -> None:
 
 def test_precision_bajo_umbral_lanza_error() -> None:
     # Arrange — Bache precision = 0.89 < 0.90
-    metricas = {f"precision_{c}": 0.90 for c in _CLASES}
-    metricas.update({f"recall_{c}": 0.90 for c in _CLASES})
+    metricas = {f"precision_{clase}": 0.90 for clase in _CLASES}
+    metricas.update({f"recall_{clase}": 0.90 for clase in _CLASES})
     metricas["precision_Bache"] = 0.89
     metricas["severidad_mas_menos_uno"] = 0.80
     # Act + Assert
@@ -69,8 +70,8 @@ def test_precision_bajo_umbral_lanza_error() -> None:
 
 def test_severidad_bajo_umbral_lanza_error() -> None:
     # Arrange — severidad_mas_menos_uno = 0.79 < 0.80
-    metricas = {f"precision_{c}": 0.90 for c in _CLASES}
-    metricas.update({f"recall_{c}": 0.90 for c in _CLASES})
+    metricas = {f"precision_{clase}": 0.90 for clase in _CLASES}
+    metricas.update({f"recall_{clase}": 0.90 for clase in _CLASES})
     metricas["severidad_mas_menos_uno"] = 0.79
     # Act + Assert
     with pytest.raises(MetricaError, match="severidad"):

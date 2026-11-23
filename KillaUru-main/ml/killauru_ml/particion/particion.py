@@ -32,12 +32,12 @@ def partir(
     rng = random.Random(semilla)
     rng.shuffle(ids)
 
-    n = len(ids)
-    n_prueba = max(1, round(n * frac_prueba))
-    n_val = max(1, round(n * frac_val))
+    total = len(ids)
+    n_prueba = max(1, round(total * frac_prueba))
+    n_val = max(1, round(total * frac_val))
     # Garantizar que entrenamiento tenga al menos 1 recorrido
-    n_prueba = min(n_prueba, n - 2)
-    n_val = min(n_val, n - n_prueba - 1)
+    n_prueba = min(n_prueba, total - 2)
+    n_val = min(n_val, total - n_prueba - 1)
 
     ids_prueba = ids[:n_prueba]
     ids_val = ids[n_prueba: n_prueba + n_val]
@@ -57,8 +57,8 @@ def _aplanar(
     """Aplana las ventanas de los recorridos dados, asignando v.recorrido."""
     ventanas = []
     for rec_id in ids:
-        for v in agrupado[rec_id]:
-            copia = copy.copy(v)
+        for ventana in agrupado[rec_id]:
+            copia = copy.copy(ventana)
             copia.recorrido = rec_id
             ventanas.append(copia)
     return ventanas

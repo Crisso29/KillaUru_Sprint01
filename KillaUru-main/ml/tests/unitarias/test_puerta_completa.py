@@ -1,4 +1,5 @@
 """T050 / FR-028, puerta.yaml — verificación completa antes de publicar."""
+from killauru_ml.comun.catalogo import CLASES
 from killauru_ml.modelo.puerta import (
     CheckResultado,
     ResultadoPuerta,
@@ -7,7 +8,7 @@ from killauru_ml.modelo.puerta import (
     verificar_tamano,
 )
 
-_CLASES = ["Normal", "Bache", "Hundimiento"]
+_CLASES = list(CLASES)  # orden del tensor: catálogo único
 
 
 # --- tamaño del modelo (puerta.yaml TamanoMaximoModeloMb=5.0) ---
@@ -35,9 +36,9 @@ def test_tamano_excede_falla(tmp_path) -> None:
 # --- métricas (puerta.yaml Precision/RecallMinimaPorClase=0.90) ---
 
 def _metricas_ok() -> dict:
-    m = {f"precision_{c}": 0.90 for c in _CLASES}
-    m.update({f"recall_{c}": 0.90 for c in _CLASES})
-    return m
+    metricas = {f"precision_{clase}": 0.90 for clase in _CLASES}
+    metricas.update({f"recall_{clase}": 0.90 for clase in _CLASES})
+    return metricas
 
 
 def test_metricas_ok_pasa() -> None:
@@ -49,10 +50,10 @@ def test_metricas_ok_pasa() -> None:
 
 def test_metricas_precision_bache_falla() -> None:
     # Arrange — Bache precision = 0.89 < 0.90
-    m = _metricas_ok()
-    m["precision_Bache"] = 0.89
+    metricas = _metricas_ok()
+    metricas["precision_Bache"] = 0.89
     # Act
-    check = verificar_metricas_puerta(m, precision_min=0.90, recall_min=0.90)
+    check = verificar_metricas_puerta(metricas, precision_min=0.90, recall_min=0.90)
     # Assert
     assert not check.aprobado
     assert "Bache" in check.detalle
@@ -60,10 +61,10 @@ def test_metricas_precision_bache_falla() -> None:
 
 def test_metricas_recall_hundimiento_falla() -> None:
     # Arrange
-    m = _metricas_ok()
-    m["recall_Hundimiento"] = 0.85
+    metricas = _metricas_ok()
+    metricas["recall_Hundimiento"] = 0.85
     # Act
-    check = verificar_metricas_puerta(m, precision_min=0.90, recall_min=0.90)
+    check = verificar_metricas_puerta(metricas, precision_min=0.90, recall_min=0.90)
     # Assert
     assert not check.aprobado
 
@@ -96,7 +97,7 @@ def test_resultado_aprobado_si_todos_ok() -> None:
     # Arrange
     checks = [CheckResultado("a", 1.0, 0.9, True, ""), CheckResultado("b", 1.0, 0.9, True, "")]
     # Act
-    resultado = ResultadoPuerta(aprobado=all(c.aprobado for c in checks), checks=checks)
+    resultado = ResultadoPuerta(aprobado=all(condicion.aprobado for condicion in checks), checks=checks)
     # Assert
     assert resultado.aprobado
 
@@ -105,6 +106,6 @@ def test_resultado_rechazado_si_alguno_falla() -> None:
     # Arrange
     checks = [CheckResultado("a", 1.0, 0.9, True, ""), CheckResultado("b", 0.4, 0.9, False, "fallo")]
     # Act
-    resultado = ResultadoPuerta(aprobado=all(c.aprobado for c in checks), checks=checks)
+    resultado = ResultadoPuerta(aprobado=all(condicion.aprobado for condicion in checks), checks=checks)
     # Assert
     assert not resultado.aprobado

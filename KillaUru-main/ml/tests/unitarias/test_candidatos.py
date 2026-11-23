@@ -20,7 +20,7 @@ def test_pico_sobre_umbral_es_candidato(tmp_path) -> None:
     candidatos = detectar_candidatos(t_ns, a_v, velocidad_ms, km, umbral_ms2=2.0)
     # Assert — el pico en idx 50 debe ser candidato
     assert len(candidatos) >= 1
-    assert any(c["t_pico_ns"] == t_ns[50] for c in candidatos)
+    assert any(candidato["t_pico_ns"] == t_ns[50] for candidato in candidatos)
 
 
 def test_pico_bajo_umbral_no_es_candidato(tmp_path) -> None:

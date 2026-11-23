@@ -7,8 +7,8 @@ _BLOQUE = 65536  # 64 KiB por lectura
 
 def sha256_archivo(ruta: pathlib.Path) -> str:
     """Devuelve el SHA-256 hexadecimal de un archivo, en bloques."""
-    h = hashlib.sha256()
-    with ruta.open("rb") as f:
-        while bloque := f.read(_BLOQUE):
-            h.update(bloque)
-    return h.hexdigest()
+    sha = hashlib.sha256()
+    with ruta.open("rb") as archivo:
+        while bloque := archivo.read(_BLOQUE):
+            sha.update(bloque)
+    return sha.hexdigest()

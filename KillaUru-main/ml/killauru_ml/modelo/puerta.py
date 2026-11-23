@@ -21,9 +21,9 @@ class ResultadoPuerta:
 
     def resumen(self) -> str:
         lineas = ["APROBADA" if self.aprobado else "RECHAZADA"]
-        for c in self.checks:
-            estado = "OK" if c.aprobado else "FALLA"
-            lineas.append(f"  [{estado}] {c.nombre}: {c.valor:.4f} (umbral {c.umbral})")
+        for condicion in self.checks:
+            estado = "OK" if condicion.aprobado else "FALLA"
+            lineas.append(f"  [{estado}] {condicion.nombre}: {condicion.valor:.4f} (umbral {condicion.umbral})")
         return "\n".join(lineas)
 
 
@@ -70,7 +70,7 @@ def verificar_severidad_puerta(
     """Verifica acuerdo de severidad ±1 (RNF-35)."""
     if not sev_true:
         return CheckResultado("severidad", 1.0, min_pct, True, "sin pares")
-    dentro = sum(1 for t, p in zip(sev_true, sev_pred, strict=True) if abs(t - p) <= 1)
+    dentro = sum(1 for real, predicha in zip(sev_true, sev_pred, strict=True) if abs(real - predicha) <= 1)
     pct = dentro / len(sev_true)
     return CheckResultado(
         nombre="severidad_mas_menos_uno",
@@ -99,6 +99,6 @@ def verificar_puerta_modelo(
     if sev_true and sev_pred:
         checks.append(verificar_severidad_puerta(sev_true, sev_pred, sev_min))
     return ResultadoPuerta(
-        aprobado=all(c.aprobado for c in checks),
+        aprobado=all(condicion.aprobado for condicion in checks),
         checks=checks,
     )

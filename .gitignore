@@ -23,3 +23,5 @@ docs/prototipo/
 # Python: caché de bytecode de las herramientas
 __pycache__/
 *.pyc
+.coverage
+htmlcov/

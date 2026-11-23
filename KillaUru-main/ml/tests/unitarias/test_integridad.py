@@ -11,17 +11,17 @@ from killauru_ml.lectura.integridad import (
 def _crear_timestamps(hz: float, duracion_s: float) -> np.ndarray:
     """Timestamps uniformes en nanosegundos a la frecuencia dada."""
     dt_ns = int(1_000_000_000 / hz)
-    n = int(duracion_s * hz)
-    return np.arange(n, dtype=np.int64) * dt_ns
+    muestras = int(duracion_s * hz)
+    return np.arange(muestras, dtype=np.int64) * dt_ns
 
 
 def _crear_timestamps_con_hueco(hz: float, duracion_s: float, hueco_ms: float, pct: float) -> np.ndarray:
     """Timestamps con un hueco de hueco_ms ms en pct% del tiempo."""
     total_ns = int(duracion_s * 1_000_000_000)
-    n = int(duracion_s * hz)
+    muestras = int(duracion_s * hz)
     huecos_ns = int(total_ns * pct / 100)
     n_huecos = max(1, int(np.ceil(huecos_ns / (hueco_ms * 1_000_000))))
-    intervalos = np.full(n, (total_ns - huecos_ns) / (n - n_huecos))
+    intervalos = np.full(muestras, (total_ns - huecos_ns) / (muestras - n_huecos))
     intervalos[:n_huecos] = huecos_ns / n_huecos
     return np.rint(np.concatenate(([0], np.cumsum(intervalos)))).astype(np.int64)
 

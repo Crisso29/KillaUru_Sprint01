@@ -57,25 +57,22 @@ def verificar_integridad(
     t_gps: np.ndarray | None = None,
 ) -> ResultadoIntegridad:
     """Verifica frecuencia, huecos y calidad GPS de una grabación."""
-    motivos: list[MotivoNoApta] = []
-
     hz = _calcular_hz(t_accel_ns)
     huecos_pct = _calcular_huecos_pct(t_accel_ns)
+    motivos = _motivos(hz, huecos_pct, precision_m)
+    estado = EstadoIntegridad.NO_APTA if motivos else EstadoIntegridad.APTA
+    return ResultadoIntegridad(estado=estado, motivos=motivos, hz_efectivo=hz, huecos_pct=huecos_pct)
 
+
+def _motivos(hz: float, huecos_pct: float, precision_m: np.ndarray | None) -> list[MotivoNoApta]:
+    """Por qué la grabación no sirve para entrenar; lista vacía si sirve."""
+    motivos: list[MotivoNoApta] = []
     if hz < _HZ_MINIMO:
         motivos.append(MotivoNoApta.FRECUENCIA_BAJA)
     if huecos_pct > _HUECOS_MAX_PCT:
         motivos.append(MotivoNoApta.HUECOS)
-
     if precision_m is not None and len(precision_m) > 0:
         mala_pct = float(np.mean(precision_m > _GPS_PRECISION_MAX_M))
         if mala_pct > _GPS_MALA_MAX_PCT:
             motivos.append(MotivoNoApta.SIN_GPS)
-
-    estado = EstadoIntegridad.NO_APTA if motivos else EstadoIntegridad.APTA
-    return ResultadoIntegridad(
-        estado=estado,
-        motivos=motivos,
-        hz_efectivo=hz,
-        huecos_pct=huecos_pct,
-    )
+    return motivos

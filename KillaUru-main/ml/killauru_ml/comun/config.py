@@ -19,8 +19,8 @@ def leer_yaml(
     if not ruta.exists():
         raise FileNotFoundError(f"No se encontró el archivo de configuración: {ruta}")
 
-    with ruta.open(encoding="utf-8") as f:
-        datos: dict[str, Any] = yaml.safe_load(f) or {}
+    with ruta.open(encoding="utf-8") as archivo:
+        datos: dict[str, Any] = yaml.safe_load(archivo) or {}
 
     if claves_requeridas:
         faltantes = [k for k in claves_requeridas if k not in datos]

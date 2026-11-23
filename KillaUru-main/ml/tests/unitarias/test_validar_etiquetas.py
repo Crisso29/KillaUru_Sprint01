@@ -74,8 +74,10 @@ def test_normal_con_subtipo_valido_es_correcto() -> None:
 
 def test_tipo_rompemuelles_lanza_error() -> None:
     # Arrange — Rompemuelles es subtipo, no tipo (RN-01, RS-07)
+    etiqueta = _etiqueta(tipo="Rompemuelles", severidad=None)
+    # Act y Assert — la excepción es el resultado esperado
     with pytest.raises(EtiquetaError, match="tipo"):
-        validar_etiqueta(_etiqueta(tipo="Rompemuelles", severidad=None))
+        validar_etiqueta(etiqueta)
 
 
 # --- fuente ---

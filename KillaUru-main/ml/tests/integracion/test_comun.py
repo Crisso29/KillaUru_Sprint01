@@ -50,11 +50,11 @@ def test_misma_semilla_produce_mismos_numeros() -> None:
     from killauru_ml.comun.semillas import fijar_semillas
     # Act
     fijar_semillas(2828)
-    a = np.random.rand(5).tolist()
+    primera = np.random.rand(5).tolist()
     fijar_semillas(2828)
-    b = np.random.rand(5).tolist()
+    segunda = np.random.rand(5).tolist()
     # Assert
-    assert a == b
+    assert primera == segunda
 
 
 def test_semillas_distintas_producen_numeros_distintos() -> None:
@@ -64,11 +64,11 @@ def test_semillas_distintas_producen_numeros_distintos() -> None:
     from killauru_ml.comun.semillas import fijar_semillas
     # Act
     fijar_semillas(2828)
-    a = np.random.rand(5).tolist()
+    primera = np.random.rand(5).tolist()
     fijar_semillas(9999)
-    b = np.random.rand(5).tolist()
+    segunda = np.random.rand(5).tolist()
     # Assert
-    assert a != b
+    assert primera != segunda
 
 
 # ---------------------------------------------------------------------------

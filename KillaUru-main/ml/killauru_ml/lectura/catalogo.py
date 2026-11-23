@@ -30,8 +30,8 @@ class FilaCatalogo:
 def agregar_fila(fila: FilaCatalogo, ruta: pathlib.Path = _RUTA_CATALOGO) -> None:
     """Añade una fila al catálogo; crea el archivo con cabecera si no existe."""
     nuevo = not ruta.exists() or ruta.stat().st_size == 0
-    with ruta.open("a", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=_COLUMNAS)
+    with ruta.open("a", newline="", encoding="utf-8") as archivo:
+        writer = csv.DictWriter(archivo, fieldnames=_COLUMNAS)
         if nuevo:
             writer.writeheader()
         writer.writerow({
@@ -53,8 +53,8 @@ def leer_catalogo(ruta: pathlib.Path = _RUTA_CATALOGO) -> list[FilaCatalogo]:
     """Lee todas las filas del catálogo."""
     if not ruta.exists():
         return []
-    with ruta.open(newline="", encoding="utf-8") as f:
+    with ruta.open(newline="", encoding="utf-8") as archivo:
         return [
             FilaCatalogo(**{k: row[k] for k in _COLUMNAS})
-            for row in csv.DictReader(f)
+            for row in csv.DictReader(archivo)
         ]

@@ -30,26 +30,22 @@ def entrenar(
         (modelo entrenado, objeto History de Keras)
     """
     n_clases = int(np.max(np.concatenate([y_train, y_val]))) + 1
-    modelo = construir_modelo(n_clases, capas_ocultas)
-    modelo.compile(
-        optimizer="adam",
-        loss="sparse_categorical_crossentropy",
-        metrics=["accuracy"],
-    )
-
-    cb_early = keras.callbacks.EarlyStopping(
-        monitor="val_loss",
-        patience=paciencia,
-        restore_best_weights=True,
-    )
-
+    modelo = _modelo_compilado(n_clases, capas_ocultas)
+    parada_temprana = keras.callbacks.EarlyStopping(monitor="val_loss", patience=paciencia, restore_best_weights=True)
     historia = modelo.fit(
         X_train,
         y_train,
         validation_data=(X_val, y_val),
         epochs=epocas,
         batch_size=lote,
-        callbacks=[cb_early],
+        callbacks=[parada_temprana],
         verbose=0,
     )
     return modelo, historia
+
+
+def _modelo_compilado(n_clases: int, capas_ocultas: list[int] | None) -> keras.Sequential:
+    """MLP con Adam y entropía cruzada para etiquetas enteras."""
+    modelo = construir_modelo(n_clases, capas_ocultas)
+    modelo.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
+    return modelo
