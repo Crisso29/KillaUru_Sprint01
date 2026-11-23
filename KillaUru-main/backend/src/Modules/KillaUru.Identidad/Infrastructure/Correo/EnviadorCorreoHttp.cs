@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using KillaUru.Identidad.Application;
@@ -22,14 +23,16 @@ internal sealed class EnviadorCorreoHttp(HttpClient cliente, IOptions<IdentidadO
         var idempotencia = Guid.NewGuid().ToString();
         for (var intento = 0; intento < 4; intento++)
         {
-            if (await IntentarAsync(correo, enlace, finalidad, idempotencia, ct)) return;
+            var resultado = await IntentarAsync(correo, enlace, finalidad, idempotencia, ct);
+            if (resultado == ResultadoEnvioCorreo.Enviado) return;
+            if (resultado == ResultadoEnvioCorreo.Definitivo) break;   // un 4xx no cambia reintentando: solo demora al usuario
             if (intento < 3) await Task.Delay(TimeSpan.FromMilliseconds(250 * (intento + 1)), reloj, ct);
         }
         // No se agrega la excepción del proveedor: podría contener dirección, cuerpo o cabeceras.
         Fallo(logger, null);
     }
 
-    private async Task<bool> IntentarAsync(string correo, string enlace, string finalidad, string clave, CancellationToken ct)
+    private async Task<ResultadoEnvioCorreo> IntentarAsync(string correo, string enlace, string finalidad, string clave, CancellationToken ct)
     {
         try
         {
@@ -39,9 +42,18 @@ internal sealed class EnviadorCorreoHttp(HttpClient cliente, IOptions<IdentidadO
             peticion.Content = JsonContent.Create(new { from = opciones.Value.CorreoRemitente, to = new[] { correo },
                 subject = "KillaUru: " + finalidad + " cuenta", text = PlantillasCorreo.Texto(finalidad, enlace) });
             using var respuesta = await cliente.SendAsync(peticion, ct);
-            return respuesta.IsSuccessStatusCode;
+            return Clasificar(respuesta.StatusCode);
         }
-        catch (HttpRequestException) { return false; }
-        catch (OperationCanceledException) when (!ct.IsCancellationRequested) { return false; }
+        catch (HttpRequestException) { return ResultadoEnvioCorreo.Pasajero; }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested) { return ResultadoEnvioCorreo.Pasajero; }
     }
+
+    /// <summary>R-007 reintenta cuando falla el proveedor (5xx, 408, 429, red), no cuando rechaza la petición (4xx).</summary>
+    private static ResultadoEnvioCorreo Clasificar(HttpStatusCode estado) => (int)estado switch
+    {
+        >= 200 and < 300 => ResultadoEnvioCorreo.Enviado,
+        408 or 429 or >= 500 => ResultadoEnvioCorreo.Pasajero,
+        _ => ResultadoEnvioCorreo.Definitivo,
+    };
+
 }

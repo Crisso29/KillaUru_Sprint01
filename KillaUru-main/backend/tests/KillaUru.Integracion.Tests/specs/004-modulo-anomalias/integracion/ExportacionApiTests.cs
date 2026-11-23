@@ -41,6 +41,26 @@ public sealed class ExportacionApiTests(BaseDatosPrueba bd)
         Assert.Equal(filasEntregadas, await FilasAuditadasAsync(escenario, actor));
     }
 
+    /// <summary>
+    /// Un formato que no existe es 400 <c>problem+json</c>, no un CSV ni un GeoJSON: el <c>[Produces]</c> de la acción
+    /// reemplazaba el tipo de las respuestas de error (mismo defecto que el mapa, 2026-11-23).
+    /// </summary>
+    [Fact]
+    public async Task Un_formato_desconocido_responde_un_problema_y_no_un_archivo()
+    {
+        // Arrange
+        using var escenario = new EscenarioAnomalias(bd);
+        using var cliente = escenario.ClienteComo("Administrador", Guid.NewGuid());
+
+        // Act
+        using var respuesta = await cliente.PostAsJsonAsync("/api/v1/exportaciones", new { formato = "PDF", estados = SoloActivas }, EscenarioAnomalias.Ct);
+
+        // Assert
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest, respuesta.StatusCode);
+        Assert.Equal("application/problem+json", respuesta.Content.Headers.ContentType?.MediaType);
+        Assert.Null(respuesta.Content.Headers.ContentDisposition);
+    }
+
     /// <summary>Filas sin contar la cabecera.</summary>
     private static int ContarFilasCsv(string archivo) => archivo.Split('\n', StringSplitOptions.RemoveEmptyEntries).Length - 1;
 

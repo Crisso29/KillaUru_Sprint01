@@ -38,7 +38,7 @@ jobs:
       - name: Instalar .NET 10
         uses: actions/setup-dotnet@v4
         with:
-          # Respeta la versi�n m�nima y rollForward definidos por global.json.
+          # Respeta la versión mínima y rollForward definidos por global.json.
           global-json-file: KillaUru-main/backend/global.json
 
       - name: Caché de NuGet
@@ -69,6 +69,13 @@ jobs:
           python3 -m pip install --quiet shapely==2.2.0
           python3 -m unittest discover -s db/datos -p 'test_*.py'
 
+      # Colección de Postman: cubre todas las operaciones de los contratos 001–007 y es la que produce su generador
+      - name: Colección de Postman coherente con los contratos
+        working-directory: KillaUru-main/backend/tests/postman
+        run: |
+          python3 -m pip install --quiet PyYAML==6.0.4
+          python3 -m unittest -v
+
       - name: Instalar reportgenerator
         run: dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.3.11
 
@@ -82,7 +89,7 @@ jobs:
             -reporttypes:"TextSummary;HtmlInline_AzurePipelines" \
             -assemblyfilters:"-*.Tests"
 
-      - name: Verificar cobertura >= 90 % por dominio (constituci�n VII)
+      - name: Verificar cobertura >= 90 % por dominio (constitución VII)
         run: python3 deploy/ci/cobertura_dominio.py 90 --informes TestResults
 
       - name: Publicar reporte de cobertura

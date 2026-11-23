@@ -184,6 +184,11 @@ description: "Tareas de la plataforma base del backend"
 - [x] T084 `SinkDePrueba` seguro entre hilos en `003/ConsolaPrivacidadTests`, para eliminar la prueba intermitente (DT-04)
   **Hecha 2026-11-23:** la causa era leer el texto sin candado, no escribirlo; `SinkDePrueba` solo deja leer con `Capturado`. `SinkDePruebaTests`: 3/3 en rojo con `chunkLength` antes, 5/5 en verde después — [evidencia](../../docs/seguimiento/evidencias/pruebas/2026-11-23-backend-parte3/README.md).
 
+## Entregables del sprint 2 (2026-11-23)
+
+- [x] T085 Colección de Postman de la API (`backend/tests/postman/`): generada desde los contratos 001–007, recorrido del conductor y los 16 endpoints de administrador protegidos (401/403); `test_coleccion.py` en CI y corrida con Newman contra `killauru-local`
+  **Hecha 2026-11-23:** 62 peticiones y 281 comprobaciones, 0 fallas. Al correrla encontró 3 defectos de la API, corregidos con su prueba: el mapa devolvía JSON inválido con 2+ anomalías en una celda (006), los errores del mapa y de la exportación salían como GeoJSON y no como `problem+json` (006, 004), y el correo reintentaba errores 4xx definitivos (+2 s por registro, 003) — [evidencia](../../docs/seguimiento/evidencias/pruebas/2026-11-23-postman/README.md).
+
 ## Dependencies & Execution Order
 
 **Seguimiento al integrar 002 (2026-10-23):** se corrigieron caché autenticada, errores vacíos/MVC,

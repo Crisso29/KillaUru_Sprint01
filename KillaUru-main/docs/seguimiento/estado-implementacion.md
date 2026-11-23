@@ -17,7 +17,7 @@ Conteos de casillas en `tasks.md`; no son cobertura ni certificación de producc
 
 | Spec | Área | Marcadas / total | Pendientes |
 |---|---|---:|---:|
-| 001 | Plataforma | 73/84 | 11 |
+| 001 | Plataforma | 74/85 | 11 |
 | 002 | Auditoría | 35/38 | 3 |
 | 003 | Identidad | 65/65 | 0 |
 | 004 | Anomalías | 56/58 | 2 |
@@ -27,7 +27,7 @@ Conteos de casillas en `tasks.md`; no son cobertura ni certificación de producc
 | 008 | Android | 104/130 | 26 |
 | 009 | Dataset/modelo | 45/74 | 29 |
 | 010 | Panel | 77/94 | 17 |
-| **Total** | | **529/643** | **114** |
+| **Total** | | **530/644** | **114** |
 
 Panel tenía 88 tareas marcadas. Se reabrieron 11 por E2E vacíos u omitidos:
 T032, T033, T034, T050, T058, T062, T068, T081, T085, T086 y T087.
@@ -72,6 +72,7 @@ Los resultados corresponden al árbol de trabajo, no al estado remoto de CI.
 | ML tras corregir UTF-8 | `python -m pytest tests/integracion/test_estado.py tests/arquitectura`: 6/6 aprobados |
 | **ML, suite completa 2026-11-23** | **174 aprobadas, 0 fallidas, 0 omitidas**; cobertura 97 % (líneas y ramas); ruff limpio; `.tflite` reproducible byte a byte — [evidencias](evidencias/pruebas/2026-11-23-ml/README.md) |
 | **Backend completo 2026-11-23** (`generar-resultados.ps1`) | **1 155: 1 152 aprobadas, 0 fallidas, 3 omitidas**; dominio 97–100 %; DT-03 y DT-04 resueltos — [evidencias](evidencias/pruebas/2026-11-23-backend-parte3/README.md) |
+| **Backend tras Postman 2026-11-23** | **1 167: 1 164 aprobadas, 0 fallidas, 3 omitidas**; Newman: 62 peticiones, 281 comprobaciones, 0 fallas — [evidencias](evidencias/pruebas/2026-11-23-postman/README.md) |
 | Integración backend | Compila y xUnit lista los casos; no ejecutada contra PostgreSQL |
 
 Desde `backend/`: `dotnet test --project tests/KillaUru.<Modulo>.Tests --no-build`.

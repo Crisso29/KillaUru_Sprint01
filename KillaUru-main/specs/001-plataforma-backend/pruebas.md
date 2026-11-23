@@ -16,6 +16,7 @@ Infraestructura HTTP, salud, migraciones, cuotas y privacidad de logs.
 | Contrato HTTP | [Contratos](../../backend/tests/KillaUru.Integracion.Tests/specs/001-plataforma-backend/contratos/) |
 | Seguridad | [Seguridad](../../backend/tests/KillaUru.Integracion.Tests/specs/001-plataforma-backend/seguridad/) |
 | Carga y resiliencia | [Escenarios k6 compartidos](../../backend/tests/carga/README.md) |
+| API desplegada (Postman/Newman) | [Colección generada desde los contratos](../../backend/tests/postman/README.md): 62 peticiones, 281 comprobaciones; las 32 operaciones de 001–007 |
 | E2E entre módulos | [Recorrido compartido, pendiente](../../backend/tests/KillaUru.Integracion.Tests/sistema/e2e/FlujoPuntaAPuntaTests.cs) |
 
 ## Cómo ejecutar

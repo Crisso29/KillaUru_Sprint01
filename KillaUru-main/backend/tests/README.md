@@ -14,6 +14,7 @@ La integración se organiza en `KillaUru.Integracion.Tests/specs/<spec>/<tipo>`.
 | `KillaUru.Integracion.Tests/sistema/e2e` | Recorridos compartidos entre specs; actualmente pendientes |
 | `KillaUru.Arquitectura.Tests` | Capas, dependencias y legibilidad |
 | `carga` | k6; ejecución separada en entorno de pruebas |
+| `postman` | Colección de Postman de la API desplegada (Newman); generada desde los contratos, con su prueba de coherencia ([README](postman/README.md)) |
 
 Dentro de cada spec, `soporte` contiene preparación específica, no casos de prueba.
 Las carpetas `Infrastructure` de proyectos de módulo pueden probar adaptadores con dobles:

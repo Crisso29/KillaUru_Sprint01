@@ -20,7 +20,10 @@ internal static class SerializadorGeoJson
         {
             if (i > 0) ms.WriteByte((byte)',');
             EscribirFeature(w, anomalias[i], conEstado);
-            w.Flush(); ms.Flush();
+            // Reset: el escritor recuerda que ya escribió un objeto y pondría SU propia coma antes del siguiente;
+            // sumada a la de arriba salía «},,{» con 2+ anomalías en una celda (encontrado con Postman, 2026-11-23).
+            w.Flush();
+            w.Reset(ms);
         }
         return ms.ToArray();
     }

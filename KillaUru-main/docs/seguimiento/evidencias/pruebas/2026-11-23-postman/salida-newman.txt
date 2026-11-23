@@ -1,0 +1,506 @@
+npm warn deprecated har-validator@5.1.5: this library is no longer supported
+npm warn deprecated uuid@3.4.0: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+npm warn deprecated uuid@8.3.2: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+npm warn deprecated uuid@8.3.2: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+npm warn deprecated uuid@8.3.2: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+npm warn deprecated uuid@9.0.1: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+npm warn deprecated @faker-js/faker@5.5.3: Please update to a newer version.
+(node:28792) [DEP0176] DeprecationWarning: fs.F_OK is deprecated, use fs.constants.F_OK instead
+(Use `node --trace-deprecation ...` to show where the warning was created)
+newman
+
+KillaUru API
+
+□ 01 Plataforma
+└ La API está viva
+  GET http://localhost:18080/health/live [200 OK, 271B, 81ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  responde en menos de 2 s
+  √  responde 200
+
+└ La API puede atender (BD, migraciones, cola y corredor)
+  GET http://localhost:18080/health/ready [200 OK, 271B, 10ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  responde en menos de 2 s
+  √  responde 200
+
+□ 02 Identidad pública
+└ Versiones legales vigentes
+  GET http://localhost:18080/api/v1/legal/versiones [200 OK, 427B, 10ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  responde en menos de 2 s
+  √  responde 200
+  √  trae politicaPrivacidad, terminosUso
+
+└ Registro de un conductor
+  POST http://localhost:18080/api/v1/auth/registro [201 Created, 869B, 459ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  responde en menos de 2 s
+  √  responde 201
+  √  trae tokenAcceso, tokenRenovacion, sesionVenceUtc, rol
+
+└ Registro con un correo ya usado
+  POST http://localhost:18080/api/v1/auth/registro [409 Conflict, 474B, 122ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 409
+  √  código de error «correo_en_uso»
+
+└ Registro con contraseña de 9 caracteres (mínimo 10, D13)
+  POST http://localhost:18080/api/v1/auth/registro [400 Bad Request, 481B, 5ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 400
+  √  código de error «datos_invalidos»
+
+└ Inicio de sesión por la app
+  POST http://localhost:18080/api/v1/auth/inicio-sesion [200 OK, 864B, 136ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  responde en menos de 2 s
+  √  responde 200
+  √  trae tokenAcceso, tokenRenovacion, sesionVenceUtc, rol
+
+└ Inicio de sesión con contraseña incorrecta
+  POST http://localhost:18080/api/v1/auth/inicio-sesion [401 Unauthorized, 496B, 131ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 401
+
+└ Renovar la sesión
+  POST http://localhost:18080/api/v1/auth/renovar [200 OK, 864B, 49ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  responde en menos de 2 s
+  √  responde 200
+  √  trae tokenAcceso, tokenRenovacion, sesionVenceUtc, rol
+
+└ Renovar con un token inventado
+  POST http://localhost:18080/api/v1/auth/renovar [401 Unauthorized, 482B, 8ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 401
+  √  código de error «sesion_invalida»
+
+└ Verificar correo con un enlace inventado
+  POST http://localhost:18080/api/v1/auth/verificar-correo [400 Bad Request, 481B, 10ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 400
+  √  código de error «enlace_invalido»
+
+└ Recuperar contraseña de un correo que no existe (misma respuesta, RN-19)
+  POST http://localhost:18080/api/v1/auth/recuperar [202 Accepted, 229B, 21ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  responde en menos de 2 s
+  √  responde 202
+
+└ Recuperar contraseña de un correo que sí existe
+  POST http://localhost:18080/api/v1/auth/recuperar [202 Accepted, 229B, 250ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  responde en menos de 2 s
+  √  responde 202
+
+└ Fijar contraseña con un enlace inventado
+  POST http://localhost:18080/api/v1/auth/fijar-contrasena [400 Bad Request, 481B, 115ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 400
+  √  código de error «enlace_invalido»
+
+□ 03 Mi cuenta (conductor)
+└ Mis datos
+  GET http://localhost:18080/api/v1/me [200 OK, 619B, 10ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  responde en menos de 2 s
+  √  responde 200
+  √  trae correo, rol, correoVerificado, aceptaciones
+  √  son los datos del conductor que entró
+  √  no se guarda en caché (private, no-store)
+
+└ Mis datos sin sesión
+  GET http://localhost:18080/api/v1/me [401 Unauthorized, 473B, 4ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 401
+  √  código de error «token_invalido»
+
+└ Aceptar la versión vigente de la política
+  POST http://localhost:18080/api/v1/me/aceptaciones [204 No Content, 212B, 18ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  responde en menos de 2 s
+  √  responde 204
+
+└ Reenviar el correo de verificación
+  POST http://localhost:18080/api/v1/me/reenviar-verificacion [202 Accepted, 229B, 354ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  responde en menos de 2 s
+  √  responde 202
+
+□ 04 Ingesta
+└ Lote anónimo de 3 eventos
+  POST http://localhost:18080/api/v1/anomalies/batch [200 OK, 491B, 18ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  responde en menos de 2 s
+  √  responde 200
+  √  los 3 eventos aceptados, sin duplicados ni rechazos
+
+└ Reenviar el mismo lote (la app no supo si llegó)
+  POST http://localhost:18080/api/v1/anomalies/batch [200 OK, 491B, 9ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  responde en menos de 2 s
+  √  responde 200
+  √  reenviar el mismo lote: 3 duplicados, nada nuevo
+
+└ Lote de un conductor con sesión
+  POST http://localhost:18080/api/v1/anomalies/batch [200 OK, 491B, 18ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  responde en menos de 2 s
+  √  responde 200
+  √  los 3 eventos aceptados, sin duplicados ni rechazos
+
+└ Lote sin eventos
+  POST http://localhost:18080/api/v1/anomalies/batch [400 Bad Request, 469B, 5ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 400
+  √  código de error «lote_invalido»
+
+□ 05 Mapa
+└ Anomalías del mapa
+  GET http://localhost:18080/api/v1/anomalies [200 OK, 295.49kB, 62ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  responde en menos de 2 s
+  √  responde 200
+  √  es GeoJSON (FeatureCollection)
+  √  trae ETag para la caché condicional
+
+└ Mismo mapa con If-None-Match: 304 sin cuerpo
+  GET http://localhost:18080/api/v1/anomalies [304 Not Modified, 240B, 8ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  responde en menos de 2 s
+  √  responde 304
+  √  no reenvía el cuerpo
+
+└ Mapa de un tramo (bbox)
+  GET http://localhost:18080/api/v1/anomalies?bbox=-74.35,-13.25,-74.20,-13.10 [200 OK, 125.88kB, 14ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  responde en menos de 2 s
+  √  responde 200
+
+└ bbox con 3 números en vez de 4
+  GET http://localhost:18080/api/v1/anomalies?bbox=-74.35,-13.25,-74.20 [400 Bad Request, 481B, 7ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 400
+  √  código de error «datos_invalidos»
+
+□ 06 Panel protegido
+└ GET /api/v1/auditoria sin sesión → 401
+  GET http://localhost:18080/api/v1/auditoria [401 Unauthorized, 473B, 5ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 401
+  √  código de error «token_invalido»
+
+└ GET /api/v1/auditoria con un conductor → 403
+  GET http://localhost:18080/api/v1/auditoria [403 Forbidden, 466B, 5ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 403
+  √  código de error «sin_permiso»
+
+└ GET /api/v1/usuarios sin sesión → 401
+  GET http://localhost:18080/api/v1/usuarios [401 Unauthorized, 473B, 3ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 401
+  √  código de error «token_invalido»
+
+└ GET /api/v1/usuarios con un conductor → 403
+  GET http://localhost:18080/api/v1/usuarios [403 Forbidden, 466B, 5ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 403
+  √  código de error «sin_permiso»
+
+└ POST /api/v1/usuarios sin sesión → 401
+  POST http://localhost:18080/api/v1/usuarios [401 Unauthorized, 473B, 5ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 401
+  √  código de error «token_invalido»
+
+└ POST /api/v1/usuarios con un conductor → 403
+  POST http://localhost:18080/api/v1/usuarios [403 Forbidden, 466B, 6ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 403
+  √  código de error «sin_permiso»
+
+└ PUT /api/v1/usuarios/{id}/rol sin sesión → 401
+  PUT http://localhost:18080/api/v1/usuarios/00000000-0000-7000-8000-000000000001/rol [401 Unauthorized, 473B, 8ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 401
+  √  código de error «token_invalido»
+
+└ PUT /api/v1/usuarios/{id}/rol con un conductor → 403
+  PUT http://localhost:18080/api/v1/usuarios/00000000-0000-7000-8000-000000000001/rol [403 Forbidden, 466B, 5ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 403
+  √  código de error «sin_permiso»
+
+└ POST /api/v1/usuarios/{id}/desactivar sin sesión → 401
+  POST http://localhost:18080/api/v1/usuarios/00000000-0000-7000-8000-000000000001/desactivar [401 Unauthorized, 473B, 4ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 401
+  √  código de error «token_invalido»
+
+└ POST /api/v1/usuarios/{id}/desactivar con un conductor → 403
+  POST http://localhost:18080/api/v1/usuarios/00000000-0000-7000-8000-000000000001/desactivar [403 Forbidden, 466B, 6ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 403
+  √  código de error «sin_permiso»
+
+└ POST /api/v1/usuarios/{id}/activar sin sesión → 401
+  POST http://localhost:18080/api/v1/usuarios/00000000-0000-7000-8000-000000000001/activar [401 Unauthorized, 473B, 5ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 401
+  √  código de error «token_invalido»
+
+└ POST /api/v1/usuarios/{id}/activar con un conductor → 403
+  POST http://localhost:18080/api/v1/usuarios/00000000-0000-7000-8000-000000000001/activar [403 Forbidden, 466B, 4ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 403
+  √  código de error «sin_permiso»
+
+└ POST /api/v1/usuarios/{id}/reenviar-correo sin sesión → 401
+  POST http://localhost:18080/api/v1/usuarios/00000000-0000-7000-8000-000000000001/reenviar-correo [401 Unauthorized, 473B, 4ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 401
+  √  código de error «token_invalido»
+
+└ POST /api/v1/usuarios/{id}/reenviar-correo con un conductor → 403
+  POST http://localhost:18080/api/v1/usuarios/00000000-0000-7000-8000-000000000001/reenviar-correo [403 Forbidden, 466B, 4ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 403
+  √  código de error «sin_permiso»
+
+└ GET /api/v1/usuarios/revision-privilegios sin sesión → 401
+  GET http://localhost:18080/api/v1/usuarios/revision-privilegios [401 Unauthorized, 473B, 4ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 401
+  √  código de error «token_invalido»
+
+└ GET /api/v1/usuarios/revision-privilegios con un conductor → 403
+  GET http://localhost:18080/api/v1/usuarios/revision-privilegios [403 Forbidden, 466B, 4ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 403
+  √  código de error «sin_permiso»
+
+└ POST /api/v1/usuarios/revision-privilegios sin sesión → 401
+  POST http://localhost:18080/api/v1/usuarios/revision-privilegios [401 Unauthorized, 473B, 4ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 401
+  √  código de error «token_invalido»
+
+└ POST /api/v1/usuarios/revision-privilegios con un conductor → 403
+  POST http://localhost:18080/api/v1/usuarios/revision-privilegios [403 Forbidden, 466B, 5ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 403
+  √  código de error «sin_permiso»
+
+└ GET /api/v1/anomalies/{id} sin sesión → 401
+  GET http://localhost:18080/api/v1/anomalies/00000000-0000-7000-8000-000000000001 [401 Unauthorized, 473B, 4ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 401
+  √  código de error «token_invalido»
+
+└ GET /api/v1/anomalies/{id} con un conductor → 403
+  GET http://localhost:18080/api/v1/anomalies/00000000-0000-7000-8000-000000000001 [403 Forbidden, 466B, 4ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 403
+  √  código de error «sin_permiso»
+
+└ POST /api/v1/anomalies/{id}/moderacion sin sesión → 401
+  POST http://localhost:18080/api/v1/anomalies/00000000-0000-7000-8000-000000000001/moderacion [401 Unauthorized, 473B, 4ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 401
+  √  código de error «token_invalido»
+
+└ POST /api/v1/anomalies/{id}/moderacion con un conductor → 403
+  POST http://localhost:18080/api/v1/anomalies/00000000-0000-7000-8000-000000000001/moderacion [403 Forbidden, 466B, 6ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 403
+  √  código de error «sin_permiso»
+
+└ GET /api/v1/anomalies/transiciones sin sesión → 401
+  GET http://localhost:18080/api/v1/anomalies/transiciones [401 Unauthorized, 473B, 6ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 401
+  √  código de error «token_invalido»
+
+└ GET /api/v1/anomalies/transiciones con un conductor → 403
+  GET http://localhost:18080/api/v1/anomalies/transiciones [403 Forbidden, 466B, 6ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 403
+  √  código de error «sin_permiso»
+
+└ GET /api/v1/moderacion/por-revisar sin sesión → 401
+  GET http://localhost:18080/api/v1/moderacion/por-revisar [401 Unauthorized, 473B, 4ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 401
+  √  código de error «token_invalido»
+
+└ GET /api/v1/moderacion/por-revisar con un conductor → 403
+  GET http://localhost:18080/api/v1/moderacion/por-revisar [403 Forbidden, 466B, 3ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 403
+  √  código de error «sin_permiso»
+
+└ GET /api/v1/moderacion/pendientes sin sesión → 401
+  GET http://localhost:18080/api/v1/moderacion/pendientes [401 Unauthorized, 473B, 4ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 401
+  √  código de error «token_invalido»
+
+└ GET /api/v1/moderacion/pendientes con un conductor → 403
+  GET http://localhost:18080/api/v1/moderacion/pendientes [403 Forbidden, 466B, 4ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 403
+  √  código de error «sin_permiso»
+
+└ POST /api/v1/exportaciones sin sesión → 401
+  POST http://localhost:18080/api/v1/exportaciones [401 Unauthorized, 473B, 5ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 401
+  √  código de error «token_invalido»
+
+└ POST /api/v1/exportaciones con un conductor → 403
+  POST http://localhost:18080/api/v1/exportaciones [403 Forbidden, 466B, 6ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 403
+  √  código de error «sin_permiso»
+
+└ GET /api/v1/dashboard/indicadores sin sesión → 401
+  GET http://localhost:18080/api/v1/dashboard/indicadores [401 Unauthorized, 473B, 7ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 401
+  √  código de error «token_invalido»
+
+└ GET /api/v1/dashboard/indicadores con un conductor → 403
+  GET http://localhost:18080/api/v1/dashboard/indicadores [403 Forbidden, 466B, 5ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 403
+  √  código de error «sin_permiso»
+
+□ 07 Cierre de la cuenta
+└ Cerrar sesión
+  POST http://localhost:18080/api/v1/auth/cerrar-sesion [204 No Content, 447B, 25ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  responde en menos de 2 s
+  √  responde 204
+
+└ Volver a entrar para borrar la cuenta
+  POST http://localhost:18080/api/v1/auth/inicio-sesion [200 OK, 863B, 167ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  responde en menos de 2 s
+  √  responde 200
+
+└ Borrar mi cuenta
+  DELETE http://localhost:18080/api/v1/me [204 No Content, 212B, 230ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  responde en menos de 2 s
+  √  responde 204
+
+└ La cuenta borrada ya no puede entrar
+  POST http://localhost:18080/api/v1/auth/inicio-sesion [401 Unauthorized, 496B, 136ms]
+  √  cabeceras de seguridad (HSTS y nosniff)
+  √  el error es un problema RFC 9457 con codigo y correlacionId
+  √  responde en menos de 2 s
+  √  responde 401
+
+┌─────────────────────────┬───────────────────┬──────────────────┐
+│                         │          executed │           failed │
+├─────────────────────────┼───────────────────┼──────────────────┤
+│              iterations │                 1 │                0 │
+├─────────────────────────┼───────────────────┼──────────────────┤
+│                requests │                62 │                0 │
+├─────────────────────────┼───────────────────┼──────────────────┤
+│            test-scripts │               124 │                0 │
+├─────────────────────────┼───────────────────┼──────────────────┤
+│      prerequest-scripts │                 3 │                0 │
+├─────────────────────────┼───────────────────┼──────────────────┤
+│              assertions │               281 │                0 │
+├─────────────────────────┴───────────────────┴──────────────────┤
+│ total run duration: 8.4s                                       │
+├────────────────────────────────────────────────────────────────┤
+│ total data received: 432.18kB (approx)                         │
+├────────────────────────────────────────────────────────────────┤
+│ average response time: 42ms [min: 3ms, max: 459ms, s.d.: 86ms] │
+└────────────────────────────────────────────────────────────────┘

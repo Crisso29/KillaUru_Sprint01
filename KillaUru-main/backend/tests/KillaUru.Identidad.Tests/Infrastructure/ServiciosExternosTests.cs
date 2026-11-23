@@ -79,4 +79,32 @@ public sealed class ServiciosExternosTests
         Assert.Equal(2, clavesEnviadas.Count);
         Assert.Equal(clavesEnviadas[0], clavesEnviadas[1]);
     }
+
+    /// <summary>
+    /// R-007 reintenta cuando el PROVEEDOR falla. Un 4xx (clave inválida, dirección rechazada) no se arregla
+    /// reintentando: solo demoraba la respuesta al usuario ~2 s (medido con Postman, 2026-11-23). 408 y 429 sí son
+    /// pasajeros. En todos los casos la operación principal no falla.
+    /// </summary>
+    [Theory]
+    [InlineData(HttpStatusCode.Unauthorized, 1)]
+    [InlineData(HttpStatusCode.Forbidden, 1)]
+    [InlineData(HttpStatusCode.UnprocessableEntity, 1)]
+    [InlineData(HttpStatusCode.RequestTimeout, 2)]
+    [InlineData(HttpStatusCode.TooManyRequests, 2)]
+    public async Task Correo_solo_reintenta_los_fallos_pasajeros(HttpStatusCode primeraRespuesta, int intentosEsperados)
+    {
+        // Arrange — el proveedor responde `primeraRespuesta` la primera vez y 200 después
+        var intentos = 0;
+        using var cliente = new HttpClient(new RespuestaHttpPrueba(_ =>
+            new HttpResponseMessage(++intentos == 1 ? primeraRespuesta : HttpStatusCode.OK)));
+        var correo = new EnviadorCorreoHttp(cliente, Options.Create(new IdentidadOptions { CorreoApiKey = "ficticia" }),
+            TimeProvider.System, NullLogger<EnviadorCorreoHttp>.Instance);
+
+        // Act
+        await correo.VerificacionAsync("sintetico@example.com", "https://panel.killauru.pe/cuenta/verificar#token=ficticio",
+            TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal(intentosEsperados, intentos);
+    }
 }

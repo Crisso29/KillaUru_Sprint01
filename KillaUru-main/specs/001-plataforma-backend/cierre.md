@@ -1,7 +1,7 @@
 # Cierre de spec 001 — Plataforma backend
 
 **Revisado:** 2026-11-15. **Estado:** cierre de producción no acreditado.
-**Seguimiento:** 73/84 tareas marcadas; 11 pendientes en tasks.md (T082–T084 añadidas el 2026-11-22 como deuda técnica; T083 y T084 hechas el 2026-11-23).
+**Seguimiento:** 74/85 tareas marcadas; 11 pendientes en tasks.md (T082–T084 añadidas el 2026-11-22 como deuda técnica; T083 y T084 hechas el 2026-11-23; T085, colección de Postman, hecha el 2026-11-23).
 [Requisitos](spec.md) · [Tareas](tasks.md) · [Pruebas](pruebas.md) · [Plan de cierre global](../../docs/guias/cierre-y-despliegue.md)
 
 ## Dependencias

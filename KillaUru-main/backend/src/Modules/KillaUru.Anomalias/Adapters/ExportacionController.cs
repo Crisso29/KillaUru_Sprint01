@@ -7,7 +7,8 @@ internal sealed class ExportacionController(ExportarDatasetUseCase exportar) : A
     /// <summary>Exportar anomalías en CSV o GeoJSON sin seudónimos.</summary>
     /// <remarks>Rol: administrador. Auditoría con formato, filtros y cantidad antes de escribir.</remarks>
     [HttpPost("api/v1/exportaciones", Name = "exportarDataset")]
-    [Produces("text/csv", "application/geo+json"), ProducesResponseType(200)]
+    // Solo documenta los tipos del 200: [Produces] los imponía también a los errores (ver mapa, 2026-11-23)
+    [ProducesResponseType(typeof(void), 200, "text/csv", "application/geo+json")]
     [ProducesResponseType(typeof(ProblemDetails), 400)]
     public async Task<IActionResult> Exportar(SolicitudExportacion solicitud, CancellationToken ct)
     {

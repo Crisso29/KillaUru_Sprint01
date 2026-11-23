@@ -24,8 +24,9 @@ internal sealed class AnomaliasController(
     private const string MimeGeoJson = "application/geo+json";
 
     [HttpGet("anomalies", Name = Documentacion.OperacionMapa.OperationId)]
-    [Produces(MimeGeoJson)]
-    [ProducesResponseType(200), ProducesResponseType(304)]
+    // Solo documenta el tipo del 200. [Produces] lo IMPONÍA a toda respuesta, y los errores salían como GeoJSON
+    // en vez de problem+json (encontrado con Postman, 2026-11-23). El cuerpo ya lo etiqueta FileContentResult.
+    [ProducesResponseType(typeof(void), 200, MimeGeoJson), ProducesResponseType(304)]
     public async Task<IActionResult> ObtenerMapa([FromQuery] ParametrosMapaDto dto, CancellationToken ct)
     {
         var listas = dto.LeerListas();

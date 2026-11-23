@@ -64,11 +64,12 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 Las suites de arquitectura, carga y E2E compartidas se detallan en [pruebas de plataforma](../001-plataforma-backend/pruebas.md#inventario-de-archivos-de-prueba).
 
 <details>
-<summary>Casos de uso (3 archivos)</summary>
+<summary>Casos de uso y serialización (4 archivos)</summary>
 
 - [ConsultarCambiosUseCaseTests.cs](../../backend/tests/KillaUru.Mapa.Tests/Application/ConsultarCambiosUseCaseTests.cs)
 - [ConsultarFiltradoUseCaseTests.cs](../../backend/tests/KillaUru.Mapa.Tests/Application/ConsultarFiltradoUseCaseTests.cs)
 - [ConsultarPorCeldasUseCaseTests.cs](../../backend/tests/KillaUru.Mapa.Tests/Application/ConsultarPorCeldasUseCaseTests.cs)
+- [SerializadorGeoJsonTests.cs](../../backend/tests/KillaUru.Mapa.Tests/Application/SerializadorGeoJsonTests.cs) — el GeoJSON armado por celdas es válido (2+ anomalías por celda, 2026-11-23)
 
 </details>
 
@@ -76,6 +77,13 @@ Las suites de arquitectura, carga y E2E compartidas se detallan en [pruebas de p
 <summary>Adaptadores sin host (1 archivo)</summary>
 
 - [ParametrosMapaDtoTests.cs](../../backend/tests/KillaUru.Mapa.Tests/Adapters/ParametrosMapaDtoTests.cs)
+
+</details>
+
+<details>
+<summary>Integración HTTP (1 archivo)</summary>
+
+- [ErroresMapaApiTests.cs](../../backend/tests/KillaUru.Integracion.Tests/specs/006-modulo-consulta-mapa/integracion/ErroresMapaApiTests.cs) — los errores del mapa son `problem+json`, no GeoJSON (2026-11-23)
 
 </details>
 

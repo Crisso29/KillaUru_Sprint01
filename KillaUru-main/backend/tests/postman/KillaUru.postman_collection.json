@@ -1,0 +1,2803 @@
+{
+  "info": {
+    "name": "KillaUru API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Recorrido de un conductor por la API y protección del panel. Generada desde los contratos OpenAPI de las specs 001–007 (ver README.md de esta carpeta)."
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// FR-013: HSTS y nosniff en toda respuesta",
+          "pm.test('cabeceras de seguridad (HSTS y nosniff)', () => {",
+          "  pm.expect(pm.response.headers.get('X-Content-Type-Options')).to.eql('nosniff');",
+          "  pm.expect(pm.response.headers.get('Strict-Transport-Security')).to.include('max-age=');",
+          "});",
+          "// Constitución IX: todo error es application/problem+json con código estable y correlacionId",
+          "if (pm.response.code >= 400) {",
+          "  pm.test('el error es un problema RFC 9457 con codigo y correlacionId', () => {",
+          "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');",
+          "    const problema = pm.response.json();",
+          "    pm.expect(problema).to.have.property('codigo').that.is.a('string');",
+          "    pm.expect(problema).to.have.property('correlacionId').that.is.a('string');",
+          "  });",
+          "}",
+          "// No es una prueba de carga (eso es k6): solo detecta una petición anormalmente lenta",
+          "pm.test('responde en menos de 2 s', () => pm.expect(pm.response.responseTime).to.be.below(2000));"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "correo",
+      "value": ""
+    },
+    {
+      "key": "contrasena",
+      "value": ""
+    },
+    {
+      "key": "tokenConductor",
+      "value": ""
+    },
+    {
+      "key": "tokenRenovacion",
+      "value": ""
+    },
+    {
+      "key": "versionPolitica",
+      "value": ""
+    },
+    {
+      "key": "versionTerminos",
+      "value": ""
+    },
+    {
+      "key": "seudonimo",
+      "value": ""
+    },
+    {
+      "key": "lote",
+      "value": ""
+    },
+    {
+      "key": "loteId",
+      "value": ""
+    },
+    {
+      "key": "etagMapa",
+      "value": ""
+    },
+    {
+      "key": "puntoCorredor",
+      "value": "[-76.1597883, -13.6822487]"
+    },
+    {
+      "key": "idAjeno",
+      "value": "00000000-0000-7000-8000-000000000001"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Plataforma",
+      "description": "Salud de la API (001, RF-28): la usa UptimeRobot cada 5 min.",
+      "item": [
+        {
+          "name": "La API está viva",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health/live",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health",
+                "live"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "La API puede atender (BD, migraciones, cola y corredor)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health/ready",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health",
+                "ready"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 Identidad pública",
+      "description": "Registro e inicio de sesión del conductor por la app (003).",
+      "item": [
+        {
+          "name": "Versiones legales vigentes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/legal/versiones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "legal",
+                "versiones"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('trae politicaPrivacidad, terminosUso', () => pm.expect(pm.response.json()).to.include.keys('politicaPrivacidad', 'terminosUso'));",
+                  "if (pm.response.code < 300) pm.collectionVariables.set('versionPolitica', pm.response.json().politicaPrivacidad.version);",
+                  "if (pm.response.code < 300) pm.collectionVariables.set('versionTerminos', pm.response.json().terminosUso.version);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registro de un conductor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/registro",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "registro"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correo}}\",\n  \"contrasena\": \"{{contrasena}}\",\n  \"versionPoliticaAceptada\": \"{{versionPolitica}}\",\n  \"versionTerminosAceptada\": \"{{versionTerminos}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Cuenta única en cada corrida; la contraseña es un GUID (36 caracteres) y solo vive en memoria",
+                  "pm.collectionVariables.set('correo', `conductor-${Date.now()}@example.com`);",
+                  "pm.collectionVariables.set('contrasena', 'Ku-' + pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201));",
+                  "pm.test('trae tokenAcceso, tokenRenovacion, sesionVenceUtc, rol', () => pm.expect(pm.response.json()).to.include.keys('tokenAcceso', 'tokenRenovacion', 'sesionVenceUtc', 'rol'));",
+                  "if (pm.response.code < 300) pm.collectionVariables.set('tokenConductor', pm.response.json().tokenAcceso);",
+                  "if (pm.response.code < 300) pm.collectionVariables.set('tokenRenovacion', pm.response.json().tokenRenovacion);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registro con un correo ya usado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/registro",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "registro"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correo}}\",\n  \"contrasena\": \"{{contrasena}}\",\n  \"versionPoliticaAceptada\": \"{{versionPolitica}}\",\n  \"versionTerminosAceptada\": \"{{versionTerminos}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 409', () => pm.response.to.have.status(409));",
+                  "pm.test('código de error «correo_en_uso»', () => pm.expect(pm.response.json().codigo).to.eql('correo_en_uso'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registro con contraseña de 9 caracteres (mínimo 10, D13)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/registro",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "registro"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correo}}\",\n  \"contrasena\": \"123456789\",\n  \"versionPoliticaAceptada\": \"{{versionPolitica}}\",\n  \"versionTerminosAceptada\": \"{{versionTerminos}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 400', () => pm.response.to.have.status(400));",
+                  "pm.test('código de error «datos_invalidos»', () => pm.expect(pm.response.json().codigo).to.eql('datos_invalidos'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Inicio de sesión por la app",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/inicio-sesion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "inicio-sesion"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correo}}\",\n  \"contrasena\": \"{{contrasena}}\",\n  \"canal\": \"app\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('trae tokenAcceso, tokenRenovacion, sesionVenceUtc, rol', () => pm.expect(pm.response.json()).to.include.keys('tokenAcceso', 'tokenRenovacion', 'sesionVenceUtc', 'rol'));",
+                  "if (pm.response.code < 300) pm.collectionVariables.set('tokenConductor', pm.response.json().tokenAcceso);",
+                  "if (pm.response.code < 300) pm.collectionVariables.set('tokenRenovacion', pm.response.json().tokenRenovacion);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Inicio de sesión con contraseña incorrecta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/inicio-sesion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "inicio-sesion"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correo}}\",\n  \"contrasena\": \"otra-contrasena-incorrecta\",\n  \"canal\": \"app\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Renovar la sesión",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/renovar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "renovar"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tokenRenovacion\": \"{{tokenRenovacion}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('trae tokenAcceso, tokenRenovacion, sesionVenceUtc, rol', () => pm.expect(pm.response.json()).to.include.keys('tokenAcceso', 'tokenRenovacion', 'sesionVenceUtc', 'rol'));",
+                  "if (pm.response.code < 300) pm.collectionVariables.set('tokenConductor', pm.response.json().tokenAcceso);",
+                  "if (pm.response.code < 300) pm.collectionVariables.set('tokenRenovacion', pm.response.json().tokenRenovacion);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Renovar con un token inventado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/renovar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "renovar"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tokenRenovacion\": \"inventado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));",
+                  "pm.test('código de error «sesion_invalida»', () => pm.expect(pm.response.json().codigo).to.eql('sesion_invalida'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verificar correo con un enlace inventado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/verificar-correo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "verificar-correo"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"inventado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 400', () => pm.response.to.have.status(400));",
+                  "pm.test('código de error «enlace_invalido»', () => pm.expect(pm.response.json().codigo).to.eql('enlace_invalido'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Recuperar contraseña de un correo que no existe (misma respuesta, RN-19)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/recuperar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "recuperar"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"nadie-{{$timestamp}}@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 202', () => pm.response.to.have.status(202));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Recuperar contraseña de un correo que sí existe",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/recuperar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "recuperar"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correo}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 202', () => pm.response.to.have.status(202));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Fijar contraseña con un enlace inventado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/fijar-contrasena",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "fijar-contrasena"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"inventado\",\n  \"nuevaContrasena\": \"una-contrasena-larga\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 400', () => pm.response.to.have.status(400));",
+                  "pm.test('código de error «enlace_invalido»', () => pm.expect(pm.response.json().codigo).to.eql('enlace_invalido'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 Mi cuenta (conductor)",
+      "description": "Datos propios y aceptación de versiones (HU-24, RF-31).",
+      "item": [
+        {
+          "name": "Mis datos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenConductor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "me"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('trae correo, rol, correoVerificado, aceptaciones', () => pm.expect(pm.response.json()).to.include.keys('correo', 'rol', 'correoVerificado', 'aceptaciones'));",
+                  "pm.test('son los datos del conductor que entró', () =>",
+                  "  pm.expect(pm.response.json().correo).to.eql(pm.collectionVariables.get('correo')));",
+                  "pm.test('no se guarda en caché (private, no-store)', () =>",
+                  "  pm.expect(pm.response.headers.get('Cache-Control')).to.include('no-store'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mis datos sin sesión",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "me"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));",
+                  "pm.test('código de error «token_invalido»', () => pm.expect(pm.response.json().codigo).to.eql('token_invalido'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Aceptar la versión vigente de la política",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenConductor}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/aceptaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "me",
+                "aceptaciones"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"documento\": \"PoliticaPrivacidad\",\n  \"version\": \"{{versionPolitica}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reenviar el correo de verificación",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenConductor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/reenviar-verificacion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "me",
+                "reenviar-verificacion"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 202', () => pm.response.to.have.status(202));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 Ingesta",
+      "description": "Recepción de lotes de la app (005): idempotente por eventoId (FR-007).",
+      "item": [
+        {
+          "name": "Lote anónimo de 3 eventos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-KillaUru-Seudonimo",
+                "value": "{{seudonimo}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/anomalies/batch",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "anomalies",
+                "batch"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{{lote}}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Lote nuevo: ids, horas y seudónimo únicos; un lote = un seudónimo (D2)",
+                  "const [longitud, latitud] = JSON.parse(pm.collectionVariables.get('puntoCorredor'));",
+                  "const seudonimo = pm.variables.replaceIn('{{$guid}}');",
+                  "const ahora = Date.now();",
+                  "const eventos = [...Array(3).keys()].map(i => ({",
+                  "  eventoId: pm.variables.replaceIn('{{$guid}}'), detectadoUtc: new Date(ahora - (3 - i) * 10000).toISOString(),",
+                  "  latitud, longitud, precisionMetros: 6, tipo: 'Bache', severidad: 2, confidence: 0.9,",
+                  "  modeloVersion: '1.0.0', seudonimo }));",
+                  "pm.collectionVariables.set('seudonimo', seudonimo);",
+                  "pm.collectionVariables.set('lote', JSON.stringify({ eventos }));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('los 3 eventos aceptados, sin duplicados ni rechazos', () => {",
+                  "  const r = pm.response.json();",
+                  "  pm.expect(r.aceptados).to.have.lengthOf(3);",
+                  "  pm.expect(r.duplicados).to.be.empty; pm.expect(r.rechazados).to.be.empty;",
+                  "});",
+                  "if (pm.response.code < 300) pm.collectionVariables.set('loteId', pm.response.json().loteId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reenviar el mismo lote (la app no supo si llegó)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-KillaUru-Seudonimo",
+                "value": "{{seudonimo}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/anomalies/batch",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "anomalies",
+                "batch"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{{lote}}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('reenviar el mismo lote: 3 duplicados, nada nuevo', () => {",
+                  "  const r = pm.response.json();",
+                  "  pm.expect(r.duplicados).to.have.lengthOf(3); pm.expect(r.aceptados).to.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lote de un conductor con sesión",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-KillaUru-Seudonimo",
+                "value": "{{seudonimo}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenConductor}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/anomalies/batch",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "anomalies",
+                "batch"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{{lote}}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Lote nuevo: ids, horas y seudónimo únicos; un lote = un seudónimo (D2)",
+                  "const [longitud, latitud] = JSON.parse(pm.collectionVariables.get('puntoCorredor'));",
+                  "const seudonimo = pm.variables.replaceIn('{{$guid}}');",
+                  "const ahora = Date.now();",
+                  "const eventos = [...Array(3).keys()].map(i => ({",
+                  "  eventoId: pm.variables.replaceIn('{{$guid}}'), detectadoUtc: new Date(ahora - (3 - i) * 10000).toISOString(),",
+                  "  latitud, longitud, precisionMetros: 6, tipo: 'Bache', severidad: 2, confidence: 0.9,",
+                  "  modeloVersion: '1.0.0', seudonimo }));",
+                  "pm.collectionVariables.set('seudonimo', seudonimo);",
+                  "pm.collectionVariables.set('lote', JSON.stringify({ eventos }));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('los 3 eventos aceptados, sin duplicados ni rechazos', () => {",
+                  "  const r = pm.response.json();",
+                  "  pm.expect(r.aceptados).to.have.lengthOf(3);",
+                  "  pm.expect(r.duplicados).to.be.empty; pm.expect(r.rechazados).to.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lote sin eventos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-KillaUru-Seudonimo",
+                "value": "{{seudonimo}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/anomalies/batch",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "anomalies",
+                "batch"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventos\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 400', () => pm.response.to.have.status(400));",
+                  "pm.test('código de error «lote_invalido»', () => pm.expect(pm.response.json().codigo).to.eql('lote_invalido'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 Mapa",
+      "description": "Consulta pública del mapa (006): GeoJSON con ETag para no descargar lo mismo.",
+      "item": [
+        {
+          "name": "Anomalías del mapa",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/anomalies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "anomalies"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('es GeoJSON (FeatureCollection)', () => {",
+                  "  pm.expect(pm.response.headers.get('Content-Type')).to.include('application/geo+json');",
+                  "  pm.expect(pm.response.json().type).to.eql('FeatureCollection');",
+                  "});",
+                  "pm.test('trae ETag para la caché condicional', () => pm.expect(pm.response.headers.get('ETag')).to.be.a('string'));",
+                  "if (pm.response.code < 300) pm.collectionVariables.set('etagMapa', pm.response.headers.get('ETag'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mismo mapa con If-None-Match: 304 sin cuerpo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "If-None-Match",
+                "value": "{{etagMapa}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/anomalies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "anomalies"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 304', () => pm.response.to.have.status(304));",
+                  "pm.test('no reenvía el cuerpo', () => pm.expect(pm.response.text()).to.be.empty);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mapa de un tramo (bbox)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/anomalies?bbox=-74.35,-13.25,-74.20,-13.10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "anomalies"
+              ],
+              "query": [
+                {
+                  "key": "bbox",
+                  "value": "-74.35,-13.25,-74.20,-13.10"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "bbox con 3 números en vez de 4",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/anomalies?bbox=-74.35,-13.25,-74.20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "anomalies"
+              ],
+              "query": [
+                {
+                  "key": "bbox",
+                  "value": "-74.35,-13.25,-74.20"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 400', () => pm.response.to.have.status(400));",
+                  "pm.test('código de error «datos_invalidos»', () => pm.expect(pm.response.json().codigo).to.eql('datos_invalidos'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 Panel protegido",
+      "description": "Cada endpoint de administrador rechaza a quien no lo es.",
+      "item": [
+        {
+          "name": "GET /api/v1/auditoria sin sesión → 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auditoria",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auditoria"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));",
+                  "pm.test('código de error «token_invalido»', () => pm.expect(pm.response.json().codigo).to.eql('token_invalido'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/auditoria con un conductor → 403",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenConductor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auditoria",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auditoria"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403', () => pm.response.to.have.status(403));",
+                  "pm.test('código de error «sin_permiso»', () => pm.expect(pm.response.json().codigo).to.eql('sin_permiso'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/usuarios sin sesión → 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));",
+                  "pm.test('código de error «token_invalido»', () => pm.expect(pm.response.json().codigo).to.eql('token_invalido'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/usuarios con un conductor → 403",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenConductor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403', () => pm.response.to.have.status(403));",
+                  "pm.test('código de error «sin_permiso»', () => pm.expect(pm.response.json().codigo).to.eql('sin_permiso'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/usuarios sin sesión → 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));",
+                  "pm.test('código de error «token_invalido»', () => pm.expect(pm.response.json().codigo).to.eql('token_invalido'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/usuarios con un conductor → 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenConductor}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403', () => pm.response.to.have.status(403));",
+                  "pm.test('código de error «sin_permiso»', () => pm.expect(pm.response.json().codigo).to.eql('sin_permiso'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT /api/v1/usuarios/{id}/rol sin sesión → 401",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios/{{idAjeno}}/rol",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios",
+                "{{idAjeno}}",
+                "rol"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));",
+                  "pm.test('código de error «token_invalido»', () => pm.expect(pm.response.json().codigo).to.eql('token_invalido'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT /api/v1/usuarios/{id}/rol con un conductor → 403",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenConductor}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios/{{idAjeno}}/rol",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios",
+                "{{idAjeno}}",
+                "rol"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403', () => pm.response.to.have.status(403));",
+                  "pm.test('código de error «sin_permiso»', () => pm.expect(pm.response.json().codigo).to.eql('sin_permiso'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/usuarios/{id}/desactivar sin sesión → 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios/{{idAjeno}}/desactivar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios",
+                "{{idAjeno}}",
+                "desactivar"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));",
+                  "pm.test('código de error «token_invalido»', () => pm.expect(pm.response.json().codigo).to.eql('token_invalido'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/usuarios/{id}/desactivar con un conductor → 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenConductor}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios/{{idAjeno}}/desactivar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios",
+                "{{idAjeno}}",
+                "desactivar"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403', () => pm.response.to.have.status(403));",
+                  "pm.test('código de error «sin_permiso»', () => pm.expect(pm.response.json().codigo).to.eql('sin_permiso'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/usuarios/{id}/activar sin sesión → 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios/{{idAjeno}}/activar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios",
+                "{{idAjeno}}",
+                "activar"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));",
+                  "pm.test('código de error «token_invalido»', () => pm.expect(pm.response.json().codigo).to.eql('token_invalido'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/usuarios/{id}/activar con un conductor → 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenConductor}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios/{{idAjeno}}/activar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios",
+                "{{idAjeno}}",
+                "activar"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403', () => pm.response.to.have.status(403));",
+                  "pm.test('código de error «sin_permiso»', () => pm.expect(pm.response.json().codigo).to.eql('sin_permiso'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/usuarios/{id}/reenviar-correo sin sesión → 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios/{{idAjeno}}/reenviar-correo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios",
+                "{{idAjeno}}",
+                "reenviar-correo"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));",
+                  "pm.test('código de error «token_invalido»', () => pm.expect(pm.response.json().codigo).to.eql('token_invalido'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/usuarios/{id}/reenviar-correo con un conductor → 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenConductor}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios/{{idAjeno}}/reenviar-correo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios",
+                "{{idAjeno}}",
+                "reenviar-correo"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403', () => pm.response.to.have.status(403));",
+                  "pm.test('código de error «sin_permiso»', () => pm.expect(pm.response.json().codigo).to.eql('sin_permiso'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/usuarios/revision-privilegios sin sesión → 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios/revision-privilegios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios",
+                "revision-privilegios"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));",
+                  "pm.test('código de error «token_invalido»', () => pm.expect(pm.response.json().codigo).to.eql('token_invalido'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/usuarios/revision-privilegios con un conductor → 403",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenConductor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios/revision-privilegios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios",
+                "revision-privilegios"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403', () => pm.response.to.have.status(403));",
+                  "pm.test('código de error «sin_permiso»', () => pm.expect(pm.response.json().codigo).to.eql('sin_permiso'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/usuarios/revision-privilegios sin sesión → 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios/revision-privilegios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios",
+                "revision-privilegios"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));",
+                  "pm.test('código de error «token_invalido»', () => pm.expect(pm.response.json().codigo).to.eql('token_invalido'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/usuarios/revision-privilegios con un conductor → 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenConductor}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios/revision-privilegios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios",
+                "revision-privilegios"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403', () => pm.response.to.have.status(403));",
+                  "pm.test('código de error «sin_permiso»', () => pm.expect(pm.response.json().codigo).to.eql('sin_permiso'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/anomalies/{id} sin sesión → 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/anomalies/{{idAjeno}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "anomalies",
+                "{{idAjeno}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));",
+                  "pm.test('código de error «token_invalido»', () => pm.expect(pm.response.json().codigo).to.eql('token_invalido'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/anomalies/{id} con un conductor → 403",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenConductor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/anomalies/{{idAjeno}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "anomalies",
+                "{{idAjeno}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403', () => pm.response.to.have.status(403));",
+                  "pm.test('código de error «sin_permiso»', () => pm.expect(pm.response.json().codigo).to.eql('sin_permiso'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/anomalies/{id}/moderacion sin sesión → 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/anomalies/{{idAjeno}}/moderacion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "anomalies",
+                "{{idAjeno}}",
+                "moderacion"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));",
+                  "pm.test('código de error «token_invalido»', () => pm.expect(pm.response.json().codigo).to.eql('token_invalido'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/anomalies/{id}/moderacion con un conductor → 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenConductor}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/anomalies/{{idAjeno}}/moderacion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "anomalies",
+                "{{idAjeno}}",
+                "moderacion"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403', () => pm.response.to.have.status(403));",
+                  "pm.test('código de error «sin_permiso»', () => pm.expect(pm.response.json().codigo).to.eql('sin_permiso'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/anomalies/transiciones sin sesión → 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/anomalies/transiciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "anomalies",
+                "transiciones"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));",
+                  "pm.test('código de error «token_invalido»', () => pm.expect(pm.response.json().codigo).to.eql('token_invalido'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/anomalies/transiciones con un conductor → 403",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenConductor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/anomalies/transiciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "anomalies",
+                "transiciones"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403', () => pm.response.to.have.status(403));",
+                  "pm.test('código de error «sin_permiso»', () => pm.expect(pm.response.json().codigo).to.eql('sin_permiso'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/moderacion/por-revisar sin sesión → 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/moderacion/por-revisar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "moderacion",
+                "por-revisar"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));",
+                  "pm.test('código de error «token_invalido»', () => pm.expect(pm.response.json().codigo).to.eql('token_invalido'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/moderacion/por-revisar con un conductor → 403",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenConductor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/moderacion/por-revisar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "moderacion",
+                "por-revisar"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403', () => pm.response.to.have.status(403));",
+                  "pm.test('código de error «sin_permiso»', () => pm.expect(pm.response.json().codigo).to.eql('sin_permiso'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/moderacion/pendientes sin sesión → 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/moderacion/pendientes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "moderacion",
+                "pendientes"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));",
+                  "pm.test('código de error «token_invalido»', () => pm.expect(pm.response.json().codigo).to.eql('token_invalido'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/moderacion/pendientes con un conductor → 403",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenConductor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/moderacion/pendientes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "moderacion",
+                "pendientes"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403', () => pm.response.to.have.status(403));",
+                  "pm.test('código de error «sin_permiso»', () => pm.expect(pm.response.json().codigo).to.eql('sin_permiso'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/exportaciones sin sesión → 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/exportaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "exportaciones"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));",
+                  "pm.test('código de error «token_invalido»', () => pm.expect(pm.response.json().codigo).to.eql('token_invalido'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/exportaciones con un conductor → 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenConductor}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/exportaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "exportaciones"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403', () => pm.response.to.have.status(403));",
+                  "pm.test('código de error «sin_permiso»', () => pm.expect(pm.response.json().codigo).to.eql('sin_permiso'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/dashboard/indicadores sin sesión → 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/dashboard/indicadores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "dashboard",
+                "indicadores"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));",
+                  "pm.test('código de error «token_invalido»', () => pm.expect(pm.response.json().codigo).to.eql('token_invalido'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/dashboard/indicadores con un conductor → 403",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenConductor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/dashboard/indicadores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "dashboard",
+                "indicadores"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403', () => pm.response.to.have.status(403));",
+                  "pm.test('código de error «sin_permiso»', () => pm.expect(pm.response.json().codigo).to.eql('sin_permiso'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07 Cierre de la cuenta",
+      "description": "Cerrar sesión y borrar la cuenta (HU-23, RF-30): deja la base limpia.",
+      "item": [
+        {
+          "name": "Cerrar sesión",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenConductor}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/cerrar-sesion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "cerrar-sesion"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tokenRenovacion\": \"{{tokenRenovacion}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Volver a entrar para borrar la cuenta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/inicio-sesion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "inicio-sesion"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correo}}\",\n  \"contrasena\": \"{{contrasena}}\",\n  \"canal\": \"app\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code < 300) pm.collectionVariables.set('tokenConductor', pm.response.json().tokenAcceso);",
+                  "if (pm.response.code < 300) pm.collectionVariables.set('tokenRenovacion', pm.response.json().tokenRenovacion);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Borrar mi cuenta",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenConductor}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "me"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contrasena\": \"{{contrasena}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "La cuenta borrada ya no puede entrar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/inicio-sesion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "inicio-sesion"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correo}}\",\n  \"contrasena\": \"{{contrasena}}\",\n  \"canal\": \"app\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
