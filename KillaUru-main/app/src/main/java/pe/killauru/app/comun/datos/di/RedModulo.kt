@@ -12,6 +12,7 @@ import pe.killauru.app.comun.datos.red.ClienteHttp
 import pe.killauru.app.comun.datos.red.NombresInterceptor
 import okhttp3.Interceptor
 import javax.inject.Named
+import pe.killauru.app.BuildConfig
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
@@ -22,8 +23,6 @@ import retrofit2.converter.kotlinx.serialization.asConverterFactory
 @Module
 @InstallIn(SingletonComponent::class)
 internal object RedModulo {
-    private const val BASE_URL = "https://api.killauru.pe/"
-
     @Provides
     @Singleton
     fun proveerOkHttp(
@@ -37,7 +36,7 @@ internal object RedModulo {
     fun proveerRetrofit(okHttp: OkHttpClient): Retrofit {
         val json = Json { ignoreUnknownKeys = true }
         return Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(BuildConfig.API_URL) // HTTPS fija en la publicada; ver build.gradle.kts
             .client(okHttp)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()

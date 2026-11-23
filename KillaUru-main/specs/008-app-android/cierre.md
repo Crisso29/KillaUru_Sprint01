@@ -111,7 +111,9 @@ No existen src/androidTest ni src/test/resources. ClasificadorLiteRtTest existe 
 `NavGrafo`; `ObtenerMisDatosUseCase`, `RecuperarContrasenaUseCase` y `CerrarSesionUseCase` con revocación en el servidor
 y revocación pendiente cifrada (R-023); `LimpiezaLocalSesion` borra el historial (FR-069); teclado que no tapa el botón;
 etiquetas accesibles. 19 funciones de más de 20 líneas partidas (detekt sin hallazgos). **Resultado:** 350 pruebas JVM,
-0 fallidas; lint y detekt sin hallazgos. Sin API en el emulador: registro y sesión reales quedan pendientes.
+0 fallidas; lint y detekt sin hallazgos. Recorrido en emulador **contra la API local real** (`killauru-local`): registro 201,
+perfil 200, cerrar sesión 204, login 401/200, eliminar 403/204; la depuración apunta a otra URL con
+`-Pkillauru.apiUrlDepuracion` y solo ella permite `http` hacia el emulador (`RedSeguraTest`; 353 pruebas JVM).
 [Evidencia](../../docs/seguimiento/evidencias/pruebas/2026-11-22-app-cuenta/README.md).
 
 ## Qué falta en el entorno desplegado

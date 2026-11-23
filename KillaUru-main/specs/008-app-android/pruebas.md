@@ -73,12 +73,13 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 </details>
 
 <details>
-<summary>JVM — arquitectura (4 archivos)</summary>
+<summary>JVM — arquitectura (5 archivos)</summary>
 
 - [CapasTest.kt](../../app/src/test/java/pe/killauru/app/arquitectura/CapasTest.kt)
 - [RelojProhibidoTest.kt](../../app/src/test/java/pe/killauru/app/arquitectura/RelojProhibidoTest.kt)
 - [SinMigracionDestructivaTest.kt](../../app/src/test/java/pe/killauru/app/arquitectura/SinMigracionDestructivaTest.kt)
 - [TamanoArchivosTest.kt](../../app/src/test/java/pe/killauru/app/arquitectura/TamanoArchivosTest.kt)
+- [RedSeguraTest.kt](../../app/src/test/java/pe/killauru/app/arquitectura/RedSeguraTest.kt): la versión publicada no permite `http` y su URL es HTTPS fija; depuración solo permite `http` hacia `10.0.2.2` y `localhost` (API local en Docker)
 
 </details>
 

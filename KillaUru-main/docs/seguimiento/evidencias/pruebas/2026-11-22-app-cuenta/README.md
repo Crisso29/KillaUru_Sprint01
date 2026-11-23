@@ -7,8 +7,8 @@
 |---|---|
 | Fecha | 2026-11-22 |
 | Entorno | Emulador `pixel_7_-_api_35` (Android 15), APK de depuración |
-| API | **Sin API alcanzable** (Docker apagado; `api.killauru.pe` aún no desplegada). Por eso las capturas reales llegan hasta el error de red; el camino con API está cubierto por pruebas con MockWebServer |
-| Pruebas automáticas | 350 JVM (Robolectric y JUnit), lint sin hallazgos, detekt sin hallazgos y `assembleDebug` en verde (ver [pruebas de la spec 008](../../../../../specs/008-app-android/pruebas.md)) |
+| API | Dos recorridos: **sin API** (errores de red) y **con la API local real** (`killauru-local` en Docker, `http://10.0.2.2:18080/`, APK de depuración con `-Pkillauru.apiUrlDepuracion`) |
+| Pruebas automáticas | 353 JVM (Robolectric y JUnit), lint sin hallazgos, detekt sin hallazgos y `assembleDebug` en verde (ver [pruebas de la spec 008](../../../../../specs/008-app-android/pruebas.md)) |
 
 ## Pantallas
 
@@ -20,10 +20,38 @@
 | Recuperar contraseña (21) | [prototipo](prototipo-21-olvide.png) | [real](real-07-olvide.png) · [sin red](real-08-olvide-sin-red.png) |
 | Ajustes sin cuenta | — | [«Crear cuenta» e «Iniciar sesión»](real-03-ajustes-sin-cuenta.png) |
 | Mis viajes sin cuenta | — | [«Crear cuenta gratis»](real-09-mis-viajes-sin-cuenta.png) |
-| Revisa tu correo (18) | [prototipo](prototipo-18-verificar.png) | Necesita un registro con API: `CuentaUiTest` |
-| Mi perfil (16) | [prototipo](prototipo-16-perfil.png) | Necesita sesión: `CuentaUiTest` (todos los campos), `NavGrafoCuentaTest` |
-| Cerrar sesión (22) | [prototipo](prototipo-22-cerrar.png) | Necesita sesión: `CuentaUiTest` («3 detecciones por enviar»), `CerrarSesionUseCaseTest` |
-| Eliminar mi cuenta (23) | [prototipo](prototipo-23-eliminar.png) | Necesita sesión: `CuentaUiTest` (contraseña + «Entiendo»), `CuentaViewModelsTest` |
+| Revisa tu correo (18) | [prototipo](prototipo-18-verificar.png) | [con API](api-02-revisa-tu-correo.png) · [reenviado](api-03-correo-reenviado.png) |
+| Mi perfil (16) | [prototipo](prototipo-16-perfil.png) | [datos reales de `GET /me`](api-05-perfil.png) · [Ajustes con cuenta](api-04-ajustes-con-cuenta.png) |
+| Cerrar sesión (22) | [prototipo](prototipo-22-cerrar.png) | [aviso](api-06-cerrar-sesion.png) · [Ajustes después, sin cuenta](api-07-ajustes-tras-cerrar.png) |
+| Eliminar mi cuenta (23) | [prototipo](prototipo-23-eliminar.png) | [pantalla](api-09-eliminar.png) · [contraseña equivocada (403)](api-10-eliminar-403.png) · [Ajustes después](api-11-ajustes-tras-eliminar.png) |
+| Iniciar sesión con contraseña equivocada (API) | — | [401 → mensaje genérico](api-08-login-401.png) |
+
+## Recorrido con la API local real (registro del servidor)
+
+| Paso en la app | Petición | Respuesta |
+|---|---|---|
+| Crear cuenta | `POST /api/v1/auth/registro` | 201 |
+| Reenviar el correo | `POST /api/v1/me/reenviar-verificacion` | 202 |
+| Mi perfil | `GET /api/v1/me` | 200 |
+| Cerrar sesión | `POST /api/v1/auth/cerrar-sesion` | 204 (revocada en el servidor) |
+| Iniciar sesión con contraseña equivocada | `POST /api/v1/auth/inicio-sesion` | 401 → mensaje genérico |
+| Iniciar sesión | `POST /api/v1/auth/inicio-sesion` | 200 |
+| Eliminar con contraseña equivocada | `DELETE /api/v1/me` | 403 → «La contraseña no es correcta.» |
+| Eliminar mi cuenta | `DELETE /api/v1/me` | 204 |
+| Iniciar sesión después (con `curl`) | `POST /api/v1/auth/inicio-sesion` | 401: la cuenta ya no existe |
+
+El correo de verificación **no sale** en el entorno local: la clave de Resend es de relleno y el proveedor responde 401;
+la API lo maneja bien (202 y «disponible reenvío»). El enlace del correo se prueba en el entorno de pruebas.
+
+Cómo repetirlo:
+
+```
+cd backend/deploy && docker compose --env-file .env.local -f docker-compose.local.yml up -d --build
+cd ../../app && ./gradlew assembleDebug -Pkillauru.apiUrlDepuracion=http://10.0.2.2:18080/
+```
+
+`http` solo se permite en la variante de depuración y solo hacia `10.0.2.2` y `localhost`; la publicada es HTTPS fija
+(`RedSeguraTest`).
 
 ## Fallos encontrados y corregidos (cada uno con su prueba)
 
@@ -42,8 +70,6 @@
 
 ## Lo que queda, con su motivo
 
-- **Registro e inicio de sesión reales en el emulador**: requieren la API desplegada o local. Hoy la URL está fija en
-  `RedModulo.BASE_URL` (`https://api.killauru.pe/`); para probar contra una API local hará falta que la variante de
-  depuración pueda apuntar a otra URL.
+- **El enlace del correo de verificación y el de recuperación**: necesitan un proveedor de correo real (entorno de pruebas).
 - **Recortar el mapa al demo al cerrar sesión** (FR-051): depende de la CDN, siguiente paso.
 - **Contrato de `POST /me/aceptaciones` y `GET /legal/versiones`** en la app (T109).

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Solo en la variante de depuración: permite http únicamente hacia el equipo del desarrollador visto desde el emulador
+  (10.0.2.2) o por adb reverse (localhost), para probar contra la API local de Docker. Todo lo demás sigue en HTTPS.
+  La versión publicada no incluye este archivo (RedSeguraTest).
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+</network-security-config>

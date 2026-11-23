@@ -24,7 +24,21 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    buildFeatures { compose = true }
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
+    buildTypes {
+        // URL de la API: la publicada es fija y HTTPS. La de depuración puede apuntar a una API local para probar en el
+        // emulador: ./gradlew assembleDebug -Pkillauru.apiUrlDepuracion=http://10.0.2.2:18080/ (ver src/debug).
+        debug {
+            val url = (findProperty("killauru.apiUrlDepuracion") as String?) ?: "https://api.killauru.pe/"
+            buildConfigField("String", "API_URL", "\"$url\"")
+        }
+        release {
+            buildConfigField("String", "API_URL", "\"https://api.killauru.pe/\"")
+        }
+    }
     testOptions { unitTests.isIncludeAndroidResources = true }
     lint {
         warningsAsErrors = true
