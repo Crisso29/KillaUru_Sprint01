@@ -56,7 +56,7 @@ def test_particion_lee_la_version_congelada(capsys: pytest.CaptureFixture) -> No
     assert "ds-1" in capsys.readouterr().out
 
 
-@pytest.mark.parametrize("argumentos", [["todo", "--version", "1.0.0"], ["puerta"], ["candidatos"], ["evaluar"]])
+@pytest.mark.parametrize("argumentos", [["todo", "--version", "1.0.0"], ["candidatos"], ["evaluar"]])
 def test_etapas_pendientes_o_sin_datos_reales_salen_con_2(argumentos: list[str]) -> None:
     # Arrange — pendientes del plan (T032 datos reales, T037–T043 etapas)
     # Act

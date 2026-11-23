@@ -29,3 +29,11 @@ ClasesRequeridas:
   - Normal
   - Bache
   - Hundimiento
+
+# RNF-04 — qué cuenta como gama media (un celular de 5 GB o de hace 5 años no cuenta)
+RamMaximaGb: 4
+AntiguedadMaximaAnios: 4
+
+# FR-011, R-005 — acuerdo del doble etiquetado
+KappaMinimo: 0.80
+AcuerdoSeveridadMinimo: 0.90

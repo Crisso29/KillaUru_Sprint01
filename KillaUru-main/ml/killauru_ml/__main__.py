@@ -2,7 +2,7 @@
 
 Cada etapa implementada tiene su función `_etapa_*` en `_ETAPAS`; las demás responden 2 (pendiente). Los imports van
 dentro de cada etapa para que `estado` o `validar-etiquetas` no carguen TensorFlow.
-Códigos de salida: 0 correcto, 1 los datos no pasan la verificación, 2 pendiente o necesita datos reales.
+Códigos de salida: 0 correcto, 1 los datos (o la versión en la puerta) no pasan, 2 pendiente o necesita datos reales.
 """
 from __future__ import annotations
 
@@ -43,7 +43,9 @@ def _agregar_modelo(etapas: argparse._SubParsersAction) -> None:
     etapas.add_parser("entrenar", help="Entrena el MLP").add_argument("--version", required=True, help="Ej. 1.0.0")
     etapas.add_parser("evaluar", help="Evalúa el modelo cuantizado sobre prueba")
     etapas.add_parser("cuantizar", help="Exporta a TFLite int8 con TFLiteConverter")
-    etapas.add_parser("puerta", help="Verifica todas las condiciones de publicación (FR-028)")
+    puerta = etapas.add_parser("puerta", help="Aplica las 7 condiciones de FR-028; si aprueba, escribe el manifiesto")
+    puerta.add_argument("--version", required=True, help="Versión candidata en modelos/<versión>/")
+    puerta.add_argument("--config", default="config", help="Carpeta con puerta.yaml")
     etapas.add_parser("estado", help="Muestra horas, ventanas y métricas de validación (FR-034)")
     todo = etapas.add_parser("todo", help="Ventanas → partición → entrenar → cuantizar → evaluar → puerta")
     todo.add_argument("--version", required=True, help="Versión candidata")
@@ -60,9 +62,11 @@ def _etapa_ingerir(args: argparse.Namespace) -> int:
 
 
 def _etapa_particion(_args: argparse.Namespace) -> int:
-    from killauru_ml.comun.config import leer_yaml
-    configuracion = leer_yaml(pathlib.Path("config/particion.yaml"), ["Version", "Estado"])
-    print(f"Dataset {configuracion['Version']} — estado: {configuracion['Estado']}")
+    from killauru_ml.particion.declaracion import CONJUNTOS, leer_declaracion
+    declaracion = leer_declaracion(pathlib.Path("config/particion.yaml"))
+    estado = "congelada" if declaracion.congelada else "borrador"
+    conteos = ", ".join(f"{conjunto} {len(declaracion.recorridos(conjunto))}" for conjunto in CONJUNTOS)
+    print(f"Dataset {declaracion.version} — {estado} — recorridos: {conteos} — huella {declaracion.huella()[:12]}")
     return 0
 
 
@@ -93,11 +97,12 @@ def _etapa_todo(args: argparse.Namespace) -> int:
     return ejecutar_todo_sintetico(args.version)
 
 
-def _etapa_puerta(_args: argparse.Namespace) -> int:
-    from killauru_ml.comun.config import leer_yaml
-    leer_yaml(pathlib.Path("config/puerta.yaml"))  # al menos confirma que la configuración es válida
-    print("Puerta: configuración cargada. Pase --modelo y --metricas para ejecutar.")
-    return _PENDIENTE
+def _etapa_puerta(args: argparse.Namespace) -> int:
+    """0 = aprobada (manifiesto escrito); 1 = rechazada."""
+    from killauru_ml.modelo.etapa_puerta import ejecutar_puerta
+    from killauru_ml.modelo.puerta import UmbralesPuerta
+    umbrales = UmbralesPuerta.leer(pathlib.Path(args.config) / "puerta.yaml")
+    return ejecutar_puerta(pathlib.Path("modelos") / args.version, umbrales)
 
 
 _ETAPAS: dict[str, Callable[[argparse.Namespace], int]] = {

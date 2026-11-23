@@ -1,53 +1,57 @@
-"""T042 / FR-017 — arquitectura MLP: forma, capas, softmax."""
+"""T042 / FR-019, R-011 — arquitectura: normalización dentro, ≤ 2 capas ocultas y dos salidas. Patrón AAA.
+
+Usa TensorFlow: unitario aquí significa «una pieza», no «sin librerías».
+"""
 import numpy as np
+import pytest
 
 from killauru_ml.modelo.arquitectura import construir_modelo
+from killauru_ml.modelo.entrenar import Conjunto, pesos_de_muestra
 
-_N_FEATURES = 20
-_N_CLASES = 3
-
-
-def test_input_shape_es_20() -> None:
-    # Arrange + Act
-    modelo = construir_modelo(_N_CLASES)
-    # Assert — entrada (None, 20)
-    assert tuple(modelo.input_shape) == (None, _N_FEATURES)
+_X = np.random.default_rng(2828).normal(5.0, 2.0, (200, 20)).astype(np.float32)
 
 
-def test_output_shape_es_n_clases() -> None:
-    # Arrange + Act
-    modelo = construir_modelo(_N_CLASES)
-    # Assert — salida (None, 3)
-    assert tuple(modelo.output_shape) == (None, _N_CLASES)
+def test_entrada_caracteristicas_y_salidas_tipo_logits_y_severidad() -> None:
+    # Arrange y Act
+    modelo = construir_modelo(_X)
+    # Assert — los nombres son el contrato con la app y el manifiesto
+    assert (modelo.layers[0].name, tuple(modelo.input_shape)) == ("caracteristicas", (None, 20))
+    assert dict(zip(modelo.output_names, modelo.output_shape, strict=True)) == {
+        "tipo_logits": (None, 3), "severidad": (None, 1)}
 
 
-def test_salida_softmax_suma_uno() -> None:
-    # Arrange
-    modelo = construir_modelo(_N_CLASES)
-    rng = np.random.default_rng(2828)
-    X = rng.random((4, _N_FEATURES)).astype(np.float32)
+def test_la_normalizacion_va_dentro_y_se_adapta_con_entrenamiento() -> None:
+    # Arrange — R-011: la app entrega las 20 características crudas
+    modelo = construir_modelo(_X)
     # Act
-    pred = modelo.predict(X, verbose=0)
-    # Assert — cada fila suma ≈ 1 (softmax)
-    sumas = pred.sum(axis=1)
-    np.testing.assert_allclose(sumas, np.ones(4), atol=1e-5)
+    normalizacion = modelo.get_layer("normalizacion")
+    # Assert
+    np.testing.assert_allclose(np.ravel(normalizacion.mean), _X.mean(axis=0), rtol=1e-5)
 
 
-def test_capas_ocultas_config_32_16() -> None:
-    # Arrange + Act
-    modelo = construir_modelo(_N_CLASES, capas_ocultas=[32, 16])
-    # Assert — hay capas Dense con 32 y 16 unidades (ocultas)
-    unidades_ocultas = [
-        capa.units for capa in modelo.layers
-        if hasattr(capa, "units") and capa.units != _N_CLASES
-    ]
-    assert 32 in unidades_ocultas
-    assert 16 in unidades_ocultas
+def test_mas_de_2_capas_ocultas_es_error() -> None:
+    # Arrange — ADR-004: MLP pequeño (< 1 ms por ventana)
+    capas = [32, 16, 8]
+    # Act y Assert
+    with pytest.raises(ValueError, match="2 capas ocultas"):
+        construir_modelo(_X, capas_ocultas=capas)
 
 
-def test_capas_ocultas_personalizadas() -> None:
-    # Arrange + Act
-    modelo = construir_modelo(2, capas_ocultas=[64, 32, 16])
-    # Assert — 3 capas ocultas
-    ocultas = [capa for capa in modelo.layers if hasattr(capa, "units") and capa.units != 2]
-    assert len(ocultas) == 3
+def test_tipo_logits_son_logits_y_no_probabilidades() -> None:
+    # Arrange — la temperatura (FR-020) se aplica a los logits antes del softmax
+    modelo = construir_modelo(_X)
+    # Act
+    logits = modelo.predict(_X[:5], verbose=0)["tipo_logits"]
+    # Assert — un softmax sumaría 1 en cada fila
+    assert not np.allclose(logits.sum(axis=1), 1.0)
+
+
+def test_pesos_de_clase_inversos_a_la_frecuencia_y_severidad_solo_en_anomalias() -> None:
+    # Arrange — 6 Normal, 2 Bache, 1 Hundimiento
+    tipos = np.array([0] * 6 + [1] * 2 + [2])
+    conjunto = Conjunto(np.zeros((9, 20), dtype=np.float32), tipos, np.array([0.0] * 6 + [3, 4, 2]))
+    # Act
+    pesos = pesos_de_muestra(conjunto)
+    # Assert — peso = n / (clases · n_clase): 9/18, 9/6, 9/3; la severidad de Normal pesa 0 (máscara)
+    np.testing.assert_allclose(pesos["tipo_logits"][[0, 6, 8]], [0.5, 1.5, 3.0])
+    np.testing.assert_array_equal(pesos["severidad"], [0.0] * 6 + [1.0] * 3)

@@ -3,9 +3,8 @@ import pytest
 
 from killauru_ml.comun.catalogo import CLASES
 from killauru_ml.evaluacion.metricas import (
-    MetricaError,
     calcular_metricas,
-    verificar_puerta_metricas,
+    severidad_mas_menos_1,
 )
 
 _CLASES = list(CLASES)  # orden del tensor: catálogo único
@@ -48,31 +47,17 @@ def test_metricas_contiene_todas_las_claves() -> None:
 
 # --- puerta de calidad ---
 
-def test_metricas_ok_no_lanza() -> None:
-    # Arrange — exactamente en el umbral mínimo (0.90)
-    metricas = {f"precision_{clase}": 0.90 for clase in _CLASES}
-    metricas.update({f"recall_{clase}": 0.90 for clase in _CLASES})
-    metricas["severidad_mas_menos_uno"] = 0.80
-    # Act + Assert
-    verificar_puerta_metricas(metricas)
+# --- R-012: severidad ± 1 solo sobre las anomalías detectadas con el tipo correcto ---
 
-
-def test_precision_bajo_umbral_lanza_error() -> None:
-    # Arrange — Bache precision = 0.89 < 0.90
-    metricas = {f"precision_{clase}": 0.90 for clase in _CLASES}
-    metricas.update({f"recall_{clase}": 0.90 for clase in _CLASES})
-    metricas["precision_Bache"] = 0.89
-    metricas["severidad_mas_menos_uno"] = 0.80
-    # Act + Assert
-    with pytest.raises(MetricaError, match="Bache"):
-        verificar_puerta_metricas(metricas)
-
-
-def test_severidad_bajo_umbral_lanza_error() -> None:
-    # Arrange — severidad_mas_menos_uno = 0.79 < 0.80
-    metricas = {f"precision_{clase}": 0.90 for clase in _CLASES}
-    metricas.update({f"recall_{clase}": 0.90 for clase in _CLASES})
-    metricas["severidad_mas_menos_uno"] = 0.79
-    # Act + Assert
-    with pytest.raises(MetricaError, match="severidad"):
-        verificar_puerta_metricas(metricas)
+@pytest.mark.parametrize(("aciertos", "esperado"), [(79, 0.79), (80, 0.80)])
+def test_severidad_mas_menos_1_sobre_anomalias_bien_detectadas(aciertos: int, esperado: float) -> None:
+    # Arrange — 100 baches bien detectados: `aciertos` a ± 1 y el resto a 3 niveles; además, Normales y un bache
+    # confundido con hundimiento que NO deben contar (ya penalizan la precisión y el recall)
+    reales = ["Bache"] * 100 + ["Normal"] * 50 + ["Bache"]
+    predichos = ["Bache"] * 100 + ["Normal"] * 50 + ["Hundimiento"]
+    severidad_real = [3] * 100 + [0] * 50 + [5]
+    severidad_predicha = [4] * aciertos + [1] * (100 - aciertos) + [0] * 50 + [1]
+    # Act
+    valor = severidad_mas_menos_1(reales, predichos, severidad_real, severidad_predicha)
+    # Assert
+    assert valor == pytest.approx(esperado)

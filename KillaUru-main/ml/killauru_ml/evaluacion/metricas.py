@@ -1,15 +1,7 @@
-"""FR-019, RNF-35 — métricas por clase y puerta de calidad del modelo."""
+"""FR-021, RNF-35, R-012 — métricas por clase y severidad ± 1. Los mínimos los aplica la puerta (`puerta.py`)."""
 from __future__ import annotations
 
 from sklearn.metrics import precision_score, recall_score
-
-_PRECISION_MIN = 0.90   # puerta.yaml PrecisionMinimaPorClase
-_RECALL_MIN = 0.90      # puerta.yaml RecallMinimoPorClase
-_SEV_MIN = 0.80         # puerta.yaml SeveridadMasMenosUnoMinima
-
-
-class MetricaError(ValueError):
-    pass
 
 
 def calcular_metricas(
@@ -39,29 +31,11 @@ def calcular_metricas(
     return metricas
 
 
-def verificar_puerta_metricas(
-    metricas: dict[str, float],
-    precision_min: float = _PRECISION_MIN,
-    recall_min: float = _RECALL_MIN,
-    sev_min: float = _SEV_MIN,
-) -> None:
-    """Lanza MetricaError si alguna métrica no supera el umbral mínimo (RNF-35).
-
-    Args:
-        metricas: dict producido por calcular_metricas + "severidad_mas_menos_uno"
-    """
-    errores = []
-    for clave, valor in metricas.items():
-        if clave.startswith("precision_") and valor < precision_min:
-            cls = clave.replace("precision_", "")
-            errores.append(f"{cls}: precision={valor:.3f} < {precision_min}")
-        elif clave.startswith("recall_") and valor < recall_min:
-            cls = clave.replace("recall_", "")
-            errores.append(f"{cls}: recall={valor:.3f} < {recall_min}")
-
-    sev = metricas.get("severidad_mas_menos_uno")
-    if sev is not None and sev < sev_min:
-        errores.append(f"severidad_mas_menos_uno={sev:.3f} < {sev_min}")
-
-    if errores:
-        raise MetricaError("; ".join(errores))
+def severidad_mas_menos_1(tipos_reales: list[str], tipos_predichos: list[str], severidad_real: list[float],
+                          severidad_predicha: list[float]) -> float:
+    """R-012: proporción con |severidad predicha redondeada − real| ≤ 1, solo en anomalías detectadas con el tipo
+    correcto (las otras ya penalizan precisión y recall). Sin ninguna, 0: no hay evidencia de cumplir RNF-35."""
+    pares = [(round(float(predicha)), float(real)) for tipo, detectado, real, predicha
+             in zip(tipos_reales, tipos_predichos, severidad_real, severidad_predicha, strict=True)
+             if tipo != "Normal" and detectado == tipo]
+    return sum(abs(predicha - real) <= 1 for predicha, real in pares) / len(pares) if pares else 0.0

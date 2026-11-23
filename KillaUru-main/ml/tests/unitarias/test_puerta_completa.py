@@ -1,111 +1,105 @@
-"""T050 / FR-028, puerta.yaml — verificación completa antes de publicar."""
-from killauru_ml.comun.catalogo import CLASES
+"""T060 / FR-028, data-model §9 — la puerta falla por cada condición sola y pasa con todo en verde. Patrón AAA.
+
+Regla de comparación: «≥» en los mínimos (0,900 pasa, 0,899 no) y «<» estricto en la latencia (49,9 pasa, 50,0 no).
+Sin evidencia de una condición, la puerta falla: nada se aprueba por omisión.
+"""
+import dataclasses
+import pathlib
+
+import pytest
+
 from killauru_ml.modelo.puerta import (
-    CheckResultado,
-    ResultadoPuerta,
-    verificar_metricas_puerta,
-    verificar_severidad_puerta,
-    verificar_tamano,
+    Acuerdo,
+    Equivalencia,
+    EvidenciaPuerta,
+    MedicionCelular,
+    UmbralesPuerta,
+    VerificacionParticion,
+    verificar_puerta,
 )
 
-_CLASES = list(CLASES)  # orden del tensor: catálogo único
+_UMBRALES = UmbralesPuerta()
 
 
-# --- tamaño del modelo (puerta.yaml TamanoMaximoModeloMb=5.0) ---
+def _evidencia(tmp_path: pathlib.Path, **cambios) -> EvidenciaPuerta:
+    tflite = tmp_path / "killauru-1.0.0.tflite"
+    tflite.write_bytes(b"x" * 1024)
+    verde = EvidenciaPuerta(
+        version="1.0.0", dataset_version="ds-1", version_minima_app="1.0.0", ruta_tflite=str(tflite),
+        temperatura=1.3, umbral_prefiltro=1.2, clases=["Normal", "Bache", "Hundimiento"],
+        precision={"Normal": 0.99, "Bache": 0.90, "Hundimiento": 0.91}, recall={"Normal": 0.99, "Bache": 0.92,
+                                                                                "Hundimiento": 0.90},
+        severidad_mas_menos_1=0.80, anio_medicion=2026,
+        benchmark=[MedicionCelular(f"C{numero}", 4, 2023, 49.9) for numero in (1, 2, 3)],
+        equivalencia=Equivalencia(tipo_igual=0.99, delta_confidence_p99=0.05, severidad_igual=0.98),
+        acuerdo=Acuerdo(kappa=0.80, severidad_mas_menos_1=0.90), particion=VerificacionParticion(True, ""),
+    )
+    return dataclasses.replace(verde, **cambios)
 
-def test_tamano_ok_pasa(tmp_path) -> None:
-    # Arrange — archivo de 1 KB
-    ruta = tmp_path / "modelo.tflite"
-    ruta.write_bytes(b"x" * 1024)
+
+def _fallidas(resultado) -> list[str]:
+    return [condicion.nombre for condicion in resultado.checks if not condicion.aprobado]
+
+
+def test_con_todo_en_los_limites_la_puerta_aprueba(tmp_path: pathlib.Path) -> None:
+    # Arrange — cada valor está justo en su límite
+    evidencia = _evidencia(tmp_path)
     # Act
-    check = verificar_tamano(ruta, max_mb=5.0)
+    resultado = verificar_puerta(evidencia, _UMBRALES)
     # Assert
-    assert check.aprobado
+    assert (resultado.aprobado, _fallidas(resultado)) == (True, [])
 
 
-def test_tamano_excede_falla(tmp_path) -> None:
-    # Arrange — archivo de 6 MB
-    ruta = tmp_path / "modelo.tflite"
-    ruta.write_bytes(b"x" * (6 * 1024 * 1024))
+@pytest.mark.parametrize(("cambios", "condicion"), [
+    ({"precision": {"Normal": 0.99, "Bache": 0.899, "Hundimiento": 0.91}}, "rnf35"),
+    ({"recall": {"Normal": 0.99, "Bache": 0.92, "Hundimiento": 0.899}}, "rnf35"),
+    ({"severidad_mas_menos_1": 0.799}, "rnf35"),
+    ({"benchmark": [MedicionCelular(f"C{numero}", 4, 2023, 50.0 if numero == 3 else 10.0) for numero in (1, 2, 3)]},
+     "rnf04"),
+    ({"benchmark": [MedicionCelular("C1", 4, 2023, 10.0), MedicionCelular("C2", 4, 2023, 10.0)]}, "rnf04"),
+    ({"benchmark": [MedicionCelular("C1", 5, 2023, 10.0), MedicionCelular("C2", 4, 2023, 10.0),
+                    MedicionCelular("C3", 4, 2021, 10.0)]}, "rnf04"),
+    ({"equivalencia": Equivalencia(0.989, 0.01, 0.99)}, "equivalencia"),
+    ({"equivalencia": Equivalencia(0.999, 0.051, 0.99)}, "equivalencia"),
+    ({"clases": ["Normal", "Bache", "Rompemuelles"]}, "clases"),
+    ({"acuerdo": Acuerdo(kappa=0.79, severidad_mas_menos_1=0.95)}, "acuerdo"),
+    ({"particion": VerificacionParticion(False, "Prueba con 2 celulares")}, "particion"),
+])
+def test_cada_condicion_sola_hace_fallar_la_puerta(tmp_path: pathlib.Path, cambios: dict, condicion: str) -> None:
+    # Arrange — todo verde salvo una condición
+    evidencia = _evidencia(tmp_path, **cambios)
     # Act
-    check = verificar_tamano(ruta, max_mb=5.0)
-    # Assert
-    assert not check.aprobado
+    resultado = verificar_puerta(evidencia, _UMBRALES)
+    # Assert — falla solo esa
+    assert (resultado.aprobado, _fallidas(resultado)) == (False, [condicion])
 
 
-# --- métricas (puerta.yaml Precision/RecallMinimaPorClase=0.90) ---
-
-def _metricas_ok() -> dict:
-    metricas = {f"precision_{clase}": 0.90 for clase in _CLASES}
-    metricas.update({f"recall_{clase}": 0.90 for clase in _CLASES})
-    return metricas
-
-
-def test_metricas_ok_pasa() -> None:
-    # Arrange + Act
-    check = verificar_metricas_puerta(_metricas_ok(), precision_min=0.90, recall_min=0.90)
-    # Assert
-    assert check.aprobado
-
-
-def test_metricas_precision_bache_falla() -> None:
-    # Arrange — Bache precision = 0.89 < 0.90
-    metricas = _metricas_ok()
-    metricas["precision_Bache"] = 0.89
-    # Act
-    check = verificar_metricas_puerta(metricas, precision_min=0.90, recall_min=0.90)
-    # Assert
-    assert not check.aprobado
-    assert "Bache" in check.detalle
-
-
-def test_metricas_recall_hundimiento_falla() -> None:
+def test_un_tflite_de_5_mb_o_mas_hace_fallar_la_puerta(tmp_path: pathlib.Path) -> None:
     # Arrange
-    metricas = _metricas_ok()
-    metricas["recall_Hundimiento"] = 0.85
+    evidencia = _evidencia(tmp_path)
+    pathlib.Path(evidencia.ruta_tflite).write_bytes(b"x" * (5 * 1024 * 1024))
     # Act
-    check = verificar_metricas_puerta(metricas, precision_min=0.90, recall_min=0.90)
+    resultado = verificar_puerta(evidencia, _UMBRALES)
     # Assert
-    assert not check.aprobado
+    assert _fallidas(resultado) == ["tamano"]
 
 
-# --- severidad ±1 (puerta.yaml SeveridadMasMenosUnoMinima=0.80) ---
-
-def test_severidad_90_pct_pasa() -> None:
-    # Arrange — exactamente 90 % dentro de ±1
-    sev_true = [3] * 90 + [3] * 10
-    sev_pred = [3] * 90 + [5] * 10  # 10 fuera de ±1
+@pytest.mark.parametrize("sin", ["benchmark", "equivalencia", "acuerdo", "particion"])
+def test_sin_evidencia_de_una_condicion_la_puerta_falla(tmp_path: pathlib.Path, sin: str) -> None:
+    # Arrange — p. ej. aún no se midió el benchmark en celulares
+    evidencia = _evidencia(tmp_path, **{sin: [] if sin == "benchmark" else None})
     # Act
-    check = verificar_severidad_puerta(sev_true, sev_pred, min_pct=0.90)
-    # Assert
-    assert check.aprobado
-
-
-def test_severidad_89_pct_falla() -> None:
-    # Arrange — 89 % dentro de ±1
-    sev_true = [3] * 89 + [3] * 11
-    sev_pred = [3] * 89 + [5] * 11  # 11 fuera de ±1
-    # Act
-    check = verificar_severidad_puerta(sev_true, sev_pred, min_pct=0.90)
-    # Assert
-    assert not check.aprobado
-
-
-# --- ResultadoPuerta ---
-
-def test_resultado_aprobado_si_todos_ok() -> None:
-    # Arrange
-    checks = [CheckResultado("a", 1.0, 0.9, True, ""), CheckResultado("b", 1.0, 0.9, True, "")]
-    # Act
-    resultado = ResultadoPuerta(aprobado=all(condicion.aprobado for condicion in checks), checks=checks)
-    # Assert
-    assert resultado.aprobado
-
-
-def test_resultado_rechazado_si_alguno_falla() -> None:
-    # Arrange
-    checks = [CheckResultado("a", 1.0, 0.9, True, ""), CheckResultado("b", 0.4, 0.9, False, "fallo")]
-    # Act
-    resultado = ResultadoPuerta(aprobado=all(condicion.aprobado for condicion in checks), checks=checks)
+    resultado = verificar_puerta(evidencia, _UMBRALES)
     # Assert
     assert not resultado.aprobado
+    assert "sin evidencia" in resultado.resumen() or sin == "benchmark"
+
+
+def test_los_umbrales_se_leen_de_puerta_yaml() -> None:
+    # Arrange
+    ruta = pathlib.Path(__file__).resolve().parents[2] / "config" / "puerta.yaml"
+    # Act
+    umbrales = UmbralesPuerta.leer(ruta)
+    # Assert — los valores de RNF-35, RNF-04 y R-014 que dice la spec
+    assert (umbrales.precision_minima, umbrales.latencia_p95_maxima_ms, umbrales.tipo_igual_minimo,
+            umbrales.kappa_minimo) == (0.90, 50.0, 0.99, 0.80)

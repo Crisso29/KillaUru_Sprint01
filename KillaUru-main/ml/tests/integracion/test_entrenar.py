@@ -1,68 +1,50 @@
-"""T044 / FR-017 — entrenamiento: seed, convergencia, historia."""
+"""T042 / FR-016, FR-019, R-011 — entrenamiento reproducible con dos salidas. Patrón AAA."""
 import numpy as np
 
 from killauru_ml.comun.semillas import fijar_semillas
-from killauru_ml.modelo.entrenar import entrenar
-
-_N_FEATURES = 20
-_N_CLASES = 3
+from killauru_ml.modelo.entrenar import Conjunto, entrenar, huella_pesos
 
 
-def _datos(n: int, seed: int = 0):
-    rng = np.random.default_rng(seed)
-    X = rng.random((n, _N_FEATURES)).astype(np.float32)
-    y = rng.integers(0, _N_CLASES, n)
-    return X, y
+def _conjunto(cantidad: int, semilla: int, severidad_normal: float = 0.0) -> Conjunto:
+    """Clases 0, 1, 2 repetidas; severidad 1–5 en anomalías y `severidad_normal` en las Normales."""
+    generador = np.random.default_rng(semilla)
+    tipos = np.arange(cantidad) % 3
+    severidad = np.where(tipos == 0, severidad_normal, generador.integers(1, 6, cantidad)).astype(np.float32)
+    return Conjunto(generador.random((cantidad, 20)).astype(np.float32), tipos, severidad)
 
 
-def test_entrenar_devuelve_modelo_e_historia() -> None:
-    # Arrange
+def _entrenar(entrenamiento: Conjunto, epocas: int = 3):
     fijar_semillas(2828)
-    X_tr, y_tr = _datos(60)
-    X_val, y_val = _datos(20, seed=1)
-    # Act
-    modelo, historia = entrenar(X_tr, y_tr, X_val, y_val, epocas=5, lote=16)
-    # Assert
-    assert modelo is not None
-    assert "val_loss" in historia.history
-    assert "loss" in historia.history
+    return entrenar(entrenamiento, _conjunto(30, semilla=8), epocas=epocas, lote=16)
 
 
-def test_historia_tiene_al_menos_una_epoca() -> None:
+def test_entrenar_devuelve_modelo_e_historia_con_las_dos_perdidas() -> None:
     # Arrange
-    fijar_semillas(2828)
-    X_tr, y_tr = _datos(30)
-    X_val, y_val = _datos(10)
+    entrenamiento = _conjunto(90, semilla=7)
     # Act
-    _, historia = entrenar(X_tr, y_tr, X_val, y_val, epocas=3, lote=16)
+    modelo, historia = _entrenar(entrenamiento)
     # Assert
+    assert {"loss", "val_loss", "tipo_logits_loss", "severidad_loss"} <= set(historia.history)
     assert 1 <= len(historia.history["loss"]) <= 3
+    assert set(modelo.predict(entrenamiento.X[:2], verbose=0)) == {"tipo_logits", "severidad"}
 
 
-def test_modelo_infiere_sin_error_post_entrenar() -> None:
-    # Arrange
-    fijar_semillas(2828)
-    X_tr, y_tr = _datos(60)
-    X_val, y_val = _datos(20)
-    modelo, _ = entrenar(X_tr, y_tr, X_val, y_val, epocas=2, lote=16)
-    X_test = np.random.rand(5, _N_FEATURES).astype(np.float32)
+def test_dos_corridas_con_la_semilla_2828_dan_la_misma_huella_de_pesos() -> None:
+    # Arrange — SC-003
+    entrenamiento = _conjunto(90, semilla=7)
     # Act
-    pred = modelo.predict(X_test, verbose=0)
-    # Assert — forma correcta y suma softmax ≈ 1
-    assert pred.shape == (5, _N_CLASES)
-    np.testing.assert_allclose(pred.sum(axis=1), np.ones(5), atol=1e-4)
+    primera, _ = _entrenar(entrenamiento)
+    segunda, _ = _entrenar(entrenamiento)
+    # Assert
+    assert huella_pesos(primera) == huella_pesos(segunda)
 
 
-def test_misma_semilla_produce_mismos_pesos() -> None:
-    # Arrange — reproducibilidad con seed 2828
-    X_tr, y_tr = _datos(60, seed=7)
-    X_val, y_val = _datos(20, seed=8)
+def test_la_perdida_de_severidad_ignora_las_ventanas_normales() -> None:
+    # Arrange — mismas ventanas; solo cambia la severidad de las Normales (0 frente a 99, absurda)
+    con_cero = _conjunto(90, semilla=7, severidad_normal=0.0)
+    con_99 = _conjunto(90, semilla=7, severidad_normal=99.0)
     # Act
-    fijar_semillas(2828)
-    m1, _ = entrenar(X_tr, y_tr, X_val, y_val, epocas=3, lote=16)
-    fijar_semillas(2828)
-    m2, _ = entrenar(X_tr, y_tr, X_val, y_val, epocas=3, lote=16)
-    # Assert — últimos pesos coinciden
-    p1 = m1.layers[-1].get_weights()[0]
-    p2 = m2.layers[-1].get_weights()[0]
-    np.testing.assert_allclose(p1, p2, atol=1e-5)
+    modelo_cero, _ = _entrenar(con_cero)
+    modelo_99, _ = _entrenar(con_99)
+    # Assert — la máscara hace que esa etiqueta no influya en absoluto
+    assert huella_pesos(modelo_cero) == huella_pesos(modelo_99)

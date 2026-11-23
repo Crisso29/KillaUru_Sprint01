@@ -1,16 +1,10 @@
-# Partición del dataset — congelar antes de entrenar (FR-013)
-Version: ds-1
-Semilla: 2828                     # RF-seed-global
-FraccionPrueba: 0.15
-FraccionValidacion: 0.15
-VentanasPruebaMinimasPorClase: 200 # config/entrenamiento.yaml §VentanasPruebaMinimasPorClase
-Clases:
-  - Normal
-  - Bache
-  - Hundimiento
-
-# Estado: borrador → congelado tras completar T032 (campaña de grabación)
-Estado: borrador
-
-# Recorridos incluidos (rellenar después de T022)
-Recorridos: []
+# Partición del dataset — FR-013, R-008, data-model §6
+# Se declara A MANO por recorrido (todos los celulares de un recorrido van juntos), apuntando a ≈ 70/15/15 por horas.
+# Prueba necesita ambos sentidos y ≥ 3 celulares; mínimos de ventanas en FR-014 (`tamano.py`).
+# Rellenar tras la campaña (T022) y poner `congelada: true` ANTES de entrenar; después, cualquier cambio exige ds-2.
+datasetVersion: ds-1
+congelada: false
+entrenamiento: []
+validacion: []
+prueba: []
+celularNoVisto: null   # p. ej. C4: todas sus grabaciones van solo a prueba (R-008)

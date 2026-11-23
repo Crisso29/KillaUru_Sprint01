@@ -4,6 +4,8 @@ from __future__ import annotations
 import csv
 import pathlib
 
+from killauru_ml.particion.declaracion import leer_declaracion
+
 _RUTA_CATALOGO = pathlib.Path(__file__).parent.parent / "datos" / "catalogo.csv"
 _RUTA_PARTICION = pathlib.Path(__file__).parent.parent / "config" / "particion.yaml"
 
@@ -56,9 +58,5 @@ def _contar_catalogo(ruta: pathlib.Path) -> tuple[int, int]:
 def _leer_particion(ruta: pathlib.Path) -> tuple[str, str]:
     if not ruta.exists():
         return "—", "—"
-    try:
-        import yaml  # noqa: PLC0415
-        datos = yaml.safe_load(ruta.read_text())
-        return str(datos.get("Version", "—")), str(datos.get("Estado", "—"))
-    except Exception:
-        return "—", "—"
+    declaracion = leer_declaracion(ruta)
+    return declaracion.version, "congelada" if declaracion.congelada else "borrador"

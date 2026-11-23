@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 import numpy as np
 
 _HZ_MINIMO = 45.0
-_HUECO_MIN_NS = 200 * 1_000_000      # FR-007: solo intervalos estrictamente > 200 ms
+HUECO_MAXIMO_NS = 200 * 1_000_000      # FR-007: solo intervalos estrictamente > 200 ms
 _HUECOS_MAX_PCT = 1.0                 # ≤ 1 % del tiempo en huecos
 _GPS_PRECISION_MAX_M = 20.0           # > 20 m = mala precisión
 _GPS_MALA_MAX_PCT = 0.20              # > 20 % mala → SinGps
@@ -46,7 +46,7 @@ def _calcular_huecos_pct(t_ns: np.ndarray) -> float:
         return 0.0
     diffs = np.diff(t_ns)
     duracion_total_ns = t_ns[-1] - t_ns[0]
-    tiempo_en_huecos_ns = diffs[diffs > _HUECO_MIN_NS].sum()
+    tiempo_en_huecos_ns = diffs[diffs > HUECO_MAXIMO_NS].sum()
     return 100.0 * float(tiempo_en_huecos_ns) / duracion_total_ns if duracion_total_ns > 0 else 0.0
 
 

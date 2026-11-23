@@ -15,7 +15,7 @@
 - [ ] CHK003 HU-26 · categoría en el primer uso, soporte y cargador, solo en el celular → FR-004 → T027, T029…T031
 - [ ] CHK004 HU-03 · 5 h sin señal, 100 % `PENDING`, mapa y alertas → FR-019, FR-025, FR-059 → T065, T123
 - [ ] CHK005 HU-04 · mismos `eventoId`, `SYNCED` solo tras 200, reanudar ≤ 60 s → FR-028…FR-038 → T054…T072
-- [ ] CHK006 HU-07 · demo, zona sombreada, aviso una vez por viaje → FR-045, FR-049 → T081, T083, T085, T096, T128
+- [ ] CHK006 HU-07 · demo, zona sombreada, aviso una vez por viaje → FR-045, FR-049 → T081, T083, T085, T096, T129
 - [x] CHK007 HU-08 · 335.073 km, severidad, tiempo relativo, sin señal → FR-041…FR-044, FR-047, FR-050 → T082, T086, T089, T094, T096
 - [ ] CHK008 HU-09 · 8 s / 12 s ± 1 s por la vía, una alerta, sin internet, pantalla bloqueada → FR-054…FR-059 → T097…T104
 - [x] CHK009 HU-10 · 6 meses solo en el celular (*Could*) → FR-069 → T115…T117
@@ -36,7 +36,7 @@
 - [ ] CHK021 RF-05 · todo sin internet → FR-059, FR-041 → T099, T123
 - [ ] CHK022 RF-06 · lotes ≤ 50, más antiguos, estados locales, 400 → partir, un seudónimo, 168 h → FR-020…FR-023, FR-029…FR-032 → T054, T056, T057, T059, T060
 - [ ] CHK023 RF-07 · *backoff* 30 s → 2 h, ±25 %, `Retry-After` → FR-035, FR-036 → T055, T062
-- [ ] CHK024 RF-08 · sombreado y aviso del anónimo → FR-049 → T083, T096, T128
+- [ ] CHK024 RF-08 · sombreado y aviso del anónimo → FR-049 → T083, T096, T129
 - [x] CHK025 RF-09 · mapa del registrado con persistencia → FR-050 → T089, T096
 - [ ] CHK026 RF-10 · alertas por la vía, solo el rol que las recibe → FR-054…FR-057 → T097…T102
 - [ ] CHK027 RF-11 (parte app) · envío del lote según el contrato → FR-030, FR-031 → T061, T070

@@ -1,7 +1,7 @@
 # Cierre de spec 008 — App Android
 
 **Revisado:** 2026-11-15. **Estado:** cierre de producción no acreditado.
-**Seguimiento:** 104/129 tareas marcadas; 25 pendientes en tasks.md (2026-11-23: T107 y T112 completas; T128 nueva, separada de T096; T072, T078, T088, T092, T094 y T095 corregidas: estaban marcadas sin cumplir el contrato o sin estar conectadas).
+**Seguimiento:** 104/130 tareas marcadas; 26 pendientes en tasks.md (2026-11-23: T107 y T112 completas; T129 nueva, separada de T096 —se numeró T128 por error, número que ya tenía otra tarea—; T130 nueva: contrato `p1` del modelo; T072, T078, T088, T092, T094 y T095 corregidas: estaban marcadas sin cumplir el contrato o sin estar conectadas).
 [Requisitos](spec.md) · [Tareas](tasks.md) · [Pruebas](pruebas.md) · [Plan de cierre global](../../docs/guias/cierre-y-despliegue.md)
 
 ## Dependencias
@@ -121,7 +121,7 @@ YAML en Python y en Kotlin); datos reales: PMTiles de 2,3 MB, corredor de 6 689 
 pide el manifiesto con ETag, descarga los 4 archivos con tamaño y SHA-256, los activa solo si llegan todos, muestra el
 paso 4 y el mapa sin señal, y se actualizó de v1 a v2 en el emulador con una CDN local (nginx). La CDN tiene su propio
 cliente HTTP (antes recibía el token y el seudónimo). `IniciarApp` programa por fin la sincronización y la purga.
-**Resultado:** 391 pruebas JVM, 0 fallidas; lint y detekt sin hallazgos. Pendiente: publicar en R2 (T127) y T128.
+**Resultado:** 391 pruebas JVM, 0 fallidas; lint y detekt sin hallazgos. Pendiente: publicar en R2 (T127) y T129.
 [Evidencia](../../docs/seguimiento/evidencias/pruebas/2026-11-23-cdn/README.md).
 
 ## Qué falta en el entorno desplegado

@@ -54,7 +54,8 @@ def test_sin_catalogo_grabaciones_cero() -> None:
 def test_particion_borrador_en_estado(tmp_path) -> None:
     # Arrange — crear particion.yaml mínimo
     cfg = tmp_path / "particion.yaml"
-    cfg.write_text("Version: ds-1\nEstado: borrador\n", encoding="utf-8")
+    cfg.write_text("datasetVersion: ds-1\ncongelada: false\nentrenamiento: []\nvalidacion: []\nprueba: []\n",
+                   encoding="utf-8")
     # Act
     estado = obtener_estado(ruta_particion=cfg)
     # Assert

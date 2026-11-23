@@ -17,9 +17,11 @@ def _ventana(recorrido: str) -> VentanaDataset:
 
 def test_partir_produce_particion_sin_fuga() -> None:
     # Arrange
+    from killauru_ml.particion.declaracion import DeclaracionParticion
     from killauru_ml.particion.particion import partir
     agrupado = {f"R{i:02d}": [_ventana(f"R{i:02d}") for _ in range(5)] for i in range(1, 11)}
+    declaracion = DeclaracionParticion("ds-1", True, [f"R{i:02d}" for i in range(1, 8)], ["R08"], ["R09", "R10"])
     # Act
-    particion = partir(agrupado)
+    particion = partir(agrupado, declaracion)
     # Assert — partir siempre devuelve partición sin fuga
     verificar_no_fuga(particion)

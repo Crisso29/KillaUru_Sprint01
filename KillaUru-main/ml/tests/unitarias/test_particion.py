@@ -1,94 +1,72 @@
-"""T033 / FR-013 — partición por recorrido: tres conjuntos, sin fuga."""
-import numpy as np
+"""T033 / FR-013, R-008 — partición declarada a mano por recorrido. Patrón AAA.
 
-from killauru_ml.particion.particion import partir
+El autor escribe en `particion.yaml` qué recorrido va a cada conjunto; `partir()` solo la aplica y se niega a
+seguir si la declaración no cubre el catálogo o repite un recorrido.
+"""
+import numpy as np
+import pytest
+
+from killauru_ml.particion.declaracion import DeclaracionParticion
+from killauru_ml.particion.particion import ParticionError, partir
 from killauru_ml.ventanas.ventaneo import VentanaDataset
 
 
-def _ventana(recorrido: str = "R01") -> VentanaDataset:
-    return VentanaDataset(
-        a_v=np.zeros(25, dtype=np.float32),
-        t_inicio_ns=0,
-        t_fin_ns=500_000_000,
-        tipo="Normal",
-        recorrido=recorrido,
-    )
+def _ventana(celular: str = "C1") -> VentanaDataset:
+    return VentanaDataset(a_v=np.zeros(25, dtype=np.float32), t_inicio_ns=0, t_fin_ns=500_000_000, celular=celular)
 
 
-def _agrupado(n: int = 10) -> dict[str, list[VentanaDataset]]:
-    """n recorridos, 20 ventanas cada uno."""
-    return {f"R{i:02d}": [_ventana(f"R{i:02d}") for _ in range(20)] for i in range(1, n + 1)}
+def _agrupado(*recorridos: str) -> dict[str, list[VentanaDataset]]:
+    """Cada recorrido grabado a la vez por tres celulares (2 ventanas por celular)."""
+    return {recorrido: [_ventana(celular) for celular in ("C1", "C2", "C3") for _ in range(2)] for recorrido in recorridos}
 
 
-# --- conjuntos ---
+def _declaracion(**cambios) -> DeclaracionParticion:
+    valores = {"version": "ds-1", "congelada": True, "entrenamiento": ["R01", "R02", "R03"], "validacion": ["R04"],
+               "prueba": ["R05"], "celular_no_visto": None}
+    return DeclaracionParticion(**(valores | cambios))
 
-def test_partir_devuelve_tres_conjuntos() -> None:
+
+def test_cada_recorrido_va_entero_al_conjunto_declarado() -> None:
     # Arrange
-    agrupado = _agrupado(10)
+    agrupado = _agrupado("R01", "R02", "R03", "R04", "R05")
     # Act
-    particion = partir(agrupado)
+    particion = partir(agrupado, _declaracion())
+    # Assert — los tres celulares de R05 van juntos a prueba (R-008)
+    assert {ventana.recorrido for ventana in particion["prueba"]} == {"R05"}
+    assert {ventana.celular for ventana in particion["prueba"]} == {"C1", "C2", "C3"}
+    assert [len(particion[conjunto]) for conjunto in ("entrenamiento", "validacion", "prueba")] == [18, 6, 6]
+
+
+def test_recorrido_en_dos_conjuntos_es_error() -> None:
+    # Arrange
+    declaracion = _declaracion(validacion=["R04", "R01"])
+    # Act y Assert
+    with pytest.raises(ParticionError, match="R01.*entrenamiento.*validacion"):
+        partir(_agrupado("R01", "R02", "R03", "R04", "R05"), declaracion)
+
+
+def test_recorrido_del_catalogo_sin_conjunto_es_error() -> None:
+    # Arrange — R06 se grabó pero nadie decidió a qué conjunto va
+    agrupado = _agrupado("R01", "R02", "R03", "R04", "R05", "R06")
+    # Act y Assert
+    with pytest.raises(ParticionError, match="R06"):
+        partir(agrupado, _declaracion())
+
+
+def test_celular_no_visto_solo_aparece_en_prueba() -> None:
+    # Arrange — C3 es el celular «no visto»: sus grabaciones de cualquier recorrido van a prueba
+    declaracion = _declaracion(celular_no_visto="C3")
+    # Act
+    particion = partir(_agrupado("R01", "R02", "R03", "R04", "R05"), declaracion)
     # Assert
-    assert set(particion.keys()) == {"entrenamiento", "validacion", "prueba"}
+    assert all(ventana.celular != "C3" for conjunto in ("entrenamiento", "validacion") for ventana in particion[conjunto])
+    assert sum(ventana.celular == "C3" for ventana in particion["prueba"]) == 10
 
 
-def test_conjuntos_no_vacios() -> None:
+def test_cambiar_la_particion_cambia_la_huella() -> None:
     # Arrange
-    agrupado = _agrupado(10)
+    original, igual, cambiada = _declaracion(), _declaracion(), _declaracion(validacion=["R05"], prueba=["R04"])
     # Act
-    particion = partir(agrupado)
-    # Assert — ningún conjunto vacío con 10 recorridos
-    for nombre, ventanas in particion.items():
-        assert len(ventanas) > 0, f"conjunto '{nombre}' vacío"
-
-
-def test_total_ventanas_conservado() -> None:
-    # Arrange
-    agrupado = _agrupado(10)
-    total_entrada = sum(len(grupo) for grupo in agrupado.values())
-    # Act
-    particion = partir(agrupado)
-    total_salida = sum(len(grupo) for grupo in particion.values())
-    # Assert — ninguna ventana se pierde
-    assert total_salida == total_entrada
-
-
-# --- reproducibilidad ---
-
-def test_misma_semilla_mismo_resultado() -> None:
-    # Arrange
-    agrupado = _agrupado(12)
-    # Act
-    p1 = partir(agrupado, semilla=2828)
-    p2 = partir(agrupado, semilla=2828)
-    # Assert — mismos recorridos en prueba
-    rec1 = {ventana.recorrido for ventana in p1["prueba"]}
-    rec2 = {ventana.recorrido for ventana in p2["prueba"]}
-    assert rec1 == rec2
-
-
-def test_semillas_distintas_distinto_resultado() -> None:
-    # Arrange — con muchos recorridos es muy improbable que coincidan
-    agrupado = _agrupado(20)
-    # Act
-    p1 = partir(agrupado, semilla=2828)
-    p2 = partir(agrupado, semilla=42)
-    # Assert — al menos un recorrido de prueba distinto
-    rec1 = {ventana.recorrido for ventana in p1["prueba"]}
-    rec2 = {ventana.recorrido for ventana in p2["prueba"]}
-    assert rec1 != rec2
-
-
-# --- no fuga ---
-
-def test_recorrido_aparece_en_un_solo_conjunto() -> None:
-    # Arrange
-    agrupado = _agrupado(10)
-    # Act
-    particion = partir(agrupado)
-    # Assert — cada recorrido en exactamente un conjunto
-    por_recorrido: dict[str, list[str]] = {}
-    for nombre, ventanas in particion.items():
-        for ventana in ventanas:
-            por_recorrido.setdefault(ventana.recorrido, []).append(nombre)
-    for rec, conjuntos in por_recorrido.items():
-        assert len(set(conjuntos)) == 1, f"{rec} aparece en {set(conjuntos)}"
+    huellas = [declaracion.huella() for declaracion in (original, igual, cambiada)]
+    # Assert — la misma declaración da la misma huella; mover un recorrido la cambia
+    assert huellas[0] == huellas[1] != huellas[2]

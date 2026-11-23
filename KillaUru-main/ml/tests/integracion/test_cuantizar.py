@@ -1,60 +1,85 @@
-"""T046 / FR-018 — cuantización int8: archivo creado, tamaño y equivalencia."""
+"""T050 / FR-022, R-014, ADR-004 — el `.tflite` que carga la app: tamaño, nombres, formas, tipos e int8. Patrón AAA.
+
+Se entrena y convierte una sola vez por módulo (fixture) porque convertir tarda; cada prueba mira una propiedad.
+"""
 import numpy as np
+import pytest
+from ai_edge_litert.interpreter import Interpreter
 
 from killauru_ml.comun.semillas import fijar_semillas
-from killauru_ml.modelo.arquitectura import construir_modelo
 from killauru_ml.modelo.cuantizar import cuantizar, inferir_tflite
+from killauru_ml.modelo.entrenar import Conjunto, entrenar
 
-_N_FEATURES = 20
-_N_CLASES = 3
-_TFLITE_MAX_MB = 5.0  # puerta.yaml TamanoMaximoModeloMb
+_MAXIMO_BYTES = 5 * 1024 * 1024   # ADR-004, puerta.yaml TamanoMaximoModeloMb
 
 
-def _modelo_listo():
-    """Modelo mínimamente entrenado para representar datasets reales."""
+def _conjunto(cantidad: int, semilla: int) -> Conjunto:
+    generador = np.random.default_rng(semilla)
+    tipos = np.arange(cantidad) % 3
+    X = generador.normal(0.0, 1.0, (cantidad, 20)).astype(np.float32) + tipos[:, None].astype(np.float32)
+    return Conjunto(X, tipos, np.where(tipos == 0, 0, 3).astype(np.float32))
+
+
+@pytest.fixture(scope="module")
+def convertido(tmp_path_factory):
     fijar_semillas(2828)
-    modelo = construir_modelo(_N_CLASES)
-    rng = np.random.default_rng(2828)
-    X = rng.random((30, _N_FEATURES)).astype(np.float32)
-    y = rng.integers(0, _N_CLASES, 30)
-    modelo.compile(optimizer="adam", loss="sparse_categorical_crossentropy")
-    modelo.fit(X, y, epochs=1, verbose=0)
-    return modelo
+    entrenamiento = _conjunto(300, semilla=1)
+    modelo, _ = entrenar(entrenamiento, _conjunto(60, semilla=2), epocas=20, lote=32)
+    ruta = cuantizar(modelo, entrenamiento.X[:200], tmp_path_factory.mktemp("tflite") / "killauru-0.0.1.tflite")
+    return modelo, ruta
 
 
-def test_cuantizar_crea_archivo_tflite(tmp_path) -> None:
+def _firma(ruta):
+    interprete = Interpreter(model_path=str(ruta))
+    return interprete, interprete.get_signature_runner()
+
+
+def test_el_archivo_pesa_menos_de_5_mb(convertido) -> None:
     # Arrange
-    modelo = _modelo_listo()
-    ruta = tmp_path / "modelo.tflite"
-    X_rep = np.random.default_rng(1).random((20, _N_FEATURES)).astype(np.float32)
+    _, ruta = convertido
     # Act
-    ruta_salida = cuantizar(modelo, X_rep, ruta)
+    tamano = ruta.stat().st_size
     # Assert
-    assert ruta_salida.exists()
-    assert ruta_salida.suffix == ".tflite"
+    assert 0 < tamano < _MAXIMO_BYTES
 
 
-def test_modelo_tflite_bajo_5_mb(tmp_path) -> None:
+def test_entrada_caracteristicas_1x20_float32(convertido) -> None:
     # Arrange
-    modelo = _modelo_listo()
-    X_rep = np.random.default_rng(1).random((20, _N_FEATURES)).astype(np.float32)
+    _, ruta = convertido
     # Act
-    ruta = cuantizar(modelo, X_rep, tmp_path / "modelo.tflite")
-    # Assert — puerta.yaml TamanoMaximoModeloMb=5.0
-    tamano_mb = ruta.stat().st_size / (1024 * 1024)
-    assert tamano_mb < _TFLITE_MAX_MB
+    entrada = _firma(ruta)[1].get_input_details()["caracteristicas"]
+    # Assert — la app entrega float32 sin escalas
+    assert (list(entrada["shape"]), entrada["dtype"]) == ([1, 20], np.float32)
 
 
-def test_inferencia_tflite_coherente_con_keras(tmp_path) -> None:
+def test_salidas_tipo_logits_1x3_y_severidad_1x1_float32(convertido) -> None:
     # Arrange
-    fijar_semillas(2828)
-    modelo = _modelo_listo()
-    X_rep = np.random.default_rng(2).random((20, _N_FEATURES)).astype(np.float32)
-    ruta = cuantizar(modelo, X_rep, tmp_path / "m.tflite")
-    X_test = np.random.default_rng(3).random((5, _N_FEATURES)).astype(np.float32)
+    _, ruta = convertido
     # Act
-    pred_keras = modelo.predict(X_test, verbose=0)
-    pred_tflite = inferir_tflite(ruta, X_test)
-    # Assert — DeltaConfidenceP99Maximo=0.05 (puerta.yaml)
-    delta_max = float(np.abs(pred_keras - pred_tflite).max())
-    assert delta_max < 0.05
+    salidas = _firma(ruta)[1].get_output_details()
+    # Assert — la app las lee por nombre (contrato del manifiesto)
+    assert {nombre: (list(detalle["shape"]), detalle["dtype"]) for nombre, detalle in salidas.items()} == {
+        "tipo_logits": ([1, 3], np.float32), "severidad": ([1, 1], np.float32)}
+
+
+def test_las_operaciones_internas_son_int8(convertido) -> None:
+    # Arrange
+    _, ruta = convertido
+    interprete = _firma(ruta)[0]
+    # Act
+    tipos = {np.dtype(detalle["dtype"]) for detalle in interprete.get_tensor_details()}
+    # Assert — pesos y activaciones cuantizados; solo los bordes quedan en float32
+    assert np.dtype(np.int8) in tipos
+
+
+def test_el_tflite_decide_igual_que_keras(convertido) -> None:
+    # Arrange — R-014: tipo igual ≥ 99 % y |Δ confidence| p99 ≤ 0,05
+    modelo, ruta = convertido
+    X = _conjunto(200, semilla=3).X
+    # Act
+    keras_logits = modelo.predict(X, verbose=0)["tipo_logits"]
+    tflite_logits = inferir_tflite(ruta, X)["tipo_logits"]
+    # Assert
+    probabilidades = [np.exp(logits) / np.exp(logits).sum(axis=1, keepdims=True) for logits in (keras_logits, tflite_logits)]
+    assert np.mean(keras_logits.argmax(axis=1) == tflite_logits.argmax(axis=1)) >= 0.99
+    assert np.percentile(np.abs(probabilidades[0] - probabilidades[1]).max(axis=1), 99) <= 0.05

@@ -31,15 +31,18 @@ def test_todo_sintetico_crea_archivo_tflite(tmp_path) -> None:
     assert len(tflites) >= 1
 
 
-def test_todo_sintetico_crea_manifiesto(tmp_path) -> None:
-    # Arrange
+def test_todo_sintetico_guarda_la_evidencia_y_sin_aprobar_no_publica_manifiesto(tmp_path) -> None:
+    # Arrange — con datos aleatorios y sin benchmark ni acuerdo la puerta DEBE rechazar (data-model §7)
     cwd_original = pathlib.Path.cwd()
     os.chdir(tmp_path)
     try:
         from killauru_ml.__main__ import main
-        main(["todo", "--version", "0.0.3-test", "--sintetico"])
+        # Act
+        codigo = main(["todo", "--version", "0.0.3-test", "--sintetico"])
     finally:
         os.chdir(cwd_original)
-    # Assert — manifiesto.json generado
-    manifiestos = list(tmp_path.rglob("manifiesto.json"))
-    assert len(manifiestos) >= 1
+    # Assert — queda la evidencia para la puerta; el manifiesto solo lo escribe una puerta aprobada
+    carpeta = tmp_path / "modelos" / "0.0.3-test"
+    assert codigo == 2
+    assert (carpeta / "evidencia-puerta.json").is_file() and (carpeta / "registro.json").is_file()
+    assert not (carpeta / "manifiesto.json").exists()

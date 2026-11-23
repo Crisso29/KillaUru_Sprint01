@@ -1,14 +1,14 @@
 """Pipeline de punta a punta con datos sintéticos (CI y pruebas e2e).
 
-Recorre las mismas etapas que el pipeline real (entrenar → cuantizar → métricas → manifiesto → registro → puerta) con
-datos aleatorios y semilla fija. No mide calidad: comprueba que las piezas encajan. Solo lo importa la etapa `todo`
-de la CLI, así que cargar TensorFlow aquí no retrasa las demás etapas.
+Recorre las etapas reales (entrenar → cuantizar → evaluar el `.tflite` → evidencia → puerta) con datos aleatorios y
+semilla fija. No mide calidad: comprueba que las piezas encajan y que el resultado es reproducible. Sin benchmark,
+acuerdo, equivalencia ni partición reales, la puerta **debe** rechazar: por eso `todo --sintetico` devuelve 2 y no
+escribe manifiesto. Solo lo importa la etapa `todo`, así que cargar TensorFlow aquí no retrasa las demás.
 """
 from __future__ import annotations
 
-import json
 import pathlib
-from dataclasses import dataclass
+from datetime import UTC, datetime
 
 import keras
 import numpy as np
@@ -16,85 +16,66 @@ import numpy as np
 from killauru_ml.comun.catalogo import CLASES
 from killauru_ml.comun.huella import sha256_archivo
 from killauru_ml.comun.semillas import fijar_semillas
-from killauru_ml.evaluacion.metricas import calcular_metricas
+from killauru_ml.evaluacion.metricas import calcular_metricas, severidad_mas_menos_1
 from killauru_ml.evaluacion.registro import RegistroEntrenamiento, guardar_registro
-from killauru_ml.modelo.cuantizar import cuantizar
-from killauru_ml.modelo.entrenar import entrenar
-from killauru_ml.modelo.manifiesto import generar_manifiesto, guardar_manifiesto
-from killauru_ml.modelo.puerta import verificar_puerta_modelo
+from killauru_ml.modelo.cuantizar import cuantizar, inferir_tflite
+from killauru_ml.modelo.entrenar import Conjunto, entrenar
+from killauru_ml.modelo.etapa_puerta import APROBADA, ejecutar_puerta
+from killauru_ml.modelo.puerta import EvidenciaPuerta, UmbralesPuerta
 
 _SEMILLA = 2828
-_N_TRAIN, _N_VAL, _N_TEST = 300, 60, 60
-_N_FEATURES = 20
-_EPOCAS_CI = 5
-_LOTE_CI = 32
-_MUESTRAS_CALIBRACION = 20
-
-
-@dataclass(frozen=True)
-class _DatosSinteticos:
-    X_train: np.ndarray
-    y_train: np.ndarray
-    X_val: np.ndarray
-    y_val: np.ndarray
-    X_test: np.ndarray
-    etiquetas_test: list[str]
+_TAMANOS = {"entrenamiento": 300, "validacion": 60, "prueba": 60}
+_EPOCAS_CI, _LOTE_CI = 5, 32
+_NO_APROBADA = 2
 
 
 def ejecutar_todo_sintetico(version: str) -> int:
-    """Entrena, cuantiza y verifica un modelo con datos sintéticos.
-
-    Retorna 0 si la puerta se aprueba, 2 si no (lo esperado con datos aleatorios).
-    """
+    """0 si la puerta aprueba; 2 si no (lo esperado con datos aleatorios)."""
     fijar_semillas(_SEMILLA)
-    datos = _datos(np.random.default_rng(_SEMILLA))
+    generador = np.random.default_rng(_SEMILLA)
+    datos = {nombre: _conjunto(generador, cantidad) for nombre, cantidad in _TAMANOS.items()}
     print(f"[sintetico] entrenando {version} ({_EPOCAS_CI} épocas)…")
-    modelo, historia = entrenar(datos.X_train, datos.y_train, datos.X_val, datos.y_val, epocas=_EPOCAS_CI, lote=_LOTE_CI)
+    modelo, historia = entrenar(datos["entrenamiento"], datos["validacion"], epocas=_EPOCAS_CI, lote=_LOTE_CI)
     carpeta = pathlib.Path("modelos") / version
-    ruta_tflite = cuantizar(modelo, datos.X_train[:_MUESTRAS_CALIBRACION], carpeta / f"killauru-{version}.tflite")
-    metricas = _metricas(modelo, datos)
-    print(json.dumps(metricas, indent=2))
-    huella = sha256_archivo(ruta_tflite)
-    guardar_manifiesto(generar_manifiesto(version, huella, list(CLASES)), carpeta / "manifiesto.json")
-    guardar_registro(_registro(version, historia, metricas, ruta_tflite, huella), carpeta / "registro.json")
-    resultado = verificar_puerta_modelo(ruta_tflite, metricas)
-    print(resultado.resumen())
-    return 0 if resultado.aprobado else 2
+    ruta_tflite = cuantizar(modelo, datos["entrenamiento"].X, carpeta / f"killauru-{version}.tflite")
+    evidencia = _evidencia(version, ruta_tflite, datos["prueba"])
+    evidencia.guardar(carpeta / "evidencia-puerta.json")
+    guardar_registro(_registro(version, historia, evidencia), carpeta / "registro.json")
+    return 0 if ejecutar_puerta(carpeta, UmbralesPuerta()) == APROBADA else _NO_APROBADA
 
 
-def _datos(generador: np.random.Generator) -> _DatosSinteticos:
-    """Features aleatorias y clases repartidas por igual (0, 1, 2, 0, …). El orden de las llamadas fija el resultado."""
-    def clases(cantidad: int) -> np.ndarray:
-        return np.array([indice % len(CLASES) for indice in range(cantidad)])
-
-    def features(cantidad: int) -> np.ndarray:
-        return generador.random((cantidad, _N_FEATURES)).astype(np.float32)
-
-    X_train, y_train = features(_N_TRAIN), clases(_N_TRAIN)
-    X_val, y_val = features(_N_VAL), clases(_N_VAL)
-    X_test = features(_N_TEST)
-    return _DatosSinteticos(X_train, y_train, X_val, y_val, X_test, [CLASES[clase] for clase in clases(_N_TEST)])
+def _conjunto(generador: np.random.Generator, cantidad: int) -> Conjunto:
+    """Clases repartidas por igual; severidad 0 en Normal y 1–5 en anomalías. El orden de llamadas fija el resultado."""
+    tipos = np.arange(cantidad) % len(CLASES)
+    X = generador.random((cantidad, 20)).astype(np.float32)
+    severidad = np.where(tipos == 0, 0, generador.integers(1, 6, cantidad)).astype(np.float32)
+    return Conjunto(X, tipos, severidad)
 
 
-def _metricas(modelo: keras.Sequential, datos: _DatosSinteticos) -> dict:
-    probabilidades = modelo.predict(datos.X_test, verbose=0)
-    predichas = [CLASES[int(indice)] for indice in probabilidades.argmax(axis=1)]
-    return calcular_metricas(datos.etiquetas_test, predichas, list(CLASES))
+def _evidencia(version: str, ruta_tflite: pathlib.Path, prueba: Conjunto) -> EvidenciaPuerta:
+    """R-012: se evalúa el `.tflite` cuantizado, no el modelo de Python. Lo no medido queda vacío."""
+    salidas = inferir_tflite(ruta_tflite, prueba.X)
+    reales = [CLASES[indice] for indice in prueba.tipo]
+    predichos = [CLASES[indice] for indice in salidas["tipo_logits"].argmax(axis=1)]
+    metricas = calcular_metricas(reales, predichos, list(CLASES))
+    return EvidenciaPuerta(
+        version=version, dataset_version="sintetico", version_minima_app="1.0.0", ruta_tflite=str(ruta_tflite),
+        temperatura=1.0, umbral_prefiltro=0.0, clases=list(CLASES),
+        precision={clase: metricas[f"precision_{clase}"] for clase in CLASES},
+        recall={clase: metricas[f"recall_{clase}"] for clase in CLASES},
+        severidad_mas_menos_1=severidad_mas_menos_1(reales, predichos, list(prueba.severidad),
+                                                    list(salidas["severidad"].ravel())),
+        anio_medicion=datetime.now(UTC).year,
+    )
 
 
-def _registro(version: str, historia: keras.callbacks.History, metricas: dict, ruta_tflite: pathlib.Path,
-              huella: str) -> RegistroEntrenamiento:
+def _registro(version: str, historia: keras.callbacks.History, evidencia: EvidenciaPuerta) -> RegistroEntrenamiento:
     """Registro inmutable del entrenamiento (FR-031): pérdidas finales, métricas por clase y huella del .tflite."""
     perdidas = historia.history
     return RegistroEntrenamiento.nueva(
-        version=version,
-        semilla=_SEMILLA,
-        epocas_ejecutadas=len(perdidas["loss"]),
-        perdida_entrenamiento=float(perdidas["loss"][-1]),
-        perdida_validacion=float(perdidas["val_loss"][-1]),
-        precision_por_clase={f"p_{clase}": metricas[f"precision_{clase}"] for clase in CLASES},
-        recall_por_clase={f"r_{clase}": metricas[f"recall_{clase}"] for clase in CLASES},
-        ruta_modelo_tflite=str(ruta_tflite),
-        sha256_tflite=huella,
-        version_dataset="sintetico",
+        version=version, semilla=_SEMILLA, epocas_ejecutadas=len(perdidas["loss"]),
+        perdida_entrenamiento=float(perdidas["loss"][-1]), perdida_validacion=float(perdidas["val_loss"][-1]),
+        precision_por_clase=evidencia.precision, recall_por_clase=evidencia.recall,
+        ruta_modelo_tflite=evidencia.ruta_tflite, sha256_tflite=sha256_archivo(pathlib.Path(evidencia.ruta_tflite)),
+        version_dataset=evidencia.dataset_version,
     )
