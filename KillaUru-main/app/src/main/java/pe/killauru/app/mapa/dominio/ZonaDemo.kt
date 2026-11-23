@@ -2,7 +2,7 @@ package pe.killauru.app.mapa.dominio
 
 import pe.killauru.app.comun.dominio.Coordenada
 
-/** FR-049, FR-051: polígono de la zona demo (máx 60 vértices). */
+/** FR-049, FR-051, RN-08: polígono del tramo demo (≤ 120 vértices, R-010); prueba de punto por rayo. */
 internal class ZonaDemo(val vertices: List<Coordenada>) {
     fun contiene(punto: Coordenada): Boolean {
         if (vertices.size < 3) return false

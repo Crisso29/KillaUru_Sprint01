@@ -1,63 +1,42 @@
 package pe.killauru.app.corredor.datos
 
-import android.content.Context
-import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.serialization.SerialName
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import pe.killauru.app.corredor.dominio.Corredor
+import pe.killauru.app.corredor.dominio.FuenteCorredor
 import pe.killauru.app.corredor.dominio.Vertice
+import pe.killauru.app.mapa.datos.ArchivosMapaLocal
+import pe.killauru.app.mapa.dominio.TipoArchivoMapa
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/** Contrato `Corredor` de `cdn.openapi.yaml`: vértices `[longitud, latitud, kmAcumulado]`. */
+@Serializable
+private data class CorredorDto(val version: String, val vertices: List<List<Double>>)
+
 /**
- * FR-055, FR-074: carga la polilínea del corredor PE-28A desde el archivo generado por
- * `generar_corredor.py` (assets o `filesDir` si se descargó una versión nueva).
- *
- * Prioridad: `filesDir/corredor/corredor_pe28a.v*.json` > asset por defecto.
- * Fallo en el archivo → usa el asset del APK como fallback (R-015).
+ * FR-055, FR-074: lee el corredor de la versión activa del mapa (6 689 vértices). Lo guarda en memoria mientras no
+ * cambie el archivo: se usa en cada fix del GPS. Sin mapa descargado devuelve null (la app no se cae).
  */
 @Singleton
-internal class CargadorCorredor @Inject constructor(
-    @ApplicationContext private val ctx: Context,
-    private val json: Json,
-) {
-    companion object {
-        private const val ASSET_CORREDOR = "corredor/corredor_pe28a.json"
-        private const val DIR_CORREDOR = "corredor"
+internal class CargadorCorredor @Inject constructor(private val archivos: ArchivosMapaLocal) : FuenteCorredor {
+    private var enMemoria: Pair<File, Corredor>? = null
+
+    override suspend fun corredor(): Corredor? {
+        val archivo = archivos.archivo(TipoArchivoMapa.CORREDOR)?.takeIf { it.exists() } ?: return null
+        enMemoria?.takeIf { it.first == archivo }?.let { return it.second }
+        return leer(archivo).also { enMemoria = archivo to it }
     }
 
-    fun cargar(): Corredor {
-        val vertices = leerVertices()
-        return Corredor(vertices)
+    private suspend fun leer(archivo: File): Corredor = withContext(Dispatchers.IO) {
+        val dto = JSON.decodeFromString(CorredorDto.serializer(), archivo.readText())
+        Corredor(dto.vertices.map { (lon, lat, km) -> Vertice(lat = lat, lon = lon, km = km) })
     }
 
-    private fun leerVertices(): List<Vertice> {
-        val contenido = leerContenido()
-        val dto = json.decodeFromString<CorredorDto>(contenido)
-        return dto.vertices.map { Vertice(it.lat, it.lon, it.km) }
-    }
-
-    private fun leerContenido(): String {
-        // Archivo descargado tiene prioridad sobre el del APK
-        val dir = File(ctx.filesDir, DIR_CORREDOR)
-        val descargado = dir.listFiles()?.maxByOrNull { it.name }
-        if (descargado?.exists() == true) {
-            return descargado.readText()
-        }
-        return ctx.assets.open(ASSET_CORREDOR).bufferedReader().readText()
+    private companion object {
+        val JSON = Json { ignoreUnknownKeys = true }
     }
 }
-
-@Serializable
-private data class CorredorDto(
-    @SerialName("vertices") val vertices: List<VerticeDto>,
-)
-
-@Serializable
-private data class VerticeDto(
-    @SerialName("lat") val lat: Double,
-    @SerialName("lon") val lon: Double,
-    @SerialName("km") val km: Double,
-)

@@ -19,3 +19,7 @@ KillaUru-main/*.txt
 
 # Prototipo duplicado (canónico: KillaUru-main/referencia/prototipo/)
 docs/prototipo/
+
+# Python: caché de bytecode de las herramientas
+__pycache__/
+*.pyc

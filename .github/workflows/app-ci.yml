@@ -6,12 +6,16 @@ on:
     paths:
       - 'KillaUru-main/app/**'
       - 'KillaUru-main/specs/**/contracts/**'
+      - 'KillaUru-main/herramientas/cdn/**'
+      - 'KillaUru-main/backend/db/datos/**'
       - '.github/workflows/app-ci.yml'
   push:
     branches: ["**"]
     paths:
       - 'KillaUru-main/app/**'
       - 'KillaUru-main/specs/**/contracts/**'
+      - 'KillaUru-main/herramientas/cdn/**'
+      - 'KillaUru-main/backend/db/datos/**'
       - '.github/workflows/app-ci.yml'
 
 permissions:
@@ -51,6 +55,11 @@ jobs:
         run: |
           python -m unittest discover -s herramientas -p 'test_*.py'
           python herramientas/verificar_lineas.py
+      # 008 US8: los archivos que publica la CDN cumplen cdn.openapi.yaml (herramientas/cdn).
+      - name: Datos de la CDN contra el contrato
+        run: |
+          python -m pip install --quiet -r ../herramientas/cdn/requisitos.txt
+          python -m unittest discover -s ../herramientas/cdn
       - name: Evidencia de verificaciÃ³n
         if: always()
         uses: actions/upload-artifact@v4

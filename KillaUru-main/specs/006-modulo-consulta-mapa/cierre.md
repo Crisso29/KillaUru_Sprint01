@@ -1,7 +1,7 @@
 # Cierre de spec 006 — Consulta de mapa
 
 **Revisado:** 2026-11-21. **Estado:** cierre de producción no acreditado.
-**Seguimiento:** 20/33 tareas marcadas; 13 pendientes en tasks.md.
+**Seguimiento:** 21/33 tareas marcadas; 12 pendientes en tasks.md (T002 cerrada el 2026-11-22: polígono demo real de 115 vértices, R-010 revisado).
 [Requisitos](spec.md) · [Tareas](tasks.md) · [Pruebas](pruebas.md) · [Plan de cierre global](../../docs/guias/cierre-y-despliegue.md)
 
 ## Dependencias
@@ -34,7 +34,6 @@ de la revisión. “Local” incluye implementación/documentación y preparaci�
 
 | Tarea | Etapa principal | Entregable pendiente |
 |---|---|---|
-| T002 | Local | Armar el polígono demo desde la polilínea PE-28A (límites `demo_km_inicio` → `demo_km_fin` del GeoJSON de 004; km 268 → 335,073 al mostrar, margen 200 m, ≤ 60 vértices); guardarlo en `appsettings.json` y en `db/datos/tramo_demo.geojson` |
 | T003 | Local | Semilla `mapa-roles.sql` con los 4 grupos del quickstart |
 | T009 | Local | `CalculadorETagTests`: mismas versiones → mismo `ETag`; una celda +1 → distinto; otro instante de arranque → distinto; otro alcance → distinto |
 | T010 | Local | `SerializadorGeoJsonTests`: *feature* con los 7 campos (incluido `kmVia`) y `[lon, lat]`; `venceUtc: null` en un estado final; con `estado` solo si se pide; baja con `geometry: null` y sin `kmVia`; colección vacía válida |

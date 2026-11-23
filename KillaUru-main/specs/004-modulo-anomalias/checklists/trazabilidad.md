@@ -76,7 +76,7 @@
 - [x] Eje OSM conservado y reproducible; V0005 verificada en PostGIS, 6689 vértices y 335.0729634613575 km → T002 → `CorredorMigracionTests`.
 - [x] Veinte referencias con tolerancia ≤ 1 m y extremo demo obtenido de la longitud real → `CorredorRealTests`, `backend/db/datos/km_referencia.csv`.
 - [x] RN-08, glosario, espejo de docs y specs dependientes actualizados; cobertura total = 336 tramos.
-- [ ] Polígono demo de 200 m y ≤ 60 vértices, pendiente de 006 T002.
+- [x] Polígono demo de 200 m y ≤ 120 vértices: 006 T002 (`db/datos/tramo_demo.geojson`, 115 vértices).
 
 Implementación local, evidencias y condiciones de cierre: [revisión de implementación](../revision-implementacion.md).
 

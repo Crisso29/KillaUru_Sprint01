@@ -5,6 +5,7 @@ import org.junit.Test
 import pe.killauru.app.comun.dominio.Coordenada
 import pe.killauru.app.deteccion.dominio.TipoAnomalia
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 
@@ -28,6 +29,9 @@ class ActualizarAnomaliasUseCaseTest {
         enDemo = enDemo,
     )
 
+    /** Sin tramo demo descargado todavía. */
+    private val sinZona = object : FuenteZonaDemo { override suspend fun zona(): ZonaDemo? = null }
+
     // ── tests ────────────────────────────────────────────────────────────────
 
     @Test fun `registrado sin copia descarga todo sin updatedSince`() = runTest {
@@ -41,7 +45,7 @@ class ActualizarAnomaliasUseCaseTest {
                 etag = null,
             )
         )
-        val caso = ActualizarAnomaliasUseCase(repo, fuente)
+        val caso = ActualizarAnomaliasUseCase(repo, fuente, sinZona)
         // Act
         caso.actualizar(Alcance.Registrado)
         // Assert
@@ -57,7 +61,7 @@ class ActualizarAnomaliasUseCaseTest {
         val fuente = FuenteAnomaliasMemoria(
             FuenteAnomalias.Respuesta.Datos(emptyList(), emptyList(), 6000L, null)
         )
-        val caso = ActualizarAnomaliasUseCase(repo, fuente)
+        val caso = ActualizarAnomaliasUseCase(repo, fuente, sinZona)
         // Act
         caso.actualizar(Alcance.Registrado)
         // Assert
@@ -74,7 +78,7 @@ class ActualizarAnomaliasUseCaseTest {
         val fuente = FuenteAnomaliasMemoria(
             FuenteAnomalias.Respuesta.Datos(emptyList(), listOf("del"), 2000L, null)
         )
-        val caso = ActualizarAnomaliasUseCase(repo, fuente)
+        val caso = ActualizarAnomaliasUseCase(repo, fuente, sinZona)
         // Act
         caso.actualizar(Alcance.Registrado)
         // Assert
@@ -89,7 +93,7 @@ class ActualizarAnomaliasUseCaseTest {
             it.estado = EstadoCopia(Alcance.Anonimo, null, etag, null)
         }
         val fuente = FuenteAnomaliasMemoria(FuenteAnomalias.Respuesta.SinCambios(999L))
-        val caso = ActualizarAnomaliasUseCase(repo, fuente)
+        val caso = ActualizarAnomaliasUseCase(repo, fuente, sinZona)
         // Act
         caso.actualizar(Alcance.Anonimo)
         // Assert
@@ -105,7 +109,7 @@ class ActualizarAnomaliasUseCaseTest {
         }
         val verificado = 500L
         val fuente = FuenteAnomaliasMemoria(FuenteAnomalias.Respuesta.SinCambios(verificado))
-        val caso = ActualizarAnomaliasUseCase(repo, fuente)
+        val caso = ActualizarAnomaliasUseCase(repo, fuente, sinZona)
         // Act
         val resultado = caso.actualizar(Alcance.Anonimo)
         // Assert
@@ -124,7 +128,7 @@ class ActualizarAnomaliasUseCaseTest {
             it.estado = EstadoCopia(Alcance.Anonimo, null, "etag", 100L)
         }
         val fuente = FuenteAnomaliasMemoria(FuenteAnomalias.Respuesta.SinCambios(verificadoUtc = null))
-        val caso = ActualizarAnomaliasUseCase(repo, fuente)
+        val caso = ActualizarAnomaliasUseCase(repo, fuente, sinZona)
         // Act
         caso.actualizar(Alcance.Anonimo)
         // Assert
@@ -141,7 +145,7 @@ class ActualizarAnomaliasUseCaseTest {
         val fuente = FuenteAnomaliasMemoria(
             FuenteAnomalias.Respuesta.Datos(emptyList(), emptyList(), generadoUtc = 5000L, etag = null)
         )
-        val caso = ActualizarAnomaliasUseCase(repo, fuente)
+        val caso = ActualizarAnomaliasUseCase(repo, fuente, sinZona)
         // Act
         caso.actualizar(Alcance.Registrado)
         // Assert
@@ -162,7 +166,7 @@ class ActualizarAnomaliasUseCaseTest {
                 else FuenteAnomalias.Respuesta.Datos(listOf(anomaliaEjemplo("nuevo")), emptyList(), 9000L, null)
             }
         }
-        val caso = ActualizarAnomaliasUseCase(repo, fuente)
+        val caso = ActualizarAnomaliasUseCase(repo, fuente, sinZona)
         // Act
         caso.actualizar(Alcance.Registrado)
         // Assert
@@ -177,7 +181,7 @@ class ActualizarAnomaliasUseCaseTest {
             it.estado = EstadoCopia(Alcance.Registrado, 1000L, null, null)
         }
         val fuente = FuenteAnomaliasMemoria(FuenteAnomalias.Respuesta.SinCambios(0))
-        val caso = ActualizarAnomaliasUseCase(repo, fuente)
+        val caso = ActualizarAnomaliasUseCase(repo, fuente, sinZona)
         // Act
         caso.limpiarAlCambiarRol()
         // Assert

@@ -93,4 +93,4 @@ El módulo **no tiene tablas** (`componentes-arquitectonicos.md` §6). Todo lo q
 }
 ```
 
-Validación al arrancar: polígono cerrado o cerrable con ≥ 4 vértices válidos; números > 0. Cada vértice es `[lon, lat]`; el real tiene ≤ 60 vértices (R-010). Los del ejemplo son ilustrativos: los reales salen de la tarea T002.
+Validación al arrancar: polígono cerrado o cerrable con ≥ 4 vértices válidos; números > 0. Cada vértice es `[lon, lat]`; el real tiene ≤ 120 vértices (R-010). Los del ejemplo son ilustrativos: los reales salen de la tarea T002.

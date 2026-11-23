@@ -17,6 +17,7 @@ import pe.killauru.app.mapa.dominio.AnomaliaLocal
 import pe.killauru.app.mapa.dominio.EstadoCopia
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import pe.killauru.app.soporte.sinHilos
 import kotlin.test.assertNull
 
 /**
@@ -32,7 +33,7 @@ class RepositorioAnomaliasRoomTest {
     @Before fun setUp() {
         val ctx = ApplicationProvider.getApplicationContext<Context>()
         bd = Room.inMemoryDatabaseBuilder(ctx, KillaUruBd::class.java)
-            .allowMainThreadQueries()
+            .sinHilos()
             .build()
         repo = RepositorioAnomaliasRoom(bd, bd.anomaliaDao(), bd.estadoCopiaDao())
     }

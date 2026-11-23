@@ -3,11 +3,15 @@ package pe.killauru.app.mapa.ui
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import pe.killauru.app.actualizador.ui.PantallaDescargaUi
+import pe.killauru.app.mapa.dominio.EstadoDescarga
+import kotlin.test.assertEquals
 
 /**
  * T089 / FR-049, FR-052: tests de UI para los componentes de la pantalla de mapa.
@@ -21,13 +25,30 @@ class MapaUiTest {
 
     // ── SinMapaPantalla ──────────────────────────────────────────────────────
 
-    @Test fun `SinMapaPantalla muestra texto de descarga pendiente`() {
-        // Arrange + Act
-        composeTestRule.setContent { SinMapaPantalla() }
+    /** Prototipo 13: dice cuánto pesa, que la detección sigue y deja descargar ya o con datos móviles. */
+    @Test fun `sin mapa explica el peso y deja descargar ahora o con datos moviles`() {
+        // Arrange
+        var descargar = 0
+        var moviles = 0
+        composeTestRule.setContent {
+            SinMapaPantalla(PantallaDescargaUi(EstadoDescarga.EsperandoWifi(2_362_855)), { descargar++ }, { moviles++ })
+        }
+        // Act
+        composeTestRule.onNodeWithText("Descargar ahora").performClick()
+        composeTestRule.onNodeWithText("Usar datos móviles").performClick()
         // Assert
-        composeTestRule
-            .onNodeWithText("Aún no tienes el mapa descargado.", substring = true)
-            .assertIsDisplayed()
+        composeTestRule.onNodeWithText("Aún no tienes el mapa").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Conéctate a Wi-Fi para descargarlo (2,3 MB)", substring = true).assertIsDisplayed()
+        composeTestRule.onNodeWithText("la detección sigue guardando", substring = true).assertIsDisplayed()
+        assertEquals(1 to 1, descargar to moviles)
+    }
+
+    @Test fun `mientras descarga muestra el avance en vez del boton`() {
+        // Arrange + Act
+        composeTestRule.setContent { SinMapaPantalla(PantallaDescargaUi(EstadoDescarga.Descargando(40, 2_362_855)), {}, {}) }
+        // Assert
+        composeTestRule.onNodeWithText("Descargando… 40 %").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Descargar ahora").assertDoesNotExist()
     }
 
     // ── ActualizadoHace ──────────────────────────────────────────────────────

@@ -23,6 +23,8 @@ import pe.killauru.app.soporte.PreferenciasMemoria
 import pe.killauru.app.soporte.SeudonimoMemoria
 import pe.killauru.app.soporte.SesionMemoria
 import pe.killauru.app.soporte.RecorridosMemoria
+import pe.killauru.app.mapa.dominio.RecortarAlDemoUseCase
+import pe.killauru.app.mapa.dominio.RepositorioAnomaliasMemoria
 import pe.killauru.app.soporte.SesionesDePrueba
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
@@ -62,7 +64,7 @@ class RedAutenticadaTest {
     @Before fun setUp() {
         servidor = MockWebServer().apply { dispatcher = api; start() }
         var identidad: IdentidadApi? = null
-        val invalida = AplicarSesionInvalidaUseCase(sesiones, LimpiezaLocalSesion(sesiones, prefs, RecorridosMemoria()))
+        val invalida = AplicarSesionInvalidaUseCase(sesiones, LimpiezaLocalSesion(sesiones, prefs, RecorridosMemoria(), RecortarAlDemoUseCase(RepositorioAnomaliasMemoria())))
         cliente = ClienteHttp.construir(
             InterceptorToken(sesiones),
             InterceptorSeudonimo(seudonimo),

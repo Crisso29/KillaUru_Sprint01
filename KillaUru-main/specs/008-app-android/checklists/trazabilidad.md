@@ -15,14 +15,14 @@
 - [ ] CHK003 HU-26 · categoría en el primer uso, soporte y cargador, solo en el celular → FR-004 → T027, T029…T031
 - [ ] CHK004 HU-03 · 5 h sin señal, 100 % `PENDING`, mapa y alertas → FR-019, FR-025, FR-059 → T065, T123
 - [ ] CHK005 HU-04 · mismos `eventoId`, `SYNCED` solo tras 200, reanudar ≤ 60 s → FR-028…FR-038 → T054…T072
-- [x] CHK006 HU-07 · demo, zona sombreada, aviso una vez por viaje → FR-045, FR-049 → T081, T083, T085, T096
+- [ ] CHK006 HU-07 · demo, zona sombreada, aviso una vez por viaje → FR-045, FR-049 → T081, T083, T085, T096, T128
 - [x] CHK007 HU-08 · 335.073 km, severidad, tiempo relativo, sin señal → FR-041…FR-044, FR-047, FR-050 → T082, T086, T089, T094, T096
 - [ ] CHK008 HU-09 · 8 s / 12 s ± 1 s por la vía, una alerta, sin internet, pantalla bloqueada → FR-054…FR-059 → T097…T104
 - [x] CHK009 HU-10 · 6 meses solo en el celular (*Could*) → FR-069 → T115…T117
 - [ ] CHK010 HU-18 / HU-18b · registro, sesión, verificación, conservar corredor offline, cerrar sesión → FR-060…FR-064, FR-066 → T105…T114
 - [x] CHK011 HU-21 · seudónimo rotativo aleatorio → FR-039, FR-040 → T033…T035
 - [ ] CHK012 HU-22 · aceptación de la política (también anónimo), «Solo ver el mapa» → FR-001, FR-002, FR-005, FR-060 → T025…T032, T105
-- [ ] CHK013 HU-23 · eliminar cuenta con contraseña y borrar historial local → FR-067 → T107, T110, T112
+- [x] CHK013 HU-23 · eliminar cuenta con contraseña y borrar historial local → FR-067 → T107, T110, T112
 - [ ] CHK014 HU-24 · ver mis datos → FR-068 → T109, T110, T114
 - [ ] CHK015 HU-25 · recuperar con el mismo mensaje → FR-065 → T109, T110, T114
 - [x] CHK016 HU-27 · términos antes de usar; versión nueva → FR-001, FR-003 → T025, T026, T031
@@ -36,7 +36,7 @@
 - [ ] CHK021 RF-05 · todo sin internet → FR-059, FR-041 → T099, T123
 - [ ] CHK022 RF-06 · lotes ≤ 50, más antiguos, estados locales, 400 → partir, un seudónimo, 168 h → FR-020…FR-023, FR-029…FR-032 → T054, T056, T057, T059, T060
 - [ ] CHK023 RF-07 · *backoff* 30 s → 2 h, ±25 %, `Retry-After` → FR-035, FR-036 → T055, T062
-- [x] CHK024 RF-08 · sombreado y aviso del anónimo → FR-049 → T083, T096
+- [ ] CHK024 RF-08 · sombreado y aviso del anónimo → FR-049 → T083, T096, T128
 - [x] CHK025 RF-09 · mapa del registrado con persistencia → FR-050 → T089, T096
 - [ ] CHK026 RF-10 · alertas por la vía, solo el rol que las recibe → FR-054…FR-057 → T097…T102
 - [ ] CHK027 RF-11 (parte app) · envío del lote según el contrato → FR-030, FR-031 → T061, T070
@@ -65,7 +65,7 @@
 - [ ] CHK047 RN-11 · un lote = un seudónimo; no enviar > 168 h → FR-022, FR-029 → T059, T060
 - [ ] CHK048 RN-16 · distancia por categoría, por la vía, por delante, una por pasada, agrupada → FR-055…FR-057 → T097, T098, T100
 - [x] CHK049 RN-18 · solo Liviano detecta; alertas con cualquier categoría → FR-004, FR-010, FR-059 → T037, T099
-- [ ] CHK050 RN-19 · mensaje genérico en la app → FR-061 → T107, T110
+- [x] CHK050 RN-19 · mensaje genérico en la app → FR-061 → T107, T110
 - [ ] CHK051 RN-20 · sonido que baja la música, pantalla bloqueada, vibración → FR-058 → T101, T103
 - [ ] CHK052 RN-21 · permiso local, no cortar en viaje, baja de cuenta, cierre de sesión → FR-051, FR-063, FR-066 → T106…T108
 - [x] CHK053 RN-22 · pausa detección y envío, mantiene alertas → FR-017, FR-037, FR-059 → T038, T059, T099

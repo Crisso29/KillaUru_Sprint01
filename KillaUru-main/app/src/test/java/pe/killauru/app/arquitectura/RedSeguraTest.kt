@@ -34,12 +34,13 @@ class RedSeguraTest {
         assertEquals(setOf("10.0.2.2", "localhost"), dominios.toSet())
     }
 
-    @Test fun `la url de la version publicada es https y fija`() {
+    @Test fun `las url de la api y de la cdn publicadas son https y fijas`() {
         // Arrange + Act
         val gradle = File(raiz, "build.gradle.kts").readText()
         val release = gradle.substringAfter("release {").substringBefore("}")
         // Assert — release no lee propiedades: nadie puede publicar un APK que apunte a otro servidor
         assertTrue("\"\\\"https://api.killauru.pe/\\\"\"" in release, release)
+        assertTrue("\"\\\"https://cdn.killauru.pe/\\\"\"" in release, release)
         assertTrue("findProperty" !in release)
     }
 }

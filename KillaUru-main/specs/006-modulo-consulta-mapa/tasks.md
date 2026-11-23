@@ -16,7 +16,7 @@ description: "Tareas del módulo Consulta de Mapa"
 ## Phase 1: Setup
 
 - [x] T001 [P] `MapaOptions` con `ValidateOnStart` y su sección en `appsettings.json` — `Ma/Application/MapaOptions.cs` · (ADR-012)
-- [ ] T002 Armar el polígono demo desde la polilínea PE-28A (límites `demo_km_inicio` → `demo_km_fin` del GeoJSON de 004; km 268 → 335,073 al mostrar, margen 200 m, ≤ 60 vértices); guardarlo en `appsettings.json` y en `db/datos/tramo_demo.geojson` · (RN-08; R-010)
+- [x] T002 Armar el polígono demo desde la polilínea PE-28A (límites `demo_km_inicio` → `demo_km_fin` del GeoJSON de 004; km 268 → 335,073 al mostrar, margen 200 m, ≤ 120 vértices); guardarlo en `appsettings.json` y en `db/datos/tramo_demo.geojson` · (RN-08; R-010) — **Hecha 2026-11-22:** `db/datos/construir_tramo_demo.py` (115 vértices, toda la vía dentro, km 258 fuera); `test_construir_tramo_demo.py` (5) exige que `appsettings.json` y `tramo_demo.geojson` sean lo que genera el script. El límite pasó de 60 a 120 vértices por decisión del autor (R-010)
 - [ ] T003 [P] Semilla `mapa-roles.sql` con los 4 grupos del quickstart — `db/semillas/mapa-roles.sql`
 
 ## Phase 2: Foundational — dominio

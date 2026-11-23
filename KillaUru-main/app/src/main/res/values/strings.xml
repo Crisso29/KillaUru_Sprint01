@@ -5,10 +5,4 @@
     <string name="url_estado_servicio" translatable="false">https://estado.killauru.pe</string>
 
     <!-- DescargaMapaPantalla (FR-041, FR-008) -->
-    <string name="descarga_mapa_titulo">Descarga del mapa</string>
-    <string name="descarga_mapa_esperando">Preparando la descarga…</string>
-    <string name="descarga_mapa_reanudable">Si se corta, sigue desde donde quedó</string>
-    <string name="descarga_mapa_listo">¡Mapa listo!</string>
-    <string name="descarga_mapa_abrir">Abrir el mapa</string>
-    <string name="descarga_mapa_error">No se pudo descargar el mapa. Inténtalo de nuevo.</string>
 </resources>

@@ -48,16 +48,23 @@ python -I herramientas/verificar_lineas.py        # ningún .kt/.kts/.py/.sh > 1
 
 ## 3. Datos del corredor (US8)
 
+Desde `KillaUru-main`, en una carpeta de salida (`$S`) y para la versión `$V`:
+
 ```powershell
-cd app
-python -I -m pip install -r herramientas/corredor/requisitos.txt
-python -I herramientas/corredor/generar_corredor.py ../backend/db/datos/corredor_pe28a.geojson --version 3
-python -I herramientas/corredor/verificar_datos.py --demo ../backend/db/datos/tramo_demo.geojson
-sh herramientas/mapa/generar_pmtiles.sh 3
-python -I herramientas/corredor/generar_manifiesto.py --version 3
+python -m pip install -r herramientas/cdn/requisitos.txt
+python -m unittest discover -s herramientas/cdn          # los archivos cumplen cdn.openapi.yaml
+python herramientas/cdn/generar_corredor.py backend/db/datos/corredor_pe28a.geojson $V --salida $S
+copy backend/db/datos/tramo_demo.geojson $S/tramo_demo.v$V.geojson
+cd herramientas/cdn; python verificar_datos.py $S/corredor_pe28a.v$V.json $S/tramo_demo.v$V.geojson ../../backend/db/datos/km_referencia.csv; cd ../..
+python herramientas/cdn/region_corredor.py $S/corredor_pe28a.v$V.json --salida region.geojson
+bash herramientas/cdn/generar_pmtiles.sh region.geojson $S/corredor-pe28a.v$V.pmtiles 20261120   # requiere la CLI pmtiles
+python herramientas/cdn/generar_estilo.py $V --base https://cdn.killauru.pe/mapa --salida $S/estilo.v$V.json
+python herramientas/cdn/generar_manifiesto.py $S $V --base https://cdn.killauru.pe/mapa
 ```
 
-Publicar: GitHub → Actions → `app-datos-r2` → `version = 3`, `ensayo = true` (solo genera y verifica) y luego `ensayo = false`.
+El polígono demo lo genera el backend (`backend/db/datos/construir_tramo_demo.py`, 006 T002); la CDN solo lo copia.
+Publicar: GitHub → Actions → `app-datos-r2` → `version`, `ensayo = true` (genera, verifica y guarda el resultado como
+artefacto) y luego `ensayo = false` (sube a R2: archivos primero, manifiesto al final).
 
 ## 4. Campo (R-030)
 

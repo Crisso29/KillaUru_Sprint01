@@ -30,13 +30,17 @@ android {
     }
     buildTypes {
         // URL de la API: la publicada es fija y HTTPS. La de depuración puede apuntar a una API local para probar en el
-        // emulador: ./gradlew assembleDebug -Pkillauru.apiUrlDepuracion=http://10.0.2.2:18080/ (ver src/debug).
+        // emulador: ./gradlew assembleDebug -Pkillauru.apiUrlDepuracion=http://10.0.2.2:18080/
+        // -Pkillauru.cdnUrlDepuracion=http://10.0.2.2:8090/ (ver src/debug).
         debug {
             val url = (findProperty("killauru.apiUrlDepuracion") as String?) ?: "https://api.killauru.pe/"
+            val cdn = (findProperty("killauru.cdnUrlDepuracion") as String?) ?: "https://cdn.killauru.pe/"
             buildConfigField("String", "API_URL", "\"$url\"")
+            buildConfigField("String", "CDN_URL", "\"$cdn\"")
         }
         release {
             buildConfigField("String", "API_URL", "\"https://api.killauru.pe/\"")
+            buildConfigField("String", "CDN_URL", "\"https://cdn.killauru.pe/\"")
         }
     }
     testOptions { unitTests.isIncludeAndroidResources = true }

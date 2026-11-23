@@ -45,7 +45,7 @@
 - [x] CHK023 `CeldasDelCorredor` (R-001; 004 R-012) y `Celda.Limites` (R-002) → D1
 - [x] CHK024 Sin `estado`, el administrador recibe los 5 estados; el panel abre con «Activa + PendienteConfirmacion» (R-004) → D6 → FR-002 → T022
 - [x] CHK025 La app anónima pide sin `bbox` ni `updatedSince` (R-007) → D17: pasa a la spec 008-app-android
-- [ ] CHK026 Polígono demo km 268 → 335.073, margen 200 m, ≤ 60 vértices (R-010) → D1 → T002
+- [x] CHK026 Polígono demo km 268 → 335.073, margen 200 m, ≤ 120 vértices (R-010) → D1 → T002
 - [ ] CHK027 `kmVia` en cada *feature*, todos los roles (R-011) → D13 → FR-005 → T010
 - [ ] CHK028 `venceUtc` nulo en estados finales → T-PO08 → FR-005 → T010
 - [ ] CHK029 Bajas del anónimo solo dentro del polígono demo (R-012) → T-SEG16 → FR-012 → T025, T027

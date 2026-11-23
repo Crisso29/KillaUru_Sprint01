@@ -21,6 +21,7 @@ import pe.killauru.app.mapa.datos.VerificadorSha256
 import retrofit2.Retrofit
 import java.security.MessageDigest
 import kotlin.test.assertIs
+import kotlin.test.assertTrue
 import kotlin.test.assertFalse
 import kotlin.test.assertEquals
 
@@ -134,5 +135,32 @@ class DescargaReanudableTest {
         // Assert
         assertIs<DescargaReanudable.Resultado.Fallida>(resultado)
         assertFalse(almacen.archivoMapa("tile.pmtiles").exists(), "el archivo con hash incorrecto debe borrarse")
+    }
+
+    @Test fun `un tamano distinto al del manifiesto falla y no deja el archivo`() = runTest {
+        // Arrange — la CDN sirve un archivo truncado o equivocado
+        server.enqueue(MockResponse().setResponseCode(200).setBody(okio.Buffer().write(contenidoCompleto)))
+        // Act
+        val resultado = descarga.descargar(server.url("/tile.pmtiles").toString(), "tile.pmtiles", sha256Correcto,
+            bytes = contenidoCompleto.size + 1L)
+        // Assert — se comprueba el tamaño del contrato antes que la huella
+        assertIs<DescargaReanudable.Resultado.Fallida>(resultado)
+        assertFalse(almacen.archivoMapa("tile.pmtiles").exists())
+    }
+
+    @Test fun `al reanudar el progreso cuenta lo ya descargado y llega al total`() = runTest {
+        // Arrange — la mitad ya está en el parcial
+        val mitad = contenidoCompleto.size / 2
+        almacen.archivoParcial("tile.pmtiles").writeBytes(contenidoCompleto.copyOfRange(0, mitad))
+        server.enqueue(MockResponse().setResponseCode(206)
+            .addHeader("Content-Range", "bytes $mitad-${contenidoCompleto.size - 1}/${contenidoCompleto.size}")
+            .setBody(okio.Buffer().write(contenidoCompleto.copyOfRange(mitad, contenidoCompleto.size))))
+        val avances = mutableListOf<Long>()
+        // Act
+        descarga.descargar(server.url("/tile.pmtiles").toString(), "tile.pmtiles", sha256Correcto,
+            bytes = contenidoCompleto.size.toLong()) { avances += it }
+        // Assert
+        assertTrue(avances.first() >= mitad, "el progreso empieza en lo ya descargado, no en cero")
+        assertEquals(contenidoCompleto.size.toLong(), avances.last())
     }
 }

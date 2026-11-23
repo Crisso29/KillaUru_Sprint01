@@ -1,75 +1,92 @@
 name: app-datos-r2
 
+# 008 T127 / FR-072, R-014: publica en la CDN (Cloudflare R2, cdn.killauru.pe/mapa/) los 4 archivos del mapa y su
+# manifiesto, según specs/008-app-android/contracts/cdn.openapi.yaml. Primero los archivos versionados (inmutables) y
+# al final el manifiesto (caché corta): la app nunca lee un manifiesto que apunte a algo que aún no se subió.
+# Las credenciales de R2 viven solo en GitHub Secrets (RNF-34).
+
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Número de versión del corredor (entero)'
+        description: 'Versión de los datos del mapa (entero, mayor que la publicada)'
         required: true
         type: string
+      compilacion:
+        description: 'Compilación de Protomaps (AAAAMMDD) de la que se extrae el mapa base'
+        required: false
+        type: string
+        default: '20261120'
       ensayo:
-        description: 'Modo ensayo (no sube a R2)'
+        description: 'Ensayo: genera y verifica, pero no sube a R2'
         required: false
         type: boolean
-        default: false
+        default: true
+
+permissions:
+  contents: read
 
 jobs:
   generar-y-publicar:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: KillaUru-main
+    env:
+      SALIDA: ${{ github.workspace }}/publicar/mapa
+      BASE: https://cdn.killauru.pe/mapa
+      V: ${{ inputs.version }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Instalar Python 3.12
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Instalar requisitos
-        run: pip install -r KillaUru-main/herramientas/corredor/requisitos.txt
-
-      - name: Generar corredor
+      - name: Instalar requisitos y la herramienta pmtiles
         run: |
-          python -I KillaUru-main/herramientas/corredor/generar_corredor.py \
-            KillaUru-main/backend/db/datos/corredor_pe28a.geojson \
-            ${{ inputs.version }} \
-            --salida KillaUru-main/herramientas/corredor/
+          pip install -r herramientas/cdn/requisitos.txt
+          curl -sSL https://github.com/protomaps/go-pmtiles/releases/download/v1.31.2/go-pmtiles_1.31.2_Linux_x86_64.tar.gz | tar -xz -C /usr/local/bin pmtiles
+          mkdir -p "$SALIDA"
 
-      - name: Verificar datos
+      - name: Pruebas de las herramientas (contrato)
+        run: python -m unittest discover -s herramientas/cdn
+
+      - name: Corredor y tramo demo
         run: |
-          python -I KillaUru-main/herramientas/corredor/verificar_datos.py \
-            KillaUru-main/herramientas/corredor/corredor_pe28a.v${{ inputs.version }}.json \
-            KillaUru-main/herramientas/mapa/tramo_demo.geojson \
-            KillaUru-main/herramientas/corredor/km_referencia.csv
+          python herramientas/cdn/generar_corredor.py backend/db/datos/corredor_pe28a.geojson "$V" --salida "$SALIDA"
+          cp backend/db/datos/tramo_demo.geojson "$SALIDA/tramo_demo.v$V.geojson"
+          cd herramientas/cdn && python verificar_datos.py "$SALIDA/corredor_pe28a.v$V.json" "$SALIDA/tramo_demo.v$V.geojson" ../../backend/db/datos/km_referencia.csv
 
-      - name: Generar manifiesto
+      - name: Mapa base (PMTiles) y estilo
         run: |
-          python -I KillaUru-main/herramientas/corredor/generar_manifiesto.py \
-            KillaUru-main/herramientas/corredor/corredor_pe28a.v${{ inputs.version }}.json \
-            ${{ inputs.version }} \
-            --salida KillaUru-main/herramientas/mapa/manifiesto.json
+          python herramientas/cdn/region_corredor.py "$SALIDA/corredor_pe28a.v$V.json" --salida "$SALIDA/../region.geojson"
+          bash herramientas/cdn/generar_pmtiles.sh "$SALIDA/../region.geojson" "$SALIDA/corredor-pe28a.v$V.pmtiles" "${{ inputs.compilacion }}"
+          python herramientas/cdn/generar_estilo.py "$V" --base "$BASE" --salida "$SALIDA/estilo.v$V.json"
 
-      - name: Subir archivos a R2 (versionados)
+      - name: Manifiesto (validado contra el contrato)
+        run: |
+          python herramientas/cdn/generar_manifiesto.py "$SALIDA" "$V" --base "$BASE"
+          cd herramientas/cdn && python -c "import json,sys; from contrato import errores; e = errores('ManifiestoMapa', json.load(open('$SALIDA/manifiesto.json'))); print(*e, sep='\n'); sys.exit(1 if e else 0)"
+
+      - name: Guardar lo generado (también en ensayo)
+        uses: actions/upload-artifact@v4
+        with:
+          name: mapa-v${{ inputs.version }}
+          path: publicar/
+
+      - name: Subir a R2 (archivos versionados primero, manifiesto al final)
         if: ${{ !inputs.ensayo }}
         env:
-          KU_R2_ACCESS_KEY_ID: ${{ secrets.KU_R2_ACCESS_KEY_ID }}
-          KU_R2_SECRET_ACCESS_KEY: ${{ secrets.KU_R2_SECRET_ACCESS_KEY }}
-          KU_R2_ENDPOINT: ${{ secrets.KU_R2_ENDPOINT }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.KU_R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.KU_R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          ENDPOINT: ${{ secrets.KU_R2_ENDPOINT }}
         run: |
-          aws s3 cp \
-            KillaUru-main/herramientas/corredor/corredor_pe28a.v${{ inputs.version }}.json \
-            s3://killauru-cdn/corredor/corredor_pe28a.v${{ inputs.version }}.json \
-            --endpoint-url "$KU_R2_ENDPOINT" \
-            --cache-control "public,max-age=31536000,immutable"
-
-      - name: Subir manifiesto a R2 (cache corta)
-        if: ${{ !inputs.ensayo }}
-        env:
-          KU_R2_ACCESS_KEY_ID: ${{ secrets.KU_R2_ACCESS_KEY_ID }}
-          KU_R2_SECRET_ACCESS_KEY: ${{ secrets.KU_R2_SECRET_ACCESS_KEY }}
-          KU_R2_ENDPOINT: ${{ secrets.KU_R2_ENDPOINT }}
-        run: |
-          aws s3 cp \
-            KillaUru-main/herramientas/mapa/manifiesto.json \
-            s3://killauru-cdn/mapa/manifiesto.json \
-            --endpoint-url "$KU_R2_ENDPOINT" \
-            --cache-control "public,max-age=300"
+          subir() { aws s3 cp "$SALIDA/$1" "s3://killauru-cdn/mapa/$1" --endpoint-url "$ENDPOINT" --content-type "$2" --cache-control "$3"; }
+          INMUTABLE="public, max-age=31536000, immutable"
+          subir "corredor-pe28a.v$V.pmtiles" application/octet-stream "$INMUTABLE"
+          subir "corredor_pe28a.v$V.json" application/json "$INMUTABLE"
+          subir "tramo_demo.v$V.geojson" application/geo+json "$INMUTABLE"
+          subir "estilo.v$V.json" application/json "$INMUTABLE"
+          subir manifiesto.json application/json "public, max-age=300"

@@ -68,14 +68,18 @@ internal class PrimerUsoViewModel @Inject constructor(
         }
     }
 
-    fun permisosListos() { _estado.value = EstadoPrimerUso.CuentaONo }
+    fun permisosListos() { _estado.value = EstadoPrimerUso.DescargarMapa }
+
+    /** «Seguir mientras descarga»: la descarga continúa en segundo plano. */
+    fun seguirTrasMapa() { _estado.value = EstadoPrimerUso.CuentaONo }
 
     fun completar() { _estado.value = EstadoPrimerUso.Completado }
 
     /** «Atrás» del prototipo: un paso hacia el inicio; si no hay paso anterior, se queda (no borra nada guardado). */
     fun volver() {
         _estado.value = when (_estado.value) {
-            EstadoPrimerUso.CuentaONo -> EstadoPrimerUso.SolicitarPermisos
+            EstadoPrimerUso.CuentaONo -> EstadoPrimerUso.DescargarMapa
+            EstadoPrimerUso.DescargarMapa -> EstadoPrimerUso.SolicitarPermisos
             EstadoPrimerUso.SolicitarPermisos -> EstadoPrimerUso.SeleccionarVehiculo
             EstadoPrimerUso.SeleccionarVehiculo -> terminos ?: return
             is EstadoPrimerUso.MostrarTerminos -> if (primeraVez) EstadoPrimerUso.Bienvenida else return
@@ -85,7 +89,7 @@ internal class PrimerUsoViewModel @Inject constructor(
 
     /** Hay un paso anterior al que volver (para mostrar o no la flecha). */
     fun puedeVolver(estado: EstadoPrimerUso): Boolean = when (estado) {
-        EstadoPrimerUso.CuentaONo, EstadoPrimerUso.SolicitarPermisos -> true
+        EstadoPrimerUso.CuentaONo, EstadoPrimerUso.DescargarMapa, EstadoPrimerUso.SolicitarPermisos -> true
         EstadoPrimerUso.SeleccionarVehiculo -> terminos != null
         is EstadoPrimerUso.MostrarTerminos -> primeraVez
         else -> false

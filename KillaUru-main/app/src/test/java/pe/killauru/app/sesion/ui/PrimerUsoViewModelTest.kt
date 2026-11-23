@@ -93,7 +93,7 @@ class PrimerUsoViewModelTest {
         assertEquals(EstadoPrimerUso.SeleccionarVehiculo, vm.estado.value)
     }
 
-    @Test fun `el recorrido completo pasa por vehiculo permisos y cuenta`() {
+    @Test fun `el recorrido completo pasa por vehiculo permisos mapa y cuenta`() {
         // Arrange
         val vm = crear()
         vm.comenzar()
@@ -104,11 +104,14 @@ class PrimerUsoViewModelTest {
         val trasVehiculo = vm.estado.value
         vm.permisosListos()
         val trasPermisos = vm.estado.value
+        vm.seguirTrasMapa()
+        val trasMapa = vm.estado.value
         vm.completar()
-        // Assert
+        // Assert — paso 4 del prototipo: el mapa se descarga mientras el conductor sigue (no lo bloquea)
         assertEquals(EstadoPrimerUso.SeleccionarVehiculo, trasTerminos)
         assertEquals(EstadoPrimerUso.SolicitarPermisos, trasVehiculo)
-        assertEquals(EstadoPrimerUso.CuentaONo, trasPermisos)
+        assertEquals(EstadoPrimerUso.DescargarMapa, trasPermisos)
+        assertEquals(EstadoPrimerUso.CuentaONo, trasMapa)
         assertEquals(EstadoPrimerUso.Completado, vm.estado.value)
         assertEquals(CategoriaVehiculo.LIVIANO, prefs.categoria)
     }
@@ -121,13 +124,15 @@ class PrimerUsoViewModelTest {
         vm.aceptarTerminos(VIGENTE_T, VIGENTE_P)
         vm.seleccionarVehiculo(CategoriaVehiculo.LIVIANO)
         vm.permisosListos()
+        vm.seguirTrasMapa()
         // Act
-        val pasos = List(4) { vm.volver(); vm.estado.value }
+        val pasos = List(5) { vm.volver(); vm.estado.value }
         // Assert
-        assertEquals(EstadoPrimerUso.SolicitarPermisos, pasos[0])
-        assertEquals(EstadoPrimerUso.SeleccionarVehiculo, pasos[1])
-        assertIs<EstadoPrimerUso.MostrarTerminos>(pasos[2])
-        assertEquals(EstadoPrimerUso.Bienvenida, pasos[3])
+        assertEquals(EstadoPrimerUso.DescargarMapa, pasos[0])
+        assertEquals(EstadoPrimerUso.SolicitarPermisos, pasos[1])
+        assertEquals(EstadoPrimerUso.SeleccionarVehiculo, pasos[2])
+        assertIs<EstadoPrimerUso.MostrarTerminos>(pasos[3])
+        assertEquals(EstadoPrimerUso.Bienvenida, pasos[4])
     }
 
     @Test fun `con una version nueva de los terminos atras no lleva a la bienvenida`() {

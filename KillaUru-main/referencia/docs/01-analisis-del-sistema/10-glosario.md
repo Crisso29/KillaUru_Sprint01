@@ -9,7 +9,7 @@
 | Término | Código | Definición | No confundir con |
 |---|---|---|---|
 | **Corredor** | `corredor_via` | Vía PE-28A (Los Libertadores), 335.073 km, guardada como polilínea. Solo se aceptan eventos a ≤ 50 m de ella (RN-13). | Tramo demo |
-| **Tramo demo** | `PoligonoDemo` | Polígono Ayacucho–Vinchos (~67 km), única zona visible para el anónimo (RN-08): la polilínea de la PE-28A entre el km 268 (límite geométrico demo) y el km 335.073 (Ayacucho) con un margen de 200 m a cada lado, simplificada a ≤ 60 vértices. | Corredor |
+| **Tramo demo** | `PoligonoDemo` | Polígono Ayacucho–Vinchos (~67 km), única zona visible para el anónimo (RN-08): la polilínea de la PE-28A entre el km 268 (límite geométrico demo) y el km 335.073 (Ayacucho) con un margen de 200 m a cada lado, simplificada a ≤ 120 vértices. | Corredor |
 | **Kilómetro sobre la vía** | `kmVia` | Kilómetro de la PE-28A donde está una anomalía, medido a lo largo de la polilínea del corredor. Se calcula una sola vez, al nacer la anomalía, porque su posición no cambia (RN-05); lo muestran el mapa, el detalle y las listas del panel. | Coordenadas |
 | **Celda** | `Celda` | Cuadro de rejilla geográfica que se usa para la caché del mapa y para el bloqueo de concurrencia (≥ 5 × 100 m). | Bbox |
 | **Bbox** | `bbox` | Rectángulo que pide el cliente al consultar el mapa; el servidor lo recorta por rol y lo ajusta a celdas. | Celda |

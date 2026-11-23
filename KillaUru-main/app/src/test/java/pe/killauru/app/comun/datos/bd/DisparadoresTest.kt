@@ -10,6 +10,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import kotlin.test.assertTrue
+import pe.killauru.app.soporte.sinHilos
 import kotlin.test.assertFails
 
 /** T014 / FR-019, data-model §2: validaciones de integridad por disparadores SQLite. */
@@ -23,7 +24,7 @@ class DisparadoresTest {
         bd = Room.inMemoryDatabaseBuilder(
             ApplicationProvider.getApplicationContext(),
             KillaUruBd::class.java
-        ).allowMainThreadQueries()
+        ).sinHilos()
          .addCallback(object : RoomDatabase.Callback() {
              override fun onCreate(db: SupportSQLiteDatabase) { TriggersValidacion.crear(db) }
          })

@@ -8,6 +8,8 @@ import pe.killauru.app.sesion.dominio.casos.LimpiezaLocalSesion
 import pe.killauru.app.soporte.PreferenciasMemoria
 import pe.killauru.app.soporte.SesionMemoria
 import pe.killauru.app.soporte.RecorridosMemoria
+import pe.killauru.app.mapa.dominio.RecortarAlDemoUseCase
+import pe.killauru.app.mapa.dominio.RepositorioAnomaliasMemoria
 import pe.killauru.app.soporte.SesionesDePrueba
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -20,7 +22,7 @@ class CicloSesionTest {
         // Arrange
         val repo = SesionMemoria(SesionesDePrueba.de(Rol.ConductorRegistrado))
         val prefs = PreferenciasMemoria()
-        val caso = AplicarSesionInvalidaUseCase(repo, LimpiezaLocalSesion(repo, prefs, RecorridosMemoria()))
+        val caso = AplicarSesionInvalidaUseCase(repo, LimpiezaLocalSesion(repo, prefs, RecorridosMemoria(), RecortarAlDemoUseCase(RepositorioAnomaliasMemoria())))
         // Act
         caso.ejecutar()
         // Assert

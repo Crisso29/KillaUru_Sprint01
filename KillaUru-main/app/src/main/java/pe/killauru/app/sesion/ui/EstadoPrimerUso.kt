@@ -12,6 +12,9 @@ internal sealed interface EstadoPrimerUso {
     ) : EstadoPrimerUso
     data object SeleccionarVehiculo : EstadoPrimerUso
     data object SolicitarPermisos : EstadoPrimerUso
+
+    /** Paso 4: el mapa se descarga en segundo plano; el conductor puede seguir sin esperar (FR-041). */
+    data object DescargarMapa : EstadoPrimerUso
     data object CuentaONo : EstadoPrimerUso
     data object Completado : EstadoPrimerUso
 }

@@ -7,17 +7,20 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import java.util.concurrent.TimeUnit
+import pe.killauru.app.sincronizacion.dominio.ProgramadorSincronizacion
 import javax.inject.Inject
 
 /** FR-022: programa SincronizacionWorker y PurgaWorker periódicos con WorkManager. */
-internal class ProgramadorSync @Inject constructor(@dagger.hilt.android.qualifiers.ApplicationContext private val context: Context) {
+internal class ProgramadorSync @Inject constructor(
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: Context,
+) : ProgramadorSincronizacion {
 
     private companion object {
         const val TRABAJO_SYNC = "killauru_sync"
         const val TRABAJO_PURGA = "killauru_purga"
     }
 
-    fun programar() {
+    override fun programar() {
         val wm = WorkManager.getInstance(context)
         val restricciones = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)

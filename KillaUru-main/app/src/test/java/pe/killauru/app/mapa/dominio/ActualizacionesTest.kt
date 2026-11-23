@@ -7,18 +7,6 @@ import pe.killauru.app.soporte.PreferenciasMemoria
 import kotlin.test.*
 
 class ActualizacionesTest {
-    @Test fun `mapa respeta wifi datos moviles y version instalada`() = runTest {
-        val prefs = PreferenciasMemoria()
-        val caso = ActualizarMapaUseCase(prefs, PoliticaDescarga())
-        assertIs<ActualizarMapaUseCase.Resultado.SinCambios>(caso.evaluar("2", false))
-        assertIs<ActualizarMapaUseCase.Resultado.DescargaPendiente>(caso.evaluar("2", true))
-        prefs.usarDatosMoviles = true
-        assertIs<ActualizarMapaUseCase.Resultado.DescargaPendiente>(caso.evaluar("2", false))
-        caso.marcarDescargado("2")
-        assertEquals("2", prefs.mapaVersion)
-        assertIs<ActualizarMapaUseCase.Resultado.SinCambios>(caso.evaluar("2", true))
-    }
-
     @Test fun `solo activa modelos compatibles y evita cambios redundantes`() = runTest {
         val prefs = PreferenciasMemoria()
         val caso = ActualizarModeloUseCase(prefs, PoliticaActivacionModelo("1.2.0"))

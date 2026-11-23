@@ -16,6 +16,7 @@
 | Arquitectura | [Paquete arquitectura](../../app/src/test/java/pe/killauru/app/arquitectura/) |
 | Datos de prueba | Fixtures de cada funcionalidad; `src/test/resources/` aún no existe |
 | Herramientas del repositorio | [herramientas](../../app/herramientas/) |
+| Datos de la CDN (US8) | [test_datos_cdn.py](../../herramientas/cdn/test_datos_cdn.py): corredor, estilo, manifiesto y región generados desde el eje real y validados contra `cdn.openapi.yaml`; la verificación rechaza un tramo demo que no cubre la vía. Ejecutar desde `KillaUru-main`: `python -m unittest discover -s herramientas/cdn` (requiere `herramientas/cdn/requisitos.txt`) |
 
 Robolectric prueba componentes Android en JVM. MockWebServer simula respuestas HTTP.
 Ninguno demuestra por sí solo un flujo con el backend desplegado.
@@ -54,12 +55,14 @@ Abre una categoría para ir al archivo exacto. Se listan archivos con pruebas, n
 helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecutarlos.
 
 <details>
-<summary>JVM — actualizador (4 archivos)</summary>
+<summary>JVM — actualizador (6 archivos)</summary>
 
 - [ContratoCdnTest.kt](../../app/src/test/java/pe/killauru/app/actualizador/datos/ContratoCdnTest.kt)
 - [DescargaReanudableTest.kt](../../app/src/test/java/pe/killauru/app/actualizador/datos/DescargaReanudableTest.kt)
 - [PoliticaActivacionModeloTest.kt](../../app/src/test/java/pe/killauru/app/actualizador/dominio/PoliticaActivacionModeloTest.kt)
 - [PoliticaDescargaTest.kt](../../app/src/test/java/pe/killauru/app/actualizador/dominio/PoliticaDescargaTest.kt)
+- [DescargaViewModelTest.kt](../../app/src/test/java/pe/killauru/app/actualizador/ui/DescargaViewModelTest.kt): paso 4: pide la descarga sin cortar otra, «Usar datos móviles» y «Descargar ahora» reprograman (sigue del parcial)
+- [MapaSinConexionPantallaTest.kt](../../app/src/test/java/pe/killauru/app/actualizador/ui/MapaSinConexionPantallaTest.kt): prototipo 05: peso en MB con coma, nota por estado (no solo la barra), interruptor y «Continuar» al terminar
 
 </details>
 
@@ -84,7 +87,7 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 </details>
 
 <details>
-<summary>JVM — comun (20 archivos)</summary>
+<summary>JVM — comun (22 archivos)</summary>
 
 - [ComponentesPrototipoTest.kt](../../app/src/test/java/pe/killauru/app/comun/ui/ComponentesPrototipoTest.kt): íconos del prototipo, encabezado con pasos y atrás, tarjeta y fila pulsables enteras
 - [TextoConNegritasTest.kt](../../app/src/test/java/pe/killauru/app/comun/ui/TextoConNegritasTest.kt): `**negrita**` de los textos legales
@@ -104,6 +107,8 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 - [GeodesiaTest.kt](../../app/src/test/java/pe/killauru/app/comun/dominio/GeodesiaTest.kt)
 - [TiempoRelativoTest.kt](../../app/src/test/java/pe/killauru/app/comun/dominio/TiempoRelativoTest.kt)
 - [UuidV7Test.kt](../../app/src/test/java/pe/killauru/app/comun/dominio/UuidV7Test.kt)
+- [IniciarAppTest.kt](../../app/src/test/java/pe/killauru/app/comun/dominio/IniciarAppTest.kt): T072: al arrancar recupera envíos cortados antes de programar sync y purga; mapa solo tras el primer uso
+- [FormatoNumeroTest.kt](../../app/src/test/java/pe/killauru/app/comun/dominio/FormatoNumeroTest.kt): números del prototipo: coma decimal y punto de miles en cualquier idioma del celular
 
 </details>
 
@@ -115,10 +120,11 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 </details>
 
 <details>
-<summary>JVM — corredor (2 archivos)</summary>
+<summary>JVM — corredor (3 archivos)</summary>
 
 - [CorredorKmReferenciaTest.kt](../../app/src/test/java/pe/killauru/app/corredor/dominio/CorredorKmReferenciaTest.kt)
 - [CorredorTest.kt](../../app/src/test/java/pe/killauru/app/corredor/dominio/CorredorTest.kt)
+- [CargadoresMapaTest.kt](../../app/src/test/java/pe/killauru/app/corredor/datos/CargadoresMapaTest.kt): corredor `[lon, lat, km]` (esquema `Corredor`) y tramo demo leídos de los archivos descargados; sin mapa no se cae
 
 </details>
 
@@ -149,7 +155,7 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 </details>
 
 <details>
-<summary>JVM — mapa (7 archivos)</summary>
+<summary>JVM — mapa (13 archivos)</summary>
 
 - [ContratoMapaTest.kt](../../app/src/test/java/pe/killauru/app/mapa/datos/ContratoMapaTest.kt)
 - [RepositorioAnomaliasRoomTest.kt](../../app/src/test/java/pe/killauru/app/mapa/datos/RepositorioAnomaliasRoomTest.kt)
@@ -158,6 +164,12 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 - [AvisoFueraDemoTest.kt](../../app/src/test/java/pe/killauru/app/mapa/dominio/AvisoFueraDemoTest.kt)
 - [ZonaDemoTest.kt](../../app/src/test/java/pe/killauru/app/mapa/dominio/ZonaDemoTest.kt)
 - [MapaUiTest.kt](../../app/src/test/java/pe/killauru/app/mapa/ui/MapaUiTest.kt)
+- [ContratoManifiestoMapaTest.kt](../../app/src/test/java/pe/killauru/app/mapa/datos/ContratoManifiestoMapaTest.kt): T088: ejemplo del YAML, 4 archivos, ETag/304, sin red y sin credenciales hacia la CDN
+- [ArchivosMapaLocalTest.kt](../../app/src/test/java/pe/killauru/app/mapa/datos/ArchivosMapaLocalTest.kt): activar deja la versión y borra la anterior; estado ilegible = sin mapa; tamaño y huella del manifiesto
+- [EstiloMapaLocalTest.kt](../../app/src/test/java/pe/killauru/app/mapa/datos/EstiloMapaLocalTest.kt): T096: el estilo publicado pasa a leer el PMTiles del celular y los glifos del APK
+- [ActualizarMapaUseCaseTest.kt](../../app/src/test/java/pe/killauru/app/mapa/dominio/ActualizarMapaUseCaseTest.kt): FR-041…FR-044: activa solo con los 4 archivos íntegros, 304, misma versión, espera Wi-Fi, datos móviles, sin red
+- [EnDemoAnomaliasTest.kt](../../app/src/test/java/pe/killauru/app/mapa/dominio/EnDemoAnomaliasTest.kt): FR-051: `enDemo` con el polígono descargado; lo del anónimo siempre es demo
+- [MapaViewModelTest.kt](../../app/src/test/java/pe/killauru/app/mapa/ui/MapaViewModelTest.kt): sin mapa / con mapa, recarga al terminar una descarga y sin carrera entre cargas
 
 </details>
 

@@ -29,6 +29,8 @@ import pe.killauru.app.soporte.PreferenciasMemoria
 import pe.killauru.app.soporte.SesionMemoria
 import pe.killauru.app.soporte.RecorridosMemoria
 import pe.killauru.app.soporte.RevocacionPendienteMemoria
+import pe.killauru.app.mapa.dominio.RecortarAlDemoUseCase
+import pe.killauru.app.mapa.dominio.RepositorioAnomaliasMemoria
 import pe.killauru.app.soporte.SesionesDePrueba
 import java.time.Instant
 import kotlin.test.assertEquals
@@ -88,7 +90,7 @@ class CuentaViewModelsTest {
         // Arrange — conductor con sesión que escribe mal su contraseña
         val sesiones = SesionMemoria().apply { actual = SesionesDePrueba.de(Rol.ConductorRegistrado) }
         val api = ApiCuentaDoble(resultadoEliminacion = ResultadoEliminacion.ConfirmacionInvalida)
-        val vm = EliminarCuentaViewModel(EliminarCuentaUseCase(api, sesiones, LimpiezaLocalSesion(sesiones, PreferenciasMemoria(), RecorridosMemoria())))
+        val vm = EliminarCuentaViewModel(EliminarCuentaUseCase(api, sesiones, LimpiezaLocalSesion(sesiones, PreferenciasMemoria(), RecorridosMemoria(), RecortarAlDemoUseCase(RepositorioAnomaliasMemoria()))))
         var salio = false
         // Act
         vm.eliminar("equivocada") { salio = true }
@@ -106,7 +108,7 @@ class CuentaViewModelsTest {
         val sesiones = SesionMemoria()
         // Act
         val vm = CerrarSesionViewModel(
-            CerrarSesionUseCase(ApiCuentaDoble(), sesiones, LimpiezaLocalSesion(sesiones, PreferenciasMemoria(), RecorridosMemoria()),
+            CerrarSesionUseCase(ApiCuentaDoble(), sesiones, LimpiezaLocalSesion(sesiones, PreferenciasMemoria(), RecorridosMemoria(), RecortarAlDemoUseCase(RepositorioAnomaliasMemoria())),
                 RevocacionPendienteMemoria()),
             eventos,
         )

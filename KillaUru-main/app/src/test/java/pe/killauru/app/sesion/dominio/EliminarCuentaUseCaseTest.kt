@@ -8,6 +8,8 @@ import pe.killauru.app.soporte.ApiCuentaDoble
 import pe.killauru.app.soporte.PreferenciasMemoria
 import pe.killauru.app.soporte.SesionMemoria
 import pe.killauru.app.soporte.RecorridosMemoria
+import pe.killauru.app.mapa.dominio.RecortarAlDemoUseCase
+import pe.killauru.app.mapa.dominio.RepositorioAnomaliasMemoria
 import pe.killauru.app.soporte.SesionesDePrueba
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -21,7 +23,7 @@ class EliminarCuentaUseCaseTest {
         val api = ApiCuentaDoble(resultadoEliminacion = ResultadoEliminacion.Eliminada)
         val repo = SesionMemoria(sesion)
         val prefs = PreferenciasMemoria()
-        val caso = EliminarCuentaUseCase(api, repo, LimpiezaLocalSesion(repo, prefs, RecorridosMemoria()))
+        val caso = EliminarCuentaUseCase(api, repo, LimpiezaLocalSesion(repo, prefs, RecorridosMemoria(), RecortarAlDemoUseCase(RepositorioAnomaliasMemoria())))
         // Act
         val resultado = caso.ejecutar("una-clave-larga")
         // Assert
@@ -36,7 +38,7 @@ class EliminarCuentaUseCaseTest {
         val api = ApiCuentaDoble(resultadoEliminacion = ResultadoEliminacion.ConfirmacionInvalida)
         val repo = SesionMemoria(sesion)
         val prefs = PreferenciasMemoria()
-        val caso = EliminarCuentaUseCase(api, repo, LimpiezaLocalSesion(repo, prefs, RecorridosMemoria()))
+        val caso = EliminarCuentaUseCase(api, repo, LimpiezaLocalSesion(repo, prefs, RecorridosMemoria(), RecortarAlDemoUseCase(RepositorioAnomaliasMemoria())))
         // Act
         val resultado = caso.ejecutar("clave-equivocada")
         // Assert
@@ -48,7 +50,7 @@ class EliminarCuentaUseCaseTest {
     @Test fun `sin sesion no llama a la API`() = runTest {
         // Arrange
         val api = ApiCuentaDoble()
-        val caso = EliminarCuentaUseCase(api, SesionMemoria(), LimpiezaLocalSesion(SesionMemoria(), PreferenciasMemoria(), RecorridosMemoria()))
+        val caso = EliminarCuentaUseCase(api, SesionMemoria(), LimpiezaLocalSesion(SesionMemoria(), PreferenciasMemoria(), RecorridosMemoria(), RecortarAlDemoUseCase(RepositorioAnomaliasMemoria())))
         // Act
         caso.ejecutar("una-clave-larga")
         // Assert

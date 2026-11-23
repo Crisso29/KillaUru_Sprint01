@@ -49,7 +49,7 @@ Caducidad ejecuta `FOR UPDATE SKIP LOCKED` y registra la fecha efectiva del venc
 
 Se sustituyó la estimación de 333 km por la longitud del eje OSM: **335.0729634613575 km**. Inicio en el enlace PE-1S y fin en el nodo seleccionado de Ayacucho. No se alteraron vértices para ajustar una cifra. El demo mantiene el inicio funcional km 268 y termina en la longitud completa: **67.0729634613575 km**. El km 268 no se presenta como centro de Vinchos; las etiquetas del prototipo no son progresivas verificadas.
 
-Fuente, licencia, snapshot, coordenadas, SHA-256 y reproducción: [datos del corredor](../../backend/db/datos/README.md). Se guarda la respuesta original comprimida, el GeoJSON canónico, V0005 y un CSV de 20 controles para backend/Android. Radio común 6 371 008,8 m. El total de tramos de cobertura es **336**, no una longitud decimal. RN-08, glosario, sus espejos y specs dependientes incorporan la corrección autorizada. El polígono demo de margen 200 m y ≤ 60 vértices sigue pendiente en **006 T002**.
+Fuente, licencia, snapshot, coordenadas, SHA-256 y reproducción: [datos del corredor](../../backend/db/datos/README.md). Se guarda la respuesta original comprimida, el GeoJSON canónico, V0005 y un CSV de 20 controles para backend/Android. Radio común 6 371 008,8 m. El total de tramos de cobertura es **336**, no una longitud decimal. RN-08, glosario, sus espejos y specs dependientes incorporan la corrección autorizada. El polígono demo de margen 200 m y ≤ 120 vértices sigue pendiente en **006 T002**.
 
 ## Pendientes de aceptación y dependencias
 

@@ -7,6 +7,7 @@ import dagger.hilt.components.SingletonComponent
 import pe.killauru.app.sincronizacion.dominio.ApiLotes
 import pe.killauru.app.sincronizacion.dominio.ContadorRechazos
 import pe.killauru.app.sincronizacion.dominio.PurgadorEventos
+import pe.killauru.app.sincronizacion.dominio.ProgramadorSincronizacion
 import javax.inject.Singleton
 
 @Module
@@ -15,4 +16,5 @@ internal abstract class SincronizacionModulo {
     @Binds @Singleton abstract fun bindApiLotes(impl: ClienteLotesHttp): ApiLotes
     @Binds @Singleton abstract fun bindPurgadorEventos(impl: PurgadorEventosRoom): PurgadorEventos
     @Binds abstract fun bindContadorRechazos(impl: ContadorRechazosRoom): ContadorRechazos
+    @Binds abstract fun bindProgramadorSincronizacion(impl: ProgramadorSync): ProgramadorSincronizacion
 }

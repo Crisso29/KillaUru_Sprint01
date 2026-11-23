@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Prototipo «Mapa sin conexión»: relieve con la vía en los colores de carretera del prototipo (road-fill y road-case). Decorativa. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="100dp"
+    android:viewportWidth="280"
+    android:viewportHeight="140">
+    <path android:fillColor="#E3E8D6" android:pathData="M12,0h256a12,12 0 0 1 12,12v116a12,12 0 0 1 -12,12h-256a12,12 0 0 1 -12,-12v-116a12,12 0 0 1 12,-12z" />
+    <path android:strokeColor="#CED7BE" android:strokeWidth="1.5" android:fillColor="#00000000"
+        android:pathData="M-5,30 C40,10 80,45 130,25 S220,5 285,28 M-5,70 C50,55 90,90 150,68 S230,50 285,75 M-5,110 C40,95 100,130 160,108 S240,95 285,118" />
+    <path android:strokeColor="#9C6810" android:strokeWidth="22" android:strokeLineCap="round" android:fillColor="#00000000"
+        android:pathData="M170,-10 C250,25 95,45 150,75 S230,110 185,150" />
+    <path android:strokeColor="#F5C451" android:strokeWidth="15" android:strokeLineCap="round" android:fillColor="#00000000"
+        android:pathData="M170,-10 C250,25 95,45 150,75 S230,110 185,150" />
+</vector>

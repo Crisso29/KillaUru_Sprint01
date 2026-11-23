@@ -14,6 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import pe.killauru.app.actualizador.ui.MapaSinConexionRuta
 import pe.killauru.app.comun.ui.TrasPrimerUso
 
 /**
@@ -46,6 +47,7 @@ private fun PasoPrevio(paso: EstadoPrimerUso, viewModel: PrimerUsoViewModel, atr
         )
         EstadoPrimerUso.SeleccionarVehiculo -> VehiculoPantalla(onSeleccionar = viewModel::seleccionarVehiculo, alVolver = atras)
         EstadoPrimerUso.SolicitarPermisos -> PermisosRuta(alContinuar = viewModel::permisosListos, alVolver = atras)
+        EstadoPrimerUso.DescargarMapa -> MapaSinConexionRuta(alSeguir = viewModel::seguirTrasMapa, alVolver = viewModel::volver)
         else -> Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator() } // Cargando
     }
 }

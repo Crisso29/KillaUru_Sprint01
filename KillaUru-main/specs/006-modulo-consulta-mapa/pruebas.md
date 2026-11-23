@@ -15,6 +15,7 @@ Filtros, celdas, cambios y alcance según rol.
 | Integración por spec | [Carpetas por propósito](../../backend/tests/KillaUru.Integracion.Tests/specs/006-modulo-consulta-mapa/) |
 | Contrato HTTP | [Contratos](../../backend/tests/KillaUru.Integracion.Tests/specs/006-modulo-consulta-mapa/contratos/) |
 | Carga y resiliencia | [Escenarios k6 compartidos](../../backend/tests/carga/README.md) |
+| Polígono del tramo demo (T002) | [test_construir_tramo_demo.py](../../backend/db/datos/test_construir_tramo_demo.py): km 268 interpolado, ≤ 120 vértices, antihorario, toda la vía dentro, km 258 fuera, `appsettings.json` y `tramo_demo.geojson` iguales a lo generado |
 | E2E entre módulos | [Recorrido compartido, pendiente](../../backend/tests/KillaUru.Integracion.Tests/sistema/e2e/FlujoPuntaAPuntaTests.cs) |
 
 ## Cómo ejecutar
@@ -26,6 +27,12 @@ dotnet build KillaUru.sln
 dotnet test --project tests/KillaUru.Mapa.Tests --no-build
 dotnet test --project tests/KillaUru.Arquitectura.Tests --no-build
 dotnet test --project tests/KillaUru.Integracion.Tests --no-build -- --filter-class "*ContratoMapaTests"
+```
+
+El polígono demo (requiere `pip install shapely`):
+
+```powershell
+python -m unittest discover -s db/datos -p "test_*.py"
 ```
 
 La última línea requiere Docker Desktop encendido (Testcontainers levanta PostgreSQL).

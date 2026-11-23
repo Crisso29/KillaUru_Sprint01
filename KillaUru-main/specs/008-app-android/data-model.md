@@ -183,7 +183,7 @@ Las escrituras de una respuesta del mapa (altas, bajas y `estado_copia`) y las d
 |---|---|---|---|
 | `mapa/corredor-pe28a.v<N>.pmtiles` (≤ 80 MB) | `mapa/manifiesto.json` | tamaño + SHA-256; descarga en `.parcial` con `Range` | renombrado atómico; si hay viaje, al terminarlo; se borra la versión anterior |
 | `mapa/corredor_pe28a.v<N>.json` | idem | idem + esquema (`vertices` con km creciente) | idem; si cambia, la copia de anomalías se baja completa (R-016) |
-| `mapa/tramo_demo.v<N>.geojson` | idem | idem + polígono cerrado ≤ 60 vértices | idem; si cambia, se recalcula `enDemo` |
+| `mapa/tramo_demo.v<N>.geojson` | idem | idem + polígono cerrado ≤ 120 vértices | idem; si cambia, se recalcula `enDemo` |
 | `modelos/<version>.tflite` | APK (`assets/modelo/`) o `modelo/manifiesto.json` | SHA-256; carga de prueba del intérprete | solo con la detección detenida; se conserva el anterior (RF-33) |
 
 Formato de la polilínea para la app (`contracts/cdn.openapi.yaml`, `Corredor`): `{ "version": "3", "fuenteSha256": "…", "radioTierraM": 6371008.8, "vertices": [[lon, lat, kmAcumulado], …] }`.
@@ -207,7 +207,7 @@ Formato de la polilínea para la app (`contracts/cdn.openapi.yaml`, `Corredor`):
 | `PosicionEnVia` | `km: Double`, `sentido: Int (±1)`, `distanciaViaM` | RN-16 |
 | `Viaje` | `id`, `inicio`, `kmInicio`, `kmRecorridos`, `eventos` | R-019 |
 | `IndicadorEstado` | 7 estados + `pendientes` | RF-36 (R-032) |
-| `ZonaDemo` | `contiene(Coordenada): Boolean` (rayo, ≤ 60 vértices) | RN-08 |
+| `ZonaDemo` | `contiene(Coordenada): Boolean` (rayo, ≤ 120 vértices) | RN-08 |
 
 ## 9. `ParametrosApp` (`assets/parametros.json`)
 

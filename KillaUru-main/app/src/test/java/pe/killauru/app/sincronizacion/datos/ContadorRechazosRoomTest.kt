@@ -9,6 +9,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import pe.killauru.app.comun.datos.bd.KillaUruBd
+import pe.killauru.app.soporte.sinHilos
 import kotlin.test.assertEquals
 
 /**
@@ -23,7 +24,7 @@ class ContadorRechazosRoomTest {
     @Before
     fun setUp() {
         bd = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext(), KillaUruBd::class.java)
-            .allowMainThreadQueries()
+            .sinHilos()
             .build()
         contador = ContadorRechazosRoom(bd.contadorDao())
     }

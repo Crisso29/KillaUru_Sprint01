@@ -1,7 +1,7 @@
 # Cierre de spec 008 — App Android
 
 **Revisado:** 2026-11-15. **Estado:** cierre de producción no acreditado.
-**Seguimiento:** 102/128 tareas marcadas; 26 pendientes en tasks.md (T024 y T110 cerradas el 2026-11-22; T107 y T112 abiertas solo por el recorte al demo, FR-051, que depende de la CDN; T109 sin `aceptaciones` ni `legal/versiones`).
+**Seguimiento:** 104/129 tareas marcadas; 25 pendientes en tasks.md (2026-11-23: T107 y T112 completas; T128 nueva, separada de T096; T072, T078, T088, T092, T094 y T095 corregidas: estaban marcadas sin cumplir el contrato o sin estar conectadas).
 [Requisitos](spec.md) · [Tareas](tasks.md) · [Pruebas](pruebas.md) · [Plan de cierre global](../../docs/guias/cierre-y-despliegue.md)
 
 ## Dependencias
@@ -115,6 +115,14 @@ etiquetas accesibles. 19 funciones de más de 20 líneas partidas (detekt sin ha
 perfil 200, cerrar sesión 204, login 401/200, eliminar 403/204; la depuración apunta a otra URL con
 `-Pkillauru.apiUrlDepuracion` y solo ella permite `http` hacia el emulador (`RedSeguraTest`; 353 pruebas JVM).
 [Evidencia](../../docs/seguimiento/evidencias/pruebas/2026-11-22-app-cuenta/README.md).
+
+**CDN del mapa (2026-11-23):** generadores, flujo `app-datos-r2` y app siguen `cdn.openapi.yaml` (validados contra el
+YAML en Python y en Kotlin); datos reales: PMTiles de 2,3 MB, corredor de 6 689 vértices y tramo demo de 115. La app
+pide el manifiesto con ETag, descarga los 4 archivos con tamaño y SHA-256, los activa solo si llegan todos, muestra el
+paso 4 y el mapa sin señal, y se actualizó de v1 a v2 en el emulador con una CDN local (nginx). La CDN tiene su propio
+cliente HTTP (antes recibía el token y el seudónimo). `IniciarApp` programa por fin la sincronización y la purga.
+**Resultado:** 391 pruebas JVM, 0 fallidas; lint y detekt sin hallazgos. Pendiente: publicar en R2 (T127) y T128.
+[Evidencia](../../docs/seguimiento/evidencias/pruebas/2026-11-23-cdn/README.md).
 
 ## Qué falta en el entorno desplegado
 

@@ -8,6 +8,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import pe.killauru.app.soporte.sinHilos
 import kotlin.test.assertTrue
 
 /** T013 / FR-019, data-model §1: 5 tablas, índices del data-model y WAL. */
@@ -20,7 +21,7 @@ class EsquemaInicialTest {
         bd = Room.inMemoryDatabaseBuilder(
             ApplicationProvider.getApplicationContext(),
             KillaUruBd::class.java
-        ).allowMainThreadQueries()
+        ).sinHilos()
          .addCallback(object : RoomDatabase.Callback() {
              override fun onCreate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
                  TriggersValidacion.crear(db)

@@ -20,7 +20,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
- * T088 / FR-042, SC-011: contrato HTTP del CDN para manifiesto y descarga reanudable.
+ * T088 / FR-042, SC-011: descarga reanudable de la CDN (`Range`, 206, 416). El manifiesto está en `ContratoManifiestoMapaTest`.
  * MockWebServer simula el CDN. Patrón AAA en cada test.
  */
 class ContratoCdnTest {
@@ -29,17 +29,6 @@ class ContratoCdnTest {
     private lateinit var api: CdnApi
 
     private val json = Json { ignoreUnknownKeys = true; isLenient = true }
-
-    // Fixture del manifiesto según el YAML del CDN
-    private val manifiestoJson = """
-        {
-          "version": "3",
-          "archivo": "corredor-pe28a.v3.pmtiles",
-          "sha256": "b1946ac92492d2347c6235b4d2611184b1946ac92492d2347c6235b4d2611184",
-          "tamanoBytes": 39845120,
-          "generadoUtc": 1730565600000
-        }
-    """.trimIndent()
 
     @Before fun setUp() {
         server = MockWebServer()
@@ -54,38 +43,6 @@ class ContratoCdnTest {
 
     @After fun tearDown() {
         server.shutdown()
-    }
-
-    // ── Manifiesto ───────────────────────────────────────────────────────────
-
-    @Test fun `200 manifiesto se deserializa correctamente`() = runTest {
-        // Arrange
-        server.enqueue(
-            MockResponse()
-                .setResponseCode(200)
-                .setHeader("Content-Type", "application/json")
-                .setBody(manifiestoJson)
-        )
-        val url = server.url("/mapa/manifiesto.json").toString()
-        // Act
-        val respuesta = api.manifiesto(url)
-        // Assert
-        assertTrue(respuesta.isSuccessful)
-        val cuerpo = respuesta.body()
-        assertNotNull(cuerpo)
-        assertEquals("3", cuerpo.version)
-        assertEquals(39845120L, cuerpo.tamanoBytes)
-    }
-
-    @Test fun `peticion al manifiesto no lleva cabecera Range`() = runTest {
-        // Arrange
-        server.enqueue(MockResponse().setResponseCode(200).setBody(manifiestoJson))
-        val url = server.url("/mapa/manifiesto.json").toString()
-        // Act
-        api.manifiesto(url)
-        // Assert
-        val peticion = server.takeRequest()
-        assertNull(peticion.getHeader("Range"), "el manifiesto nunca debe pedirse con Range")
     }
 
     // ── Descarga reanudable ──────────────────────────────────────────────────

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Prototipo «Aún no tienes el mapa»: la vía punteada (aún sin mapa) y la insignia de descarga. Decorativa. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="124dp"
+    android:height="90dp"
+    android:viewportWidth="124"
+    android:viewportHeight="90">
+    <path android:fillColor="#E8EDEE" android:pathData="M10,0h104a10,10 0 0 1 10,10v70a10,10 0 0 1 -10,10h-104a10,10 0 0 1 -10,-10v-70a10,10 0 0 1 10,-10z" />
+    <path android:strokeColor="#C3CFD2" android:strokeWidth="9" android:strokeLineCap="round" android:fillColor="#00000000"
+        android:pathData="M18,80 L30,70 M40,64 L52,56 M60,48 L68,36 M72,26 L78,14 M88,10 L100,8" />
+    <path android:fillColor="#DCEFEF" android:pathData="M98,78m-20,0a20,20 0 1 1 40,0a20,20 0 1 1 -40,0" />
+    <path android:strokeColor="#0F5C70" android:strokeWidth="3" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:fillColor="#00000000" android:pathData="M98,68 L98,86 M91,80 L98,87 L105,80" />
+</vector>

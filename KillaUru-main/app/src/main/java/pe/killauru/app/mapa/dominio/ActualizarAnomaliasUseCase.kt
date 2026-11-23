@@ -14,12 +14,16 @@ import javax.inject.Inject
  *
  * Invariante: `venceUtc: null` en la respuesta se trata como baja (R-011).
  *
+ * `enDemo` se calcula aquí (el contrato no lo trae): dentro del polígono del tramo demo, o todo lo que recibe el anónimo,
+ * porque el servidor ya se lo recorta (R-012). Es lo que conserva `RecortarAlDemoUseCase` al cerrar sesión (FR-051).
+ *
  * No depende del reloj del celular: `verificadoUtc` («Actualizado hace…») es siempre la hora del **servidor**
  * (`generadoUtc` en un 200, la de la fuente en un 304), como pide data-model §estado_copia y FR-026.
  */
 internal class ActualizarAnomaliasUseCase @Inject constructor(
     private val repositorio: RepositorioAnomalias,
     private val fuente: FuenteAnomalias,
+    private val zonaDemo: FuenteZonaDemo,
 ) {
     sealed class Resultado {
         object Exito : Resultado()
@@ -85,7 +89,9 @@ internal class ActualizarAnomaliasUseCase @Inject constructor(
             etag = r.etag,
             verificadoUtc = r.generadoUtc,
         )
-        repositorio.actualizarLote(r.altas, r.bajas, nuevoEstado)
+        val zona = zonaDemo.zona()
+        val altas = r.altas.map { it.copy(enDemo = alcance == Alcance.Anonimo || zona?.contiene(it.coordenada) == true) }
+        repositorio.actualizarLote(altas, r.bajas, nuevoEstado)
         return Resultado.Exito
     }
 

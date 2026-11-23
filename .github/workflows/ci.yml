@@ -63,6 +63,12 @@ jobs:
             --no-build -c Release \
             -- --coverage --coverage-output-format cobertura --results-directory TestResults
 
+      # 006 T002 / R-010: el polígono demo publicado (appsettings y CDN) es el que genera el script.
+      - name: Datos del corredor (Python)
+        run: |
+          python3 -m pip install --quiet shapely==2.2.0
+          python3 -m unittest discover -s db/datos -p 'test_*.py'
+
       - name: Instalar reportgenerator
         run: dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.3.11
 

@@ -14,6 +14,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import kotlin.test.assertEquals
+import pe.killauru.app.soporte.sinHilos
 import kotlin.test.assertTrue
 
 /**
@@ -37,7 +38,7 @@ class TamanoBaseTest {
                     TriggersValidacion.crear(db)
                 }
             })
-            .allowMainThreadQueries()
+            .sinHilos()
             .build()
     }
 
