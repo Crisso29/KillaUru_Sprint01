@@ -32,46 +32,65 @@ class CalcularIndicadorUseCaseTest {
     )
 
     @Test fun `sin servicio devuelve SinServicio`() = runBlocking {
+        // Arrange
         val uc = CalcularIndicadorUseCase(RepositorioFalso())
-        // Arrange / Act
+        // Act
         val r = uc.calcular(entrada(servicioActivo = false))
         // Assert
         assertEquals(IndicadorEstado.SinServicio, r.indicador)
     }
 
     @Test fun `sin permiso devuelve SinPermiso`() = runBlocking {
+        // Arrange
         val uc = CalcularIndicadorUseCase(RepositorioFalso())
+        // Act
         val r = uc.calcular(entrada(tienePermiso = false))
+        // Assert
         assertEquals(IndicadorEstado.SinPermiso, r.indicador)
     }
 
     @Test fun `ahorro de bateria devuelve ModoAhorro`() = runBlocking {
+        // Arrange
         val uc = CalcularIndicadorUseCase(RepositorioFalso())
+        // Act
         val r = uc.calcular(entrada(enAhorro = true))
+        // Assert
         assertEquals(IndicadorEstado.ModoAhorro, r.indicador)
     }
 
     @Test fun `solo ver mapa devuelve SoloMapa`() = runBlocking {
+        // Arrange
         val uc = CalcularIndicadorUseCase(RepositorioFalso())
+        // Act
         val r = uc.calcular(entrada(soloVerMapa = true))
+        // Assert
         assertEquals(IndicadorEstado.SoloMapa, r.indicador)
     }
 
     @Test fun `sin GPS devuelve SinGps`() = runBlocking {
+        // Arrange
         val uc = CalcularIndicadorUseCase(RepositorioFalso())
+        // Act
         val r = uc.calcular(entrada(tieneGps = false))
+        // Assert
         assertEquals(IndicadorEstado.SinGps, r.indicador)
     }
 
     @Test fun `velocidad baja devuelve EnPausa`() = runBlocking {
+        // Arrange
         val uc = CalcularIndicadorUseCase(RepositorioFalso())
+        // Act
         val r = uc.calcular(entrada(velocidadOk = false))
+        // Assert
         assertEquals(IndicadorEstado.EnPausa, r.indicador)
     }
 
     @Test fun `detectando con pendientes informa cuantos hay`() = runBlocking {
+        // Arrange
         val uc = CalcularIndicadorUseCase(RepositorioFalso(pendientesN = 5))
+        // Act
         val r = uc.calcular(entrada())
+        // Assert
         assertEquals(IndicadorEstado.Detectando, r.indicador)
         assertEquals(5, r.pendientes)
     }

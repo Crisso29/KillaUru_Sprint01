@@ -68,5 +68,5 @@ private fun Consentimiento(acepto: Boolean, version: String?, alCambiar: (Boolea
 @Composable
 internal fun RegistroRuta(alCreada: (correo: String) -> Unit, alVolver: () -> Unit, vm: RegistroViewModel = hiltViewModel()) {
     val estado by vm.estado.collectAsState()
-    RegistroPantalla(estado, { c, p -> vm.registrar(c, p) { alCreada(c) } }, alVolver)
+    RegistroPantalla(estado, { correo, contrasena -> vm.registrar(correo, contrasena) { alCreada(correo) } }, alVolver)
 }

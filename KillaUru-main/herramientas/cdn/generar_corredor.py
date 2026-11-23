@@ -47,9 +47,9 @@ def main():
     argumentos.add_argument('geojson')
     argumentos.add_argument('version')
     argumentos.add_argument('--salida', default='.')
-    a = argumentos.parse_args()
-    corredor = construir(a.geojson, a.version)
-    ruta = escribir(corredor, a.salida)
+    opciones = argumentos.parse_args()
+    corredor = construir(opciones.geojson, opciones.version)
+    ruta = escribir(corredor, opciones.salida)
     print(f"{ruta.name}: {len(corredor['vertices'])} vértices, {corredor['vertices'][-1][2]:.3f} km")
 
 

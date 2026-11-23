@@ -76,12 +76,6 @@ class ClasificadorLiteRtTest {
     // --- Mapeo de índice a Clasificación: 3 clases × 5 severidades = 15 salidas ---
 
     @Test
-    fun `nSeveridades 5 produce buffer de 15 slots para 3 clases`() {
-        // Assert
-        assertEquals(15, 3 * 5)
-    }
-
-    @Test
     fun `índice 0 corresponde a clase 0 severidad 1`() {
         // Arrange
         val nSeveridades = 5

@@ -48,5 +48,5 @@ internal fun LoginPantalla(
 @Composable
 internal fun LoginRuta(alEntrado: () -> Unit, alOlvide: () -> Unit, alVolver: () -> Unit, vm: LoginViewModel = hiltViewModel()) {
     val estado by vm.estado.collectAsState()
-    LoginPantalla(estado, { c, p -> vm.iniciarSesion(c, p, alEntrado) }, alOlvide, alVolver)
+    LoginPantalla(estado, { correo, contrasena -> vm.iniciarSesion(correo, contrasena, alEntrado) }, alOlvide, alVolver)
 }

@@ -32,10 +32,10 @@ def main():
     argumentos = argparse.ArgumentParser(description=__doc__)
     argumentos.add_argument('corredor')
     argumentos.add_argument('--salida', default='region_corredor.geojson')
-    a = argumentos.parse_args()
-    region = construir(json.loads(Path(a.corredor).read_text(encoding='utf8')))
-    Path(a.salida).write_text(json.dumps(region), encoding='utf8')
-    print(f"{a.salida}: {len(region['geometry']['coordinates'][0])} vértices, margen {MARGEN_M:.0f} m")
+    opciones = argumentos.parse_args()
+    region = construir(json.loads(Path(opciones.corredor).read_text(encoding='utf8')))
+    Path(opciones.salida).write_text(json.dumps(region), encoding='utf8')
+    print(f"{opciones.salida}: {len(region['geometry']['coordinates'][0])} vértices, margen {MARGEN_M:.0f} m")
 
 
 if __name__ == '__main__':

@@ -45,9 +45,9 @@ def main():
     argumentos.add_argument('carpeta')
     argumentos.add_argument('version')
     argumentos.add_argument('--base', default='https://cdn.killauru.pe/mapa')
-    a = argumentos.parse_args()
-    manifiesto = construir(a.carpeta, a.version, a.base, datetime.now(timezone.utc))
-    salida = Path(a.carpeta) / 'manifiesto.json'
+    opciones = argumentos.parse_args()
+    manifiesto = construir(opciones.carpeta, opciones.version, opciones.base, datetime.now(timezone.utc))
+    salida = Path(opciones.carpeta) / 'manifiesto.json'
     salida.write_text(json.dumps(manifiesto, ensure_ascii=False, indent=2), encoding='utf8')
     print(f"{salida}: versión {manifiesto['version']}, {len(manifiesto['archivos'])} archivos")
 

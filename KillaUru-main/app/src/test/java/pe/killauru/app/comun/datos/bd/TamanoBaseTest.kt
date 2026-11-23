@@ -52,22 +52,28 @@ class TamanoBaseTest {
 
     @Test
     fun `85000 eventos 5000 anomalias 400 recorridos caben en menos de 25 MB`() {
+        // Arrange — el peor caso de RNF-15
         val sqDb = db.openHelper.writableDatabase
         insertarEventos(sqDb, 85_000)
         insertarAnomalias(sqDb, 5_000)
         insertarRecorridos(sqDb, 400)
+        // Act — se vuelca el WAL para medir el archivo real
         sqDb.query("PRAGMA wal_checkpoint(TRUNCATE)", emptyArray()).close()
         db.close()
         val bytes = ctx.getDatabasePath(dbName).length()
+        // Assert
         assertTrue(bytes < 25L * 1024 * 1024, "DB = ${bytes / 1024} KB supera 25 MB")
     }
 
     @Test
     fun `eventos PENDING sobreviven 14 dias sin sincronizacion`() = runBlocking {
+        // Arrange — 10 eventos PENDING
         val sqDb = db.openHelper.writableDatabase
         insertarEventos(sqDb, 10, offset = 900_000)
+        // Act — purga con un límite muy posterior (14 días sin sincronizar)
         db.purgaDao().purgarEventosFinales(2_000_000_000_000L)
         val pendientes = db.eventoDao().contarPendientes()
+        // Assert — la purga nunca toca lo que falta enviar
         assertEquals(10, pendientes, "PENDING perdidos tras purga — esperados 10, hay $pendientes")
     }
 

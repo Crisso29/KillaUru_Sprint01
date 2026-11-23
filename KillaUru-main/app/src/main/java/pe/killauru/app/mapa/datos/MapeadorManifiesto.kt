@@ -17,24 +17,25 @@ internal object MapeadorManifiesto {
         "tramoDemo" to TipoArchivoMapa.TRAMO_DEMO,
         "estilo" to TipoArchivoMapa.ESTILO,
     )
+    private val NOMBRE_DE_TIPO = TIPOS.entries.associate { (nombre, tipo) -> tipo to nombre }
 
     fun aDominio(dto: ManifiestoMapaDto): ManifiestoMapa {
         require(dto.esquema == ESQUEMA) { "Esquema de manifiesto ${dto.esquema} no soportado" }
-        val archivos = dto.archivos.mapNotNull { a ->
-            TIPOS[a.tipo]?.let { ArchivoMapa(it, a.version, a.url, a.bytes, a.sha256) }
+        val archivos = dto.archivos.mapNotNull { archivo ->
+            TIPOS[archivo.tipo]?.let { tipo -> ArchivoMapa(tipo, archivo.version, archivo.url, archivo.bytes, archivo.sha256) }
         }
         require(archivos.map { it.tipo }.toSet() == TipoArchivoMapa.entries.toSet()) { "Al manifiesto le falta un archivo" }
         return ManifiestoMapa(dto.version, Instant.parse(dto.publicadoUtc).toEpochMilli(), dto.atribucion, archivos)
     }
 
     /** Al revés, para guardar el manifiesto de la versión activa con el mismo formato del contrato. */
-    fun aDto(m: ManifiestoMapa) = ManifiestoMapaDto(
+    fun aDto(manifiesto: ManifiestoMapa) = ManifiestoMapaDto(
         esquema = ESQUEMA,
-        version = m.version,
-        publicadoUtc = Instant.ofEpochMilli(m.publicadoUtcMs).toString(),
-        atribucion = m.atribucion,
-        archivos = m.archivos.map { a ->
-            ArchivoMapaDto(TIPOS.entries.first { it.value == a.tipo }.key, a.version, a.url, a.bytes, a.sha256)
+        version = manifiesto.version,
+        publicadoUtc = Instant.ofEpochMilli(manifiesto.publicadoUtcMs).toString(),
+        atribucion = manifiesto.atribucion,
+        archivos = manifiesto.archivos.map { archivo ->
+            ArchivoMapaDto(NOMBRE_DE_TIPO.getValue(archivo.tipo), archivo.version, archivo.url, archivo.bytes, archivo.sha256)
         },
     )
 }

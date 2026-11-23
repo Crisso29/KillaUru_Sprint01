@@ -33,10 +33,10 @@ import pe.killauru.app.mapa.dominio.AnomaliaLocal
 internal fun MapaPantalla(viewModel: MapaViewModel = hiltViewModel(), onDetalle: (String) -> Unit = {}) {
     val mapa by viewModel.mapa.collectAsState()
     val anomalias by viewModel.anomalias.collectAsState()
-    when (val m = mapa) {
+    when (val estado = mapa) {
         EstadoMapaUi.Cargando -> Box(Modifier.fillMaxSize())
         EstadoMapaUi.SinMapa -> SinMapaRuta(alListo = viewModel::cargar)
-        is EstadoMapaUi.ConMapa -> MapaBase(m, anomalias, onDetalle)
+        is EstadoMapaUi.ConMapa -> MapaBase(estado, anomalias, onDetalle)
     }
 }
 
@@ -49,13 +49,13 @@ private fun MapaBase(mapa: EstadoMapaUi.ConMapa, anomalias: List<AnomaliaLocal>,
     var estilo by remember { mutableStateOf<Style?>(null) }
     CicloMapa(LocalLifecycleOwner.current.lifecycle, vista)
     LaunchedEffect(mapa.estilo) {
-        vista.getMapAsync { m ->
-            m.setStyle(Style.Builder().fromJson(mapa.estilo)) { s ->
-                CapasMapa.agregarVia(s, mapa.via, colores)
-                CapasMapa.encuadrar(m, mapa.via)
-                estilo = s
+        vista.getMapAsync { mapLibre ->
+            mapLibre.setStyle(Style.Builder().fromJson(mapa.estilo)) { cargado ->
+                CapasMapa.agregarVia(cargado, mapa.via, colores)
+                CapasMapa.encuadrar(mapLibre, mapa.via)
+                estilo = cargado
             }
-            m.addOnMapClickListener { punto -> anomaliaEn(m, punto)?.let(onDetalle) != null }
+            mapLibre.addOnMapClickListener { punto -> anomaliaEn(mapLibre, punto)?.let(onDetalle) != null }
         }
     }
     LaunchedEffect(estilo, anomalias) { estilo?.let { CapasMapa.ponerAnomalias(it, anomalias, colores) } }
@@ -69,9 +69,9 @@ private fun anomaliaEn(mapa: MapLibreMap, punto: org.maplibre.android.geometry.L
 
 @Composable
 private fun coloresMapa(): ColoresMapa {
-    val p = KillaUruTema.paleta
-    return ColoresMapa(via = p.killa.toArgb(), bordeVia = p.luna.toArgb(), contorno = p.superficie.toArgb(),
-        severidades = p.severidades.map { it.toArgb() })
+    val paleta = KillaUruTema.paleta
+    return ColoresMapa(via = paleta.killa.toArgb(), bordeVia = paleta.luna.toArgb(), contorno = paleta.superficie.toArgb(),
+        severidades = paleta.severidades.map { it.toArgb() })
 }
 
 @Composable

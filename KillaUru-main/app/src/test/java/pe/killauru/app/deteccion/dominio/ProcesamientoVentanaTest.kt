@@ -1,12 +1,18 @@
 package pe.killauru.app.deteccion.dominio
 
-import java.time.Instant
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import pe.killauru.app.sesion.dominio.CategoriaVehiculo
 import pe.killauru.app.soporte.EventosMemoria
-import kotlin.test.*
+import java.time.Instant
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
+/**
+ * FR-010…FR-013, FR-019: una ventana de sensores pasa por el prefiltro, el modelo y el guardado; y las transiciones de
+ * estado de un evento. Una prueba por comportamiento. Patrón AAA.
+ */
 class ProcesamientoVentanaTest {
     private val ahora = Instant.parse("2026-01-01T00:00:00Z")
     private val fuentes = object : Fuentes {
@@ -15,39 +21,68 @@ class ProcesamientoVentanaTest {
         override fun horaConfiable() = ahora
         override fun km(): Double? = null
     }
+    private val conMovimiento = Ventana(listOf(floatArrayOf(0f, 0f, 0f), floatArrayOf(5f, 0f, 0f)), ahora)
 
-    @Test fun `prefiltro descarta reposo y solo persiste clasificaciones positivas`() = runTest {
-        val repo = EventosMemoria()
+    /** Modelo de prueba: cuenta cuántas veces lo llamaron y responde lo que se le diga. */
+    private class ClasificadorDoble(private val respuesta: Clasificacion) : Clasificador {
         var inferencias = 0
-        var resultado = Clasificacion(null, 1, 0.99f)
-        val clasificador = object : Clasificador {
-            override val version = "1"
-            override fun clasificar(ventana: Ventana): Clasificacion { inferencias++; return resultado }
-        }
-        val guardar = GuardarEventoUseCase(repo, PoliticaGuardado(0.75), fuentes)
-        val caso = ProcesarVentanaUseCase(Prefiltro(0.1), clasificador, FusionVentanas(), guardar)
-        caso.procesar(Ventana(emptyList(), ahora), -13.0, -74.0, 5.0, ahora, ahora)
-        assertEquals(0, inferencias)
-        val ventana = Ventana(listOf(floatArrayOf(0f, 0f, 0f), floatArrayOf(5f, 0f, 0f)), ahora)
-        caso.procesar(ventana, -13.0, -74.0, 5.0, ahora, ahora)
+        override val version = "1"
+        override fun clasificar(ventana: Ventana): Clasificacion = respuesta.also { inferencias++ }
+    }
+
+    private fun caso(repo: EventosMemoria, modelo: Clasificador) =
+        ProcesarVentanaUseCase(Prefiltro(0.1), modelo, FusionVentanas(), GuardarEventoUseCase(repo, PoliticaGuardado(0.75), fuentes))
+
+    @Test fun `en reposo el prefiltro no llama al modelo`() = runTest {
+        // Arrange
+        val modelo = ClasificadorDoble(Clasificacion(TipoAnomalia.Bache, 3, 0.9f))
+        // Act
+        caso(EventosMemoria(), modelo).procesar(Ventana(emptyList(), ahora), -13.0, -74.0, 5.0, ahora, ahora)
+        // Assert — ahorra batería: sin movimiento no hay inferencia
+        assertEquals(0, modelo.inferencias)
+    }
+
+    @Test fun `una ventana normal pasa por el modelo pero no se guarda`() = runTest {
+        // Arrange
+        val repo = EventosMemoria()
+        val modelo = ClasificadorDoble(Clasificacion(null, 1, 0.99f))
+        // Act
+        caso(repo, modelo).procesar(conMovimiento, -13.0, -74.0, 5.0, ahora, ahora)
+        // Assert
+        assertEquals(1, modelo.inferencias)
         assertTrue(repo.eventos.isEmpty())
-        resultado = Clasificacion(TipoAnomalia.Bache, 3, 0.9f)
-        caso.procesar(ventana, -13.0, -74.0, 5.0, ahora, ahora)
-        assertEquals(2, inferencias)
+    }
+
+    @Test fun `un bache detectado se guarda con la version del modelo`() = runTest {
+        // Arrange
+        val repo = EventosMemoria()
+        // Act
+        caso(repo, ClasificadorDoble(Clasificacion(TipoAnomalia.Bache, 3, 0.9f))).procesar(conMovimiento, -13.0, -74.0, 5.0, ahora, ahora)
+        // Assert
         assertEquals(TipoAnomalia.Bache, repo.eventos.single().tipo)
         assertEquals("1", repo.eventos.single().modeloVersion)
     }
 
-    @Test fun `transiciones preservan datos y rechazan cambios desde estado final`() {
-        val evento = Evento("id", ahora, -13.0, -74.0, 5.0, TipoAnomalia.Bache,
-            3, 0.9, "1", "seudonimo", EstadoLocal.PENDING, ahora)
-        val enviado = TransicionEvento.aplicar(evento, EstadoLocal.ENVIANDO, ahora.plusSeconds(1))
-        assertEquals(evento.eventoId, enviado.eventoId)
-        assertEquals(ahora.plusSeconds(1), enviado.estadoDesde)
-        val finalizado = TransicionEvento.aplicar(enviado, EstadoLocal.SYNCED, ahora.plusSeconds(2))
-        assertFailsWith<IllegalArgumentException> {
-            TransicionEvento.aplicar(finalizado, EstadoLocal.PENDING, ahora.plusSeconds(3))
-        }
-        assertFailsWith<IllegalArgumentException> { TransicionEvento.aplicar(evento, EstadoLocal.SYNCED, ahora) }
+    private val pendiente = Evento("id", ahora, -13.0, -74.0, 5.0, TipoAnomalia.Bache, 3, 0.9, "1", "seudonimo", EstadoLocal.PENDING, ahora)
+
+    @Test fun `una transicion conserva el evento y anota desde cuando`() {
+        // Arrange + Act
+        val enviando = TransicionEvento.aplicar(pendiente, EstadoLocal.ENVIANDO, ahora.plusSeconds(1))
+        // Assert
+        assertEquals(pendiente.eventoId, enviando.eventoId)
+        assertEquals(ahora.plusSeconds(1), enviando.estadoDesde)
+    }
+
+    @Test fun `un evento ya sincronizado no vuelve a pendiente`() {
+        // Arrange
+        val sincronizado = TransicionEvento.aplicar(
+            TransicionEvento.aplicar(pendiente, EstadoLocal.ENVIANDO, ahora), EstadoLocal.SYNCED, ahora.plusSeconds(2))
+        // Act + Assert
+        assertFailsWith<IllegalArgumentException> { TransicionEvento.aplicar(sincronizado, EstadoLocal.PENDING, ahora.plusSeconds(3)) }
+    }
+
+    @Test fun `un pendiente no salta a sincronizado sin enviarse`() {
+        // Arrange + Act + Assert — solo un 200 del servidor marca SYNCED, y eso pasa estando en ENVIANDO
+        assertFailsWith<IllegalArgumentException> { TransicionEvento.aplicar(pendiente, EstadoLocal.SYNCED, ahora) }
     }
 }

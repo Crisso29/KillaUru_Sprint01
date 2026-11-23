@@ -155,7 +155,7 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 </details>
 
 <details>
-<summary>JVM — mapa (13 archivos)</summary>
+<summary>JVM — mapa (14 archivos)</summary>
 
 - [ContratoMapaTest.kt](../../app/src/test/java/pe/killauru/app/mapa/datos/ContratoMapaTest.kt)
 - [RepositorioAnomaliasRoomTest.kt](../../app/src/test/java/pe/killauru/app/mapa/datos/RepositorioAnomaliasRoomTest.kt)
@@ -167,6 +167,7 @@ helpers ni resultados de ejecución. Los comandos anteriores indican cómo ejecu
 - [ContratoManifiestoMapaTest.kt](../../app/src/test/java/pe/killauru/app/mapa/datos/ContratoManifiestoMapaTest.kt): T088: ejemplo del YAML, 4 archivos, ETag/304, sin red y sin credenciales hacia la CDN
 - [ArchivosMapaLocalTest.kt](../../app/src/test/java/pe/killauru/app/mapa/datos/ArchivosMapaLocalTest.kt): activar deja la versión y borra la anterior; estado ilegible = sin mapa; tamaño y huella del manifiesto
 - [EstiloMapaLocalTest.kt](../../app/src/test/java/pe/killauru/app/mapa/datos/EstiloMapaLocalTest.kt): T096: el estilo publicado pasa a leer el PMTiles del celular y los glifos del APK
+- [EstadoTrabajoMapaTest.kt](../../app/src/test/java/pe/killauru/app/mapa/datos/EstadoTrabajoMapaTest.kt): el trabajo de WorkManager se traduce a «descargando», «reintentando», «esperando Wi-Fi» o «listo»
 - [ActualizarMapaUseCaseTest.kt](../../app/src/test/java/pe/killauru/app/mapa/dominio/ActualizarMapaUseCaseTest.kt): FR-041…FR-044: activa solo con los 4 archivos íntegros, 304, misma versión, espera Wi-Fi, datos móviles, sin red
 - [EnDemoAnomaliasTest.kt](../../app/src/test/java/pe/killauru/app/mapa/dominio/EnDemoAnomaliasTest.kt): FR-051: `enDemo` con el polígono descargado; lo del anónimo siempre es demo
 - [MapaViewModelTest.kt](../../app/src/test/java/pe/killauru/app/mapa/ui/MapaViewModelTest.kt): sin mapa / con mapa, recarga al terminar una descarga y sin carrera entre cargas

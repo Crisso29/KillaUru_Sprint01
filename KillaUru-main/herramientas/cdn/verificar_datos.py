@@ -50,9 +50,9 @@ def main():
     argumentos = argparse.ArgumentParser(description=__doc__)
     for nombre in ('corredor', 'demo', 'km_referencia'):
         argumentos.add_argument(nombre)
-    a = argumentos.parse_args()
+    opciones = argumentos.parse_args()
     leer = lambda ruta: json.loads(Path(ruta).read_text(encoding='utf8'))
-    fallos = verificar(leer(a.corredor), leer(a.demo), a.km_referencia)
+    fallos = verificar(leer(opciones.corredor), leer(opciones.demo), opciones.km_referencia)
     for fallo in fallos:
         print(f'FALLA: {fallo}', file=sys.stderr)
     print('OK: corredor y tramo demo listos para publicar' if not fallos else f'{len(fallos)} fallos')

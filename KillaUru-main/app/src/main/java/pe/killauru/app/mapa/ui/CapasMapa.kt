@@ -60,13 +60,14 @@ internal object CapasMapa {
     private fun colorPorSeveridad(colores: List<Int>): Expression = Expression.match(
         Expression.toNumber(Expression.get("severidad")),
         Expression.color(colores.last()),
-        *colores.mapIndexed { i, c -> Expression.stop(i + 1, Expression.color(c)) }.toTypedArray(),
+        *colores.mapIndexed { indice, color -> Expression.stop(indice + 1, Expression.color(color)) }.toTypedArray(),
     )
 
-    private fun feature(a: AnomaliaLocal) = Feature.fromGeometry(Point.fromLngLat(a.coordenada.longitud, a.coordenada.latitud)).apply {
-        addStringProperty("id", a.id)
-        addNumberProperty("severidad", a.severidad)
-    }
+    private fun feature(anomalia: AnomaliaLocal) =
+        Feature.fromGeometry(Point.fromLngLat(anomalia.coordenada.longitud, anomalia.coordenada.latitud)).apply {
+            addStringProperty("id", anomalia.id)
+            addNumberProperty("severidad", anomalia.severidad)
+        }
 
     /** Al abrir, la cámara muestra la vía entera (aún sin GPS). */
     fun encuadrar(mapa: MapLibreMap, via: List<Pair<Double, Double>>) {

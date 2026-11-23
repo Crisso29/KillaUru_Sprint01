@@ -77,10 +77,10 @@ def main():
     argumentos.add_argument('version')
     argumentos.add_argument('--base', default='https://cdn.killauru.pe/mapa')
     argumentos.add_argument('--salida')
-    a = argumentos.parse_args()
-    salida = Path(a.salida or f'estilo.v{a.version}.json')
-    salida.write_text(json.dumps(construir(a.version, a.base), ensure_ascii=False), encoding='utf8')
-    print(f'{salida}: estilo de la versión {a.version}')
+    opciones = argumentos.parse_args()
+    salida = Path(opciones.salida or f'estilo.v{opciones.version}.json')
+    salida.write_text(json.dumps(construir(opciones.version, opciones.base), ensure_ascii=False), encoding='utf8')
+    print(f'{salida}: estilo de la versión {opciones.version}')
 
 
 if __name__ == '__main__':

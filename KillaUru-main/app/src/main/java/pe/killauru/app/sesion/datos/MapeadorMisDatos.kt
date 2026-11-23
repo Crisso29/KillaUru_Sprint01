@@ -13,9 +13,9 @@ internal object MapeadorMisDatos {
         rol = Rol.valueOf(dto.rol),
         fechaAltaUtcMs = Instant.parse(dto.fechaAltaUtc).toEpochMilli(),
         correoVerificado = dto.correoVerificado,
-        aceptaciones = dto.aceptaciones.mapNotNull { a ->
-            val documento = DocumentoLegal.entries.firstOrNull { it.name == a.documento } ?: return@mapNotNull null
-            Aceptacion(documento, a.version, Instant.parse(a.aceptadoUtc).toEpochMilli())
+        aceptaciones = dto.aceptaciones.mapNotNull { aceptacion ->
+            val documento = DocumentoLegal.entries.firstOrNull { it.name == aceptacion.documento } ?: return@mapNotNull null
+            Aceptacion(documento, aceptacion.version, Instant.parse(aceptacion.aceptadoUtc).toEpochMilli())
         },
     )
 }

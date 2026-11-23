@@ -44,8 +44,8 @@ internal class ApiCuentaHttp @Inject constructor(
 
     override suspend fun revocarSesion(tokenAcceso: String, tokenRenovacion: String): Boolean =
         protegido({ false }) {
-            val r = api.cerrarSesion("Bearer $tokenAcceso", RenovarSolicitudDto(tokenRenovacion))
-            r.isSuccessful || r.code() == 401
+            val respuesta = api.cerrarSesion("Bearer $tokenAcceso", RenovarSolicitudDto(tokenRenovacion))
+            respuesta.isSuccessful || respuesta.code() == 401
         }
 
     /** 200/201 traen `SesionApp`; el resto de códigos son los del contrato para registro e inicio de sesión. */

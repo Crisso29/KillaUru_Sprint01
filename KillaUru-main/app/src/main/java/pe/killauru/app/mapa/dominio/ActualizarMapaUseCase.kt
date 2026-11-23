@@ -17,14 +17,15 @@ internal class ActualizarMapaUseCase @Inject constructor(
     /** [alProgresar] recibe el porcentaje (0–100) y lo que pesa toda la versión (para «2,4 MB»). */
     suspend fun ejecutar(hayWifi: Boolean, alProgresar: (porcentaje: Int, bytesTotales: Long) -> Unit): ResultadoMapa {
         val instalado = archivos.instalado()
-        return when (val r = cdn.manifiesto(archivos.etag().takeIf { instalado != null })) {
+        return when (val respuesta = cdn.manifiesto(archivos.etag().takeIf { instalado != null })) {
             RespuestaManifiesto.SinCambios -> ResultadoMapa.AlDia
-            is RespuestaManifiesto.Fallo -> ResultadoMapa.Fallo(r.causa)
+            is RespuestaManifiesto.Fallo -> ResultadoMapa.Fallo(respuesta.causa)
             is RespuestaManifiesto.Nuevo -> when {
-                r.manifiesto.version == instalado?.version -> ResultadoMapa.AlDia.also { archivos.activar(instalado, r.etag) }
-                !politica.debeDescargar(instalado?.version, r.manifiesto.version, prefs.obtenerUsarDatosMoviles(), hayWifi) ->
-                    ResultadoMapa.EsperandoWifi(r.manifiesto.bytesTotales)
-                else -> descargar(r.manifiesto, r.etag, alProgresar)
+                respuesta.manifiesto.version == instalado?.version ->
+                    ResultadoMapa.AlDia.also { archivos.activar(instalado, respuesta.etag) }
+                !politica.debeDescargar(instalado?.version, respuesta.manifiesto.version, prefs.obtenerUsarDatosMoviles(), hayWifi) ->
+                    ResultadoMapa.EsperandoWifi(respuesta.manifiesto.bytesTotales)
+                else -> descargar(respuesta.manifiesto, respuesta.etag, alProgresar)
             }
         }
     }
