@@ -11,7 +11,10 @@ const BASE = import.meta.env.VITE_URL_API ?? 'https://api.killauru.pe'
 
 describe('PaginaModeracion', () => {
   it('muestra las dos pestañas con contador', async () => {
+    // Arrange y Act
     renderizar(<PaginaModeracion />)
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByRole('tab', { name: /por revisar/i })).toBeTruthy()
       expect(screen.getByRole('tab', { name: /esperan confirmación/i })).toBeTruthy()
@@ -23,7 +26,10 @@ describe('PaginaModeracion', () => {
   })
 
   it('pestaña Por revisar — muestra filas con accion Mantener descartada y Reabrir', async () => {
+    // Arrange y Act
     renderizar(<PaginaModeracion />)
+
+    // Assert
     await waitFor(() =>
       expect(screen.getAllByRole('row').length).toBeGreaterThan(1),
     )
@@ -32,52 +38,63 @@ describe('PaginaModeracion', () => {
   })
 
   it('Mantener descartada — POST sin diálogo', async () => {
-    let llamado = false
+    // Arrange — mantener no cambia nada visible para el conductor: no pide confirmación
+    const acciones: string[] = []
     server.use(
       http.post(`${BASE}/api/v1/anomalies/:id/moderacion`, async ({ request }) => {
-        const body = await request.json() as { accion: string }
-        if (body.accion === 'MantenerDescartada') llamado = true
+        acciones.push((await request.json() as { accion: string }).accion)
         return HttpResponse.json({ id: 'd1d1d1d1-0000-0000-0000-000000000001' })
       }),
     )
     const user = userEvent.setup()
     renderizar(<PaginaModeracion />)
-    await waitFor(() =>
-      expect(screen.getAllByRole('button', { name: /mantener descartada/i }).length).toBeGreaterThan(0),
-    )
-    await user.click(screen.getAllByRole('button', { name: /mantener descartada/i })[0]!)
-    await waitFor(() => expect(llamado).toBe(true))
-    expect(screen.queryByRole('dialog')).toBeNull()
+    const [mantener] = await screen.findAllByRole('button', { name: /mantener descartada/i })
+
+    // Act
+    await user.click(mantener!)
+
+    // Assert
+    await waitFor(() => expect(acciones).toEqual(['MantenerDescartada']))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it('Reabrir — abre diálogo de confirmación', async () => {
+    // Arrange
     const user = userEvent.setup()
     renderizar(<PaginaModeracion />)
-    await waitFor(() =>
-      expect(screen.getAllByRole('button', { name: /reabrir/i }).length).toBeGreaterThan(0),
-    )
-    await user.click(screen.getAllByRole('button', { name: /reabrir/i })[0]!)
-    await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
+    const [reabrir] = await screen.findAllByRole('button', { name: /reabrir/i })
+
+    // Act
+    await user.click(reabrir!)
+
+    // Assert
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
   })
 
   it('pestaña Esperan confirmación — solo lectura con Ver en el mapa', async () => {
+    // Arrange
     const user = userEvent.setup()
     renderizar(<PaginaModeracion />)
-    await waitFor(() =>
-      expect(screen.getByRole('tab', { name: /esperan confirmación/i })).toBeTruthy(),
-    )
-    await user.click(screen.getByRole('tab', { name: /esperan confirmación/i }))
-    await waitFor(() =>
-      expect(screen.getAllByRole('link', { name: /ver en el mapa/i }).length).toBeGreaterThan(0),
-    )
-    expect(screen.queryByRole('button', { name: /descartar/i })).toBeNull()
+    const pestana = await screen.findByRole('tab', { name: /esperan confirmación/i })
+
+    // Act
+    await user.click(pestana)
+
+    // Assert
+    expect((await screen.findAllByRole('link', { name: /ver en el mapa/i })).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('button', { name: /descartar/i })).not.toBeInTheDocument()
   })
 
   it('lista vacía muestra texto de vacío', async () => {
+    // Arrange
     server.use(
       http.get(`${BASE}/api/v1/moderacion/por-revisar`, () => HttpResponse.json([])),
     )
+
+    // Act
     renderizar(<PaginaModeracion />)
+
+    // Assert
     await waitFor(() =>
       expect(
         screen.getByText(/no hay anomalías descartadas que requieran revisión/i),

@@ -26,7 +26,7 @@ export const TEXTOS_RESUMEN = {
     revisionVencida: 'Vencida',
     estado: 'Estado del servicio',
     estadoDetalle: 'Página pública de UptimeRobot',
-    temas: (n: number) => `${n} ${n === 1 ? 'tema' : 'temas'}`,
+    temas: (numero: number) => `${numero} ${numero === 1 ? 'tema' : 'temas'}`,
   },
   indicadores: {
     variacionSufijo: 'vs. 7 d previos',

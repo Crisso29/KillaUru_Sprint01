@@ -1,38 +1,30 @@
-import { TEXTOS_AUDITORIA } from '../textos'
+// T078 — tabla de la auditoría: una fila por registro
+import { TEXTOS_AUDITORIA as textos } from '../textos'
 import { FilaAuditoria } from './FilaAuditoria'
 import type { RegistroAuditoria } from '@/api/dtos/002-auditoria'
 
 interface Props {
   registros: RegistroAuditoria[]
-  correosActores: Map<string, string | null>
+  /** actorId → correo (de `useActores`); un id sin correo se muestra como id. */
+  correosActores: Record<string, string>
 }
 
+const COLUMNAS = [textos.columnas.hora, textos.columnas.actor, textos.columnas.categoria, textos.columnas.accion, textos.columnas.objetivo]
+
 export function TablaAuditoria({ registros, correosActores }: Props) {
-  const T = TEXTOS_AUDITORIA
-
-  if (registros.length === 0) {
-    return <p className="card-b hint">{T.vacia}</p>
-  }
-
+  if (registros.length === 0) return <p className="card-b hint">{textos.vacia}</p>
   return (
     <table className="dt">
       <thead>
         <tr>
-          <th scope="col">{T.columnas.hora}</th>
-          <th scope="col">{T.columnas.actor}</th>
-          <th scope="col">{T.columnas.categoria}</th>
-          <th scope="col">{T.columnas.accion}</th>
-          <th scope="col">{T.columnas.objetivo}</th>
+          {COLUMNAS.map((columna) => <th key={columna} scope="col">{columna}</th>)}
           <th scope="col"><span className="sr-only">Contexto</span></th>
         </tr>
       </thead>
       <tbody>
-        {registros.map(r => (
-          <FilaAuditoria
-            key={r.id}
-            registro={r}
-            correoActor={r.actorId ? correosActores.get(r.actorId) : null}
-          />
+        {registros.map((registro) => (
+          <FilaAuditoria key={registro.id} registro={registro}
+            correoActor={registro.actorId ? correosActores[registro.actorId] ?? null : null} />
         ))}
       </tbody>
     </table>

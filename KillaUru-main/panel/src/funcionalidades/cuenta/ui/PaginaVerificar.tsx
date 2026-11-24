@@ -2,48 +2,31 @@
 import { useEffect, useRef, useState } from 'react'
 import { tokenDelFragmento } from '../modelo/tokenDelFragmento'
 import { useVerificarCorreo } from '../api/useEnlaces'
-import { Link } from 'react-router'
 import { PaginaAcceso } from '@/compartido/ui'
-import { TEXTOS_CUENTA as T } from '../textos'
+import { TEXTOS_CUENTA as textos } from '../textos'
+import { ResultadoEnlace } from './ResultadoEnlace'
+
+const TITULO = 'Verificar correo'
 
 export function PaginaVerificar() {
-  const mutation = useVerificarCorreo()
-  const sent = useRef(false)
-  const [sinToken, setSinToken] = useState(false)
+  const verificar = useVerificarCorreo()
+  const sinToken = useVerificarUnaVez(verificar.mutate)
+  if (sinToken || verificar.isError) return <ResultadoEnlace titulo={TITULO} mensaje={textos.enlaceInvalido} exito={false} />
+  if (verificar.isSuccess) return <ResultadoEnlace titulo={TITULO} mensaje={textos.verificadoOk} exito />
+  return <PaginaAcceso titulo={TITULO}><p role="status" aria-busy="true">{textos.verificandoTitulo}</p></PaginaAcceso>
+}
 
+/** El enlace es de un solo uso: se envía una vez aunque React monte el efecto dos veces (modo estricto). */
+function useVerificarUnaVez(verificar: (token: string) => void): boolean {
+  const enviado = useRef(false)
+  const [sinToken, setSinToken] = useState(false)
   useEffect(() => {
-    if (sent.current) return
-    sent.current = true
+    if (enviado.current) return
+    enviado.current = true
     const token = tokenDelFragmento()
-    if (!token) {
-      setSinToken(true)
-      return
-    }
-    mutation.mutate(token)
+    if (token) verificar(token)
+    else setSinToken(true)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  if (sinToken || mutation.isError) {
-    return (
-      <PaginaAcceso titulo="Verificar correo">
-        <p role="alert" className="note bad">{T.enlaceInvalido}</p>
-        <Link to="/login" className="lnk">Ir al inicio de sesión</Link>
-      </PaginaAcceso>
-    )
-  }
-
-  if (mutation.isSuccess) {
-    return (
-      <PaginaAcceso titulo="Verificar correo">
-        <p role="status" className="note ok">{T.verificadoOk}</p>
-        <Link to="/login" className="lnk">Ir al inicio de sesión</Link>
-      </PaginaAcceso>
-    )
-  }
-
-  return (
-    <PaginaAcceso titulo="Verificar correo">
-      <p role="status" aria-busy="true">{T.verificandoTitulo}</p>
-    </PaginaAcceso>
-  )
+  return sinToken
 }

@@ -1,47 +1,24 @@
-import { describe, it, expect } from 'vitest'
-import { parsearBusqueda, masProxima } from './busqueda'
-import type { AnomaliaEnMapa } from './busqueda'
-
 // T039 — busqueda: UUID, prefijo 8, km, correo, sin_resultados; masProxima
+import { describe, it, expect } from 'vitest'
+import { parsearBusqueda, masProxima, type AnomaliaEnMapa, type IntentoBusqueda } from './busqueda'
 
 const UUID = 'a1b2c3d4-0000-0000-0000-000000000001'
 
 describe('parsearBusqueda', () => {
-  it('UUID completo → tipo id', () => {
-    const r = parsearBusqueda(UUID)
-    expect(r.tipo).toBe('id')
-    if (r.tipo === 'id') expect(r.id).toBe(UUID)
-  })
+  it.each<[string, IntentoBusqueda]>([
+    [UUID, { tipo: 'id', id: UUID }],
+    ['a1b2c3d4', { tipo: 'id-prefijo', prefijo: 'a1b2c3d4' }], // el id corto que se ve en las tablas
+    ['287,4', { tipo: 'km', km: 287.4 }], // coma decimal, como se escribe en Perú
+    ['10,5', { tipo: 'km', km: 10.5 }],
+    ['ops@killauru.pe', { tipo: 'correo', correo: 'ops@killauru.pe' }],
+    ['texto inventado', { tipo: 'sin_resultados' }],
+    ['', { tipo: 'sin_resultados' }],
+  ])('«%s» → %j', (texto, esperado) => {
+    // Arrange y Act
+    const intento = parsearBusqueda(texto)
 
-  it('prefijo de 8 caracteres hex → tipo id-prefijo', () => {
-    const r = parsearBusqueda('a1b2c3d4')
-    expect(r.tipo).toBe('id-prefijo')
-    if (r.tipo === 'id-prefijo') expect(r.prefijo).toBe('a1b2c3d4')
-  })
-
-  it('«287,4» → tipo km con km=287.4', () => {
-    const r = parsearBusqueda('287,4')
-    expect(r.tipo).toBe('km')
-    if (r.tipo === 'km') expect(r.km).toBe(287.4)
-  })
-
-  it('«10,5» → tipo km', () => {
-    const r = parsearBusqueda('10,5')
-    expect(r.tipo).toBe('km')
-  })
-
-  it('correo con @ → tipo correo', () => {
-    const r = parsearBusqueda('ops@killauru.pe')
-    expect(r.tipo).toBe('correo')
-    if (r.tipo === 'correo') expect(r.correo).toBe('ops@killauru.pe')
-  })
-
-  it('texto suelto → sin_resultados', () => {
-    expect(parsearBusqueda('texto inventado').tipo).toBe('sin_resultados')
-  })
-
-  it('cadena vacía → sin_resultados', () => {
-    expect(parsearBusqueda('').tipo).toBe('sin_resultados')
+    // Assert
+    expect(intento).toEqual(esperado)
   })
 })
 
@@ -52,16 +29,15 @@ describe('masProxima', () => {
     { id: '003', kmVia: 300 },
   ]
 
-  it('287,4 → km 285 (distancia 2,4 vs 2,6)', () => {
-    const r = masProxima(287.4, anomalias)
-    expect(r?.id).toBe('001')
-  })
+  it.each([
+    ['287,4 → km 285 (distancia 2,4 contra 2,6)', 287.4, anomalias, '001'],
+    ['exactamente en km 290', 290, anomalias, '002'],
+    ['lista vacía → ninguna', 287.4, [], undefined],
+  ])('%s', (_caso, km, lista, esperado) => {
+    // Arrange y Act
+    const anomalia = masProxima(km, lista)
 
-  it('exactamente en km 290', () => {
-    expect(masProxima(290, anomalias)?.id).toBe('002')
-  })
-
-  it('lista vacía → null', () => {
-    expect(masProxima(287.4, [])).toBeNull()
+    // Assert
+    expect(anomalia?.id).toBe(esperado)
   })
 })

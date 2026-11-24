@@ -18,8 +18,8 @@ export function aDesdeUtc(fecha: string): string | null {
 // fin del día Lima = 04:59:59 UTC del día siguiente
 export function aHastaUtc(fecha: string): string | null {
   if (!fecha) return null
-  const [a = 0, m = 1, d = 1] = fecha.split('-').map(Number)
-  const sig = new Date(Date.UTC(a, m - 1, d + 1))
+  const [anio = 0, mes = 1, dia = 1] = fecha.split('-').map(Number)
+  const sig = new Date(Date.UTC(anio, mes - 1, dia + 1))
   const yyyy = sig.getUTCFullYear()
   const mm = String(sig.getUTCMonth() + 1).padStart(2, '0')
   const dd = String(sig.getUTCDate()).padStart(2, '0')

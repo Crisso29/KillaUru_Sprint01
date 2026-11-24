@@ -10,10 +10,10 @@ import { join, resolve } from 'node:path'
 const SRC = resolve(__dirname, '../../src')
 
 function archivos(dir: string): string[] {
-  return readdirSync(dir).flatMap((n) => {
-    const ruta = join(dir, n)
-    if (statSync(ruta).isDirectory()) return n === 'generado' ? [] : archivos(ruta)
-    return /\.(tsx?|css)$/.test(n) && !n.includes('.test.') ? [ruta] : []
+  return readdirSync(dir).flatMap((nombre) => {
+    const ruta = join(dir, nombre)
+    if (statSync(ruta).isDirectory()) return nombre === 'generado' ? [] : archivos(ruta)
+    return /\.(tsx?|css)$/.test(nombre) && !nombre.includes('.test.') ? [ruta] : []
   })
 }
 
@@ -21,11 +21,11 @@ describe('Variables CSS del sistema de diseño', () => {
   it('toda var(--x) usada está definida en las hojas de estilo', () => {
     // Arrange
     const estilos = join(SRC, 'compartido/estilos')
-    const definidas = new Set(readdirSync(estilos).filter((f) => f.endsWith('.css'))
-      .flatMap((f) => [...readFileSync(join(estilos, f), 'utf8').matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1]!)))
+    const definidas = new Set(readdirSync(estilos).filter((archivo) => archivo.endsWith('.css'))
+      .flatMap((archivo) => [...readFileSync(join(estilos, archivo), 'utf8').matchAll(/(--[\w-]+)\s*:/g)].map((coincidencia) => coincidencia[1]!)))
     // Act — `var(--s${n})` arma el nombre en tiempo de ejecución; esos se validan aparte (severidad 1 a 5 existe)
-    const faltan = archivos(SRC).flatMap((f) => [...readFileSync(f, 'utf8').matchAll(/var\((--[\w-]+)(\$\{)?/g)]
-      .filter((m) => !m[2] && !definidas.has(m[1]!)).map((m) => `${m[1]} en ${f.slice(SRC.length + 1)}`))
+    const faltan = archivos(SRC).flatMap((archivo) => [...readFileSync(archivo, 'utf8').matchAll(/var\((--[\w-]+)(\$\{)?/g)]
+      .filter((coincidencia) => !coincidencia[2] && !definidas.has(coincidencia[1]!)).map((coincidencia) => `${coincidencia[1]} en ${archivo.slice(SRC.length + 1)}`))
     // Assert
     expect([...new Set(faltan)]).toEqual([])
   })

@@ -15,35 +15,33 @@ interface Props {
 }
 
 export function ListaAnomalias({ features, total, idSeleccionada, onSeleccionar }: Props) {
+  if (!features.length) return <EstadoVacio mensaje={TEXTOS_MAPA.vacioPrincipal} />
   const ahora = relojReal.ahora()
-
-  if (!features.length) {
-    return <EstadoVacio mensaje={TEXTOS_MAPA.vacioPrincipal} />
-  }
-
   return (
     <div>
-      <p className="hint" style={{ padding: 'var(--s-8) var(--s-13)' }}>
-        {features.length} de {total} anomalías
-      </p>
+      <p className="hint" style={{ padding: 'var(--s-8) var(--s-13)' }}>{features.length} de {total} anomalías</p>
       <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-        {features.map(f => {
-          const p = f.properties
-          return (
-            <li key={p.id}>
-              <button type="button" className="lrow" onClick={() => onSeleccionar(p.id)}
-                aria-pressed={idSeleccionada === p.id} aria-selected={idSeleccionada === p.id}>
-                <Severidad nivel={p.severidad} tamano="sm" />
-                <span>
-                  <b>{p.tipo} · km {formatearKm(p.kmVia)}</b>
-                  <small style={{ display: 'block' }}>{idCorto(p.id)} · {formatearRelativo(p.ultimaDeteccionUtc, ahora)}</small>
-                </span>
-                <InsigniaEstado estado={p.estado} />
-              </button>
-            </li>
-          )
-        })}
+        {features.map(({ properties: anomalia }) => (
+          <li key={anomalia.id}>
+            <FilaAnomalia anomalia={anomalia} ahora={ahora} elegida={idSeleccionada === anomalia.id} onElegir={() => onSeleccionar(anomalia.id)} />
+          </li>
+        ))}
       </ul>
     </div>
+  )
+}
+
+interface PropsFila { anomalia: AnomaliaFeature['properties']; ahora: Date; elegida: boolean; onElegir: () => void }
+
+function FilaAnomalia({ anomalia, ahora, elegida, onElegir }: PropsFila) {
+  return (
+    <button type="button" className="lrow" onClick={onElegir} aria-pressed={elegida}>
+      <Severidad nivel={anomalia.severidad} tamano="sm" />
+      <span>
+        <b>{anomalia.tipo} · km {formatearKm(anomalia.kmVia)}</b>
+        <small style={{ display: 'block' }}>{idCorto(anomalia.id)} · {formatearRelativo(anomalia.ultimaDeteccionUtc, ahora)}</small>
+      </span>
+      <InsigniaEstado estado={anomalia.estado} />
+    </button>
   )
 }

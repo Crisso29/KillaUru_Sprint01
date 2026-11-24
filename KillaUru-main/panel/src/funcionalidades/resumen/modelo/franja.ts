@@ -17,12 +17,12 @@ export interface TramoFranja {
 
 export function agruparEnFranja(anomalias: AnomaliaFeature[]): TramoFranja[] {
   const mapa = new Map<number, { cantidad: number; severidadMax: number }>()
-  for (const a of anomalias) {
-    const t = calcularTramo(a.properties.kmVia)
-    const actual = mapa.get(t) ?? { cantidad: 0, severidadMax: 0 }
-    mapa.set(t, {
+  for (const anomalia of anomalias) {
+    const tramo = calcularTramo(anomalia.properties.kmVia)
+    const actual = mapa.get(tramo) ?? { cantidad: 0, severidadMax: 0 }
+    mapa.set(tramo, {
       cantidad: actual.cantidad + 1,
-      severidadMax: Math.max(actual.severidadMax, a.properties.severidad),
+      severidadMax: Math.max(actual.severidadMax, anomalia.properties.severidad),
     })
   }
   return Array.from(mapa.entries())
@@ -32,5 +32,5 @@ export function agruparEnFranja(anomalias: AnomaliaFeature[]): TramoFranja[] {
       cantidad,
       severidadMax,
     }))
-    .sort((a, b) => a.tramo - b.tramo)
+    .sort((primera, segunda) => primera.tramo - segunda.tramo)
 }

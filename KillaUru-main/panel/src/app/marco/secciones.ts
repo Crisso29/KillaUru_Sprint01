@@ -30,9 +30,9 @@ export const GRUPOS: readonly { titulo: string; secciones: readonly Seccion[] }[
 /** «Operación / Resumen» para la ruta actual; la raíz `/` es el Resumen. */
 export function migas(ruta: string): { grupo: string; seccion: string } | null {
   const buscada = ruta === '/' ? '/resumen' : ruta
-  for (const g of GRUPOS) {
-    const s = g.secciones.find((x) => buscada.startsWith(x.ruta))
-    if (s) return { grupo: g.titulo, seccion: s.texto }
+  for (const grupo of GRUPOS) {
+    const seccion = grupo.secciones.find((x) => buscada.startsWith(x.ruta))
+    if (seccion) return { grupo: grupo.titulo, seccion: seccion.texto }
   }
   return null
 }

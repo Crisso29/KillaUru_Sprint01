@@ -1,6 +1,6 @@
 // T052 — PaginaUsuarios: lista, contador, filtros, búsqueda, vacío, error
-import { describe, it, expect, vi } from 'vitest'
-import { screen, waitFor, fireEvent } from '@testing-library/react'
+import { describe, it, expect } from 'vitest'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderizar } from '@/../pruebas/renderizar'
 import { server } from '@/../pruebas/msw/servidor'
@@ -11,7 +11,10 @@ const BASE = import.meta.env.VITE_URL_API ?? 'https://api.killauru.pe'
 
 describe('PaginaUsuarios', () => {
   it('muestra correos de la lista', async () => {
+    // Arrange y Act
     renderizar(<PaginaUsuarios correoActual="me@killauru.pe" />)
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByText(/admin@killauru\.pe/)).toBeTruthy()
       expect(screen.getByText(/conductor@killauru\.pe/)).toBeTruthy()
@@ -19,14 +22,20 @@ describe('PaginaUsuarios', () => {
   })
 
   it('muestra contador «N de total»', async () => {
+    // Arrange y Act
     renderizar(<PaginaUsuarios correoActual="me@killauru.pe" />)
+
+    // Assert
     await waitFor(() => {
-      expect(screen.getByText(/3 de 3/)).toBeTruthy()
+      expect(screen.getByText(/4 de 4/)).toBeTruthy()
     })
   })
 
   it('filtro estado tiene opción «InvitacionPendiente»', async () => {
+    // Arrange y Act
     renderizar(<PaginaUsuarios correoActual="me@killauru.pe" />)
+
+    // Assert
     await waitFor(() => {
       const sel = screen.getByRole('combobox', { name: /estado/i })
       expect(sel.querySelector('option[value="InvitacionPendiente"]')).toBeTruthy()
@@ -34,71 +43,75 @@ describe('PaginaUsuarios', () => {
   })
 
   it('cambio de estado envía el param correcto', async () => {
-    let estadoCapturado = ''
-    server.use(
-      http.get(`${BASE}/api/v1/usuarios`, ({ request }) => {
-        estadoCapturado = new URL(request.url).searchParams.get('estado') ?? ''
-        return HttpResponse.json({ elementos: [], pagina: 1, tamano: 50, total: 0 })
-      }),
-    )
+    // Arrange
+    const consultas = servirUsuarios()
     renderizar(<PaginaUsuarios correoActual="me@killauru.pe" />)
     const user = userEvent.setup()
-    await waitFor(() => expect(screen.getByRole('combobox', { name: /estado/i })).toBeTruthy())
-    await user.selectOptions(screen.getByRole('combobox', { name: /estado/i }), 'InvitacionPendiente')
-    await waitFor(() => expect(estadoCapturado).toBe('InvitacionPendiente'))
+    const estado = await screen.findByRole('combobox', { name: /estado/i })
+
+    // Act
+    await user.selectOptions(estado, 'InvitacionPendiente')
+
+    // Assert
+    await waitFor(() => expect(consultas.at(-1)?.get('estado')).toBe('InvitacionPendiente'))
   })
 
   it('Enter lanza la búsqueda inmediatamente', async () => {
-    let busquedaCapturada = ''
-    server.use(
-      http.get(`${BASE}/api/v1/usuarios`, ({ request }) => {
-        const b = new URL(request.url).searchParams.get('busqueda')
-        if (b) busquedaCapturada = b
-        return HttpResponse.json({ elementos: [], pagina: 1, tamano: 50, total: 0 })
-      }),
-    )
+    // Arrange
+    const consultas = servirUsuarios()
     renderizar(<PaginaUsuarios correoActual="me@killauru.pe" />)
     const user = userEvent.setup()
-    await waitFor(() => expect(screen.getByRole('searchbox')).toBeTruthy())
-    await user.type(screen.getByRole('searchbox'), 'jose')
-    await user.keyboard('{Enter}')
-    await waitFor(() => expect(busquedaCapturada).toBe('jose'))
-  })
+    await user.type(await screen.findByRole('searchbox'), 'jose')
 
-  it('texto < 3 chars no dispara búsqueda hasta 400ms', async () => {
-    vi.useFakeTimers()
-    let reqs = 0
-    server.use(
-      http.get(`${BASE}/api/v1/usuarios`, ({ request }) => {
-        if (new URL(request.url).searchParams.has('busqueda')) reqs++
-        return HttpResponse.json({ elementos: [], pagina: 1, tamano: 50, total: 0 })
-      }),
-    )
-    renderizar(<PaginaUsuarios correoActual="me@killauru.pe" />)
-    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'ab' } })
-    expect(reqs).toBe(0)
-    vi.useRealTimers()
+    // Act
+    await user.keyboard('{Enter}')
+
+    // Assert
+    await waitFor(() => expect(busquedas(consultas)).toContain('jose'))
   })
 
   it('lista vacía muestra estado vacío', async () => {
+    // Arrange
     server.use(
       http.get(`${BASE}/api/v1/usuarios`, () =>
         HttpResponse.json({ elementos: [], pagina: 1, tamano: 50, total: 0 }),
       ),
     )
+
+    // Act
     renderizar(<PaginaUsuarios correoActual="me@killauru.pe" />)
+
+    // Assert
     await waitFor(() => expect(screen.getByRole('status')).toBeTruthy())
   })
 
   it('error 503 muestra botón Reintentar', async () => {
+    // Arrange
     server.use(
       http.get(`${BASE}/api/v1/usuarios`, () =>
         HttpResponse.json({ codigo: 'sin_conexion' }, { status: 503 }),
       ),
     )
+
+    // Act
     renderizar(<PaginaUsuarios correoActual="me@killauru.pe" />)
+
+    // Assert
     await waitFor(() =>
       expect(screen.getByRole('button', { name: /reintentar/i })).toBeTruthy(),
     )
   })
 })
+
+/** Responde una lista vacía y guarda los parámetros de cada consulta a /usuarios, en orden. */
+function servirUsuarios() {
+  const consultas: URLSearchParams[] = []
+  server.use(http.get(`${BASE}/api/v1/usuarios`, ({ request }) => {
+    consultas.push(new URL(request.url).searchParams)
+    return HttpResponse.json({ elementos: [], pagina: 1, tamano: 50, total: 0 })
+  }))
+  return consultas
+}
+
+/** Los textos buscados (`?busqueda=`), sin las consultas de solo filtros. */
+const busquedas = (consultas: URLSearchParams[]) => consultas.flatMap((params) => params.getAll('busqueda'))

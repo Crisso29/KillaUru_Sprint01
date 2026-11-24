@@ -6,55 +6,82 @@ const UUID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
 
 describe('aConsulta', () => {
   it('UUID completo → ids=', () => {
-    const p = aConsulta(UUID, '', '', 1)
-    expect(p.get('ids')).toBe(UUID)
-    expect(p.get('busqueda')).toBeNull()
+    // Arrange y Act
+    const consulta = aConsulta(UUID, '', '', 1)
+
+    // Assert
+    expect(consulta.get('ids')).toBe(UUID)
+    expect(consulta.get('busqueda')).toBeNull()
   })
 
   it('texto ≥ 3 caracteres → busqueda=', () => {
-    const p = aConsulta('jose', '', '', 1)
-    expect(p.get('busqueda')).toBe('jose')
-    expect(p.get('ids')).toBeNull()
+    // Arrange y Act
+    const consulta = aConsulta('jose', '', '', 1)
+
+    // Assert
+    expect(consulta.get('busqueda')).toBe('jose')
+    expect(consulta.get('ids')).toBeNull()
   })
 
   it('texto < 3 caracteres → sin filtro de texto', () => {
-    const p = aConsulta('jo', '', '', 1)
-    expect(p.get('busqueda')).toBeNull()
-    expect(p.get('ids')).toBeNull()
+    // Arrange y Act
+    const consulta = aConsulta('jo', '', '', 1)
+
+    // Assert
+    expect(consulta.get('busqueda')).toBeNull()
+    expect(consulta.get('ids')).toBeNull()
   })
 
   it('texto vacío → sin filtro de texto', () => {
-    const p = aConsulta('', '', '', 1)
-    expect(p.get('busqueda')).toBeNull()
-    expect(p.get('ids')).toBeNull()
+    // Arrange y Act
+    const consulta = aConsulta('', '', '', 1)
+
+    // Assert
+    expect(consulta.get('busqueda')).toBeNull()
+    expect(consulta.get('ids')).toBeNull()
   })
 
   it('con rol incluye rol=', () => {
-    const p = aConsulta('', 'Administrador', '', 1)
-    expect(p.get('rol')).toBe('Administrador')
+    // Arrange y Act
+    const consulta = aConsulta('', 'Administrador', '', 1)
+
+    // Assert
+    expect(consulta.get('rol')).toBe('Administrador')
   })
 
   it('con estado incluye estado=', () => {
-    const p = aConsulta('', '', 'Activa', 1)
-    expect(p.get('estado')).toBe('Activa')
+    // Arrange y Act
+    const consulta = aConsulta('', '', 'Activa', 1)
+
+    // Assert
+    expect(consulta.get('estado')).toBe('Activa')
   })
 
   it('sin rol y sin estado no incluye esos params', () => {
-    const p = aConsulta('', '', '', 1)
-    expect(p.get('rol')).toBeNull()
-    expect(p.get('estado')).toBeNull()
+    // Arrange y Act
+    const consulta = aConsulta('', '', '', 1)
+
+    // Assert
+    expect(consulta.get('rol')).toBeNull()
+    expect(consulta.get('estado')).toBeNull()
   })
 
   it('pagina siempre incluida', () => {
-    const p = aConsulta('', '', '', 3)
-    expect(p.get('pagina')).toBe('3')
+    // Arrange y Act
+    const consulta = aConsulta('', '', '', 3)
+
+    // Assert
+    expect(consulta.get('pagina')).toBe('3')
   })
 
   it('busqueda y rol y estado y pagina juntos', () => {
-    const p = aConsulta('jose', 'Administrador', 'Activa', 2)
-    expect(p.get('busqueda')).toBe('jose')
-    expect(p.get('rol')).toBe('Administrador')
-    expect(p.get('estado')).toBe('Activa')
-    expect(p.get('pagina')).toBe('2')
+    // Arrange y Act
+    const consulta = aConsulta('jose', 'Administrador', 'Activa', 2)
+
+    // Assert
+    expect(consulta.get('busqueda')).toBe('jose')
+    expect(consulta.get('rol')).toBe('Administrador')
+    expect(consulta.get('estado')).toBe('Activa')
+    expect(consulta.get('pagina')).toBe('2')
   })
 })

@@ -55,8 +55,8 @@ export const INDICADORES_META: Record<ClaveIndicador, MetaIndicador> = {
 
 export type { ClaveIndicador }
 
-function numComma(n: number, decimales: number): string {
-  return n.toFixed(decimales).replace('.', ',')
+function numComma(numero: number, decimales: number): string {
+  return numero.toFixed(decimales).replace('.', ',')
 }
 
 export function formatearValor(valor: number | null, unidad?: string): string {

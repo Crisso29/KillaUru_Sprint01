@@ -1,7 +1,7 @@
 // T057 — AvisoRevision: aviso con los días que faltan para la revisión de privilegios (prototipo `.banner-ops`)
 import { Icono } from '@/compartido/ui'
 import { formatearFechaLima } from '@/compartido/formato/fechas'
-import { TEXTOS_USUARIOS as T } from '../textos'
+import { TEXTOS_USUARIOS as textos } from '../textos'
 import { diasRestantes } from '../modelo/revision'
 
 interface Props {
@@ -17,10 +17,10 @@ export function AvisoRevision({ venceUtc, onAbrir }: Props) {
     <div role="alert" className="banner-ops" style={vencida ? { background: 'var(--bad-soft)', borderColor: 'var(--bad)' } : undefined}>
       <Icono nombre="shield" />
       <p>
-        <b>{T.dialogoRevisionTitulo}</b>
+        <b>{textos.dialogoRevisionTitulo}</b>
         {vencida
-          ? ` · ${T.revisionVencida}`
-          : ` · vence el ${formatearFechaLima(venceUtc)} (en ${dias} ${T.revisionDias}). ${T.revisionConfirmar}`}
+          ? ` · ${textos.revisionVencida}`
+          : ` · vence el ${formatearFechaLima(venceUtc)} (en ${dias} ${textos.revisionDias}). ${textos.revisionConfirmar}`}
       </p>
       <button type="button" className="ob" onClick={onAbrir}>Hacer revisión</button>
     </div>

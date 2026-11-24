@@ -20,15 +20,21 @@ async function completarForm(clave = 'ClaveSegura1234', confirmacion?: string) {
 
 describe('PaginaFijarContrasena — modo restablecer', () => {
   it('204 → "Tu contraseña cambió. Cerramos todas tus sesiones: vuelve a entrar."', async () => {
+    // Arrange
     window.location.hash = '#token=tok-rest'
     renderizar(<PaginaFijarContrasena modo="restablecer" />)
+
+    // Act
     await completarForm()
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByText(/contraseña cambió.*cerramos/i)).toBeTruthy()
     })
   })
 
   it('400 enlace_invalido → texto de error', async () => {
+    // Arrange
     server.use(
       http.post(`${BASE}/api/v1/auth/fijar-contrasena`, () =>
         HttpResponse.json({ codigo: 'enlace_invalido' }, { status: 400 }),
@@ -36,16 +42,25 @@ describe('PaginaFijarContrasena — modo restablecer', () => {
     )
     window.location.hash = '#token=tok-vencido'
     renderizar(<PaginaFijarContrasena modo="restablecer" />)
+
+    // Act
     await completarForm()
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByText(/no es válido o ya venció/i)).toBeTruthy()
     })
   })
 
   it('contraseñas no coinciden → error de validación', async () => {
+    // Arrange
     window.location.hash = '#token=tok-rest'
     renderizar(<PaginaFijarContrasena modo="restablecer" />)
+
+    // Act
     await completarForm('ClaveSegura1234', 'OtraDistinta1234')
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByText(/no coinciden/i)).toBeTruthy()
     })
@@ -54,9 +69,14 @@ describe('PaginaFijarContrasena — modo restablecer', () => {
 
 describe('PaginaFijarContrasena — modo invitacion', () => {
   it('204 → "Tu cuenta está lista. Ya puedes iniciar sesión."', async () => {
+    // Arrange
     window.location.hash = '#token=tok-inv'
     renderizar(<PaginaFijarContrasena modo="invitacion" />)
+
+    // Act
     await completarForm()
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByText(/cuenta está lista/i)).toBeTruthy()
     })

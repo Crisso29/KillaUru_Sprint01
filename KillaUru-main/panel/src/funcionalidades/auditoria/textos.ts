@@ -1,8 +1,8 @@
 export const TEXTOS_AUDITORIA = {
   titulo: 'Auditoría',
   insignia: 'Solo lectura',
-  contadorRetención: (n: number, _total: number) =>
-    `${n} registros · retención permanente`,
+  contadorRetención: (numero: number, _total: number) =>
+    `${numero} registros · retención permanente`,
   contadorTotal: (total: number) => `${total} registros · retención permanente`,
   sistema: 'sistema',
   sinCuenta: 'Actor no encontrado en el directorio',

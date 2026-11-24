@@ -2,17 +2,17 @@
 // Usamos en-US (siempre disponible) + replace para obtener coma decimal
 const MENOS = '−' // minus tipográfico
 
-function conComa(n: number, maxDec: number): string {
-  return n.toLocaleString('en-US', { maximumFractionDigits: maxDec, useGrouping: false })
+function conComa(numero: number, maxDec: number): string {
+  return numero.toLocaleString('en-US', { maximumFractionDigits: maxDec, useGrouping: false })
     .replace('.', ',')
 }
 
-export function formatearNumero(n: number): string {
-  return conComa(n, 1)
+export function formatearNumero(numero: number): string {
+  return conComa(numero, 1)
 }
 
-export function formatearPorcentaje(n: number): string {
-  return `${conComa(n, 1)} %`
+export function formatearPorcentaje(numero: number): string {
+  return `${conComa(numero, 1)} %`
 }
 
 export function formatearDelta(delta: number): string {

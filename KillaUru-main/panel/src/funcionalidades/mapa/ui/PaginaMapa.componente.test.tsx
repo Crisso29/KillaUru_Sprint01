@@ -5,6 +5,7 @@ import { renderizar } from '@/../pruebas/renderizar'
 import { server } from '@/../pruebas/msw/servidor'
 import { http, HttpResponse } from 'msw'
 import { PaginaMapa } from './PaginaMapa'
+import { RutaActual, ID_RUTA_ACTUAL } from '@/../pruebas/RutaActual'
 
 // T040 — PaginaMapa: primera petición, lista, N de M, vacío, error, selección
 
@@ -43,6 +44,7 @@ function featureActiva(overrides: Record<string, unknown> = {}) {
 
 describe('PaginaMapa', () => {
   it('primera petición lleva estado=Activa,PendienteConfirmacion', async () => {
+    // Arrange
     let urlCapturada = ''
     server.use(
       http.get(URL_MAPA, ({ request }) => {
@@ -50,19 +52,28 @@ describe('PaginaMapa', () => {
         return HttpResponse.json(geoJsonConFeaturas([featureActiva()]))
       }),
     )
+
+    // Act
     renderizar(<PaginaMapa />)
+
+    // Assert
     await waitFor(() => {
       expect(urlCapturada).toContain('estado=Activa%2CPendienteConfirmacion')
     })
   })
 
   it('lista muestra «Bache · km 287,4», id corto y «hace 2 h»', async () => {
+    // Arrange
     server.use(
       http.get(URL_MAPA, () =>
         HttpResponse.json(geoJsonConFeaturas([featureActiva()])),
       ),
     )
+
+    // Act
     renderizar(<PaginaMapa />)
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByText(/Bache/)).toBeTruthy()
       expect(screen.getByText(/287,4/)).toBeTruthy()
@@ -72,54 +83,69 @@ describe('PaginaMapa', () => {
   })
 
   it('muestra N de M anomalías', async () => {
+    // Arrange
     server.use(
       http.get(URL_MAPA, () =>
         HttpResponse.json(geoJsonConFeaturas([featureActiva()])),
       ),
     )
+
+    // Act
     renderizar(<PaginaMapa />)
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByText(/1 de 1/)).toBeTruthy()
     })
   })
 
   it('lista vacía muestra estado vacío', async () => {
+    // Arrange
     server.use(
       http.get(URL_MAPA, () =>
         HttpResponse.json(geoJsonConFeaturas([])),
       ),
     )
+
+    // Act
     renderizar(<PaginaMapa />)
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByRole('status')).toBeTruthy()
     })
   })
 
   it('error muestra «Reintentar»', async () => {
+    // Arrange
     server.use(
       http.get(URL_MAPA, () =>
         HttpResponse.json({ codigo: 'sin_conexion' }, { status: 503 }),
       ),
     )
+
+    // Act
     renderizar(<PaginaMapa />)
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /reintentar/i })).toBeTruthy()
     })
   })
 
   it('elegir fila abre detalle y pone ?anomalia=', async () => {
-    server.use(
-      http.get(URL_MAPA, () =>
-        HttpResponse.json(geoJsonConFeaturas([featureActiva()])),
-      ),
-    )
-    renderizar(<PaginaMapa />)
-    await waitFor(() => expect(screen.getByText(/Bache/)).toBeTruthy())
+    // Arrange
+    const anomalia = featureActiva()
+    server.use(http.get(URL_MAPA, () => HttpResponse.json(geoJsonConFeaturas([anomalia]))))
+    renderizar(<><PaginaMapa /><RutaActual /></>)
     const user = userEvent.setup()
-    const fila = screen.getByRole('button', { name: /Bache/i })
+    const fila = await screen.findByRole('button', { name: /Bache/i })
+
+    // Act
     await user.click(fila)
-    await waitFor(() => {
-      expect(screen.getByTestId('detalle-anomalia')).toBeTruthy()
-    })
+
+    // Assert — el detalle se abre y la dirección lo guarda (un enlace copiado abre la misma anomalía, FR-026)
+    expect(await screen.findByTestId('detalle-anomalia')).toBeInTheDocument()
+    expect(screen.getByTestId(ID_RUTA_ACTUAL)).toHaveTextContent(`anomalia=${anomalia.properties.id}`)
   })
 })

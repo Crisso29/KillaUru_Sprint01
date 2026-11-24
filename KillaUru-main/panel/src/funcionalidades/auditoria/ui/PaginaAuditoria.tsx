@@ -1,125 +1,58 @@
-import { useState, useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
+// T080 — Auditoría (US6): filtros, tabla y páginas. Solo compone: el actor lo resuelve `useActorFiltrado`, los
+// correos de la página `useActores` (una sola petición `?ids=`, compartida con Exportación y el Historial del mapa).
+import { useState } from 'react'
 import { TEXTOS_AUDITORIA } from '../textos'
 import { Esqueleto, Icono } from '@/compartido/ui'
+import { useActores } from '@/funcionalidades/usuarios'
 import { FiltrosAuditoria, type ValoresFiltros } from './FiltrosAuditoria'
 import { TablaAuditoria } from './TablaAuditoria'
-import { detectarTipoActor } from '../modelo/actor'
+import { PaginacionAuditoria } from './PaginacionAuditoria'
 import { useAuditoria } from '../api/useAuditoria'
-import { entorno } from '@/config/entorno'
-import type { PaginaUsuarios } from '@/api/dtos/001-identidad'
+import { useActorFiltrado } from '../api/useActorFiltrado'
 
-const FILTROS_INICIALES: ValoresFiltros = {
-  desde: '', hasta: '', categoria: '', accion: '', actor: '',
-}
+const FILTROS_INICIALES: ValoresFiltros = { desde: '', hasta: '', categoria: '', accion: '', actor: '' }
+const TAMANO_PAGINA = 50
 
 export function PaginaAuditoria() {
-  const T = TEXTOS_AUDITORIA
   const [filtros, setFiltros] = useState<ValoresFiltros>(FILTROS_INICIALES)
   const [pagina, setPagina] = useState(1)
-
-  const tipoActor = detectarTipoActor(filtros.actor)
-
-  // Resolver correo → actorId via búsqueda
-  const { data: busquedaActores } = useQuery<PaginaUsuarios>({
-    queryKey: ['actores', 'busqueda', filtros.actor],
-    queryFn: async () => {
-      const r = await fetch(
-        `${entorno.urlApi}/api/v1/usuarios?busqueda=${encodeURIComponent(filtros.actor)}`,
-        { credentials: 'include' },
-      )
-      if (!r.ok) throw new Error('error_red')
-      return r.json() as Promise<PaginaUsuarios>
-    },
-    enabled: tipoActor.tipo === 'correo',
-    staleTime: 10 * 60_000,
-    refetchOnWindowFocus: false,
-  })
-
-  const actorResuelto = useMemo(() => {
-    if (!filtros.actor) return undefined
-    if (tipoActor.tipo === 'id') return tipoActor.valor
-    if (tipoActor.tipo === 'correo') {
-      const encontrado = busquedaActores?.elementos.find(
-        u => u.correo.toLowerCase() === filtros.actor.toLowerCase()
-      )
-      return encontrado?.id
-    }
-    return undefined
-  }, [filtros.actor, tipoActor, busquedaActores])
-
-  const sinCuenta = filtros.actor && tipoActor.tipo === 'correo' && busquedaActores && !actorResuelto
-
-  const { data, isLoading, isError } = useAuditoria({
-    desde: filtros.desde || undefined,
-    hasta: filtros.hasta || undefined,
-    categoria: filtros.categoria || undefined,
-    accion: filtros.accion || undefined,
-    actorId: actorResuelto,
-    pagina,
-  })
-
-  // Resolver actorIds → correos con una sola petición ?ids=
-  const actorIds = useMemo(() => {
-    if (!data) return []
-    return [...new Set(data.elementos.map(r => r.actorId).filter(Boolean) as string[])]
-  }, [data])
-
-  const { data: actoresPagina } = useQuery<PaginaUsuarios>({
-    queryKey: ['actores', 'ids', actorIds.join(',')],
-    queryFn: async () => {
-      const r = await fetch(
-        `${entorno.urlApi}/api/v1/usuarios?ids=${actorIds.join(',')}`,
-        { credentials: 'include' },
-      )
-      if (!r.ok) throw new Error('error_red')
-      return r.json() as Promise<PaginaUsuarios>
-    },
-    enabled: actorIds.length > 0,
-    staleTime: 10 * 60_000,
-    refetchOnWindowFocus: false,
-  })
-
-  const correosActores = useMemo(() => {
-    const mapa = new Map<string, string | null>()
-    actorIds.forEach(id => mapa.set(id, null))
-    actoresPagina?.elementos.forEach(u => mapa.set(u.id, u.correo))
-    return mapa
-  }, [actorIds, actoresPagina])
-
-  function handleFiltrosChange(v: ValoresFiltros) {
-    setFiltros(v)
-    setPagina(1)
-  }
-
+  const actor = useActorFiltrado(filtros.actor)
+  const { data, isLoading, isError } = useAuditoria({ ...soloConValor(filtros), actorId: actor.actorId, pagina })
+  const correos = useActores(data?.elementos.map((registro) => registro.actorId) ?? [])
+  const cambiarFiltros = (valores: ValoresFiltros) => { setFiltros(valores); setPagina(1) }
   return (
     <>
-      <div className="pg-h">
-        <div><h2>{T.titulo}</h2><p>Registro de acciones sensibles. Inmutable: nadie puede editarlo ni borrarlo.</p></div>
-        <span className="badge expirada"><Icono nombre="lock" tamano={12} />{T.insignia}</span>
-      </div>
+      <Encabezado />
+      <FiltrosAuditoria valores={filtros} onChange={cambiarFiltros} />
+      <Estados sinCuenta={actor.sinCuenta} cargando={isLoading} fallo={isError} />
+      {data && <div className="card">
+        <TablaAuditoria registros={data.elementos} correosActores={correos} />
+        <PaginacionAuditoria pagina={pagina} total={data.total} tamano={data.tamano || TAMANO_PAGINA} onCambiar={setPagina} />
+      </div>}
+    </>
+  )
+}
 
-      <FiltrosAuditoria valores={filtros} onChange={handleFiltrosChange} />
+function Encabezado() {
+  return (
+    <div className="pg-h">
+      <div><h2>{TEXTOS_AUDITORIA.titulo}</h2><p>Registro de acciones sensibles. Inmutable: nadie puede editarlo ni borrarlo.</p></div>
+      <span className="badge expirada"><Icono nombre="lock" tamano={12} />{TEXTOS_AUDITORIA.insignia}</span>
+    </div>
+  )
+}
 
-      {sinCuenta && <p role="alert" className="note warn">{T.sinCuenta}</p>}
-      {isLoading && <Esqueleto filas={5} alto={40} />}
-      {isError && <p role="alert" className="note bad">{T.error}</p>}
+/** Los filtros vacíos no se envían: «sin filtro», no «filtro igual a vacío». */
+function soloConValor({ desde, hasta, categoria, accion }: ValoresFiltros) {
+  return { desde: desde || undefined, hasta: hasta || undefined, categoria: categoria || undefined, accion: accion || undefined }
+}
 
-      {data && (
-        <div className="card">
-          <TablaAuditoria registros={data.elementos} correosActores={correosActores} />
-          <div className="tfoot">
-            <span>{T.contadorTotal(data.total)}</span>
-            <nav aria-label="Paginación" style={{ display: 'inline-flex', gap: 'var(--s-5)', alignItems: 'center' }}>
-              <button type="button" className="ob sm" disabled={pagina <= 1} onClick={() => setPagina(p => p - 1)}>Anterior</button>
-              <span>Página {pagina}</span>
-              <button type="button" className="ob sm" disabled={pagina * (data.tamano || 50) >= data.total} onClick={() => setPagina(p => p + 1)}>
-                Siguiente
-              </button>
-            </nav>
-          </div>
-        </div>
-      )}
+function Estados({ sinCuenta, cargando, fallo }: { sinCuenta: boolean; cargando: boolean; fallo: boolean }) {
+  return (
+    <>
+      {sinCuenta && <p role="alert" className="note warn">{TEXTOS_AUDITORIA.sinCuenta}</p>}
+      {cargando && <Esqueleto filas={5} alto={40} />}
+      {fallo && <p role="alert" className="note bad">{TEXTOS_AUDITORIA.error}</p>}
     </>
   )
 }

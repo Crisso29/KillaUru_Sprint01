@@ -1,54 +1,18 @@
 // T048 — PaginaMapa: filtros y selección en la dirección (FR-022, FR-026)
-import { useMemo } from 'react'
-import { useSearchParams } from 'react-router'
 import { EstadoError } from '@/compartido/ui'
-import { relojReal } from '@/compartido/reloj'
 import type { ErrorApi } from '@/api/problema'
-import { filtrosDeParams, filtrosAParams, esGrupoVacio } from '../modelo/filtros'
-import { filtrosAConsulta } from '../modelo/peticion'
 import { useMapaAdmin } from '../api/useMapaAdmin'
 import { LienzoMapa } from './LienzoMapa'
 import { PanelLateral } from './PanelLateral'
 import { BarraFiltros } from './BarraFiltros'
 import { Leyenda } from './Leyenda'
+import { useEstadoEnDireccion } from './useEstadoEnDireccion'
 
 export function PaginaMapa() {
-  const [params, setParams] = useSearchParams()
-
-  const filtros = useMemo(() => filtrosDeParams(params), [params])
-  const anomaliaId = params.get('anomalia')
-
-  const consulta = useMemo(() => {
-    if (esGrupoVacio(filtros)) return null
-    return filtrosAConsulta(filtros, relojReal.ahora())
-  }, [filtros])
-
+  const { filtros, consulta, anomaliaId, seleccionar, cerrarDetalle, cambiarFiltros } = useEstadoEnDireccion()
   const { data, isLoading, error, refetch } = useMapaAdmin(consulta)
   const features = data?.features ?? []
-  const total = features.length
-
-  function seleccionar(id: string) {
-    const next = new URLSearchParams(params)
-    next.set('anomalia', id)
-    setParams(next)
-  }
-
-  function cerrarDetalle() {
-    const next = new URLSearchParams(params)
-    next.delete('anomalia')
-    setParams(next)
-  }
-
-  function cambiarFiltros(nuevos: typeof filtros) {
-    const next = filtrosAParams(nuevos)
-    if (anomaliaId) next.set('anomalia', anomaliaId)
-    setParams(next)
-  }
-
-  if (!isLoading && error) {
-    return <EstadoError error={error as ErrorApi} onReintentar={() => void refetch()} />
-  }
-
+  if (!isLoading && error) return <EstadoError error={error as ErrorApi} onReintentar={() => void refetch()} />
   // Prototipo `.mapl`: mapa (61,8 %) con filtros flotantes y leyenda, y a la derecha el panel Detalle / Lista (38,2 %).
   return (
     <div className="mapl" style={{ height: '100%' }}>
@@ -58,13 +22,8 @@ export function PaginaMapa() {
         <Leyenda />
       </div>
       <aside className="rp" aria-label="Detalle y lista de anomalías">
-        <PanelLateral
-          features={features}
-          total={total}
-          anomaliaId={anomaliaId}
-          onSeleccionar={seleccionar}
-          onCerrarDetalle={cerrarDetalle}
-        />
+        <PanelLateral features={features} total={features.length} anomaliaId={anomaliaId}
+          onSeleccionar={seleccionar} onCerrarDetalle={cerrarDetalle} />
       </aside>
     </div>
   )

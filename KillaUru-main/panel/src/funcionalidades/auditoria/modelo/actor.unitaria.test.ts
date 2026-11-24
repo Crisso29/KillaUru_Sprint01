@@ -16,24 +16,18 @@ const BASE_USUARIO: Usuario = {
 }
 
 describe('detectarTipoActor', () => {
-  it('UUID válido → tipo id', () => {
-    expect(detectarTipoActor(UUID)).toEqual({ tipo: 'id', valor: UUID })
-  })
+  it.each([
+    ['UUID válido → id', UUID, { tipo: 'id', valor: UUID }],
+    ['correo válido → correo', 'admin@killauru.pe', { tipo: 'correo', valor: 'admin@killauru.pe' }],
+    ['texto sin formato → inválido', 'texto-sin-formato', { tipo: 'invalido' }],
+    ['cadena vacía → inválido', '', { tipo: 'invalido' }],
+    ['UUID parcial → inválido', 'a1b2c3d4-e5f6', { tipo: 'invalido' }],
+  ])('%s', (_caso, texto, esperado) => {
+    // Arrange y Act
+    const tipo = detectarTipoActor(texto)
 
-  it('correo válido → tipo correo', () => {
-    expect(detectarTipoActor('admin@killauru.pe')).toEqual({ tipo: 'correo', valor: 'admin@killauru.pe' })
-  })
-
-  it('texto inválido → tipo invalido', () => {
-    expect(detectarTipoActor('texto-sin-formato')).toEqual({ tipo: 'invalido' })
-  })
-
-  it('cadena vacía → tipo invalido', () => {
-    expect(detectarTipoActor('')).toEqual({ tipo: 'invalido' })
-  })
-
-  it('UUID parcial → tipo invalido', () => {
-    expect(detectarTipoActor('a1b2c3d4-e5f6')).toEqual({ tipo: 'invalido' })
+    // Assert
+    expect(tipo).toEqual(esperado)
   })
 })
 
@@ -45,24 +39,30 @@ describe('elegirCuenta', () => {
   ]
 
   it('coincidencia exacta (sin mayúsculas) → devuelve el usuario', () => {
+    // Arrange y Act
     const resultado = elegirCuenta('ADMIN@killauru.pe', USUARIOS)
+
+    // Assert
     expect(resultado?.id).toBe('1')
   })
 
   it('coincidencia exacta → devuelve el usuario', () => {
+    // Arrange y Act
     const resultado = elegirCuenta('conductor@killauru.pe', USUARIOS)
+
+    // Assert
     expect(resultado?.id).toBe('2')
   })
 
-  it('sin coincidencia → null', () => {
-    expect(elegirCuenta('nadie@killauru.pe', USUARIOS)).toBeNull()
-  })
+  it.each([
+    ['sin coincidencia', 'nadie@killauru.pe', USUARIOS],
+    ['varias coincidencias parciales (ambiguo)', 'admin', USUARIOS],
+    ['lista vacía', 'admin@killauru.pe', []],
+  ])('%s → null', (_caso, texto, usuarios) => {
+    // Arrange y Act
+    const resultado = elegirCuenta(texto, usuarios)
 
-  it('múltiples coincidencias parciales → null', () => {
-    expect(elegirCuenta('admin', USUARIOS)).toBeNull()
-  })
-
-  it('lista vacía → null', () => {
-    expect(elegirCuenta('admin@killauru.pe', [])).toBeNull()
+    // Assert
+    expect(resultado).toBeNull()
   })
 })

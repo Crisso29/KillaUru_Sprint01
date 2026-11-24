@@ -16,7 +16,11 @@ describe('leerSesionPanel', () => {
   it('rechaza una respuesta sin las horas del contrato (p. ej. el formato viejo acceso_vence_utc)', () => {
     // Arrange
     const viejo = { acceso_vence_utc: '2026-11-22T10:05:00Z' }
-    // Act + Assert — sin esto la sesión quedaba con «Invalid Date» y el panel no sabía cuándo renovar
-    expect(() => leerSesionPanel(viejo)).toThrow(/SesionPanel/)
+
+    // Act
+    const leer = () => leerSesionPanel(viejo)
+
+    // Assert — sin esto la sesión quedaba con «Invalid Date» y el panel no sabía cuándo renovar
+    expect(leer).toThrow(/SesionPanel/)
   })
 })

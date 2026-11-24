@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState, type RefObject } from 'react'
 import { Icono } from './Icono'
 
 interface Opcion { valor: string; etiqueta: string }
@@ -6,14 +6,14 @@ interface Props {
   etiqueta: string
   opciones: Opcion[]
   seleccionadas: string[]
-  onChange: (vals: string[]) => void
+  onChange: (valores: string[]) => void
 }
 
 /** «Todos», «Ninguno» o las elegidas, para el texto del botón (prototipo «Estado: Activa, Pendiente de confirmar»). */
 function resumen(opciones: Opcion[], seleccionadas: string[]): string {
   if (seleccionadas.length === opciones.length) return 'Todos'
   if (seleccionadas.length === 0) return 'Ninguno'
-  return opciones.filter(o => seleccionadas.includes(o.valor)).map(o => o.etiqueta).join(', ')
+  return opciones.filter(opcion => seleccionadas.includes(opcion.valor)).map(opcion => opcion.etiqueta).join(', ')
 }
 
 /**
@@ -25,37 +25,40 @@ export function MenuFiltro({ etiqueta, opciones, seleccionadas, onChange }: Prop
   const raiz = useRef<HTMLDivElement>(null)
   const boton = useRef<HTMLButtonElement>(null)
   const id = useId()
-  const toggleTodos = () => onChange(seleccionadas.length === opciones.length ? [] : opciones.map(o => o.valor))
-  const toggle = (v: string) =>
-    onChange(seleccionadas.includes(v) ? seleccionadas.filter(x => x !== v) : [...seleccionadas, v])
-
-  useEffect(() => {
-    if (!abierto) return
-    const fuera = (e: MouseEvent) => { if (!raiz.current?.contains(e.target as Node)) setAbierto(false) }
-    document.addEventListener('mousedown', fuera)
-    return () => document.removeEventListener('mousedown', fuera)
-  }, [abierto])
-
+  useCerrarAlPulsarFuera(abierto, raiz, () => setAbierto(false))
+  const alTeclear = (evento: React.KeyboardEvent) => { if (evento.key === 'Escape') { setAbierto(false); boton.current?.focus() } }
   return (
-    <div className="dd" ref={raiz} onKeyDown={e => { if (e.key === 'Escape') { setAbierto(false); boton.current?.focus() } }}>
-      <button ref={boton} type="button" className="fbtn" onClick={() => setAbierto(a => !a)}
-        aria-expanded={abierto} aria-controls={id}>
+    <div className="dd" ref={raiz} onKeyDown={alTeclear}>
+      <button ref={boton} type="button" className="fbtn" onClick={() => setAbierto((actual) => !actual)} aria-expanded={abierto} aria-controls={id}>
         {etiqueta}: <b>{resumen(opciones, seleccionadas)}</b><Icono nombre="chevd" tamano={14} />
       </button>
-      {abierto && (
-        <div className="ddm" id={id} role="group" aria-label={etiqueta}>
-          <label>
-            <input type="checkbox" checked={seleccionadas.length === opciones.length} onChange={toggleTodos} />
-            Todos
-          </label>
-          {opciones.map(o => (
-            <label key={o.valor}>
-              <input type="checkbox" checked={seleccionadas.includes(o.valor)} onChange={() => toggle(o.valor)} />
-              {o.etiqueta}
-            </label>
-          ))}
-        </div>
-      )}
+      {abierto && <Casillas id={id} etiqueta={etiqueta} opciones={opciones} seleccionadas={seleccionadas} onChange={onChange} />}
     </div>
   )
+}
+
+function Casillas({ id, etiqueta, opciones, seleccionadas, onChange }: Props & { id: string }) {
+  const todas = seleccionadas.length === opciones.length
+  const alternar = (valor: string) =>
+    onChange(seleccionadas.includes(valor) ? seleccionadas.filter((elegida) => elegida !== valor) : [...seleccionadas, valor])
+  return (
+    <div className="ddm" id={id} role="group" aria-label={etiqueta}>
+      <label><input type="checkbox" checked={todas} onChange={() => onChange(todas ? [] : opciones.map((opcion) => opcion.valor))} />Todos</label>
+      {opciones.map((opcion) => (
+        <label key={opcion.valor}>
+          <input type="checkbox" checked={seleccionadas.includes(opcion.valor)} onChange={() => alternar(opcion.valor)} />
+          {opcion.etiqueta}
+        </label>
+      ))}
+    </div>
+  )
+}
+
+function useCerrarAlPulsarFuera(abierto: boolean, raiz: RefObject<HTMLDivElement | null>, cerrar: () => void) {
+  useEffect(() => {
+    if (!abierto) return
+    const alPulsar = (evento: MouseEvent) => { if (!raiz.current?.contains(evento.target as Node)) cerrar() }
+    document.addEventListener('mousedown', alPulsar)
+    return () => document.removeEventListener('mousedown', alPulsar)
+  }, [abierto, raiz, cerrar])
 }

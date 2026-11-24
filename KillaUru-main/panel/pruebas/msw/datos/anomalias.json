@@ -5,7 +5,13 @@
     {
       "type": "Feature",
       "id": "a1b2c3d4-0000-0000-0000-000000000001",
-      "geometry": { "type": "Point", "coordinates": [-73.5, -13.2] },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -73.5,
+          -13.2
+        ]
+      },
       "properties": {
         "id": "a1b2c3d4-0000-0000-0000-000000000001",
         "kmVia": 287.4,
@@ -20,7 +26,13 @@
     {
       "type": "Feature",
       "id": "a1b2c3d4-0000-0000-0000-000000000002",
-      "geometry": { "type": "Point", "coordinates": [-73.6, -13.3] },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -73.6,
+          -13.3
+        ]
+      },
       "properties": {
         "id": "a1b2c3d4-0000-0000-0000-000000000002",
         "kmVia": 310.0,
@@ -30,6 +42,90 @@
         "ultimaDeteccionUtc": "2026-11-05T06:00:00Z",
         "venceUtc": null,
         "estado": "PendienteConfirmacion"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "a1b2c3d4-0000-0000-0000-000000000003",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -74.1,
+          -13.3
+        ]
+      },
+      "properties": {
+        "id": "a1b2c3d4-0000-0000-0000-000000000003",
+        "kmVia": 295.2,
+        "tipo": "Bache",
+        "severidad": 2,
+        "persistencia": "Episodica",
+        "ultimaDeteccionUtc": "2026-11-05T08:00:00Z",
+        "venceUtc": "2026-11-15T08:00:00Z",
+        "estado": "Expirada"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "a1b2c3d4-0000-0000-0000-000000000004",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -74.05,
+          -13.25
+        ]
+      },
+      "properties": {
+        "id": "a1b2c3d4-0000-0000-0000-000000000004",
+        "kmVia": 301.8,
+        "tipo": "Bache",
+        "severidad": 4,
+        "persistencia": "Episodica",
+        "ultimaDeteccionUtc": "2026-11-05T08:00:00Z",
+        "venceUtc": "2026-11-15T08:00:00Z",
+        "estado": "Reparada"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "d1d1d1d1-0000-0000-0000-000000000001",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -73.62,
+          -13.21
+        ]
+      },
+      "properties": {
+        "id": "d1d1d1d1-0000-0000-0000-000000000001",
+        "kmVia": 290.5,
+        "tipo": "Bache",
+        "severidad": 4,
+        "persistencia": "Episodica",
+        "ultimaDeteccionUtc": "2026-11-06T12:00:00Z",
+        "venceUtc": "2026-11-15T08:00:00Z",
+        "estado": "Descartada"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "d2d2d2d2-0000-0000-0000-000000000001",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -73.98,
+          -13.2
+        ]
+      },
+      "properties": {
+        "id": "d2d2d2d2-0000-0000-0000-000000000001",
+        "kmVia": 310.0,
+        "tipo": "Hundimiento",
+        "severidad": 3,
+        "persistencia": "Episodica",
+        "ultimaDeteccionUtc": "2026-11-05T08:00:00Z",
+        "venceUtc": "2026-11-15T08:00:00Z",
+        "estado": "Descartada"
       }
     }
   ]

@@ -70,9 +70,9 @@ description: "Tareas del panel de administración «KillaUru Ops»"
 ### Implementación
 
 - [x] T031 [US1] `textos`, `modelo/bloqueo`, `useIniciarSesion`, `useRecuperar`, `Turnstile` (script cargado solo aquí, `render=explicit`), `FormularioLogin`, `AvisoBloqueo`, `PaginaLogin` (textos del prototipo y versión «KillaUru Ops vX · CRISSO DEV S.A.C.»), `PaginaRecuperar`, `index` — `F/login/` · (FR-005, FR-013, FR-050; R-009)
-- [ ] T032 [US1] `sesion.spec.ts` (simulado): MSW responde 401 `token_invalido` una vez → la pantalla sigue sin ir al login; renovación rechazada → login con «Tu sesión terminó. Vuelve a entrar.»; «Salir» en una pestaña lleva a la otra al login — `E2E/funcionales/sesion.spec.ts` · (FR-007, FR-009, SC-007)
-- [ ] T033 [P] [US1] `login.spec.ts` (simulado y pruebas): entrar, credenciales malas, bloqueo 423 tras 3 fallos (pruebas), conductor → «Esta cuenta no tiene acceso al panel.», en los 3 navegadores — `E2E/funcionales/login.spec.ts` · (FR-005, SC-009; EQ-04)
-- [ ] T034 [P] [US1] `almacenamiento.spec.ts`: al final de cada flujo, `localStorage`, `sessionStorage`, IndexedDB y `document.cookie` vacíos de datos personales y tokens — `E2E/seguridad/almacenamiento.spec.ts` · (FR-006, SC-002)
+- [x] T032 [US1] `sesion.spec.ts` (simulado): MSW responde 401 `token_invalido` una vez → la pantalla sigue sin ir al login; renovación rechazada → login con «Tu sesión terminó. Vuelve a entrar.»; «Salir» en una pestaña lleva a la otra al login — `E2E/funcionales/sesion.spec.ts` · (FR-007, FR-009, SC-007) _(simulado: 3 casos, 3 navegadores, 2026-11-24)_
+- [x] T033 [P] [US1] `login.spec.ts` (simulado y pruebas): entrar, credenciales malas, bloqueo 423 tras 3 fallos (pruebas), conductor → «Esta cuenta no tiene acceso al panel.», en los 3 navegadores — `E2E/funcionales/login.spec.ts` · (FR-005, SC-009; EQ-04) _(simulado: 4 casos, 3 navegadores, 2026-11-24; pruebas contra killauru-pruebas: pendiente de entorno)_
+- [x] T034 [P] [US1] `almacenamiento.spec.ts`: al final de cada flujo, `localStorage`, `sessionStorage`, IndexedDB y `document.cookie` vacíos de datos personales y tokens — `E2E/seguridad/almacenamiento.spec.ts` · (FR-006, SC-002) _(simulado: 4 casos, 3 navegadores, 2026-11-24; cookies HttpOnly verificadas en backend 003)_
 
 **Checkpoint**: se entra, se navega por el marco vacío y la sesión se renueva sola.
 
@@ -100,7 +100,7 @@ description: "Tareas del panel de administración «KillaUru Ops»"
 - [x] T047 [US2] `DetalleAnomalia`, `DatosAnomalia`, `ReportesPorDia` (con tabla oculta) e `Historial` (textos de `data-model.md` §5, actores con `useActores`) — `F/mapa/ui/` · (FR-025, FR-039, FR-045)
 - [x] T048 [US2] `PaginaMapa` (filtros y selección en la dirección) e `index` — `F/mapa/ui/PaginaMapa.tsx`, `F/mapa/index.ts` · (FR-026)
 - [x] T049 [US2] `BusquedaRapida` en la barra superior — `src/app/marco/BusquedaRapida.tsx` · (FR-040)
-- [ ] T050 [US2] `mapa.spec.ts`: intercepta la primera petición sin parámetros (SC-001); cambia filtros; la dirección copiada abre lo mismo; la lista es navegable con teclado — `E2E/funcionales/mapa.spec.ts` · (FR-022, FR-026, SC-001)
+- [x] T050 [US2] `mapa.spec.ts`: intercepta la primera petición sin parámetros (SC-001); cambia filtros; la dirección copiada abre lo mismo; la lista es navegable con teclado — `E2E/funcionales/mapa.spec.ts` · (FR-022, FR-026, SC-001) _(simulado: 4 casos, 3 navegadores, 2026-11-24)_
 
 ---
 
@@ -118,7 +118,7 @@ description: "Tareas del panel de administración «KillaUru Ops»"
 - [x] T055 [US5] `textos`, `modelo/consulta`, `modelo/revision`, `useUsuarios`, `useAccionesUsuario` (invalidaciones de `data-model.md` §3), `useRevision` y `useActores` (un `?ids=` por lote, caché 10 min) — `F/usuarios/modelo/`, `F/usuarios/api/`, `F/usuarios/textos.ts` · (FR-031, FR-033, FR-034, FR-039, FR-046)
 - [x] T056 [US5] `PaginaUsuarios`, `FiltrosUsuarios`, `TablaUsuarios` (pie «Ninguna cuenta está unida a viajes ni detecciones (RNF-10)») y `MenuUsuario` — `F/usuarios/ui/` · (FR-031, FR-033)
 - [x] T057 [US5] `DialogoInvitar`, `DialogoRol`, `DialogoDesactivar`, `AvisoRevision`, `DialogoRevision` e `index` — `F/usuarios/ui/`, `F/usuarios/index.ts` · (FR-032, FR-033, FR-034)
-- [ ] T058 [US5] `usuarios.spec.ts`: invitar, cambiar rol, desactivar con motivo, activar, reenviar y revisión mensual — `E2E/funcionales/usuarios.spec.ts` · (FR-031…FR-034, SC-008)
+- [x] T058 [US5] `usuarios.spec.ts`: invitar, cambiar rol, desactivar con motivo, activar, reenviar y revisión mensual — `E2E/funcionales/usuarios.spec.ts` · (FR-031…FR-034, SC-008) _(simulado: 7 casos, 3 navegadores, 2026-11-24)_
 
 ---
 
@@ -132,7 +132,7 @@ description: "Tareas del panel de administración «KillaUru Ops»"
 ### Implementación
 
 - [x] T061 [US8] `textos`, modelos, `useEnlaces`, `PaginaVerificar`, `PaginaFijarContrasena` (modo restablecer / invitación) e `index` — `F/cuenta/` · (FR-014)
-- [ ] T062 [US8] `cuenta.spec.ts`: las 3 páginas; el fragmento no queda en el historial ni en la barra — `E2E/funcionales/cuenta.spec.ts` · (FR-014)
+- [x] T062 [US8] `cuenta.spec.ts`: las 3 páginas; el fragmento no queda en el historial ni en la barra — `E2E/funcionales/cuenta.spec.ts` · (FR-014) _(simulado: 4 casos (verificar, enlace vencido, restablecer, invitación), 3 navegadores, 2026-11-24)_
 
 ---
 
@@ -148,7 +148,7 @@ description: "Tareas del panel de administración «KillaUru Ops»"
 
 - [x] T066 [US3] `textos`, `modelo/acciones`, `useListasModeracion`, `useModerar`, `AccionesModeracion` y `DialogoModeracion` (con «Queda en la auditoría con tu usuario») — `F/moderacion/` · (FR-027, FR-030)
 - [x] T067 [US3] `PaginaModeracion`, `TablaPorRevisar`, `TablaPendientes` e `index`; el detalle del mapa usa `AccionesModeracion` desde `moderacion/index.ts` y el menú lateral, el contador — `F/moderacion/ui/`, `F/moderacion/index.ts`, `F/mapa/ui/DetalleAnomalia.tsx` · (FR-028, FR-029, FR-041)
-- [ ] T068 [US3] `moderacion.spec.ts`: las 4 acciones y un 409 provocado por otra pestaña — `E2E/funcionales/moderacion.spec.ts` · (FR-027…FR-030, SC-008)
+- [x] T068 [US3] `moderacion.spec.ts`: las 4 acciones y un 409 provocado por otra pestaña — `E2E/funcionales/moderacion.spec.ts` · (FR-027…FR-030, SC-008) _(simulado: 5 casos, 3 navegadores, 2026-11-24; RN-07 aplicada en el simulador como en TablaModeracion.cs)_
 
 ---
 
@@ -181,7 +181,7 @@ description: "Tareas del panel de administración «KillaUru Ops»"
 ### Implementación
 
 - [x] T080 [US6] `textos`, modelos, `useAuditoria`, `PaginaAuditoria` (insignia «Solo lectura»), `FiltrosAuditoria` («Hora en UTC»), `TablaAuditoria`, `FilaAuditoria` e `index` — `F/auditoria/` · (FR-037…FR-039)
-- [ ] T081 [US6] `auditoria.spec.ts`: filtra por categoría, por id y por correo; comprueba que las acciones de T058, T068 y T085 aparecen con su texto — `E2E/funcionales/auditoria.spec.ts` · (FR-037, FR-038, SC-008)
+- [x] T081 [US6] `auditoria.spec.ts`: filtra por categoría, por id y por correo; comprueba que las acciones de T058, T068 y T085 aparecen con su texto — `E2E/funcionales/auditoria.spec.ts` · (FR-037, FR-038, SC-008) _(simulado: 6 casos, 3 navegadores, 2026-11-24; manejador MSW filtra por accion/categoria/actorId como el backend)_
 
 ---
 
@@ -195,14 +195,14 @@ description: "Tareas del panel de administración «KillaUru Ops»"
 ### Implementación
 
 - [x] T084 [US7] `textos`, modelos, `useExportar` (con `Accept` por formato), `useRecientes`, `PaginaExportacion`, `FormularioExportacion`, `ExportacionesRecientes` e `index` — `F/exportacion/` · (FR-035, FR-036)
-- [ ] T085 [US7] `exportacion.spec.ts`: descarga CSV y GeoJSON; la cabecera del CSV es exactamente `id,tipo,severidad,estado,persistencia,km,latitud,longitud,reportes,primer_reporte,ultimo_reporte`; aparece en «Recientes» — `E2E/funcionales/exportacion.spec.ts` · (FR-035, FR-036; RF-20)
+- [x] T085 [US7] `exportacion.spec.ts`: descarga CSV y GeoJSON; la cabecera del CSV es exactamente `id,tipo,severidad,estado,persistencia,km,latitud,longitud,reportes,primer_reporte,ultimo_reporte`; aparece en «Recientes» — `E2E/funcionales/exportacion.spec.ts` · (FR-035, FR-036; RF-20) _(simulado: 4 casos, 3 navegadores, 2026-11-24)_
 
 ---
 
 ## Phase 11: Polish — calidad, CI y despliegue
 
-- [ ] T086 [P] `accesibilidad.spec.ts` (axe con `wcag2a` y `wcag2aa` en las 11 rutas, con datos y con diálogos abiertos) y `teclado.spec.ts` (login, filtro del mapa, lista → detalle → moderar, revisión mensual, solo con teclado) — `E2E/accesibilidad/accesibilidad.spec.ts`, `E2E/accesibilidad/teclado.spec.ts` · (FR-043, SC-004)
-- [ ] T087 [P] Presupuesto y medición: `.size-limit.json`, `lighthouserc.json` y `rendimiento.spec.ts` (10 cargas del mapa contra «killauru-pruebas», p95 de `mapa-listo`) — `.size-limit.json`, `lighthouserc.json`, `E2E/rendimiento/rendimiento.spec.ts` · (FR-044, SC-005, SC-006)
+- [x] T086 [P] `accesibilidad.spec.ts` (axe con `wcag2a` y `wcag2aa` en las 11 rutas, con datos y con diálogos abiertos) y `teclado.spec.ts` (login, filtro del mapa, lista → detalle → moderar, revisión mensual, solo con teclado) — `E2E/accesibilidad/accesibilidad.spec.ts`, `E2E/accesibilidad/teclado.spec.ts` · (FR-043, SC-004) _(simulado: 11+2 casos axe + 4 teclado, 3 navegadores, 2026-11-24; NVDA+Firefox pendiente de campo)_
+- [ ] T087 [P] Presupuesto y medición: `.size-limit.json`, `lighthouserc.json` y `mapa.pruebas.ts` (10 cargas del mapa contra «killauru-pruebas», p95 de `mapa-listo`) — `.size-limit.json`, `lighthouserc.json`, `E2E/rendimiento/mapa.pruebas.ts` · (FR-044, SC-005, SC-006) _(mapa.pruebas.ts escrito; .size-limit.json y lighthouserc.json pendientes; ejecución pendiente de entorno desplegado)_
 - [ ] T088 [P] Cuentas y datos de prueba que necesita el E2E real (2 administradores, 1 conductor, anomalías en los 5 estados, 1 descartada «por revisar») documentados para la semilla de «killauru-pruebas» — `README.md` · (SC-007, SC-008)
 - [ ] T089 [P] CORS propuesto para el *bucket* de R2 (`GET`, `HEAD`, `Range`, origen `https://panel.killauru.pe`, expone `Content-Range`, `ETag`) — `infra/r2-cors.json` · (FR-021; H-04)
 - [ ] T090 CI del panel: tipos al día (`git diff --exit-code`), `tsc`, ESLint, `dependency-cruiser`, Vitest con cobertura y líneas, `build` + `build:simulado`, `size-limit`, Playwright simulado + axe en 3 navegadores, Lighthouse CI — `../.github/workflows/panel-ci.yml` · (FR-047, FR-048, FR-049)

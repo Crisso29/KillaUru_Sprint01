@@ -12,14 +12,14 @@ interface Props {
 export function MenuLateral({ porRevisar }: Props) {
   return (
     <nav className="ops-nav" aria-label="Menú principal">
-      {GRUPOS.map((g) => (
-        <Fragment key={g.titulo}>
-          <h5>{g.titulo}</h5>
-          {g.secciones.map((s) => (
-            <NavLink key={s.ruta} to={s.ruta}>
-              <Icono nombre={s.icono} />
-              {s.texto}
-              {s.ruta === '/moderacion' && porRevisar > 0 && (
+      {GRUPOS.map((grupo) => (
+        <Fragment key={grupo.titulo}>
+          <h5>{grupo.titulo}</h5>
+          {grupo.secciones.map((seccion) => (
+            <NavLink key={seccion.ruta} to={seccion.ruta}>
+              <Icono nombre={seccion.icono} />
+              {seccion.texto}
+              {seccion.ruta === '/moderacion' && porRevisar > 0 && (
                 <span className="cnt" aria-label={`${porRevisar} por revisar`}>{porRevisar}</span>
               )}
             </NavLink>

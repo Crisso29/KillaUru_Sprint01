@@ -107,9 +107,9 @@ La deuda técnica ya demostrada (procesamiento, pools, *healthcheck*, prueba int
 - **Pruebas y cobertura del backend (2026-11-22):** [1 153 pruebas, 0 fallidas, 3 pendientes; dominio ≥ 97 %, backend 78,8 %](evidencias/pruebas/2026-11-22-backend/README.md),
   generado con `backend/tests/generar-resultados.ps1`.
 - **Pruebas y cobertura del panel (2026-11-22):** [389 Vitest aprobadas; 75,1 % de líneas; E2E: solo `resumen.spec.ts` implementado, 147 casos `skip/fixme`](evidencias/pruebas/2026-11-22-panel/README.md).
+- **Panel — parte 6 (2026-11-24):** [499 Vitest, 62×3 E2E (Chromium/Firefox/Edge), ESLint 0 errores](evidencias/pruebas/2026-11-24-panel-parte6/README.md). Funciones ≤ 20 líneas, AAA en todas las pruebas, 8 bugs corregidos (rutas de correo, severidad, sesión entre pestañas, contraste, foco). Simulador MSW con RN-07. 62 casos E2E en verde en 3 navegadores (todo simulado). T087 y entorno desplegado pendientes.
 - **Suite backend completa (2026-11-21, Docker, 2 ejecuciones seguidas):** 1141 casos: 1138 aprobados, 0 fallidos y 3 omitidos (E2E pendientes).
-- **Panel:** escenarios `skip/fixme`; E2E locales con MSW y configuración desplegada separada, aún sin archivos `*.pruebas.ts`
-  para acreditar el backend real.
+- **Panel:** E2E simulados completos; `e2e:pruebas` requiere `PANEL_URL` y el entorno desplegado; T087 (.size-limit, Lighthouse) pendiente.
 - **Android:** aún no existen `src/androidTest/` ni `src/test/resources/`; quedan pruebas
   instrumentadas, de campo, sesión y sincronización. No se ejecutó Gradle en este cambio.
 - **ML:** campaña de campo, benchmark real y publicación final según 009.

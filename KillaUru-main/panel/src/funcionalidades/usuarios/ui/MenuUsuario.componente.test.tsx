@@ -25,9 +25,14 @@ const PENDIENTE: Usuario = { ...ADMIN, correo: 'inv@killauru.pe', estado: 'Invit
 
 describe('MenuUsuario', () => {
   it('fila de otro usuario activo → muestra Cambiar rol y Desactivar', async () => {
+    // Arrange
     renderizar(<MenuUsuario usuario={ADMIN} correoActual="me@killauru.pe" />)
     const user = userEvent.setup()
+
+    // Act
     await user.click(screen.getByRole('button', { name: /acciones/i }))
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByRole('menuitem', { name: /cambiar rol/i })).toBeTruthy()
       expect(screen.getByRole('menuitem', { name: /desactivar/i })).toBeTruthy()
@@ -35,9 +40,14 @@ describe('MenuUsuario', () => {
   })
 
   it('fila propia → no hay Cambiar rol ni Desactivar', async () => {
+    // Arrange
     renderizar(<MenuUsuario usuario={ADMIN} correoActual={ADMIN.correo} />)
     const user = userEvent.setup()
+
+    // Act
     await user.click(screen.getByRole('button', { name: /acciones/i }))
+
+    // Assert
     await waitFor(() => {
       expect(screen.queryByRole('menuitem', { name: /cambiar rol/i })).toBeNull()
       expect(screen.queryByRole('menuitem', { name: /desactivar/i })).toBeNull()
@@ -45,66 +55,91 @@ describe('MenuUsuario', () => {
   })
 
   it('usuario desactivado → muestra Activar', async () => {
+    // Arrange
     renderizar(<MenuUsuario usuario={DESACTIVADO} correoActual="me@killauru.pe" />)
     const user = userEvent.setup()
+
+    // Act
     await user.click(screen.getByRole('button', { name: /acciones/i }))
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByRole('menuitem', { name: /activar/i })).toBeTruthy()
     })
   })
 
   it('invitación pendiente → muestra Reenviar invitación', async () => {
+    // Arrange
     renderizar(<MenuUsuario usuario={PENDIENTE} correoActual="me@killauru.pe" />)
     const user = userEvent.setup()
+
+    // Act
     await user.click(screen.getByRole('button', { name: /acciones/i }))
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByRole('menuitem', { name: /reenviar invitaci/i })).toBeTruthy()
     })
   })
 
-  it('desactivar requiere motivo (campo obligatorio)', async () => {
-    renderizar(<MenuUsuario usuario={ADMIN} correoActual="me@killauru.pe" />)
-    const user = userEvent.setup()
-    await user.click(screen.getByRole('button', { name: /acciones/i }))
-    await user.click(screen.getByRole('menuitem', { name: /desactivar/i }))
-    await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
+  it('desactivar requiere motivo: sin él avisa y no envía nada', async () => {
+    // Arrange
+    const pedidos: string[] = []
+    server.use(http.post(`${BASE}/api/v1/usuarios/${ADMIN.id}/desactivar`, () => {
+      pedidos.push('desactivar')
+      return new HttpResponse(null, { status: 204 })
+    }))
+    const user = await abrirAccion(/desactivar/i)
+
+    // Act
     await user.click(screen.getByRole('button', { name: /confirmar/i }))
-    await waitFor(() => expect(screen.getByRole('alert')).toBeTruthy())
+
+    // Assert
+    expect(await screen.findByRole('alert')).toBeInTheDocument()
+    expect(pedidos).toEqual([])
   })
 
   it('409 accion_sobre_si_mismo → muestra texto correcto', async () => {
+    // Arrange
     server.use(
       http.post(`${BASE}/api/v1/usuarios/${ADMIN.id}/desactivar`, () =>
         HttpResponse.json({ codigo: 'accion_sobre_si_mismo' }, { status: 409 }),
       ),
     )
-    renderizar(<MenuUsuario usuario={ADMIN} correoActual="me@killauru.pe" />)
-    const user = userEvent.setup()
-    await user.click(screen.getByRole('button', { name: /acciones/i }))
-    await user.click(screen.getByRole('menuitem', { name: /desactivar/i }))
-    await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
+    const user = await abrirAccion(/desactivar/i)
     await user.type(screen.getByRole('textbox', { name: /motivo/i }), 'Motivo de prueba')
+
+    // Act
     await user.click(screen.getByRole('button', { name: /confirmar/i }))
-    await waitFor(() =>
-      expect(screen.getByText(/no puedes realizar esta acción sobre tu propia cuenta/i)).toBeTruthy(),
-    )
+
+    // Assert
+    expect(await screen.findByText(/no puedes realizar esta acción sobre tu propia cuenta/i)).toBeInTheDocument()
   })
 
   it('409 ultimo_administrador → muestra texto correcto', async () => {
+    // Arrange
     server.use(
       http.put(`${BASE}/api/v1/usuarios/${ADMIN.id}/rol`, () =>
         HttpResponse.json({ codigo: 'ultimo_administrador' }, { status: 409 }),
       ),
     )
-    renderizar(<MenuUsuario usuario={ADMIN} correoActual="me@killauru.pe" />)
-    const user = userEvent.setup()
-    await user.click(screen.getByRole('button', { name: /acciones/i }))
-    await user.click(screen.getByRole('menuitem', { name: /cambiar rol/i }))
-    await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
+    const user = await abrirAccion(/cambiar rol/i)
     await user.selectOptions(screen.getByRole('combobox', { name: /rol/i }), 'ConductorRegistrado')
+
+    // Act
     await user.click(screen.getByRole('button', { name: /confirmar/i }))
-    await waitFor(() =>
-      expect(screen.getByText(/debe haber al menos un administrador/i)).toBeTruthy(),
-    )
+
+    // Assert
+    expect(await screen.findByText(/debe haber al menos un administrador/i)).toBeInTheDocument()
   })
 })
+
+/** Abre el menú «Acciones» del administrador ADMIN, elige la opción y espera su diálogo. */
+async function abrirAccion(opcion: RegExp) {
+  renderizar(<MenuUsuario usuario={ADMIN} correoActual="me@killauru.pe" />)
+  const user = userEvent.setup()
+  await user.click(screen.getByRole('button', { name: /acciones/i }))
+  await user.click(screen.getByRole('menuitem', { name: opcion }))
+  await screen.findByRole('dialog')
+  return user
+}

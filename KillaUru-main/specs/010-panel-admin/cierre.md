@@ -1,7 +1,7 @@
 # Cierre de spec 010 — Panel administrativo
 
-**Revisado:** 2026-11-15. **Estado:** cierre de producción no acreditado.
-**Seguimiento:** 77/94 tareas marcadas; 17 pendientes en tasks.md.
+**Revisado:** 2026-11-24. **Estado:** E2E local completado; cierre de producción no acreditado.
+**Seguimiento:** 87/94 tareas marcadas; 7 pendientes en tasks.md (T087–T094, excluidas T088 que sigue abierta).
 [Requisitos](spec.md) · [Tareas](tasks.md) · [Pruebas](pruebas.md) · [Plan de cierre global](../../docs/guias/cierre-y-despliegue.md)
 
 ## Dependencias
@@ -18,6 +18,12 @@ sin preparar y fuera de FR-023). Se portó el CSS del prototipo con sus nombres 
 las 7 vistas y el login, y se alinearon con el contrato 003 `inicio-sesion`, `cerrar-sesion`, `SesionPanel` y `/me`. Nuevas
 pruebas: rutas frente a los contratos, variables CSS, páginas de las rutas, sesión, armazón y pestaña en la dirección.
 **416 Vitest, ESLint y `tsc -b` en verde.** [Evidencia: prototipo junto a lo real](../../docs/seguimiento/evidencias/pruebas/2026-11-22-panel-prototipo/README.md).
+
+**Parte 6 — calidad, AAA y E2E (2026-11-24):** funciones ≤ 20 líneas (0 errores ESLint), AAA en todas las pruebas
+(detector TypeScript), 8 bugs corregidos con TDD (rutas de correo, severidad, sesión entre pestañas, contraste, foco).
+Simulador MSW con estado en memoria y tabla RN-07. 62 casos E2E funcionales, de accesibilidad y seguridad,
+todos en verde en los 3 navegadores.
+**499 Vitest, 62×3 E2E, ESLint y `tsc -b` en verde.** [Evidencia: parte 6](../../docs/seguimiento/evidencias/pruebas/2026-11-24-panel-parte6/README.md).
 
 ## Qué falta localmente
 

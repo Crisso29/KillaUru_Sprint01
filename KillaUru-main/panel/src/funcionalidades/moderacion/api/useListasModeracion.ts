@@ -1,36 +1,18 @@
-// T066 — listas de moderación: por-revisar y pendientes (FR-028, FR-029)
+// T066 — listas de moderación: por-revisar y pendientes (FR-028, FR-029). Datos operativos: se refrescan cada minuto.
 import { useQuery } from '@tanstack/react-query'
-import { entorno } from '@/config/entorno'
 import type { ElementoPorRevisar, ElementoPendiente } from '@/api/dtos/003-anomalias'
+import { pedirJson } from '@/api/http'
 
-export function usePorRevisar() {
-  return useQuery<ElementoPorRevisar[]>({
-    queryKey: ['por-revisar'],
-    queryFn: async () => {
-      const r = await fetch(`${entorno.urlApi}/api/v1/moderacion/por-revisar`, {
-        credentials: 'include',
-      })
-      if (!r.ok) throw await r.json()
-      return r.json() as Promise<ElementoPorRevisar[]>
-    },
+function useListaModeracion<T>(llave: string) {
+  return useQuery<T[]>({
+    queryKey: [llave],
+    queryFn: () => pedirJson<T[]>(`/api/v1/moderacion/${llave}`),
     staleTime: 30_000,
     refetchInterval: 60_000,
     refetchOnWindowFocus: true,
   })
 }
 
-export function usePendientes() {
-  return useQuery<ElementoPendiente[]>({
-    queryKey: ['pendientes'],
-    queryFn: async () => {
-      const r = await fetch(`${entorno.urlApi}/api/v1/moderacion/pendientes`, {
-        credentials: 'include',
-      })
-      if (!r.ok) throw await r.json()
-      return r.json() as Promise<ElementoPendiente[]>
-    },
-    staleTime: 30_000,
-    refetchInterval: 60_000,
-    refetchOnWindowFocus: true,
-  })
-}
+export const usePorRevisar = () => useListaModeracion<ElementoPorRevisar>('por-revisar')
+
+export const usePendientes = () => useListaModeracion<ElementoPendiente>('pendientes')

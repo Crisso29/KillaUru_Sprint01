@@ -4,35 +4,35 @@ import { tokenDelFragmento } from './tokenDelFragmento'
 
 afterEach(() => {
   window.location.hash = ''
+  vi.restoreAllMocks()
 })
 
 describe('tokenDelFragmento', () => {
-  it('extrae el token del fragmento', () => {
-    window.location.hash = '#token=abc123'
+  it.each([
+    ['#token=abc123', 'abc123'],
+    ['#token=', null], // vacío
+    ['', null], // sin fragmento
+    ['#otro=valor', null],
+  ])('fragmento «%s» → %s', (fragmento, esperado) => {
+    // Arrange
+    window.location.hash = fragmento
+
+    // Act
     const token = tokenDelFragmento()
-    expect(token).toBe('abc123')
+
+    // Assert
+    expect(token).toBe(esperado)
   })
 
-  it('llama a history.replaceState para quitar el fragmento', () => {
+  it('quita el fragmento de la dirección: el token no queda en el historial ni se copia con el enlace', () => {
+    // Arrange
     window.location.hash = '#token=abc123'
-    const spy = vi.spyOn(history, 'replaceState')
+    const reemplazar = vi.spyOn(history, 'replaceState')
+
+    // Act
     tokenDelFragmento()
-    expect(spy).toHaveBeenCalled()
-    spy.mockRestore()
-  })
 
-  it('sin token (#token= vacío) → null', () => {
-    window.location.hash = '#token='
-    expect(tokenDelFragmento()).toBeNull()
-  })
-
-  it('sin fragmento → null', () => {
-    window.location.hash = ''
-    expect(tokenDelFragmento()).toBeNull()
-  })
-
-  it('fragmento sin #token= → null', () => {
-    window.location.hash = '#otro=valor'
-    expect(tokenDelFragmento()).toBeNull()
+    // Assert
+    expect(reemplazar).toHaveBeenCalled()
   })
 })

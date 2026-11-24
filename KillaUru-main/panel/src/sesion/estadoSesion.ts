@@ -15,23 +15,19 @@ export type AccionSesion =
 export function reducirSesion(estado: EstadoSesion, accion: AccionSesion): EstadoSesion {
   switch (accion.tipo) {
     case 'renovar_ok':
-    case 'login_ok':
-      return {
-        tipo: 'activa',
-        expiraAccesoUtc: accion.expiraAccesoUtc,
-        sesionVenceUtc: accion.sesionVenceUtc,
-        desfaseMs: accion.desfaseMs,
-        correo: estado.tipo === 'activa' ? estado.correo : undefined,
-      }
+    case 'login_ok': {
+      // El correo llega aparte (GET /usuarios/yo): renovar conserva el que ya se conocía
+      const { expiraAccesoUtc, sesionVenceUtc, desfaseMs } = accion
+      return { tipo: 'activa', expiraAccesoUtc, sesionVenceUtc, desfaseMs, correo: estado.tipo === 'activa' ? estado.correo : undefined }
+    }
     case 'renovar_401':
-      return {
-        tipo: 'anonima',
-        motivo: estado.tipo === 'activa' ? 'sesion' : undefined,
-      }
+      // «sesion» solo si había una sesión que se perdió (el login lo explica); al abrir sin cookie no hay motivo.
+      // Ya sin sesión, un segundo 401 (la renovación y el reintento avisan los dos) no cambia nada ni borra el motivo.
+      if (estado.tipo === 'anonima') return estado
+      return { tipo: 'anonima', motivo: estado.tipo === 'activa' ? 'sesion' : undefined }
     case 'salir':
       return { tipo: 'anonima', motivo: 'salida' }
     case 'correo_ok':
-      if (estado.tipo !== 'activa') return estado
-      return { ...estado, correo: accion.correo }
+      return estado.tipo === 'activa' ? { ...estado, correo: accion.correo } : estado
   }
 }

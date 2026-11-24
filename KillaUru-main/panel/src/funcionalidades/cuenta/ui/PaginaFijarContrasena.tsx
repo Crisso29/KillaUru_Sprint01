@@ -3,65 +3,43 @@ import { type FormEvent, useRef, useState } from 'react'
 import { tokenDelFragmento } from '../modelo/tokenDelFragmento'
 import { validarConfirmacion, validarContrasena } from '../modelo/contrasena'
 import { useFijarContrasena } from '../api/useEnlaces'
-import { Link } from 'react-router'
-import { PaginaAcceso } from '@/compartido/ui'
-import { TEXTOS_CUENTA as T } from '../textos'
+import { CampoAcceso, PaginaAcceso } from '@/compartido/ui'
+import { TEXTOS_CUENTA as textos } from '../textos'
+import { ResultadoEnlace } from './ResultadoEnlace'
 
 interface Props {
   modo?: 'restablecer' | 'invitacion'
 }
 
 export function PaginaFijarContrasena({ modo = 'restablecer' }: Props) {
-  const mutation = useFijarContrasena()
+  const fijar = useFijarContrasena()
   const token = useRef(tokenDelFragmento())
   const [errorLocal, setErrorLocal] = useState<string | null>(null)
-
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    const fd = new FormData(e.currentTarget)
-    const nueva = fd.get('nueva') as string
-    const confirmar = fd.get('confirmar') as string
-
-    const errConf = validarConfirmacion(nueva, confirmar)
-    if (errConf) { setErrorLocal(errConf); return }
-
-    const errPass = validarContrasena(nueva)
-    if (errPass) { setErrorLocal(errPass); return }
-
-    setErrorLocal(null)
-    mutation.mutate({ token: token.current ?? '', nuevaContrasena: nueva })
+  const enviar = (evento: FormEvent<HTMLFormElement>) => {
+    evento.preventDefault()
+    const datos = new FormData(evento.currentTarget)
+    const nueva = String(datos.get('nueva'))
+    const error = validarConfirmacion(nueva, String(datos.get('confirmar'))) ?? validarContrasena(nueva)
+    setErrorLocal(error)
+    if (!error) fijar.mutate({ token: token.current ?? '', nuevaContrasena: nueva })
   }
-
-  if (mutation.isSuccess) {
-    const msg = modo === 'restablecer' ? T.okRestablecer : T.okInvitacion
-    return (
-      <PaginaAcceso titulo={T.fijarContrasena}>
-        <p role="status" className="note ok">{msg}</p>
-        <Link to="/login" className="lnk">Ir al inicio de sesión</Link>
-      </PaginaAcceso>
-    )
+  if (fijar.isSuccess) {
+    return <ResultadoEnlace titulo={textos.fijarContrasena} mensaje={modo === 'restablecer' ? textos.okRestablecer : textos.okInvitacion} exito />
   }
+  return <FormularioContrasena onEnviar={enviar} error={errorLocal ?? (fijar.isError ? textos.enlaceInvalido : null)} ocupado={fijar.isPending} />
+}
 
-  const errorApi = mutation.isError
-    ? T.enlaceInvalido
-    : null
+interface PropsFormulario { onEnviar: (evento: FormEvent<HTMLFormElement>) => void; error: string | null; ocupado: boolean }
 
+function FormularioContrasena({ onEnviar, error, ocupado }: PropsFormulario) {
   return (
-    <PaginaAcceso titulo={T.fijarContrasena}>
-      <form onSubmit={handleSubmit} className="formulario-login">
-        <div className="field">
-          <label htmlFor="nueva">{T.fijarContrasena}</label>
-          <input id="nueva" type="password" name="nueva" autoComplete="new-password" />
-        </div>
-        <div className="field">
-          <label htmlFor="confirmar">{T.confirmarContrasena}</label>
-          <input id="confirmar" type="password" name="confirmar" autoComplete="new-password" />
-        </div>
-        {(errorLocal ?? errorApi) && (
-          <p role="alert" className="note bad">{errorLocal ?? errorApi}</p>
-        )}
-        <button type="submit" className="btn btn-primary btn-block" disabled={mutation.isPending} style={{ minHeight: 40, fontSize: 14 }}>
-          {mutation.isPending ? T.guardando : T.guardar}
+    <PaginaAcceso titulo={textos.fijarContrasena}>
+      <form onSubmit={onEnviar} className="formulario-login">
+        <CampoAcceso nombre="nueva" etiqueta={textos.fijarContrasena} tipo="password" autocompletar="new-password" />
+        <CampoAcceso nombre="confirmar" etiqueta={textos.confirmarContrasena} tipo="password" autocompletar="new-password" />
+        {error && <p role="alert" className="note bad">{error}</p>}
+        <button type="submit" className="btn btn-primary btn-block" disabled={ocupado} style={{ minHeight: 40, fontSize: 14 }}>
+          {ocupado ? textos.guardando : textos.guardar}
         </button>
       </form>
     </PaginaAcceso>

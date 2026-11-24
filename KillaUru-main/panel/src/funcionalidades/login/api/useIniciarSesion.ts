@@ -2,8 +2,8 @@
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
 import { armarError } from '@/api/problema'
-import { entorno } from '@/config/entorno'
 import { leerSesionPanel, type DatosSesion } from '@/sesion/sesionPanel'
+import { pedirApi } from '@/api/http'
 
 interface CuerpoLogin {
   correo: string
@@ -20,14 +20,13 @@ export function useIniciarSesion({ onExito }: Opciones = {}) {
 
   return useMutation({
     mutationFn: async (cuerpo: CuerpoLogin) => {
-      const r = await fetch(`${entorno.urlApi}/api/v1/auth/inicio-sesion`, {
+      const respuesta = await pedirApi(`/api/v1/auth/inicio-sesion`, {
         method: 'POST',
-        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...cuerpo, canal: 'panel' }),
       })
-      if (!r.ok) throw await armarError(r)
-      return leerSesionPanel(await r.json())
+      if (!respuesta.ok) throw await armarError(respuesta)
+      return leerSesionPanel(await respuesta.json())
     },
     onSuccess: (sesion) => {
       onExito?.(sesion)

@@ -6,23 +6,24 @@ const MS_7D = 7 * MS_24H
 const MS_30D = 30 * MS_24H
 
 export function filtrosAConsulta(filtros: FiltrosMapa, ahora: Date): URLSearchParams {
-  const p = new URLSearchParams()
+  const parametros = new URLSearchParams()
 
-  p.set('estado', filtros.estados.join(','))
+  parametros.set('estado', filtros.estados.join(','))
 
   if (filtros.tipos.length === 1) {
-    p.set('tipo', filtros.tipos[0]!)
+    parametros.set('tipo', filtros.tipos[0]!)
   }
 
+  // Contrato 006: lista separada por comas («2,5» no es lo mismo que «desde 2»). Con las 5 no se filtra.
   if (filtros.severidades.length < 5) {
-    p.set('severidad_min', String(Math.min(...filtros.severidades)))
+    parametros.set('severidad', [...filtros.severidades].sort().join(','))
   }
 
   const offset =
     filtros.periodo === '24h' ? MS_24H :
     filtros.periodo === '7d'  ? MS_7D  : MS_30D
 
-  p.set('desde', new Date(ahora.getTime() - offset).toISOString())
+  parametros.set('desde', new Date(ahora.getTime() - offset).toISOString())
 
-  return p
+  return parametros
 }

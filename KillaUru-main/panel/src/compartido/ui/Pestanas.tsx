@@ -11,9 +11,9 @@ interface Props {
 export function Pestanas({ pestanas, activa, onChange, estilo = 'seccion' }: Props) {
   return (
     <div role="tablist" className={estilo === 'panel' ? 'rp-tabs' : 'subtabs'}>
-      {pestanas.map(p => (
-        <button key={p.id} type="button" role="tab" aria-selected={activa === p.id} onClick={() => onChange(p.id)}>
-          {p.etiqueta}
+      {pestanas.map(pestana => (
+        <button key={pestana.id} type="button" role="tab" aria-selected={activa === pestana.id} onClick={() => onChange(pestana.id)}>
+          {pestana.etiqueta}
         </button>
       ))}
     </div>

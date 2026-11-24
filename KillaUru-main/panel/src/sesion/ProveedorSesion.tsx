@@ -1,13 +1,13 @@
-import { createContext, useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
+import { createContext, useCallback, useEffect, useReducer } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import type { EstadoSesion } from './estadoSesion'
 import { reducirSesion } from './estadoSesion'
-import { crearRenovador } from './renovador'
-import { crearCanalSesion } from './canalSesion'
-import { msDeltaRenovacion } from './planificador'
-import { entorno } from '@/config/entorno'
+import { calcularDesfase } from './planificador'
+import { configurarSesionHttp } from '@/api/http'
 import { relojReal } from '@/compartido/reloj'
-import { leerSesionPanel, type DatosSesion } from './sesionPanel'
+import type { DatosSesion } from './sesionPanel'
 import type { Reloj } from '@/compartido/reloj'
+import { useRenovacionPeriodica, useRenovador, useSalida } from './ganchosSesion'
 
 interface ContextoSesionVal {
   sesion: EstadoSesion
@@ -17,59 +17,38 @@ interface ContextoSesionVal {
 
 export const ContextoSesion = createContext<ContextoSesionVal | null>(null)
 
-export function ProveedorSesion({
-  children,
-  reloj = relojReal,
-}: {
-  children: React.ReactNode
-  reloj?: Reloj
-}) {
+export function ProveedorSesion({ children, reloj = relojReal }: { children: React.ReactNode; reloj?: Reloj }) {
   const [sesion, despachar] = useReducer(reducirSesion, { tipo: 'desconocida' } as EstadoSesion)
-  const timerId = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const llamarRenovar = useCallback(async (): Promise<Date> => {
-    const r = await fetch(`${entorno.urlApi}/api/v1/auth/renovar`, {
-      method: 'POST', credentials: 'include',
-    })
-    if (r.status === 401) {
-      despachar({ tipo: 'renovar_401' })
-      throw new Error('401')
-    }
-    const { expiraAccesoUtc, sesionVenceUtc } = leerSesionPanel(await r.json())
-    const desfaseMs = expiraAccesoUtc.getTime() - 5 * 60_000 - reloj.ahora().getTime()
-    despachar({ tipo: 'renovar_ok', expiraAccesoUtc, sesionVenceUtc, desfaseMs })
-    return expiraAccesoUtc
-  }, [reloj])
-
-  const { renovarSesion } = useMemo(() => crearRenovador(llamarRenovar), [llamarRenovar])
-
-  const programarRenovacion = useCallback((expira: Date) => {
-    if (timerId.current) clearTimeout(timerId.current)
-    const ms = msDeltaRenovacion(expira, reloj.ahora())
-    timerId.current = setTimeout(() => void renovarSesion(), ms)
-  }, [renovarSesion, reloj])
-
-  useEffect(() => {
-    void renovarSesion().then(programarRenovacion).catch(() => {})
-    const { destruir } = crearCanalSesion(() => despachar({ tipo: 'salir' }))
-    return () => { destruir(); if (timerId.current) clearTimeout(timerId.current) }
-  }, [renovarSesion, programarRenovacion])
-
-  const cerrarSesion = useCallback(async () => {
-    await fetch(`${entorno.urlApi}/api/v1/auth/cerrar-sesion`, { method: 'POST', credentials: 'include' })
-    despachar({ tipo: 'salir' })
-  }, [])
-
+  const renovarSesion = useRenovador(despachar, reloj)
+  const renovacion = useRenovacionPeriodica(renovarSesion, reloj)
+  const cerrarSesion = useSalida(renovacion, despachar)
+  useSesionHttp(renovarSesion, () => despachar({ tipo: 'renovar_401' }))
+  useVaciarCacheSinSesion(sesion)
+  // Al abrir el panel: si la cookie de sesión sigue viva, se renueva y empieza la cadena de renovaciones
+  useEffect(() => { void renovarSesion().then(renovacion.programar).catch(() => {}) }, [renovarSesion, renovacion])
   // La hora de fin de sesión es la del servidor (8 h desde el login, contrato 003), no una calculada aquí.
   const notificarLogin = useCallback(({ expiraAccesoUtc, sesionVenceUtc }: DatosSesion) => {
-    const desfaseMs = expiraAccesoUtc.getTime() - 5 * 60_000 - reloj.ahora().getTime()
-    despachar({ tipo: 'login_ok', expiraAccesoUtc, sesionVenceUtc, desfaseMs })
-    programarRenovacion(expiraAccesoUtc)
-  }, [reloj, programarRenovacion])
+    despachar({ tipo: 'login_ok', expiraAccesoUtc, sesionVenceUtc, desfaseMs: calcularDesfase(expiraAccesoUtc, reloj.ahora()) })
+    renovacion.programar(expiraAccesoUtc)
+  }, [reloj, renovacion])
+  return <ContextoSesion.Provider value={{ sesion, cerrarSesion, notificarLogin }}>{children}</ContextoSesion.Provider>
+}
 
-  return (
-    <ContextoSesion.Provider value={{ sesion, cerrarSesion, notificarLogin }}>
-      {children}
-    </ContextoSesion.Provider>
-  )
+/**
+ * Sin sesión (salir, renovación rechazada u otra pestaña que salió) se vacía la caché de datos: lo que vio este
+ * administrador no queda en memoria para quien entre después en la misma pestaña (data-model §1).
+ */
+function useVaciarCacheSinSesion(sesion: EstadoSesion) {
+  const cache = useQueryClient()
+  useEffect(() => { if (sesion.tipo === 'anonima') cache.clear() }, [sesion.tipo, cache])
+}
+
+/** Las llamadas que reciben un 401 por token vencido renuevan con este mismo renovador (una sola renovación a la vez). */
+function useSesionHttp(renovar: () => Promise<Date>, onSesionTerminada: () => void) {
+  useEffect(() => {
+    configurarSesionHttp({ renovar, onSesionTerminada })
+    return () => configurarSesionHttp(null)
+  // onSesionTerminada solo despacha al reductor (estable); reconfigurar por cada render no aporta nada
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [renovar])
 }

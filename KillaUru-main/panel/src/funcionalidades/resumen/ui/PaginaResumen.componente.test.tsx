@@ -6,12 +6,16 @@ import { renderizar } from '@/../pruebas/renderizar'
 import { server } from '@/../pruebas/msw/servidor'
 import { http, HttpResponse } from 'msw'
 import { PaginaResumen } from './PaginaResumen'
+import datosDashboard from '@/../pruebas/msw/datos/dashboard.json'
 
 const BASE = import.meta.env.VITE_URL_API ?? 'https://api.killauru.pe'
 
 describe('PaginaResumen', () => {
   it('muestra los 6 rótulos de indicadores', async () => {
+    // Arrange y Act
     renderizar(<PaginaResumen />)
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByText('Eventos válidos (ayer)')).toBeTruthy()
       expect(screen.getByText('Conductores activos')).toBeTruthy()
@@ -23,6 +27,7 @@ describe('PaginaResumen', () => {
   })
 
   it('valor null aparece como «—»', async () => {
+    // Arrange
     server.use(
       http.get(`${BASE}/api/v1/dashboard/indicadores`, () =>
         HttpResponse.json({
@@ -41,42 +46,39 @@ describe('PaginaResumen', () => {
         }),
       ),
     )
+
+    // Act
     renderizar(<PaginaResumen />)
+
+    // Assert
     await waitFor(() => {
       expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(1)
     })
   })
 
   it('selector 7/14/30 envía el parámetro dias', async () => {
-    let diasCapturado = ''
-    server.use(
-      http.get(`${BASE}/api/v1/dashboard/indicadores`, ({ request }) => {
-        diasCapturado = new URL(request.url).searchParams.get('dias') ?? ''
-        return HttpResponse.json({
-          ultimoDiaCerrado: '2026-11-06',
-          calculadoUtc: '2026-11-07T05:30:00Z',
-          urlPanelesTecnicos: 'https://killauru.grafana.net/d/api',
-          indicadores: {
-            eventosDia: { valor: 100, comparacion: 90, variacion: 11, unidad: 'eventos', serie: [] },
-            conductoresActivos: { valor: 50, comparacion: 45, variacion: 5, unidad: 'cuentas', serie: [] },
-            dispositivosDia: { valor: 80, comparacion: 85, variacion: -5, unidad: 'dispositivos', serie: [] },
-            coberturaPct: { valor: 70, comparacion: 65, variacion: 5, unidad: '%', serie: [] },
-            confirmacionPct: { valor: 60, comparacion: 58, variacion: 2, unidad: '%', serie: [] },
-            reaparicionPct: { valor: 8, comparacion: 6, variacion: 2, unidad: '%', serie: [] },
-          },
-          eventosPorDia: [],
-        })
-      }),
-    )
+    // Arrange — los datos simulados del panel, guardando el periodo de cada consulta
+    const periodos: string[] = []
+    server.use(http.get(`${BASE}/api/v1/dashboard/indicadores`, ({ request }) => {
+      periodos.push(new URL(request.url).searchParams.get('dias') ?? '')
+      return HttpResponse.json(datosDashboard)
+    }))
     renderizar(<PaginaResumen />)
     const user = userEvent.setup()
-    await waitFor(() => expect(screen.getByLabelText('7 días')).toBeTruthy())
-    await user.click(screen.getByLabelText('7 días'))
-    await waitFor(() => expect(diasCapturado).toBe('7'))
+    const sieteDias = await screen.findByLabelText('7 días')
+
+    // Act
+    await user.click(sieteDias)
+
+    // Assert — primero el periodo por defecto (14 d) y luego el elegido
+    await waitFor(() => expect(periodos).toEqual(['14', '7']))
   })
 
   it('«Paneles técnicos» abre en otra pestaña con rel="noopener noreferrer"', async () => {
+    // Arrange y Act
     renderizar(<PaginaResumen />)
+
+    // Assert
     await waitFor(() => {
       const enlace = screen.getByRole('link', { name: /paneles técnicos/i })
       expect(enlace.getAttribute('target')).toBe('_blank')
@@ -85,7 +87,10 @@ describe('PaginaResumen', () => {
   })
 
   it('«Estado del servicio» no muestra cifras de disponibilidad', async () => {
+    // Arrange y Act
     renderizar(<PaginaResumen />)
+
+    // Assert
     await waitFor(() => {
       expect(screen.queryByText(/99,9/)).toBeNull()
       expect(screen.queryByText(/uptime/i)).toBeNull()
@@ -93,19 +98,27 @@ describe('PaginaResumen', () => {
   })
 
   it('últimos cambios muestra «sistema» cuando actorId es null', async () => {
+    // Arrange y Act
     renderizar(<PaginaResumen />)
+
+    // Assert
     await waitFor(() => {
       expect(screen.getAllByText('sistema').length).toBeGreaterThanOrEqual(1)
     })
   })
 
   it('error en indicadores no rompe el resto de la pantalla', async () => {
+    // Arrange
     server.use(
       http.get(`${BASE}/api/v1/dashboard/indicadores`, () =>
         HttpResponse.json({ codigo: 'error_test' }, { status: 500 }),
       ),
     )
+
+    // Act
     renderizar(<PaginaResumen />)
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByRole('alert')).toBeTruthy()
     })

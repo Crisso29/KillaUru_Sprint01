@@ -39,7 +39,10 @@ const DETALLE_BASE = {
 
 describe('DetalleAnomalia', () => {
   it('muestra los 17 campos requeridos', async () => {
+    // Arrange y Act
     renderizar(<DetalleAnomalia id={ID} />)
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByText(/Bache/)).toBeTruthy()
       expect(screen.getByText(/287,4/)).toBeTruthy()
@@ -51,26 +54,37 @@ describe('DetalleAnomalia', () => {
   })
 
   it('venceUtc null → muestra «—»', async () => {
+    // Arrange
     server.use(
       http.get(`${BASE}/api/v1/anomalies/${ID}`, () =>
         HttpResponse.json({ ...DETALLE_BASE, venceUtc: null }),
       ),
     )
+
+    // Act
     renderizar(<DetalleAnomalia id={ID} />)
+
+    // Assert
     await waitFor(() => {
       expect(screen.getAllByText('—').length).toBeGreaterThan(0)
     })
   })
 
   it('km 287,4 → dentro del tramo demo', async () => {
+    // Arrange y Act
     renderizar(<DetalleAnomalia id={ID} />)
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByText(/tramo demo/i)).toBeTruthy()
     })
   })
 
   it('historial muestra «sistema» para actorId null y correo para UUID', async () => {
+    // Arrange y Act
     renderizar(<DetalleAnomalia id={ID} />)
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByText(/sistema/)).toBeTruthy()
       expect(screen.getByText(/actor-b2c3d4e5@killauru\.pe/)).toBeTruthy()
@@ -78,6 +92,7 @@ describe('DetalleAnomalia', () => {
   })
 
   it('solo un ?ids= con los actores no nulos', async () => {
+    // Arrange
     let idsCapturados = ''
     server.use(
       http.get(`${BASE}/api/v1/usuarios`, ({ request }) => {
@@ -88,7 +103,11 @@ describe('DetalleAnomalia', () => {
         })
       }),
     )
+
+    // Act
     renderizar(<DetalleAnomalia id={ID} />)
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByText(/admin@killauru\.pe/)).toBeTruthy()
       expect(idsCapturados).toBe(ACTOR_ID)
@@ -97,12 +116,17 @@ describe('DetalleAnomalia', () => {
   })
 
   it('404 → «Esta anomalía ya no existe.»', async () => {
+    // Arrange
     server.use(
       http.get(`${BASE}/api/v1/anomalies/no-existe`, () =>
         HttpResponse.json({ codigo: 'no_encontrado' }, { status: 404 }),
       ),
     )
+
+    // Act
     renderizar(<DetalleAnomalia id="no-existe" />)
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByText(/ya no existe/i)).toBeTruthy()
     })

@@ -16,36 +16,22 @@ interface Props {
 
 export function PanelLateral({ features, total, anomaliaId, onSeleccionar, onCerrarDetalle }: Props) {
   const [activa, setActiva] = useState(anomaliaId ? 'detalle' : 'lista')
-
-  useEffect(() => {
-    if (anomaliaId) setActiva('detalle')
-  }, [anomaliaId])
-
+  // Elegir una anomalía (en el mapa o la lista) muestra su detalle
+  useEffect(() => { if (anomaliaId) setActiva('detalle') }, [anomaliaId])
   const pestanas = [
     { id: 'detalle', etiqueta: TEXTOS_MAPA.tabDetalle },
     { id: 'lista', etiqueta: `${TEXTOS_MAPA.tabLista} · ${features.length}` },
   ]
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       <Pestanas pestanas={pestanas} activa={activa} onChange={setActiva} estilo="panel" />
-      {activa === 'detalle' && (
-        <div data-testid="detalle-anomalia" style={{ flex: 1, minHeight: 0 }}>
-          {anomaliaId
-            ? <DetalleAnomalia id={anomaliaId} onCerrar={onCerrarDetalle} />
-            : <p className="hint" style={{ padding: 'var(--s-21)' }}>
-                Selecciona una anomalía del mapa o la lista.
-              </p>}
-        </div>
-      )}
-      {activa === 'lista' && (
-        <div className="rp-body"><ListaAnomalias
-          features={features}
-          total={total}
-          idSeleccionada={anomaliaId}
-          onSeleccionar={onSeleccionar}
-        /></div>
-      )}
+      {activa === 'detalle' && <div data-testid="detalle-anomalia" style={{ flex: 1, minHeight: 0 }}>
+        {anomaliaId ? <DetalleAnomalia id={anomaliaId} onCerrar={onCerrarDetalle} />
+          : <p className="hint" style={{ padding: 'var(--s-21)' }}>Selecciona una anomalía del mapa o la lista.</p>}
+      </div>}
+      {activa === 'lista' && <div className="rp-body">
+        <ListaAnomalias features={features} total={total} idSeleccionada={anomaliaId} onSeleccionar={onSeleccionar} />
+      </div>}
     </div>
   )
 }

@@ -1,4 +1,5 @@
-// T022 — ErrorApi desde la respuesta HTTP (data-model.md §2)
+// T022 — ErrorApi desde la respuesta HTTP (data-model.md §2). Lee el `Problema` del contrato 001 (RFC 9457) y el
+// `ProblemaBloqueo` de 003, con sus nombres en camelCase: `correlacionId` y `bloqueadoHastaUtc`.
 
 export interface ErrorApi {
   status: number
@@ -7,19 +8,26 @@ export interface ErrorApi {
   bloqueadoHastaUtc?: Date
 }
 
-export async function armarError(r: Response): Promise<ErrorApi> {
+interface CuerpoProblema {
+  codigo?: unknown
+  correlacionId?: unknown
+  bloqueadoHastaUtc?: unknown
+}
+
+const SIN_CONEXION = 'sin_conexion'
+
+export async function armarError(respuesta: Response): Promise<ErrorApi> {
   try {
-    const body = await r.clone().json()
-    if (!body?.codigo) throw new Error('sin codigo')
+    const cuerpo = await respuesta.clone().json() as CuerpoProblema | null
+    if (typeof cuerpo?.codigo !== 'string') throw new Error('sin codigo')
     return {
-      status: r.status,
-      codigo: body.codigo as string,
-      correlacionId: body.correlacion_id as string | undefined,
-      bloqueadoHastaUtc: body.bloqueado_hasta_utc
-        ? new Date(body.bloqueado_hasta_utc as string)
-        : undefined,
+      status: respuesta.status,
+      codigo: cuerpo.codigo,
+      correlacionId: typeof cuerpo.correlacionId === 'string' ? cuerpo.correlacionId : undefined,
+      bloqueadoHastaUtc: typeof cuerpo.bloqueadoHastaUtc === 'string' ? new Date(cuerpo.bloqueadoHastaUtc) : undefined,
     }
   } catch {
-    return { status: r.status || 0, codigo: 'sin_conexion' }
+    // Sin cuerpo legible (red caída, proxy, HTML de error): el usuario ve «sin conexión», no un error técnico
+    return { status: respuesta.status || 0, codigo: SIN_CONEXION }
   }
 }

@@ -23,7 +23,7 @@ const PAGINAS: Array<[string, string, () => Promise<Record<string, unknown>>]> =
 
 describe('Páginas que carga rutas.tsx', () => {
   it.each(PAGINAS)('%s exporta %s como componente, no como lazy', async (_m, nombre, cargar) => {
-    // Arrange + Act
+    // Arrange y Act
     const modulo = await cargar()
     // Assert
     expect(typeof modulo[nombre]).toBe('function')

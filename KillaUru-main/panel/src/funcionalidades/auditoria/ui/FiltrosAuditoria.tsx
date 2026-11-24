@@ -23,32 +23,39 @@ export interface ValoresFiltros {
 
 interface Props {
   valores: ValoresFiltros
-  onChange: (v: ValoresFiltros) => void
+  onChange: (valores: ValoresFiltros) => void
 }
 
 export function FiltrosAuditoria({ valores, onChange }: Props) {
-  const T = TEXTOS_AUDITORIA.filtros
-
-  function set(campo: keyof ValoresFiltros, valor: string) {
-    onChange({ ...valores, [campo]: valor })
-  }
-
+  const textos = TEXTOS_AUDITORIA.filtros
+  const poner = (campo: keyof ValoresFiltros) => (evento: { target: { value: string } }) => onChange({ ...valores, [campo]: evento.target.value })
   // Prototipo `.toolbar`: campos compactos y la nota «Hora en UTC». Las opciones se ven en lenguaje claro, no con su código.
   return (
     <div className="toolbar" role="group" aria-label="Filtros de auditoría">
-      <select className="tsel" aria-label={T.categoria} value={valores.categoria} onChange={e => set('categoria', e.target.value)}>
-        <option value="">{T.todasCategorias}</option>
-        {CATEGORIAS.map(c => <option key={c} value={c}>{textoDeCategoria(c)}</option>)}
-      </select>
-      <select className="tsel" aria-label={T.accion} value={valores.accion} onChange={e => set('accion', e.target.value)}>
-        <option value="">{T.todasAcciones}</option>
-        {ACCIONES.map(a => <option key={a} value={a}>{textoDeAccion(a)}</option>)}
-      </select>
-      <input className="tin" type="search" aria-label={T.actorId} value={valores.actor}
-        onChange={e => set('actor', e.target.value)} placeholder="Actor (correo o id)" style={{ width: 200 }} />
-      <input className="tin" type="datetime-local" aria-label={T.desde} value={valores.desde} onChange={e => set('desde', e.target.value)} />
-      <input className="tin" type="datetime-local" aria-label={T.hasta} value={valores.hasta} onChange={e => set('hasta', e.target.value)} />
+      <SelectorCodigo etiqueta={textos.categoria} todas={textos.todasCategorias} valor={valores.categoria}
+        codigos={CATEGORIAS} texto={(codigo) => textoDeCategoria(codigo as CategoriaAuditoria)} onChange={poner('categoria')} />
+      <SelectorCodigo etiqueta={textos.accion} todas={textos.todasAcciones} valor={valores.accion}
+        codigos={ACCIONES} texto={(codigo) => textoDeAccion(codigo as AccionAuditada)} onChange={poner('accion')} />
+      <input className="tin" type="search" aria-label={textos.actorId} value={valores.actor} onChange={poner('actor')}
+        placeholder="Actor (correo o id)" style={{ width: 200 }} />
+      <input className="tin" type="datetime-local" aria-label={textos.desde} value={valores.desde} onChange={poner('desde')} />
+      <input className="tin" type="datetime-local" aria-label={textos.hasta} value={valores.hasta} onChange={poner('hasta')} />
       <span className="hint">Hora en UTC</span>
     </div>
+  )
+}
+
+interface PropsSelector {
+  etiqueta: string; todas: string; valor: string; codigos: readonly string[]
+  texto: (codigo: string) => string; onChange: (evento: { target: { value: string } }) => void
+}
+
+/** Un desplegable de códigos del contrato (002) que se muestran en lenguaje claro; vacío = «todas». */
+function SelectorCodigo({ etiqueta, todas, valor, codigos, texto, onChange }: PropsSelector) {
+  return (
+    <select className="tsel" aria-label={etiqueta} value={valor} onChange={onChange}>
+      <option value="">{todas}</option>
+      {codigos.map((codigo) => <option key={codigo} value={codigo}>{texto(codigo)}</option>)}
+    </select>
   )
 }

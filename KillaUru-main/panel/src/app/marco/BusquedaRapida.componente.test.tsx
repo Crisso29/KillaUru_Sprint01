@@ -1,22 +1,17 @@
 import { describe, it, expect } from 'vitest'
 import { screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { useLocation } from 'react-router'
 import { renderizar } from '@/../pruebas/renderizar'
 import { BusquedaRapida } from './BusquedaRapida'
+import { RutaActual, ID_RUTA_ACTUAL } from '@/../pruebas/RutaActual'
 
 // T042 — BusquedaRapida: Ctrl+K enfoca, Enter navega, sin resultados avisa
-
-function PaginaActual() {
-  const { pathname, search } = useLocation()
-  return <div data-testid="ruta-actual">{pathname}{search}</div>
-}
 
 function renderBusqueda() {
   return renderizar(
     <>
       <BusquedaRapida />
-      <PaginaActual />
+      <RutaActual />
     </>,
   )
 }
@@ -27,61 +22,43 @@ describe('BusquedaRapida', () => {
     // Arrange
     renderBusqueda()
     const campo = screen.getByRole('searchbox')
-    expect(document.activeElement).not.toBe(campo)
+    expect(document.activeElement).not.toBe(campo) // condición previa: el foco no empieza ahí
+
     // Act
     fireEvent.keyDown(document.body, { key: 'k', ctrlKey: true, bubbles: true })
+
     // Assert
     await waitFor(() => expect(document.activeElement).toBe(campo))
   })
 
-  it('Enter con UUID navega a /mapa?anomalia=', async () => {
+  it.each([
+    ['un id completo abre su detalle en el mapa', 'a1b2c3d4-0000-0000-0000-000000000001', '/mapa?anomalia=a1b2c3d4-0000-0000-0000-000000000001'],
+    ['un km abre el mapa en ese punto', '287,4', '/mapa?kmVia=287.4'],
+    ['un correo abre Usuarios filtrado', 'ops@killauru.pe', '/usuarios?busqueda=ops%40killauru.pe'],
+  ])('Enter: %s', async (_caso, texto, rutaEsperada) => {
+    // Arrange
     renderBusqueda()
     const user = userEvent.setup()
-    fireEvent.keyDown(document.body, { key: 'k', ctrlKey: true, bubbles: true })
-    await waitFor(() => expect(screen.getByRole('searchbox')).toBeTruthy())
-    const UUID = 'a1b2c3d4-0000-0000-0000-000000000001'
-    await user.type(screen.getByRole('searchbox'), UUID)
+    await user.type(screen.getByRole('searchbox'), texto)
+
+    // Act
     await user.keyboard('{Enter}')
-    await waitFor(() => {
-      expect(screen.getByTestId('ruta-actual')).toHaveTextContent('/mapa')
-      expect(screen.getByTestId('ruta-actual')).toHaveTextContent(`anomalia=${UUID}`)
-    })
+
+    // Assert
+    await waitFor(() => expect(screen.getByTestId(ID_RUTA_ACTUAL)).toHaveTextContent(rutaEsperada))
   })
 
-  it('Enter con km navega a /mapa?kmVia=', async () => {
+  it('texto suelto → muestra aviso sin resultados y no navega', async () => {
+    // Arrange
     renderBusqueda()
     const user = userEvent.setup()
-    fireEvent.keyDown(document.body, { key: 'k', ctrlKey: true, bubbles: true })
-    await waitFor(() => expect(screen.getByRole('searchbox')).toBeTruthy())
-    await user.type(screen.getByRole('searchbox'), '287,4')
-    await user.keyboard('{Enter}')
-    await waitFor(() => {
-      expect(screen.getByTestId('ruta-actual')).toHaveTextContent('/mapa')
-      expect(screen.getByTestId('ruta-actual')).toHaveTextContent('kmVia=287.4')
-    })
-  })
-
-  it('Enter con correo navega a /usuarios?busqueda=', async () => {
-    renderBusqueda()
-    const user = userEvent.setup()
-    fireEvent.keyDown(document.body, { key: 'k', ctrlKey: true, bubbles: true })
-    await waitFor(() => expect(screen.getByRole('searchbox')).toBeTruthy())
-    await user.type(screen.getByRole('searchbox'), 'ops@killauru.pe')
-    await user.keyboard('{Enter}')
-    await waitFor(() => {
-      expect(screen.getByTestId('ruta-actual')).toHaveTextContent('/usuarios')
-    })
-  })
-
-  it('texto suelto → muestra aviso sin resultados', async () => {
-    renderBusqueda()
-    const user = userEvent.setup()
-    fireEvent.keyDown(document.body, { key: 'k', ctrlKey: true, bubbles: true })
-    await waitFor(() => expect(screen.getByRole('searchbox')).toBeTruthy())
     await user.type(screen.getByRole('searchbox'), 'texto que no tiene formato')
+
+    // Act
     await user.keyboard('{Enter}')
-    await waitFor(() => {
-      expect(screen.getByRole('status')).toHaveTextContent(/sin resultados/i)
-    })
+
+    // Assert
+    expect(await screen.findByRole('status')).toHaveTextContent(/sin resultados/i)
+    expect(screen.getByTestId(ID_RUTA_ACTUAL)).toHaveTextContent(/^\/$/)
   })
 })

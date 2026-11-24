@@ -29,21 +29,29 @@ afterAll(() => {
 
 describe('PaginaExportacion', () => {
   it('muestra las 11 columnas del dataset', () => {
-    renderizar(<PaginaExportacion correoActual={CORREO_ACTUAL} />)
+    // Arrange
     const columnas = ['id', 'tipo', 'severidad', 'estado', 'persistencia', 'km', 'latitud', 'longitud', 'reportes', 'primer_reporte', 'ultimo_reporte']
-    for (const col of columnas) {
-      expect(screen.getByText(col, { exact: true })).toBeTruthy()
-    }
+
+    // Act
+    renderizar(<PaginaExportacion correoActual={CORREO_ACTUAL} />)
+
+    // Assert
+    const faltan = columnas.filter((columna) => !screen.queryByText(columna, { exact: true }))
+    expect(faltan).toEqual([])
   })
 
   it('"seudónimo" aparece tachado (no incluido en export)', () => {
+    // Arrange y Act
     renderizar(<PaginaExportacion correoActual={CORREO_ACTUAL} />)
+
+    // Assert
     const elem = screen.getByText('seudónimo', { exact: true })
     expect(elem).toBeTruthy()
     expect(elem.getAttribute('data-tachado')).toBe('true')
   })
 
   it('envía el POST correcto al hacer clic en Exportar', async () => {
+    // Arrange
     let cuerpoRecibido: unknown = null
     server.use(
       http.post(`${BASE}/api/v1/exportaciones`, async ({ request }) => {
@@ -56,21 +64,33 @@ describe('PaginaExportacion', () => {
     )
     renderizar(<PaginaExportacion correoActual={CORREO_ACTUAL} />)
     const user = userEvent.setup()
+
+    // Act
     await user.click(screen.getByRole('button', { name: /exportar/i }))
+
+    // Assert
     await waitFor(() => expect(cuerpoRecibido).not.toBeNull())
     expect((cuerpoRecibido as { formato: string }).formato).toBeDefined()
   })
 
   it('llama a URL.createObjectURL al descargar', async () => {
+    // Arrange
     createObjectURLSpy.mockClear()
     renderizar(<PaginaExportacion correoActual={CORREO_ACTUAL} />)
     const user = userEvent.setup()
+
+    // Act
     await user.click(screen.getByRole('button', { name: /exportar/i }))
+
+    // Assert
     await waitFor(() => expect(createObjectURLSpy).toHaveBeenCalled())
   })
 
   it('sección Recientes está visible', () => {
+    // Arrange y Act
     renderizar(<PaginaExportacion correoActual={CORREO_ACTUAL} />)
+
+    // Assert
     expect(screen.getByRole('heading', { name: /recientes/i })).toBeTruthy()
   })
 })

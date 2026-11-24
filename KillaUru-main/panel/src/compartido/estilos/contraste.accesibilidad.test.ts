@@ -5,20 +5,20 @@ import { join } from 'path'
 // T017 — WCAG: texto ≥ 4,5:1; gráficos ≥ 3:1
 
 function hexARgb(hex: string) {
-  const h = hex.replace('#', '')
+  const hexadecimal = hex.replace('#', '')
   return [
-    parseInt(h.slice(0, 2), 16) / 255,
-    parseInt(h.slice(2, 4), 16) / 255,
-    parseInt(h.slice(4, 6), 16) / 255,
+    parseInt(hexadecimal.slice(0, 2), 16) / 255,
+    parseInt(hexadecimal.slice(2, 4), 16) / 255,
+    parseInt(hexadecimal.slice(4, 6), 16) / 255,
   ] as [number, number, number]
 }
 
-function lineal(c: number) {
-  return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+function lineal(canal: number) {
+  return canal <= 0.03928 ? canal / 12.92 : ((canal + 0.055) / 1.055) ** 2.4
 }
 
-function luminancia([r, g, b]: [number, number, number]) {
-  return 0.2126 * lineal(r) + 0.7152 * lineal(g) + 0.0722 * lineal(b)
+function luminancia([rojo, verde, azul]: [number, number, number]) {
+  return 0.2126 * lineal(rojo) + 0.7152 * lineal(verde) + 0.0722 * lineal(azul)
 }
 
 function contraste(hex1: string, hex2: string) {
@@ -30,8 +30,8 @@ function contraste(hex1: string, hex2: string) {
 
 function extraerTokens(css: string) {
   const tokens: Record<string, string> = {}
-  for (const m of css.matchAll(/--([a-z0-9-]+):\s*(#[0-9a-fA-F]{6})/g)) {
-    tokens[`--${m[1]}`] = m[2]!
+  for (const coincidencia of css.matchAll(/--([a-z0-9-]+):\s*(#[0-9a-fA-F]{6})/g)) {
+    tokens[`--${coincidencia[1]}`] = coincidencia[2]!
   }
   return tokens
 }
@@ -52,24 +52,30 @@ describe('Contraste WCAG — tokens.css', () => {
 
   for (const [tema, esOscuro] of [['claro', false], ['oscuro', true]] as const) {
     describe(`Tema ${tema}`, () => {
-      const t = cargarTema(css, esOscuro)
+      const tema = cargarTema(css, esOscuro)
 
-      it('--ink sobre --surface ≥ 4,5:1', () => {
-        expect(contraste(t['--ink']!, t['--surface']!)).toBeGreaterThanOrEqual(4.5)
-      })
+      // Texto: 4,5:1 (WCAG 1.4.3). Elementos gráficos (marca, barras de severidad): 3:1 (WCAG 1.4.11).
+      it.each([
+        ['--ink', '--surface', 4.5],
+        ['--ink', '--bg', 4.5],
+        // Texto secundario (subtítulos, notas `.hint`, pestaña inactiva): axe lo encontró en 4,33:1 sobre --bg (E2E)
+        ['--ink-3', '--surface', 4.5],
+        ['--ink-3', '--bg', 4.5],
+        ['--ink-3', '--killa-soft', 4.5], // notas dentro de la opción elegida (formato de exportación)
+        ['--killa', '--surface', 3],
+        ['--s1', '--surface', 3],
+        ['--s2', '--surface', 3],
+        ['--s3', '--surface', 3],
+      ])('%s sobre %s ≥ %s:1', (primerPlano, fondo, minimo) => {
+        // Arrange
+        const colores = [tema[primerPlano], tema[fondo]]
+        expect(colores.every(Boolean), `faltan ${primerPlano} o ${fondo} en tokens.css`).toBe(true)
 
-      it('--ink sobre --bg ≥ 4,5:1', () => {
-        expect(contraste(t['--ink']!, t['--bg']!)).toBeGreaterThanOrEqual(4.5)
-      })
+        // Act
+        const razon = contraste(colores[0]!, colores[1]!)
 
-      it('--killa sobre --surface ≥ 3:1', () => {
-        expect(contraste(t['--killa']!, t['--surface']!)).toBeGreaterThanOrEqual(3)
-      })
-
-      it('severidades s1..s3 sobre fondo ≥ 3:1 (gráficos)', () => {
-        for (const s of ['--s1', '--s2', '--s3']) {
-          expect(contraste(t[s]!, t['--surface']!)).toBeGreaterThanOrEqual(3)
-        }
+        // Assert
+        expect(razon).toBeGreaterThanOrEqual(minimo)
       })
     })
   }

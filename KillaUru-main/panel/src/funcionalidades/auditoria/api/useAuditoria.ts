@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import type { PaginaAuditoria } from '@/api/dtos/002-auditoria'
-import { entorno } from '@/config/entorno'
+import { pedirApi } from '@/api/http'
 
 export interface FiltrosAuditoria {
   desde?: string
@@ -23,9 +23,9 @@ export function useAuditoria(filtros: FiltrosAuditoria = {}) {
   return useQuery<PaginaAuditoria>({
     queryKey: ['auditoria', params.toString()],
     queryFn: async () => {
-      const r = await fetch(`${entorno.urlApi}/api/v1/auditoria?${params}`, { credentials: 'include' })
-      if (!r.ok) throw new Error('error_red')
-      return r.json() as Promise<PaginaAuditoria>
+      const respuesta = await pedirApi(`/api/v1/auditoria?${params}`)
+      if (!respuesta.ok) throw new Error('error_red')
+      return respuesta.json() as Promise<PaginaAuditoria>
     },
     staleTime: 10 * 60_000,
     refetchOnWindowFocus: false,

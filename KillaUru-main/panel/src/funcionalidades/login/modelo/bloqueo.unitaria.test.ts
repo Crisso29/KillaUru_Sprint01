@@ -1,61 +1,57 @@
+// T028 — bloqueo: N min redondeado arriba; hora Lima; reactiva exactamente
 import { describe, it, expect } from 'vitest'
 import { minutosRestantes, horaEnLima, estaDesbloqueado } from './bloqueo'
 
-// T028 — bloqueo: N min redondeado arriba; hora Lima; reactiva exactamente
+const AHORA = new Date('2026-11-05T10:00:00Z')
+const HASTA = new Date('2026-11-05T10:04:01Z')
 
-describe('minutosRestantes', () => {
-  it('4 min 01 s → 5', () => {
-    const ahora = new Date('2026-11-05T10:00:00Z')
-    const hasta = new Date('2026-11-05T10:04:01Z')
-    expect(minutosRestantes(hasta, ahora)).toBe(5)
-  })
+describe('minutosRestantes (se redondea hacia arriba: nunca «0 min» con la cuenta bloqueada)', () => {
+  it.each([
+    ['4 min 01 s', '2026-11-05T10:04:01Z', 5],
+    ['exactamente 4 min', '2026-11-05T10:04:00Z', 4],
+    ['1 s', '2026-11-05T10:00:01Z', 1],
+  ])('%s → %i', (_caso, hastaIso, esperado) => {
+    // Arrange
+    const hasta = new Date(hastaIso)
 
-  it('exactamente 4 min → 4', () => {
-    const ahora = new Date('2026-11-05T10:00:00Z')
-    const hasta = new Date('2026-11-05T10:04:00Z')
-    expect(minutosRestantes(hasta, ahora)).toBe(4)
-  })
+    // Act
+    const minutos = minutosRestantes(hasta, AHORA)
 
-  it('1 s → 1', () => {
-    const ahora = new Date('2026-11-05T10:00:00Z')
-    const hasta = new Date('2026-11-05T10:00:01Z')
-    expect(minutosRestantes(hasta, ahora)).toBe(1)
+    // Assert
+    expect(minutos).toBe(esperado)
   })
 })
 
-describe('horaEnLima', () => {
-  it('15:30 UTC → 10:30 en Lima (UTC-5)', () => {
-    const d = new Date('2026-11-05T15:30:00Z')
-    expect(horaEnLima(d)).toBe('10:30')
-  })
+describe('horaEnLima (UTC−5)', () => {
+  it.each([
+    ['2026-11-05T15:30:00Z', '10:30'],
+    ['2026-11-05T00:00:00Z', '19:00'], // del día anterior en Lima
+    ['2026-11-05T08:05:00Z', '03:05'], // siempre con dos dígitos
+  ])('%s → %s', (iso, esperado) => {
+    // Arrange
+    const fecha = new Date(iso)
 
-  it('00:00 UTC → 19:00 del día anterior en Lima', () => {
-    const d = new Date('2026-11-05T00:00:00Z')
-    expect(horaEnLima(d)).toBe('19:00')
-  })
+    // Act
+    const hora = horaEnLima(fecha)
 
-  it('formatea con dos dígitos', () => {
-    const d = new Date('2026-11-05T08:05:00Z')
-    expect(horaEnLima(d)).toBe('03:05')
+    // Assert
+    expect(hora).toBe(esperado)
   })
 })
 
-describe('estaDesbloqueado', () => {
-  it('un ms antes → bloqueado', () => {
-    const hasta = new Date('2026-11-05T10:04:01Z')
-    const antes = new Date('2026-11-05T10:04:00.999Z')
-    expect(estaDesbloqueado(hasta, antes)).toBe(false)
-  })
+describe('estaDesbloqueado (se reactiva exactamente a la hora indicada)', () => {
+  it.each([
+    ['un ms antes → bloqueado', '2026-11-05T10:04:00.999Z', false],
+    ['exactamente a esa hora → desbloqueado', '2026-11-05T10:04:01Z', true],
+    ['después → desbloqueado', '2026-11-05T10:05:00Z', true],
+  ])('%s', (_caso, ahoraIso, esperado) => {
+    // Arrange
+    const ahora = new Date(ahoraIso)
 
-  it('exactamente a esa hora → desbloqueado', () => {
-    const hasta = new Date('2026-11-05T10:04:01Z')
-    const igual = new Date('2026-11-05T10:04:01Z')
-    expect(estaDesbloqueado(hasta, igual)).toBe(true)
-  })
+    // Act
+    const desbloqueado = estaDesbloqueado(HASTA, ahora)
 
-  it('después → desbloqueado', () => {
-    const hasta = new Date('2026-11-05T10:04:01Z')
-    const despues = new Date('2026-11-05T10:05:00Z')
-    expect(estaDesbloqueado(hasta, despues)).toBe(true)
+    // Assert
+    expect(desbloqueado).toBe(esperado)
   })
 })

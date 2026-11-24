@@ -2,7 +2,8 @@
 import { useEffect, useState, useRef } from 'react'
 import { relojReal } from '@/compartido/reloj'
 import type { Reloj } from '@/compartido/reloj'
-import { estaDesbloqueado, minutosRestantes, horaEnLima } from '../modelo/bloqueo'
+import { estaDesbloqueado } from '../modelo/bloqueo'
+import { mensajeBloqueo } from '../textos'
 
 interface Props {
   bloqueadoHastaUtc: Date
@@ -16,9 +17,9 @@ export function AvisoBloqueo({ bloqueadoHastaUtc, onDesbloqueado, reloj = relojR
 
   useEffect(() => {
     timerId.current = setInterval(() => {
-      const t = reloj.ahora()
-      setAhora(t)
-      if (estaDesbloqueado(bloqueadoHastaUtc, t)) {
+      const instante = reloj.ahora()
+      setAhora(instante)
+      if (estaDesbloqueado(bloqueadoHastaUtc, instante)) {
         if (timerId.current) clearInterval(timerId.current)
         onDesbloqueado()
       }
@@ -26,12 +27,5 @@ export function AvisoBloqueo({ bloqueadoHastaUtc, onDesbloqueado, reloj = relojR
     return () => { if (timerId.current) clearInterval(timerId.current) }
   }, [bloqueadoHastaUtc, onDesbloqueado, reloj])
 
-  const mins = minutosRestantes(bloqueadoHastaUtc, ahora)
-  const hora = horaEnLima(bloqueadoHastaUtc)
-
-  return (
-    <p role="alert" className="note bad">
-      {`Cuenta bloqueada ${mins} min por intentos fallidos. Vuelve a intentar a las ${hora}.`}
-    </p>
-  )
+  return <p role="alert" className="note bad">{mensajeBloqueo(bloqueadoHastaUtc, ahora)}</p>
 }

@@ -16,7 +16,7 @@ export function detectarTipoActor(texto: string): TipoActor {
 
 export function elegirCuenta(busqueda: string, usuarios: Usuario[]): Usuario | null {
   const normalizado = busqueda.toLowerCase()
-  const exactos = usuarios.filter(u => u.correo.toLowerCase() === normalizado)
+  const exactos = usuarios.filter(usuario => usuario.correo.toLowerCase() === normalizado)
   if (exactos.length === 1) return exactos[0] ?? null
   return null
 }

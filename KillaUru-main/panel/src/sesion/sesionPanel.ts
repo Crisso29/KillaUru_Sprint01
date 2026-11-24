@@ -8,7 +8,7 @@ export interface DatosSesion {
   sesionVenceUtc: Date
 }
 
-const esFecha = (v: unknown): v is string => typeof v === 'string' && !Number.isNaN(Date.parse(v))
+const esFecha = (valor: unknown): valor is string => typeof valor === 'string' && !Number.isNaN(Date.parse(valor))
 
 /**
  * Lee la sesión del panel tal como la manda el servidor. Falla si faltan las horas: es mejor un error claro que una

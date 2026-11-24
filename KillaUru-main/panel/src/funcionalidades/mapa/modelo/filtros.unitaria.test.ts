@@ -10,88 +10,134 @@ import {
 
 describe('filtrosDefecto', () => {
   it('devuelve Activa+PendienteConfirmacion, ambos tipos, 1-5, 7d', () => {
-    const f = filtrosDefecto()
-    expect(f.estados).toEqual(['Activa', 'PendienteConfirmacion'])
-    expect(f.tipos).toEqual(['Bache', 'Hundimiento'])
-    expect(f.severidades).toEqual([1, 2, 3, 4, 5])
-    expect(f.periodo).toBe('7d')
+    // Arrange y Act
+    const filtros = filtrosDefecto()
+
+    // Assert
+    expect(filtros.estados).toEqual(['Activa', 'PendienteConfirmacion'])
+    expect(filtros.tipos).toEqual(['Bache', 'Hundimiento'])
+    expect(filtros.severidades).toEqual([1, 2, 3, 4, 5])
+    expect(filtros.periodo).toBe('7d')
   })
 })
 
 describe('filtrosDeParams (sin parámetros → defecto)', () => {
   it('URLSearchParams vacío → filtros defecto', () => {
-    const f = filtrosDeParams(new URLSearchParams())
-    expect(f).toEqual(filtrosDefecto())
+    // Arrange y Act
+    const filtros = filtrosDeParams(new URLSearchParams())
+
+    // Assert
+    expect(filtros).toEqual(filtrosDefecto())
   })
 })
 
 describe('ida y vuelta con la dirección', () => {
   it('defecto → params → vuelve igual', () => {
+    // Arrange
     const original = filtrosDefecto()
+
+    // Act
     const vuelta = filtrosDeParams(filtrosAParams(original))
+
+    // Assert
     expect(vuelta).toEqual(original)
   })
 
   it('un solo estado se conserva', () => {
-    const f = { ...filtrosDefecto(), estados: ['Activa'] as const }
-    const vuelta = filtrosDeParams(filtrosAParams(f))
+    // Arrange
+    const filtros = { ...filtrosDefecto(), estados: ['Activa'] as const }
+
+    // Act
+    const vuelta = filtrosDeParams(filtrosAParams(filtros))
+
+    // Assert
     expect(vuelta.estados).toEqual(['Activa'])
   })
 
   it('periodo 24h se conserva', () => {
-    const f = { ...filtrosDefecto(), periodo: '24h' as const }
-    const vuelta = filtrosDeParams(filtrosAParams(f))
+    // Arrange
+    const filtros = { ...filtrosDefecto(), periodo: '24h' as const }
+
+    // Act
+    const vuelta = filtrosDeParams(filtrosAParams(filtros))
+
+    // Assert
     expect(vuelta.periodo).toBe('24h')
   })
 
   it('severidades parciales se conservan', () => {
-    const f = { ...filtrosDefecto(), severidades: [3, 4, 5] }
-    const vuelta = filtrosDeParams(filtrosAParams(f))
+    // Arrange
+    const filtros = { ...filtrosDefecto(), severidades: [3, 4, 5] }
+
+    // Act
+    const vuelta = filtrosDeParams(filtrosAParams(filtros))
+
+    // Assert
     expect(vuelta.severidades).toEqual([3, 4, 5])
   })
 })
 
 describe('valores desconocidos descartados', () => {
   it('estado desconocido se filtra', () => {
-    const p = new URLSearchParams('estado=Activa,EstadoInventado')
-    const f = filtrosDeParams(p)
-    expect(f.estados).toEqual(['Activa'])
-    expect(f.estados).not.toContain('EstadoInventado')
+    // Arrange
+    const parametros = new URLSearchParams('estado=Activa,EstadoInventado')
+
+    // Act
+    const filtros = filtrosDeParams(parametros)
+
+    // Assert
+    expect(filtros.estados).toEqual(['Activa'])
+    expect(filtros.estados).not.toContain('EstadoInventado')
   })
 
   it('tipo desconocido se filtra', () => {
-    const p = new URLSearchParams('tipo=Bache,TipoFalso')
-    const f = filtrosDeParams(p)
-    expect(f.tipos).toEqual(['Bache'])
+    // Arrange
+    const parametros = new URLSearchParams('tipo=Bache,TipoFalso')
+
+    // Act
+    const filtros = filtrosDeParams(parametros)
+
+    // Assert
+    expect(filtros.tipos).toEqual(['Bache'])
   })
 
   it('severidad fuera de rango se filtra', () => {
-    const p = new URLSearchParams('severidad=2,6,0')
-    const f = filtrosDeParams(p)
-    expect(f.severidades).toEqual([2])
+    // Arrange
+    const parametros = new URLSearchParams('severidad=2,6,0')
+
+    // Act
+    const filtros = filtrosDeParams(parametros)
+
+    // Assert
+    expect(filtros.severidades).toEqual([2])
   })
 
   it('periodo desconocido cae en 7d', () => {
-    const p = new URLSearchParams('periodo=1mes')
-    const f = filtrosDeParams(p)
-    expect(f.periodo).toBe('7d')
+    // Arrange
+    const parametros = new URLSearchParams('periodo=1mes')
+
+    // Act
+    const filtros = filtrosDeParams(parametros)
+
+    // Assert
+    expect(filtros.periodo).toBe('7d')
   })
 })
 
 describe('esGrupoVacio', () => {
-  it('sin estados → vacío', () => {
-    expect(esGrupoVacio({ ...filtrosDefecto(), estados: [] })).toBe(true)
-  })
+  it.each([
+    ['sin estados', { estados: [] }, true],
+    ['sin tipos', { tipos: [] }, true],
+    ['sin severidades', { severidades: [] }, true],
+    ['filtros por defecto', {}, false],
+  ])('%s → vacío: %s', (_caso, cambio, esperado) => {
+    // Arrange
+    const filtros = { ...filtrosDefecto(), ...cambio }
 
-  it('sin tipos → vacío', () => {
-    expect(esGrupoVacio({ ...filtrosDefecto(), tipos: [] })).toBe(true)
-  })
+    // Act
+    const vacio = esGrupoVacio(filtros)
 
-  it('sin severidades → vacío', () => {
-    expect(esGrupoVacio({ ...filtrosDefecto(), severidades: [] })).toBe(true)
-  })
-
-  it('filtros defecto → no vacío', () => {
-    expect(esGrupoVacio(filtrosDefecto())).toBe(false)
+    // Assert
+    expect(vacio).toBe(esperado)
   })
 })

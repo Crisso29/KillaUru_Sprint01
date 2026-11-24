@@ -22,48 +22,56 @@ function anomalia(kmVia: number, severidad: number): AnomaliaFeature {
 }
 
 describe('calcularTramo', () => {
-  it('km 0 → tramo 0', () => {
-    expect(calcularTramo(0)).toBe(0)
-  })
+  it.each([
+    [0, 0],
+    [9.99, 0],
+    [10, 1],
+    [332.9, 33],
+    [335.073, 33], // el fin del corredor se recorta a 332,999: no existe un tramo 34 de 2 km
+  ])('km %s → tramo %i', (km, esperado) => {
+    // Arrange y Act
+    const tramo = calcularTramo(km)
 
-  it('km 9,99 → tramo 0', () => {
-    expect(calcularTramo(9.99)).toBe(0)
-  })
-
-  it('km 10 → tramo 1', () => {
-    expect(calcularTramo(10)).toBe(1)
-  })
-
-  it('km 332,9 → tramo 33', () => {
-    expect(calcularTramo(332.9)).toBe(33)
-  })
-
-  it('km 335,073 se recorta a 332,999 → tramo 33', () => {
-    expect(calcularTramo(335.073)).toBe(33)
+    // Assert
+    expect(tramo).toBe(esperado)
   })
 })
 
 describe('agruparEnFranja', () => {
   it('agrupa por tramo con severidad máxima', () => {
+    // Arrange
     const anomalias = [anomalia(10, 2), anomalia(15, 4), anomalia(25, 3)]
+    // Act
     const franjas = agruparEnFranja(anomalias)
-    const tramo1 = franjas.find((f) => f.tramo === 1)
+
+    // Assert
+    const tramo1 = franjas.find((franja) => franja.tramo === 1)
     expect(tramo1?.cantidad).toBe(2)
     expect(tramo1?.severidadMax).toBe(4)
   })
 
   it('tramo sin anomalías → no aparece en el array', () => {
+    // Arrange y Act
     const franjas = agruparEnFranja([anomalia(5, 1)])
-    expect(franjas.some((f) => f.tramo === 1)).toBe(false)
+
+    // Assert
+    expect(franjas.some((franja) => franja.tramo === 1)).toBe(false)
   })
 
   it('anomalía única → severidadMax igual a su severidad', () => {
+    // Arrange y Act
     const franjas = agruparEnFranja([anomalia(287.4, 3)])
-    const tramo = franjas.find((f) => f.tramo === calcularTramo(287.4))
+
+    // Assert
+    const tramo = franjas.find((franja) => franja.tramo === calcularTramo(287.4))
     expect(tramo?.severidadMax).toBe(3)
   })
 
   it('lista vacía → array vacío', () => {
-    expect(agruparEnFranja([])).toHaveLength(0)
+    // Arrange y Act
+    const franjas = agruparEnFranja([])
+
+    // Assert
+    expect(franjas).toHaveLength(0)
   })
 })

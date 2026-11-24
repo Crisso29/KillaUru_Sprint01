@@ -1,30 +1,24 @@
+// T014 — «hace 2 h», «ayer a las 15:30»: tiempo relativo en hora de Lima (UTC−5)
 import { describe, it, expect } from 'vitest'
 import { formatearRelativo } from './relativo'
 
-// T014 — «hace 2 h», «ayer a las 15:30»
+// 17:00 UTC = 12:00 del 5 de noviembre en Lima
+const AHORA = new Date('2026-11-05T17:00:00Z')
+const MINUTO = 60_000
+const DIA = 24 * 60 * MINUTO
 
 describe('formatearRelativo', () => {
-  const ahora = new Date('2026-11-05T17:00:00Z')
+  it.each([
+    ['hace 30 s → «ahora mismo»', new Date(AHORA.getTime() - 30_000).toISOString(), 'ahora mismo'],
+    ['mismo día, 2 h antes → «hace 2 h»', '2026-11-05T15:00:00Z', 'hace 2 h'],
+    ['ayer en Lima a las 15:30 (20:30 UTC)', '2026-11-04T20:30:00Z', 'ayer a las 15:30'],
+    ['las 23:00 de ayer vistas a mediodía siguen siendo «ayer», no «hace 13 h»', '2026-11-05T04:00:00Z', 'ayer a las 23:00'],
+    ['hace 3 días', new Date(AHORA.getTime() - 3 * DIA).toISOString(), 'hace 3 d'],
+  ])('%s', (_caso, iso, esperado) => {
+    // Arrange y Act
+    const texto = formatearRelativo(iso, AHORA)
 
-  it('hace 2 h (dentro del mismo día)', () => {
-    const ts = new Date('2026-11-05T15:00:00Z').toISOString()
-    expect(formatearRelativo(ts, ahora)).toBe('hace 2 h')
-  })
-
-  it('hace menos de 1 min → «ahora mismo»', () => {
-    const ts = new Date(ahora.getTime() - 30_000).toISOString()
-    expect(formatearRelativo(ts, ahora)).toBe('ahora mismo')
-  })
-
-  it('ayer a las 15:30 (Lima)', () => {
-    // ayer en Lima: 2026-11-04; 15:30 Lima = 20:30 UTC
-    const ts = '2026-11-04T20:30:00Z'
-    // ahora Lima: 2026-11-05T12:00 (17:00 UTC - 5h)
-    expect(formatearRelativo(ts, ahora)).toBe('ayer a las 15:30')
-  })
-
-  it('hace 3 días', () => {
-    const ts = new Date(ahora.getTime() - 3 * 24 * 3600_000).toISOString()
-    expect(formatearRelativo(ts, ahora)).toMatch(/hace 3 d/)
+    // Assert
+    expect(texto).toBe(esperado)
   })
 })

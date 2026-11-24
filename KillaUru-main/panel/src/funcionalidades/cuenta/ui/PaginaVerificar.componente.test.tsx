@@ -12,27 +12,38 @@ afterEach(() => { window.location.hash = '' })
 
 describe('PaginaVerificar', () => {
   it('204 → muestra confirmación', async () => {
+    // Arrange
     window.location.hash = '#token=abc-valido'
+
+    // Act
     renderizar(<PaginaVerificar />)
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByText(/verificado/i)).toBeTruthy()
     })
   })
 
   it('400 enlace_invalido → muestra error', async () => {
+    // Arrange
     server.use(
       http.post(`${BASE}/api/v1/auth/verificar-correo`, () =>
         HttpResponse.json({ codigo: 'enlace_invalido' }, { status: 400 }),
       ),
     )
     window.location.hash = '#token=token-vencido'
+
+    // Act
     renderizar(<PaginaVerificar />)
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByText(/no es válido o ya venció/i)).toBeTruthy()
     })
   })
 
   it('el token no se envía dos veces', async () => {
+    // Arrange
     let count = 0
     server.use(
       http.post(`${BASE}/api/v1/auth/verificar-correo`, () => {
@@ -41,14 +52,23 @@ describe('PaginaVerificar', () => {
       }),
     )
     window.location.hash = '#token=token-unico'
+
+    // Act
     renderizar(<PaginaVerificar />)
+
+    // Assert
     await waitFor(() => expect(screen.getByText(/verificado/i)).toBeTruthy())
     expect(count).toBe(1)
   })
 
   it('sin token en el hash → muestra error de enlace', async () => {
+    // Arrange
     window.location.hash = ''
+
+    // Act
     renderizar(<PaginaVerificar />)
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByText(/no es válido o ya venció/i)).toBeTruthy()
     })

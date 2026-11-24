@@ -1,73 +1,65 @@
 // T084 — FormularioExportacion: rango, tipo, estado y formato (FR-034…; prototipo «Nueva exportación»)
 import { useState } from 'react'
-import type { EstadoAnomalia } from '@/api/dtos/002-mapa'
 import { construirSolicitud } from '../modelo/solicitud'
 import { useExportar } from '../api/useExportar'
-import { TEXTOS_EXPORTACION as T } from '../textos'
+import { TEXTOS_EXPORTACION as textos } from '../textos'
 import { Icono } from '@/compartido/ui'
-import { textoEstado } from '@/compartido/textos/estados'
 import { ColumnasExportadas } from './ColumnasExportadas'
+import { CamposFiltro, type Filtro } from './CamposFiltro'
 
-const ESTADOS: EstadoAnomalia[] = ['Activa', 'PendienteConfirmacion', 'Expirada', 'Reparada', 'Descartada']
-const FORMATOS = [
+type Formato = 'CSV' | 'GeoJSON'
+
+const FORMATOS: { valor: Formato; nota: string }[] = [
   { valor: 'CSV', nota: 'Excel, Google Sheets' },
   { valor: 'GeoJSON', nota: 'QGIS u otro SIG' },
-] as const
+]
 
 export function FormularioExportacion() {
-  const [formato, setFormato] = useState<'CSV' | 'GeoJSON'>('CSV')
-  const [desde, setDesde] = useState('')
-  const [hasta, setHasta] = useState('')
-  const [tipo, setTipo] = useState('Todos')
-  const [estado, setEstado] = useState<EstadoAnomalia | ''>('')
+  const [formato, setFormato] = useState<Formato>('CSV')
+  const [filtro, setFiltro] = useState<Filtro>({ desde: '', hasta: '', tipo: 'Todos', estado: '' })
   const exportar = useExportar()
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    exportar.mutate(construirSolicitud(formato, desde, hasta, tipo, estado ? [estado] : []))
-  }
-
+  const enviar = (evento: React.FormEvent) => { evento.preventDefault(); exportar.mutate(solicitudDe(formato, filtro)) }
   return (
-    <form onSubmit={handleSubmit} className="card" aria-labelledby="titulo-nueva">
-      <div className="card-h"><h3 id="titulo-nueva">{T.nueva}</h3></div>
+    <form onSubmit={enviar} className="card" aria-labelledby="titulo-nueva">
+      <div className="card-h"><h3 id="titulo-nueva">{textos.nueva}</h3></div>
       <div className="card-b" style={{ display: 'grid', gap: 'var(--s-13)' }}>
-        <div className="rejilla-2">
-          <div className="field"><label htmlFor="desde">{T.labelDesde}</label>
-            <input id="desde" type="date" value={desde} onChange={e => setDesde(e.target.value)} /></div>
-          <div className="field"><label htmlFor="hasta">{T.labelHasta}</label>
-            <input id="hasta" type="date" value={hasta} onChange={e => setHasta(e.target.value)} /></div>
-          <div className="field"><label htmlFor="tipo">{T.labelTipo}</label>
-            <select id="tipo" value={tipo} onChange={e => setTipo(e.target.value)}>
-              <option value="Todos">{T.todosTipos}</option>
-              <option value="Bache">Bache</option>
-              <option value="Hundimiento">Hundimiento</option>
-            </select></div>
-          <div className="field"><label htmlFor="estado">{T.labelEstados}</label>
-            <select id="estado" value={estado} onChange={e => setEstado(e.target.value as EstadoAnomalia | '')}>
-              <option value="">{T.todosEstados}</option>
-              {ESTADOS.map(s => <option key={s} value={s}>{textoEstado(s)}</option>)}
-            </select></div>
-        </div>
-        <fieldset className="fmt" style={{ border: 0, padding: 0 }}>
-          <legend className="sr-only">{T.labelFormato}</legend>
-          {FORMATOS.map(f => (
-            <label key={f.valor}>
-              <input type="radio" name="formato" value={f.valor} checked={formato === f.valor} onChange={() => setFormato(f.valor)} />
-              <span><b>{f.valor}</b><small>{f.nota}</small></span>
-            </label>
-          ))}
-        </fieldset>
+        <CamposFiltro filtro={filtro} onCambiar={setFiltro} />
+        <SelectorFormato valor={formato} onCambiar={setFormato} />
         <ColumnasExportadas />
-        {exportar.isError && <p role="alert" className="note bad">{T.errorExportar}</p>}
-        <div className="row" style={{ borderTop: '1px solid var(--line)', paddingTop: 'var(--s-13)' }}>
-          <span className="hint" style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
-            <Icono nombre="shield" tamano={12} />{T.seudonimoNota}
-          </span>
-          <button type="submit" className="ob pri" disabled={exportar.isPending} style={{ height: 36 }}>
-            <Icono nombre="down" tamano={14} />{exportar.isPending ? T.cargando : T.exportar}
-          </button>
-        </div>
+        {exportar.isError && <p role="alert" className="note bad">{textos.errorExportar}</p>}
+        <PieEnviar ocupado={exportar.isPending} />
       </div>
     </form>
   )
 }
+
+function SelectorFormato({ valor, onCambiar }: { valor: Formato; onCambiar: (formato: Formato) => void }) {
+  return (
+    <fieldset className="fmt" style={{ border: 0, padding: 0 }}>
+      <legend className="sr-only">{textos.labelFormato}</legend>
+      {FORMATOS.map((opcion) => (
+        <label key={opcion.valor}>
+          <input type="radio" name="formato" value={opcion.valor} checked={valor === opcion.valor} onChange={() => onCambiar(opcion.valor)} />
+          <span><b>{opcion.valor}</b><small>{opcion.nota}</small></span>
+        </label>
+      ))}
+    </fieldset>
+  )
+}
+
+/** El archivo nunca lleva seudónimos (RNF-10): se recuerda junto al botón. */
+function PieEnviar({ ocupado }: { ocupado: boolean }) {
+  return (
+    <div className="row" style={{ borderTop: '1px solid var(--line)', paddingTop: 'var(--s-13)' }}>
+      <span className="hint" style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+        <Icono nombre="shield" tamano={12} />{textos.seudonimoNota}
+      </span>
+      <button type="submit" className="ob pri" disabled={ocupado} style={{ height: 36 }}>
+        <Icono nombre="down" tamano={14} />{ocupado ? textos.cargando : textos.exportar}
+      </button>
+    </div>
+  )
+}
+
+const solicitudDe = (formato: Formato, filtro: Filtro) =>
+  construirSolicitud(formato, filtro.desde, filtro.hasta, filtro.tipo, filtro.estado ? [filtro.estado] : [])

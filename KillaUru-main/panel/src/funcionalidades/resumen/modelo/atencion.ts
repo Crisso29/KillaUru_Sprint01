@@ -30,8 +30,8 @@ export function primerPendiente(
   ahora: Date,
 ): string | null {
   if (pendientes.length === 0) return null
-  const vence = (p: ElementoPendiente) => new Date(p.venceUtc).getTime()
-  const primero = pendientes.reduce((a, b) => (vence(b) < vence(a) ? b : a))
+  const vence = (pendiente: ElementoPendiente) => new Date(pendiente.venceUtc).getTime()
+  const primero = pendientes.reduce((actual, otro) => (vence(otro) < vence(actual) ? otro : actual))
   const horas = Math.ceil((vence(primero) - ahora.getTime()) / 3_600_000)
   return `${primero.id.slice(0, 8)} expira en ${horas >= 1 ? horas : 'menos de 1'} h`
 }

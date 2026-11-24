@@ -1,6 +1,6 @@
 // T084 — useRecientes: GET /api/v1/auditoria?accion=DatasetExportado
 import { useQuery } from '@tanstack/react-query'
-import { entorno } from '@/config/entorno'
+import { pedirApi } from '@/api/http'
 
 export interface RegistroExportacion {
   id: number
@@ -13,12 +13,11 @@ export function useRecientes() {
   return useQuery<RegistroExportacion[]>({
     queryKey: ['exportaciones-recientes'],
     queryFn: async () => {
-      const r = await fetch(
-        `${entorno.urlApi}/api/v1/auditoria?accion=DatasetExportado`,
-        { credentials: 'include' },
+      const respuesta = await pedirApi(
+        `/api/v1/auditoria?accion=DatasetExportado`
       )
-      if (!r.ok) return []
-      const json = await r.json() as { elementos: RegistroExportacion[] }
+      if (!respuesta.ok) return []
+      const json = await respuesta.json() as { elementos: RegistroExportacion[] }
       return json.elementos ?? []
     },
     staleTime: 2 * 60_000,

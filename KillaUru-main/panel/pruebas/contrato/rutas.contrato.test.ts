@@ -10,10 +10,10 @@ import { join, resolve } from 'node:path'
 const RAIZ = resolve(__dirname, '../../..')
 
 function archivos(dir: string, filtro: (f: string) => boolean): string[] {
-  return readdirSync(dir).flatMap((n) => {
-    const ruta = join(dir, n)
-    if (statSync(ruta).isDirectory()) return n === 'generado' || n === 'dtos' ? [] : archivos(ruta, filtro)
-    return filtro(n) ? [ruta] : []
+  return readdirSync(dir).flatMap((nombre) => {
+    const ruta = join(dir, nombre)
+    if (statSync(ruta).isDirectory()) return nombre === 'generado' || nombre === 'dtos' ? [] : archivos(ruta, filtro)
+    return filtro(nombre) ? [ruta] : []
   })
 }
 
@@ -22,22 +22,22 @@ const normalizar = (ruta: string) => ruta.replace(/\$\{[^}]+\}|\{[^}]+\}|:\w+/g,
 
 function rutasDelContrato(): Set<string> {
   const specs = join(RAIZ, 'specs')
-  const yamls = readdirSync(specs).flatMap((m) => {
-    const dir = join(specs, m, 'contracts')
-    try { return archivos(dir, (f) => f.endsWith('.yaml')) } catch { return [] }
+  const yamls = readdirSync(specs).flatMap((carpeta) => {
+    const dir = join(specs, carpeta, 'contracts')
+    try { return archivos(dir, (archivo) => archivo.endsWith('.yaml')) } catch { return [] }
   })
-  return new Set(yamls.flatMap((y) => [...readFileSync(y, 'utf8').matchAll(/^ {2}(\/api\/v1\/\S+):/gm)].map((m) => normalizar(m[1]!))))
+  return new Set(yamls.flatMap((y) => [...readFileSync(y, 'utf8').matchAll(/^ {2}(\/api\/v1\/\S+):/gm)].map((coincidencia) => normalizar(coincidencia[1]!))))
 }
 
 function rutasUsadas(): Map<string, string> {
   const fuentes = [
-    ...archivos(join(RAIZ, 'panel/src'), (f) => /\.tsx?$/.test(f) && !f.includes('.test.')),
-    ...archivos(join(RAIZ, 'panel/pruebas/msw'), (f) => f.endsWith('.ts')),
+    ...archivos(join(RAIZ, 'panel/src'), (archivo) => /\.tsx?$/.test(archivo) && !archivo.includes('.test.')),
+    ...archivos(join(RAIZ, 'panel/pruebas/msw'), (archivo) => archivo.endsWith('.ts')),
   ]
   const usadas = new Map<string, string>()
-  for (const f of fuentes) {
-    for (const m of readFileSync(f, 'utf8').matchAll(/\$\{(?:BASE|entorno\.urlApi)\}(\/api\/v1\/[^`?'"]*)/g)) {
-      usadas.set(normalizar(m[1]!), f.slice(RAIZ.length + 1))
+  for (const fuente of fuentes) {
+    for (const coincidencia of readFileSync(fuente, 'utf8').matchAll(/\$\{(?:BASE|entorno\.urlApi)\}(\/api\/v1\/[^`?'"]*)/g)) {
+      usadas.set(normalizar(coincidencia[1]!), fuente.slice(RAIZ.length + 1))
     }
   }
   return usadas
@@ -45,7 +45,7 @@ function rutasUsadas(): Map<string, string> {
 
 describe('Rutas del panel frente a los contratos OpenAPI', () => {
   it('lee los contratos y encuentra las rutas del panel', () => {
-    // Arrange + Act
+    // Arrange y Act
     const contrato = rutasDelContrato()
     const usadas = rutasUsadas()
     // Assert — si alguna lista sale vacía, la prueba no estaría mirando nada
@@ -57,7 +57,7 @@ describe('Rutas del panel frente a los contratos OpenAPI', () => {
     // Arrange
     const contrato = rutasDelContrato()
     // Act
-    const fuera = [...rutasUsadas()].filter(([ruta]) => !contrato.has(ruta)).map(([r, f]) => `${r} (${f})`)
+    const fuera = [...rutasUsadas()].filter(([ruta]) => !contrato.has(ruta)).map(([ruta, archivo]) => `${ruta} (${archivo})`)
     // Assert
     expect(fuera).toEqual([])
   })

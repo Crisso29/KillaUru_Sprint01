@@ -34,22 +34,32 @@ const DETALLE_REPARADA: DetalleAnomalia = { ...DETALLE_ACTIVA, estado: 'Reparada
 
 describe('AccionesModeracion', () => {
   it('desde Activa → botones MarcarReparada y Descartar habilitados', async () => {
+    // Arrange y Act
     renderizar(<AccionesModeracion detalle={DETALLE_ACTIVA} onModerado={() => {}} />)
+
+    // Assert
     expect(screen.getByRole('button', { name: /marcar.*reparada/i })).toBeTruthy()
     expect(screen.getByRole('button', { name: /descartar/i })).toBeTruthy()
   })
 
-  it('desde Reparada → Reabrir habilitado; botones no disponibles con tooltip', async () => {
+  it('desde Reparada → Reabrir habilitado; los botones no disponibles explican por qué', () => {
+    // Arrange y Act
     renderizar(<AccionesModeracion detalle={DETALLE_REPARADA} onModerado={() => {}} />)
-    expect(screen.getByRole('button', { name: /reabrir/i })).toBeTruthy()
-    const noDisponibles = screen.getAllByTitle(/no disponible desde reparada/i)
-    expect(noDisponibles.length).toBeGreaterThan(0)
+
+    // Assert
+    expect(screen.getByRole('button', { name: /reabrir/i })).toBeEnabled()
+    expect(screen.getAllByTitle(/no disponible desde reparada/i).length).toBeGreaterThan(0)
   })
 
   it('clic en MarcarReparada → abre diálogo de confirmación', async () => {
+    // Arrange
     const user = userEvent.setup()
     renderizar(<AccionesModeracion detalle={DETALLE_ACTIVA} onModerado={() => {}} />)
+
+    // Act
     await user.click(screen.getByRole('button', { name: /marcar como reparada/i }))
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeTruthy()
       expect(screen.getByRole('heading', { name: /marcar.*como reparada/i })).toBeTruthy()
@@ -58,34 +68,46 @@ describe('AccionesModeracion', () => {
   })
 
   it('confirmar MarcarReparada → POST /moderacion con accion=MarcarReparada', async () => {
-    let body: { accion: string } | null = null
+    // Arrange
+    const pedido: { cuerpo?: { accion: string } } = {}
     server.use(
       http.post(`${BASE}/api/v1/anomalies/:id/moderacion`, async ({ request }) => {
-        body = await request.json() as { accion: string }
+        pedido.cuerpo = await request.json() as { accion: string }
         return HttpResponse.json({ ...DETALLE_ACTIVA, estado: 'Reparada' })
       }),
     )
-    const user = userEvent.setup()
-    renderizar(<AccionesModeracion detalle={DETALLE_ACTIVA} onModerado={() => {}} />)
-    await user.click(screen.getByRole('button', { name: /marcar.*reparada/i }))
-    await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
+    const user = await abrirConfirmacion()
+
+    // Act
     await user.click(screen.getByRole('button', { name: /confirmar/i }))
-    await waitFor(() => expect(body?.accion).toBe('MarcarReparada'))
+
+    // Assert
+    await waitFor(() => expect(pedido.cuerpo?.accion).toBe('MarcarReparada'))
   })
 
   it('409 transicion_no_permitida → muestra aviso y cierra diálogo', async () => {
+    // Arrange
     server.use(
       http.post(`${BASE}/api/v1/anomalies/:id/moderacion`, () =>
         HttpResponse.json({ codigo: 'transicion_no_permitida' }, { status: 409 }),
       ),
     )
-    const user = userEvent.setup()
-    renderizar(<AccionesModeracion detalle={DETALLE_ACTIVA} onModerado={() => {}} />)
-    await user.click(screen.getByRole('button', { name: /marcar.*reparada/i }))
-    await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
+    const user = await abrirConfirmacion()
+
+    // Act
     await user.click(screen.getByRole('button', { name: /confirmar/i }))
-    await waitFor(() =>
-      expect(screen.getByText(/ya no se puede.*anomalía cambió/i)).toBeTruthy(),
-    )
+
+    // Assert
+    expect(await screen.findByText(/ya no se puede.*anomalía cambió/i)).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 })
+
+/** Muestra las acciones de una anomalía Activa y abre la confirmación de «Marcar como reparada». */
+async function abrirConfirmacion() {
+  const user = userEvent.setup()
+  renderizar(<AccionesModeracion detalle={DETALLE_ACTIVA} onModerado={() => {}} />)
+  await user.click(screen.getByRole('button', { name: /marcar.*reparada/i }))
+  await screen.findByRole('dialog')
+  return user
+}

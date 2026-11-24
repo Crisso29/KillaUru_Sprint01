@@ -8,7 +8,11 @@
       "categoria": "Moderacion",
       "accion": "AnomaliaModerada",
       "objetivo": "b2b2b2b2-0000-0000-0000-000000000001",
-      "contexto": { "accion": "MarcarReparada", "desde": "Activa", "hacia": "Reparada" }
+      "contexto": {
+        "accion": "MarcarReparada",
+        "desde": "Activa",
+        "hacia": "Reparada"
+      }
     },
     {
       "id": 1002,
@@ -18,7 +22,10 @@
       "categoria": "AccesoADatos",
       "accion": "AccesoAdministrativoDatos",
       "objetivo": null,
-      "contexto": { "tabla": "auditoria", "filtros": {} }
+      "contexto": {
+        "tabla": "auditoria",
+        "filtros": {}
+      }
     },
     {
       "id": 1003,
@@ -28,10 +35,26 @@
       "categoria": "Usuarios",
       "accion": "RolCambiado",
       "objetivo": "c3c3c3c3-0000-0000-0000-000000000001",
-      "contexto": { "rolAnterior": "ConductorRegistrado", "rolNuevo": "Administrador" }
+      "contexto": {
+        "rolAnterior": "ConductorRegistrado",
+        "rolNuevo": "Administrador"
+      }
+    },
+    {
+      "id": 1004,
+      "ocurridoUtc": "2026-11-04T08:40:00Z",
+      "actorId": "a1a1a1a1-0000-0000-0000-000000000001",
+      "actorRol": "Administrador",
+      "categoria": "Exportacion",
+      "accion": "DatasetExportado",
+      "objetivo": null,
+      "contexto": {
+        "formato": "CSV",
+        "filas": 128
+      }
     }
   ],
   "pagina": 1,
   "tamano": 50,
-  "total": 3
+  "total": 4
 }

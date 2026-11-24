@@ -15,14 +15,14 @@ const abrir = (direccion: string) =>
 
 describe('PaginaModeracion: pestaña desde la dirección', () => {
   it('?pestana=pendientes abre «Esperan confirmación»', () => {
-    // Arrange + Act
+    // Arrange y Act
     abrir('/moderacion?pestana=pendientes')
     // Assert
     expect(screen.getByRole('tab', { name: /Esperan confirmación/ }).getAttribute('aria-selected')).toBe('true')
   })
 
   it('sin parámetro abre «Por revisar»', () => {
-    // Arrange + Act
+    // Arrange y Act
     abrir('/moderacion')
     // Assert
     expect(screen.getByRole('tab', { name: /Por revisar/ }).getAttribute('aria-selected')).toBe('true')

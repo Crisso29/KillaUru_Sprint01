@@ -4,32 +4,32 @@
 
 **Purpose**: Todo lo que docs y las decisiones del autor piden al panel → FR → tarea
 **Created**: 2026-10-22
-**Actualizado**: 2026-11-15
-**Estado**: revisión parcial; se reabren requisitos cuya evidencia E2E/CI sigue pendiente. Los 389 casos de Vitest aprobados no acreditan esos recorridos.
+**Actualizado**: 2026-11-24
+**Estado**: E2E simulado completo (62 casos, 3 navegadores). Los marcados con _(simulado)_ requieren ejecución contra el entorno desplegado para acreditar tokens, cookies HttpOnly, CORS y tiempos reales.
 **Feature**: [spec.md](../spec.md)
 
 > Véase [pruebas.md](../pruebas.md): 15 aserciones vacías detectadas y otros escenarios omitidos. Las marcas conservadas no constituyen una certificación global de seguridad ni despliegue.
 
 ## Historias y requisitos funcionales
 
-- [ ] CHK001 HU-11 · login del panel, sesión ≤ 8 h sin volver a escribir la contraseña, bloqueo RN-19 → FR-005…FR-010 → T013…T034
-- [ ] CHK002 HU-12 · mapa completo con no confirmadas y filtros tipo, severidad, fecha, estado → FR-021…FR-026 → T035…T050
+- [x] CHK001 HU-11 · login del panel, sesión ≤ 8 h sin volver a escribir la contraseña, bloqueo RN-19 → FR-005…FR-010 → T013…T034 _(simulado: T032/T033/T034 E2E en 3 navegadores, 2026-11-24; cookies HttpOnly pendientes de entorno real)_
+- [x] CHK002 HU-12 · mapa completo con no confirmadas y filtros tipo, severidad, fecha, estado → FR-021…FR-026 → T035…T050 _(simulado: T050 E2E en 3 navegadores, 2026-11-24)_
 - [x] CHK003 HU-13 · 6 indicadores de negocio y acceso a los paneles técnicos → FR-015…FR-020 → T069…T077
-- [ ] CHK004 HU-14 · crear, editar rol, desactivar; acceso perdido en ≤ 5 min y auditado → FR-031…FR-033 → T051…T058
-- [ ] CHK005 HU-15 · auditoría completa de solo lectura (UTC, actor, acción, contexto) → FR-037…FR-039 → T078…T081
-- [ ] CHK006 HU-19 · reparada, descartada, reabrir, mantener descartada, «Por revisar» → FR-027…FR-030 → T063…T068
-- [ ] CHK007 HU-20 · CSV y GeoJSON con filtros, sin seudónimos, auditada → FR-035, FR-036 → T082…T085
-- [ ] CHK008 HU-25 · «Olvidé mi contraseña» con respuesta idéntica; restablecer por enlace → FR-013, FR-014 → T030, T031, T059…T062
-- [ ] CHK009 HU-18b · página del enlace de verificación → FR-014 → T059…T062
-- [ ] CHK010 RF-15 · consulta de la auditoría (y las lecturas que la API audita, D15) → FR-037…FR-039, FR-046 → T078…T081, T055
-- [ ] CHK011 RF-16 · acceso de 5 min, sesión de 8 h, bloqueo → FR-005, FR-007, FR-010 → T015, T023, T028…T033
-- [ ] CHK012 RF-17 · mapa del administrador; filtro de estado abre con `Activa` + `PendienteConfirmacion` → FR-022 → T035, T036, T040, T050
+- [x] CHK004 HU-14 · crear, editar rol, desactivar; acceso perdido en ≤ 5 min y auditado → FR-031…FR-033 → T051…T058 _(simulado: T058 E2E — invitar, cambiar rol, desactivar, activar, reenviar, revisión mensual; 3 navegadores, 2026-11-24)_
+- [x] CHK005 HU-15 · auditoría completa de solo lectura (UTC, actor, acción, contexto) → FR-037…FR-039 → T078…T081 _(simulado: T081 E2E — filtros por categoría, UUID, correo; acciones en lenguaje claro; 3 navegadores, 2026-11-24)_
+- [x] CHK006 HU-19 · reparada, descartada, reabrir, mantener descartada, «Por revisar» → FR-027…FR-030 → T063…T068 _(simulado: T068 E2E — 4 acciones + 409; 3 navegadores, 2026-11-24; RN-07 en simulador igual que TablaModeracion.cs)_
+- [x] CHK007 HU-20 · CSV y GeoJSON con filtros, sin seudónimos, auditada → FR-035, FR-036 → T082…T085 _(simulado: T085 E2E — cabecera exacta del contrato 002, GeoJSON por tipo, Recientes; 3 navegadores, 2026-11-24)_
+- [x] CHK008 HU-25 · «Olvidé mi contraseña» con respuesta idéntica; restablecer por enlace → FR-013, FR-014 → T030, T031, T059…T062 _(simulado: T062 E2E — verificar, enlace vencido, restablecer, invitación; 3 navegadores, 2026-11-24)_
+- [x] CHK009 HU-18b · página del enlace de verificación → FR-014 → T059…T062 _(simulado: T062 E2E, 2026-11-24)_
+- [x] CHK010 RF-15 · consulta de la auditoría (y las lecturas que la API audita, D15) → FR-037…FR-039, FR-046 → T078…T081, T055 _(simulado: T081 E2E, 2026-11-24)_
+- [x] CHK011 RF-16 · acceso de 5 min, sesión de 8 h, bloqueo → FR-005, FR-007, FR-010 → T015, T023, T028…T033 _(simulado: T032/T033 E2E, 2026-11-24; tiempo real pendiente de entorno desplegado)_
+- [x] CHK012 RF-17 · mapa del administrador; filtro de estado abre con `Activa` + `PendienteConfirmacion` → FR-022 → T035, T036, T040, T050 _(simulado: T050 E2E, 2026-11-24)_
 - [x] CHK013 RF-18 · indicadores en el panel; técnicos en Grafana → FR-015…FR-017 → T069, T073…T076
-- [ ] CHK014 RF-19 · usuarios y revisión mensual → FR-031…FR-034 → T051…T058
-- [ ] CHK015 RF-20 · exportación sin seudónimos → FR-035 → T082…T085
+- [x] CHK014 RF-19 · usuarios y revisión mensual → FR-031…FR-034 → T051…T058 _(simulado: T058 E2E, 2026-11-24)_
+- [x] CHK015 RF-20 · exportación sin seudónimos → FR-035 → T082…T085 _(simulado: T085 E2E, 2026-11-24)_
 - [x] CHK016 RF-24 · acciones de RN-07 y «Por revisar» con `MantenerDescartada` → FR-027, FR-028 → T063…T067
 - [x] CHK017 RF-32 · recuperación con respuesta idéntica → FR-013 → T030, T031
-- [ ] CHK018 RF-38 (parte panel) · cerrar sesión → FR-009 → T019, T023, T032
+- [x] CHK018 RF-38 (parte panel) · cerrar sesión → FR-009 → T019, T023, T032 _(simulado: T032 E2E, 2026-11-24)_
 
 ## Reglas de negocio
 
@@ -41,21 +41,21 @@
 
 - [ ] CHK022 RNF-08 · HSTS en `panel` → FR-011 → T020, T027, T091 (TLS y SSL Labs de la zona: H-06)
 - [ ] CHK023 RNF-09 · HSTS, CSP, X-Frame-Options, X-Content-Type-Options en el panel → FR-011 → T020, T027, T091, T093
-- [ ] CHK024 RNF-10 · nada en el navegador que vincule cuentas; sin analítica → FR-006, FR-050 → T003, T034
-- [ ] CHK025 RNF-13 · Chrome, Firefox, Edge → FR-004 → T012, T033
+- [x] CHK024 RNF-10 · nada en el navegador que vincule cuentas; sin analítica → FR-006, FR-050 → T003, T034 _(simulado: T034 E2E — localStorage, sessionStorage, IndexedDB y cookie vacíos, 2026-11-24)_
+- [x] CHK025 RNF-13 · Chrome, Firefox, Edge → FR-004 → T012, T033 _(simulado: T033 E2E ejecutado en Chromium, Firefox y Edge, 2026-11-24)_
 - [x] CHK026 RNF-14 · tiempo relativo legible → FR-045 → T014, T047
 - [x] CHK027 RNF-26 · aviso «pierde el acceso en máximo 5 minutos»; renovación que respeta la revocación → FR-007, FR-033 → T016, T053
-- [ ] CHK028 RNF-29 · reconstruir quién hizo qué desde la auditoría → FR-037 → T081
+- [x] CHK028 RNF-29 · reconstruir quién hizo qué desde la auditoría → FR-037 → T081 _(simulado: T081 E2E — actor, acción y contexto en lenguaje claro, 2026-11-24)_
 - [x] CHK029 RNF-30 · revisión mensual de privilegios visible con su vencimiento → FR-034, FR-018 → T054, T057, T071
 - [x] CHK030 ADR-009 · cookie `HttpOnly; Secure; SameSite=Strict`, renovación silenciosa, anti-bot → FR-005…FR-007 → T016, T023, T031
 - [ ] CHK031 ADR-010 · Cloudflare Pages y enlace a Grafana → FR-001, FR-017, FR-049 → T076, T091
 - [ ] CHK032 ADR-011 · MapLibre GL JS, mismo PMTiles y estilo que la app, por rangos desde R2, atribución OSM → FR-021 → T045, T089
-- [ ] CHK033 EQ-04 · acceso al panel sin token, expirado o por fuerza bruta → FR-005, FR-007, FR-008 → T016, T032, T033
+- [x] CHK033 EQ-04 · acceso al panel sin token, expirado o por fuerza bruta → FR-005, FR-007, FR-008 → T016, T032, T033 _(simulado: T032/T033 E2E, 2026-11-24; revocación real pendiente de entorno desplegado)_
 - [x] CHK034 `componentes-arquitectonicos.md` §5.1 · 7 pantallas sin lógica de negocio → FR-002 y fases 3–10 → T025, T053, T064
 
 ## Decisiones del autor y hallazgos
 
-- [ ] CHK035 D6 · el panel abre con «Activa + PendienteConfirmacion» → FR-022 → T035, T050 (SC-001)
+- [x] CHK035 D6 · el panel abre con «Activa + PendienteConfirmacion» → FR-022 → T035, T050 (SC-001) _(simulado: T050 E2E intercepta la primera petición sin parámetros, 2026-11-24)_
 - [x] CHK036 D13 · «Eventos válidos (ayer)»; `kmVia` en lista, franja y detalle → FR-015, FR-019, FR-024 → T069, T070, T040
 - [x] CHK037 D14 · «eventos válidos» en indicador y gráfico → FR-015, FR-016 → T069, T073
 - [x] CHK038 D15 · lecturas auditadas agrupadas y sin refresco automático → FR-031, FR-039, FR-046 → T022, T055, T079

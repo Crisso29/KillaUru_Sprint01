@@ -18,18 +18,18 @@ interface Props {
 export function BarraFiltros({ filtros, onChange }: Props) {
   return (
     <div className="mtb" role="group" aria-label="Filtros del mapa">
-      <MenuFiltro etiqueta={TEXTOS_MAPA.tipoLabel} opciones={TIPOS_OPTS.map(t => ({ valor: t, etiqueta: t }))} seleccionadas={[...filtros.tipos]} onChange={vals => onChange({ ...filtros, tipos: TIPOS_OPTS.filter(t => vals.includes(t)) })} />
-      <MenuFiltro etiqueta={TEXTOS_MAPA.severidadLabel} opciones={SEVERIDADES_OPTS.map(s => ({ valor: String(s), etiqueta: String(s) }))} seleccionadas={filtros.severidades.map(String)} onChange={vals => onChange({ ...filtros, severidades: vals.map(Number) })} />
-      <MenuFiltro etiqueta={TEXTOS_MAPA.estadoLabel} opciones={ESTADOS_OPTS.map(e => ({ valor: e, etiqueta: textoEstado(e) }))} seleccionadas={[...filtros.estados]} onChange={vals => onChange({ ...filtros, estados: ESTADOS_OPTS.filter(e => vals.includes(e)) })} />
+      <MenuFiltro etiqueta={TEXTOS_MAPA.tipoLabel} opciones={TIPOS_OPTS.map(tipo => ({ valor: tipo, etiqueta: tipo }))} seleccionadas={[...filtros.tipos]} onChange={vals => onChange({ ...filtros, tipos: TIPOS_OPTS.filter(tipo => vals.includes(tipo)) })} />
+      <MenuFiltro etiqueta={TEXTOS_MAPA.severidadLabel} opciones={SEVERIDADES_OPTS.map(severidad => ({ valor: String(severidad), etiqueta: String(severidad) }))} seleccionadas={filtros.severidades.map(String)} onChange={vals => onChange({ ...filtros, severidades: vals.map(Number) })} />
+      <MenuFiltro etiqueta={TEXTOS_MAPA.estadoLabel} opciones={ESTADOS_OPTS.map(evento => ({ valor: evento, etiqueta: textoEstado(evento) }))} seleccionadas={[...filtros.estados]} onChange={vals => onChange({ ...filtros, estados: ESTADOS_OPTS.filter(evento => vals.includes(evento)) })} />
       <label className="fbtn">
         {TEXTOS_MAPA.periodoLabel}:
         <select
           aria-label={TEXTOS_MAPA.periodoLabel}
           value={filtros.periodo}
-          onChange={e => onChange({ ...filtros, periodo: e.target.value as Periodo })}
+          onChange={evento => onChange({ ...filtros, periodo: evento.target.value as Periodo })}
           style={{ border: 0, background: 'transparent', fontWeight: 600, color: 'var(--ink)', cursor: 'pointer' }}
         >
-          {PERIODOS_OPTS.map(p => <option key={p} value={p}>{ETIQ_PERIODO[p]}</option>)}
+          {PERIODOS_OPTS.map(periodo => <option key={periodo} value={periodo}>{ETIQ_PERIODO[periodo]}</option>)}
         </select>
       </label>
     </div>

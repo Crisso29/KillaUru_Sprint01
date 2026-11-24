@@ -4,30 +4,90 @@ import { formatearNumero, formatearPorcentaje, formatearDelta, formatearDeltaPts
 // T014 — «287,4» · «8,1 %» · «+12» · «−4» · «+4 pts» · «+1 pt»
 
 describe('formatearNumero', () => {
-  it('287.4 → «287,4»', () => expect(formatearNumero(287.4)).toBe('287,4'))
-  it('entero sin decimales', () => expect(formatearNumero(1000)).toBe('1000'))
-  it('cero', () => expect(formatearNumero(0)).toBe('0'))
+  it('287.4 → «287,4»', () => {
+    // Arrange y Act
+    const resultado = formatearNumero(287.4)
+
+    // Assert
+    expect(resultado).toBe('287,4')
+  })
+  it('entero sin decimales', () => {
+    // Arrange y Act
+    const resultado = formatearNumero(1000)
+
+    // Assert
+    expect(resultado).toBe('1000')
+  })
+  it('cero', () => {
+    // Arrange y Act
+    const resultado = formatearNumero(0)
+
+    // Assert
+    expect(resultado).toBe('0')
+  })
 })
 
 describe('formatearPorcentaje', () => {
-  it('8.1 → «8,1 %»', () => expect(formatearPorcentaje(8.1)).toBe('8,1 %'))
-  it('100 → «100 %»', () => expect(formatearPorcentaje(100)).toBe('100 %'))
+  it('8.1 → «8,1 %»', () => {
+    // Arrange y Act
+    const resultado = formatearPorcentaje(8.1)
+
+    // Assert
+    expect(resultado).toBe('8,1 %')
+  })
+  it('100 → «100 %»', () => {
+    // Arrange y Act
+    const resultado = formatearPorcentaje(100)
+
+    // Assert
+    expect(resultado).toBe('100 %')
+  })
 })
 
 describe('formatearDelta', () => {
-  it('+12 → «+12»', () => expect(formatearDelta(12)).toBe('+12'))
-  it('-4 → «−4» (menos tipográfico)', () => {
-    const r = formatearDelta(-4)
-    expect(r).toMatch(/^[−-]4$/)
+  it('+12 → «+12»', () => {
+    // Arrange y Act
+    const resultado = formatearDelta(12)
+
+    // Assert
+    expect(resultado).toBe('+12')
   })
-  it('0 → «0»', () => expect(formatearDelta(0)).toBe('0'))
+  it('-4 → «−4» (menos tipográfico)', () => {
+    // Arrange y Act
+    const resultado = formatearDelta(-4)
+
+    // Assert
+    expect(resultado).toMatch(/^[−-]4$/)
+  })
+  it('0 → «0»', () => {
+    // Arrange y Act
+    const resultado = formatearDelta(0)
+
+    // Assert
+    expect(resultado).toBe('0')
+  })
 })
 
 describe('formatearDeltaPts', () => {
-  it('+4 → «+4 pts»', () => expect(formatearDeltaPts(4)).toBe('+4 pts'))
-  it('+1 → «+1 pt»', () => expect(formatearDeltaPts(1)).toBe('+1 pt'))
+  it('+4 → «+4 pts»', () => {
+    // Arrange y Act
+    const resultado = formatearDeltaPts(4)
+
+    // Assert
+    expect(resultado).toBe('+4 pts')
+  })
+  it('+1 → «+1 pt»', () => {
+    // Arrange y Act
+    const resultado = formatearDeltaPts(1)
+
+    // Assert
+    expect(resultado).toBe('+1 pt')
+  })
   it('-1 → «−1 pt»', () => {
-    const r = formatearDeltaPts(-1)
-    expect(r).toMatch(/^[−-]1 pt$/)
+    // Arrange y Act
+    const resultado = formatearDeltaPts(-1)
+
+    // Assert
+    expect(resultado).toMatch(/^[−-]1 pt$/)
   })
 })

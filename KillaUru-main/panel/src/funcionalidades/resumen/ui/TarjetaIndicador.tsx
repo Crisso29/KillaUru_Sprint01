@@ -10,6 +10,8 @@ interface Props {
   dato: Indicador
 }
 
+const { sinCalcular, variacionSufijo } = TEXTOS_RESUMEN.indicadores
+
 /** Verde si mejora, rojo si empeora; en Reaparición subir es malo (prototipo: `--ok` / `--bad`). */
 function colorVariacion(subirEsMalo: boolean, variacion: number | null): string | undefined {
   if (!variacion) return undefined
@@ -18,32 +20,24 @@ function colorVariacion(subirEsMalo: boolean, variacion: number | null): string 
 
 export function TarjetaIndicador({ clave, dato }: Props) {
   const meta = INDICADORES_META[clave]
-  const esPorcentaje = dato.unidad === '%'
   const color = colorVariacion(meta.subirEsMalo, dato.variacion)
-  const serie = dato.serie.filter((v): v is number => v !== null)
-
+  const serie = dato.serie.filter((valor): valor is number => valor !== null)
   return (
     <article className="k" aria-label={meta.rotulo}>
-      <span className="l">
-        <h3 style={{ font: 'inherit' }}>{meta.rotulo}</h3>
-        <Ayuda texto={meta.ayuda} />
-      </span>
-      <p className="v" aria-label="Valor">
-        {dato.valor === null ? (
-          <span title={TEXTOS_RESUMEN.indicadores.sinCalcular}>—</span>
-        ) : (
-          <>{formatearValor(dato.valor)}{esPorcentaje && <small>%</small>}</>
-        )}
-      </p>
+      <span className="l"><h3 style={{ font: 'inherit' }}>{meta.rotulo}</h3><Ayuda texto={meta.ayuda} /></span>
+      <p className="v" aria-label="Valor"><Valor dato={dato} /></p>
       <span className="d">
         <span>
-          <b style={{ color }} aria-label={`Variación ${TEXTOS_RESUMEN.indicadores.variacionSufijo}`}>
-            {formatearVariacion(clave, dato.variacion)}
-          </b>{' '}
-          {TEXTOS_RESUMEN.indicadores.variacionSufijo}
+          <b style={{ color }} aria-label={`Variación ${variacionSufijo}`}>{formatearVariacion(clave, dato.variacion)}</b>{' '}{variacionSufijo}
         </span>
         <Minigrafico datos={serie} ancho={55} alto={21} color={color === 'var(--bad)' ? 'var(--bad)' : 'var(--killa)'} />
       </span>
     </article>
   )
+}
+
+/** «—» con la explicación al pasar el puntero cuando el indicador aún no se calculó (p. ej. sin datos del día). */
+function Valor({ dato }: { dato: Indicador }) {
+  if (dato.valor === null) return <span title={sinCalcular}>—</span>
+  return <>{formatearValor(dato.valor)}{dato.unidad === '%' && <small>%</small>}</>
 }

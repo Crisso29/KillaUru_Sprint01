@@ -31,7 +31,7 @@ export interface ColeccionAnomalias {
 export interface paths {
   '/api/v1/anomalies': {
     get: {
-      parameters: { query?: { estado?: string; tipo?: string; severidad_min?: number; desde?: string } }
+      parameters: { query?: { estado?: string; tipo?: string; severidad?: string; desde?: string } }
       responses: { 200: { content: { 'application/json': ColeccionAnomalias } } }
     }
   }

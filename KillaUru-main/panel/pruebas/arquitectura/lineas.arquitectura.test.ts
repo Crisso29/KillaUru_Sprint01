@@ -10,23 +10,26 @@ const PRUEBAS = join(RAIZ, 'pruebas')
 
 function listarArchivos(dir: string): string[] {
   const entradas = readdirSync(dir, { withFileTypes: true })
-  return entradas.flatMap((e) => {
-    const ruta = join(dir, e.name)
-    if (e.isDirectory()) return listarArchivos(ruta)
-    if (e.isFile() && (e.name.endsWith('.ts') || e.name.endsWith('.tsx'))) return [ruta]
+  return entradas.flatMap((entrada) => {
+    const ruta = join(dir, entrada.name)
+    if (entrada.isDirectory()) return listarArchivos(ruta)
+    if (entrada.isFile() && (entrada.name.endsWith('.ts') || entrada.name.endsWith('.tsx'))) return [ruta]
     return []
   })
 }
 
 describe('FR-047: límite de líneas por archivo', () => {
   it(`ningún .ts/.tsx en src/ o pruebas/ supera ${LIMITE} líneas`, () => {
+    // Arrange
     const archivos = [
       ...listarArchivos(SRC),
       ...listarArchivos(PRUEBAS),
     ].filter(
-      (f) => !f.includes('/api/generado/') && !f.includes('\\api\\generado\\'),
+      (archivo) => !archivo.includes('/api/generado/') && !archivo.includes('\\api\\generado\\'),
     )
 
+
+    // Act
     const infractores = archivos
       .map((ruta) => {
         const lineas = readFileSync(ruta, 'utf-8').split('\n').length
@@ -34,6 +37,8 @@ describe('FR-047: límite de líneas por archivo', () => {
       })
       .filter(({ lineas }) => lineas > LIMITE)
 
+
+    // Assert
     expect(infractores, `Archivos con > ${LIMITE} líneas:\n${
       infractores.map(({ ruta, lineas }) => `  ${ruta}: ${lineas}`).join('\n')
     }`).toHaveLength(0)

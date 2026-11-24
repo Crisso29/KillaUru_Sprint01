@@ -1,6 +1,7 @@
-// T066 — DialogoModeracion: confirmación con texto del prototipo (FR-030)
-import { Boton } from '@/compartido/ui'
-import { TEXTOS_MODERACION as T } from '../textos'
+// T066 — DialogoModeracion: confirmación con texto del prototipo (FR-030). Usa el diálogo común del panel: el foco
+// entra al abrirse (WCAG 2.4.3), Escape cancela y el título le da nombre accesible.
+import { Boton, Dialogo } from '@/compartido/ui'
+import { TEXTOS_MODERACION as textos } from '../textos'
 import type { AccionModeracion } from '@/api/dtos/003-anomalias'
 
 interface Props {
@@ -12,29 +13,21 @@ interface Props {
 }
 
 function tituloDialogo(accion: AccionModeracion, idCorto: string): string {
-  if (accion === 'MarcarReparada') return T.confirmarMarcarReparada(idCorto)
-  if (accion === 'Descartar') return T.confirmarDescartar(idCorto)
-  return T.confirmarReabrir(idCorto)
+  if (accion === 'MarcarReparada') return textos.confirmarMarcarReparada(idCorto)
+  if (accion === 'Descartar') return textos.confirmarDescartar(idCorto)
+  return textos.confirmarReabrir(idCorto)
 }
 
 export function DialogoModeracion({ accion, idCorto, cargando, onConfirmar, onCancelar }: Props) {
+  const acciones = (
+    <>
+      <Boton variante="secundario" onClick={onCancelar} disabled={cargando}>{textos.cancelar}</Boton>
+      <Boton variante="primario" onClick={onConfirmar} disabled={cargando}>{cargando ? 'Procesando…' : textos.confirmar}</Boton>
+    </>
+  )
   return (
-    <dialog
-      open
-      role="dialog"
-      aria-modal="true"
-      style={{ padding: 'var(--s-21)', minWidth: 320 }}
-    >
-      <h2 style={{ marginBottom: 'var(--s-13)' }}>{tituloDialogo(accion, idCorto)}</h2>
-      <p style={{ marginBottom: 'var(--s-13)' }}>{T.auditoria}</p>
-      <div style={{ display: 'flex', gap: 'var(--s-8)', justifyContent: 'flex-end' }}>
-        <Boton variante="secundario" onClick={onCancelar} disabled={cargando}>
-          {T.cancelar}
-        </Boton>
-        <Boton variante="primario" onClick={onConfirmar} disabled={cargando}>
-          {cargando ? 'Procesando…' : T.confirmar}
-        </Boton>
-      </div>
-    </dialog>
+    <Dialogo abierto titulo={tituloDialogo(accion, idCorto)} onCerrar={onCancelar} acciones={acciones}>
+      <p>{textos.auditoria}</p>
+    </Dialogo>
   )
 }

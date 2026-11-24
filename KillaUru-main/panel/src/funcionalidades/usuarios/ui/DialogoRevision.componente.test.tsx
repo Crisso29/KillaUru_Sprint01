@@ -21,7 +21,10 @@ const REVISION: EstadoRevision = {
 
 describe('DialogoRevision', () => {
   it('muestra a cada administrador', async () => {
+    // Arrange y Act
     renderizar(<DialogoRevision revision={REVISION} onCerrar={() => {}} />)
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByText(/admin1@killauru\.pe/)).toBeTruthy()
       expect(screen.getByText(/admin2@killauru\.pe/)).toBeTruthy()
@@ -29,45 +32,48 @@ describe('DialogoRevision', () => {
   })
 
   it('envía confirmados y retirados correctamente', async () => {
-    let cuerpo: unknown = null
+    // Arrange
+    const pedido: { cuerpo?: unknown } = {}
     server.use(
       http.post(`${BASE}/api/v1/usuarios/revision-privilegios`, async ({ request }) => {
-        cuerpo = await request.json()
-        return HttpResponse.json(
-          { ...REVISION, ultimaRevisionUtc: new Date().toISOString() },
-          { status: 201 },
-        )
+        pedido.cuerpo = await request.json()
+        return HttpResponse.json({ ...REVISION, ultimaRevisionUtc: new Date().toISOString() }, { status: 201 })
       }),
     )
-    renderizar(<DialogoRevision revision={REVISION} onCerrar={() => {}} />)
-    const user = userEvent.setup()
-    await waitFor(() => expect(screen.getAllByRole('radio', { name: /confirmar/i }).length).toBeGreaterThan(0))
-    const confirmar = screen.getAllByRole('radio', { name: /confirmar/i })
-    const retirar = screen.getAllByRole('radio', { name: /retirar/i })
-    await user.click(confirmar[0]!)
-    await user.click(retirar[1]!)
+    const user = await decidir(['confirmar', 'retirar'])
+
+    // Act
     await user.click(screen.getByRole('button', { name: /guardar/i }))
-    await waitFor(() => {
-      expect(cuerpo).toMatchObject({ confirmados: ['adm-1'], retirados: ['adm-2'] })
-    })
+
+    // Assert
+    await waitFor(() => expect(pedido.cuerpo).toMatchObject({ confirmados: ['adm-1'], retirados: ['adm-2'] }))
   })
 
   it('400 revision_incompleta → muestra mensaje y no cierra', async () => {
+    // Arrange
     server.use(
       http.post(`${BASE}/api/v1/usuarios/revision-privilegios`, () =>
         HttpResponse.json({ codigo: 'revision_incompleta' }, { status: 400 }),
       ),
     )
-    renderizar(<DialogoRevision revision={REVISION} onCerrar={() => {}} />)
-    const user = userEvent.setup()
-    await waitFor(() => expect(screen.getAllByRole('radio', { name: /confirmar/i }).length).toBeGreaterThan(0))
-    const confirmar = screen.getAllByRole('radio', { name: /confirmar/i })
-    await user.click(confirmar[0]!)
-    await user.click(confirmar[1]!)
+    const user = await decidir(['confirmar', 'confirmar'])
+
+    // Act
     await user.click(screen.getByRole('button', { name: /guardar/i }))
-    await waitFor(() =>
-      expect(screen.getByText(/debes tomar una decisión para cada administrador/i)).toBeTruthy(),
-    )
-    expect(screen.getByRole('dialog')).toBeTruthy()
+
+    // Assert
+    expect(await screen.findByText(/debes tomar una decisión para cada administrador/i)).toBeInTheDocument()
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 })
+
+/** Abre el diálogo y marca una decisión por administrador, en el orden de la lista. */
+async function decidir(decisiones: Array<'confirmar' | 'retirar'>) {
+  renderizar(<DialogoRevision revision={REVISION} onCerrar={() => {}} />)
+  const user = userEvent.setup()
+  await screen.findAllByRole('radio', { name: /confirmar/i })
+  for (const [i, decision] of decisiones.entries()) {
+    await user.click(screen.getAllByRole('radio', { name: new RegExp(decision, 'i') })[i]!)
+  }
+  return user
+}

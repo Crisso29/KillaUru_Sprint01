@@ -14,55 +14,49 @@ interface Props {
   ahora?: Date
 }
 
-export function RequiereAtencion({ porRevisar, pendientes, revision, ahora = new Date() }: Props) {
-  const temas = revision
-    ? contarTemas(porRevisar.length, pendientes.length, revision, ahora)
-    : porRevisar.length + pendientes.length
-  const primero = primerPendiente(pendientes, ahora)
+const textos = TEXTOS_RESUMEN.atencion
 
+export function RequiereAtencion({ porRevisar, pendientes, revision, ahora = new Date() }: Props) {
+  const temas = revision ? contarTemas(porRevisar.length, pendientes.length, revision, ahora) : porRevisar.length + pendientes.length
+  const primero = primerPendiente(pendientes, ahora)
   return (
     <section className="card" aria-label="Requiere atención">
-      <div className="card-h">
-        <h3>Requiere atención</h3>
-        <small aria-label={TEXTOS_RESUMEN.atencion.temas(temas)}>{TEXTOS_RESUMEN.atencion.temas(temas)}</small>
-      </div>
+      <div className="card-h"><h3>Requiere atención</h3><small aria-label={textos.temas(temas)}>{textos.temas(temas)}</small></div>
       <ul className="att" style={{ marginTop: 'var(--s-8)', listStyle: 'none' }}>
-        <li>
-          <Link to="/moderacion?pestana=por-revisar" className="fila-att">
-            <span className="sd pendiente" aria-hidden="true" />
-            <span><b>{TEXTOS_RESUMEN.atencion.porRevisar}</b><small>{TEXTOS_RESUMEN.atencion.porRevisarDetalle}</small></span>
-            <span className="n">{porRevisar.length}</span>
-            <Icono nombre="chev" tamano={14} />
-          </Link>
-        </li>
-        <li>
-          <Link to="/moderacion?pestana=pendientes" className="fila-att">
-            <span className="sd pendiente" aria-hidden="true" />
-            <span><b>{TEXTOS_RESUMEN.atencion.pendientes}</b>{primero && <small aria-label="Primero">{primero}</small>}</span>
-            <span className="n">{pendientes.length}</span>
-            <Icono nombre="chev" tamano={14} />
-          </Link>
-        </li>
-        {revision && (
-          <li>
-            <Link to="/usuarios" className="fila-att">
-              <span className="sd reparada" aria-hidden="true" />
-              <span><b>{TEXTOS_RESUMEN.atencion.revision}</b></span>
-              <span className="n" />
-              <Icono nombre="chev" tamano={14} />
-            </Link>
-          </li>
-        )}
-        <li>
-          <a href={entorno.urlEstado} target="_blank" rel="noopener noreferrer" className="fila-att"
-            aria-label={`${TEXTOS_RESUMEN.atencion.estado} (abre en otra pestaña)`}>
-            <span className="sd activa" aria-hidden="true" />
-            <span><b>{TEXTOS_RESUMEN.atencion.estado}</b><small>{TEXTOS_RESUMEN.atencion.estadoDetalle}</small></span>
-            <span className="n" />
-            <Icono nombre="ext" tamano={14} />
-          </a>
-        </li>
+        <FilaAtencion a="/moderacion?pestana=por-revisar" color="pendiente" titulo={textos.porRevisar} detalle={textos.porRevisarDetalle} cantidad={porRevisar.length} />
+        <FilaAtencion a="/moderacion?pestana=pendientes" color="pendiente" titulo={textos.pendientes} detalle={primero} cantidad={pendientes.length} etiquetaDetalle="Primero" />
+        {revision && <FilaAtencion a="/usuarios" color="reparada" titulo={textos.revision} />}
+        <FilaEstadoServicio />
       </ul>
     </section>
+  )
+}
+
+interface PropsFila { a: string; color: string; titulo: string; detalle?: string | null; cantidad?: number; etiquetaDetalle?: string }
+
+function FilaAtencion({ a, color, titulo, detalle, cantidad, etiquetaDetalle }: PropsFila) {
+  return (
+    <li>
+      <Link to={a} className="fila-att">
+        <span className={`sd ${color}`} aria-hidden="true" />
+        <span><b>{titulo}</b>{detalle && <small aria-label={etiquetaDetalle}>{detalle}</small>}</span>
+        <span className="n">{cantidad}</span>
+        <Icono nombre="chev" tamano={14} />
+      </Link>
+    </li>
+  )
+}
+
+/** Página de estado externa: se abre en otra pestaña y lo anuncia a los lectores de pantalla. */
+function FilaEstadoServicio() {
+  return (
+    <li>
+      <a href={entorno.urlEstado} target="_blank" rel="noopener noreferrer" className="fila-att" aria-label={`${textos.estado} (abre en otra pestaña)`}>
+        <span className="sd activa" aria-hidden="true" />
+        <span><b>{textos.estado}</b><small>{textos.estadoDetalle}</small></span>
+        <span className="n" />
+        <Icono nombre="ext" tamano={14} />
+      </a>
+    </li>
   )
 }

@@ -28,13 +28,13 @@ export function capaAnomalias(idSeleccionada: string | null): LayerSpecification
 
 /** Añade a cada anomalía la clave de su ícono (FR-023). Sin esto la capa no sabe qué dibujar. */
 export function prepararPropiedades<T extends GeoJSON.Feature>(features: T[]): T[] {
-  return features.map(f => {
-    if (!f.properties) return f
-    const { estado, severidad } = f.properties as { estado: string; severidad: number }
-    return { ...f, properties: { ...f.properties, icono: claveIcono(estado, severidad) } }
+  return features.map(feature => {
+    if (!feature.properties) return feature
+    const { estado, severidad } = feature.properties as { estado: string; severidad: number }
+    return { ...feature, properties: { ...feature.properties, icono: claveIcono(estado, severidad) } }
   })
 }
 
 export function todasLasClaves(): string[] {
-  return ESTADOS_MAPA.flatMap(e => SEVERIDADES.map(s => claveIcono(e, s)))
+  return ESTADOS_MAPA.flatMap(estado => SEVERIDADES.map(severidad => claveIcono(estado, severidad)))
 }

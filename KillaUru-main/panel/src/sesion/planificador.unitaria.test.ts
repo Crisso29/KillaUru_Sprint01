@@ -1,62 +1,59 @@
+// T015 — planificador: desfase, renovar a 61/60/59 s, fracción acotada a [0,1]
 import { describe, it, expect } from 'vitest'
 import { calcularDesfase, debeRenovar, fraccionRestante } from './planificador'
-import {
-  MARGEN_RENOVACION_S,
-  SESION_MAXIMA_HORAS,
-} from '@/config/constantes'
+import { MARGEN_RENOVACION_S, SESION_MAXIMA_HORAS } from '@/config/constantes'
 
-// T015 — planificador: desfase, renovar a 61/60/59 s, fracción acotada a [0,1]
+const HORA = 3600_000
 
 describe('calcularDesfase', () => {
   it('devuelve (expiraAccesoUtc − VIDA_ACCESO) − ahoraLocal en ms', () => {
+    // Arrange — el token vence a las 10:05 y vive 5 min: se emitió a las 10:00, la misma hora del reloj local
     const expiraUtc = new Date('2026-11-05T10:05:00Z')
-    const ahora = new Date('2026-11-05T10:00:00Z') // 5 min antes
+    const ahora = new Date('2026-11-05T10:00:00Z')
+
+    // Act
     const desfase = calcularDesfase(expiraUtc, ahora)
-    // expira - VIDA_ACCESO_MIN (5 min) = 10:00; ahora = 10:00 → desfase = 0
+
+    // Assert
     expect(desfase).toBe(0)
   })
 })
 
-describe('debeRenovar', () => {
+describe('debeRenovar (renueva cuando falta el margen o menos)', () => {
   const expira = new Date('2026-11-05T10:05:00Z')
 
-  it('61 s antes → NO renueva', () => {
-    const ahora = new Date(expira.getTime() - 61_000)
-    expect(debeRenovar(expira, ahora)).toBe(false)
-  })
+  it.each([
+    ['61 s antes → NO renueva', 61, false],
+    [`${MARGEN_RENOVACION_S} s antes (el margen) → SÍ renueva`, MARGEN_RENOVACION_S, true],
+    ['59 s antes → SÍ renueva', 59, true],
+    ['justo vencido → SÍ renueva', 0, true],
+  ])('%s', (_caso, segundosAntes, esperado) => {
+    // Arrange
+    const ahora = new Date(expira.getTime() - segundosAntes * 1000)
 
-  it('60 s antes → SÍ renueva', () => {
-    const ahora = new Date(expira.getTime() - MARGEN_RENOVACION_S * 1000)
-    expect(debeRenovar(expira, ahora)).toBe(true)
-  })
+    // Act
+    const renovar = debeRenovar(expira, ahora)
 
-  it('59 s antes → SÍ renueva', () => {
-    const ahora = new Date(expira.getTime() - 59_000)
-    expect(debeRenovar(expira, ahora)).toBe(true)
-  })
-
-  it('justo vencido → SÍ renueva', () => {
-    expect(debeRenovar(expira, expira)).toBe(true)
+    // Assert
+    expect(renovar).toBe(esperado)
   })
 })
 
-describe('fraccionRestante', () => {
+describe('fraccionRestante (barra de la sesión, acotada a [0, 1])', () => {
   const BASE = new Date('2026-11-05T10:00:00Z')
 
-  it('fracción dentro de [0, 1]', () => {
-    const sesionVence = new Date(BASE.getTime() + SESION_MAXIMA_HORAS * 3600_000 / 2)
-    const f = fraccionRestante(sesionVence, BASE)
-    expect(f).toBeGreaterThan(0)
-    expect(f).toBeLessThanOrEqual(1)
-  })
+  it.each([
+    ['a mitad de la sesión → 0,5', (SESION_MAXIMA_HORAS * HORA) / 2, 0.5],
+    ['sesión ya vencida → 0', -1000, 0],
+    ['más larga que el máximo → 1', 100 * HORA, 1],
+  ])('%s', (_caso, msHastaVencer, esperado) => {
+    // Arrange
+    const sesionVence = new Date(BASE.getTime() + msHastaVencer)
 
-  it('sesión ya vencida → 0', () => {
-    const sesionVence = new Date(BASE.getTime() - 1000)
-    expect(fraccionRestante(sesionVence, BASE)).toBe(0)
-  })
+    // Act
+    const fraccion = fraccionRestante(sesionVence, BASE)
 
-  it('sesión muy larga → 1', () => {
-    const sesionVence = new Date(BASE.getTime() + 100 * 3600_000)
-    expect(fraccionRestante(sesionVence, BASE)).toBe(1)
+    // Assert
+    expect(fraccion).toBeCloseTo(esperado)
   })
 })

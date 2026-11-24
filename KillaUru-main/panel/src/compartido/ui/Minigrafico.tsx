@@ -4,7 +4,7 @@ export function Minigrafico({ datos, alto = 32, ancho = 80, color = 'var(--killa
   if (!datos.length) return null
   const max = Math.max(...datos, 1)
   const paso = ancho / (datos.length - 1 || 1)
-  const puntos = datos.map((v, i) => `${i * paso},${alto - (v / max) * alto}`).join(' ')
+  const puntos = datos.map((valor, i) => `${i * paso},${alto - (valor / max) * alto}`).join(' ')
 
   return (
     <svg width={ancho} height={alto} aria-hidden="true" style={{ overflow: 'visible' }}>

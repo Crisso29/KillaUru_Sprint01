@@ -2,75 +2,54 @@
 import { useState } from 'react'
 import type { EstadoRevision } from '@/api/dtos/001-identidad'
 import { useRegistrarRevision } from '../api/useRevision'
-import type { DecisionRevision } from '../modelo/revision'
-import { armarRevision } from '../modelo/revision'
-import { TEXTOS_USUARIOS as T } from '../textos'
+import { armarRevision, type DecisionRevision } from '../modelo/revision'
+import { mensajeDeErrorAccion } from '../modelo/erroresAccion'
+import { TEXTOS_USUARIOS as textos } from '../textos'
+import { FormularioDialogo } from './FormularioDialogo'
 
-interface Props {
-  revision: EstadoRevision
-  onCerrar: () => void
-}
+interface Props { revision: EstadoRevision; onCerrar: () => void }
+
+type Administrador = EstadoRevision['administradores'][number]
+
+const DECISIONES: { valor: DecisionRevision; texto: string }[] = [
+  { valor: 'confirmar', texto: textos.decisionConfirmar },
+  { valor: 'retirar', texto: textos.decisionRetirar },
+]
 
 export function DialogoRevision({ revision, onCerrar }: Props) {
   const [decisiones, setDecisiones] = useState<Record<string, DecisionRevision>>({})
   const [error, setError] = useState('')
-  const mutation = useRegistrarRevision()
-
-  function setDecision(id: string, decision: DecisionRevision) {
-    setDecisiones(prev => ({ ...prev, [id]: decision }))
-  }
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  const registrar = useRegistrarRevision()
+  const decidir = (id: string, decision: DecisionRevision) => setDecisiones((anteriores) => ({ ...anteriores, [id]: decision }))
+  const guardar = () => {
     setError('')
-    mutation.mutate(armarRevision(decisiones), {
-      onSuccess: onCerrar,
-      onError: (err) => {
-        if (err.codigo === 'revision_incompleta') setError(T.errorRevisionIncompleta)
-        else setError('Error inesperado.')
-      },
-    })
+    registrar.mutate(armarRevision(decisiones), { onSuccess: onCerrar, onError: (fallo) => setError(mensajeDeErrorAccion(fallo.codigo)) })
   }
-
   return (
-    <div role="dialog" aria-modal="true" aria-label={T.dialogoRevisionTitulo}>
-      <h2>{T.dialogoRevisionTitulo}</h2>
-      <form onSubmit={handleSubmit}>
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-          {revision.administradores.map(admin => (
-            <li key={admin.id} style={{ padding: 'var(--s-8) 0', display: 'flex', alignItems: 'center', gap: 'var(--s-13)' }}>
-              <span style={{ flex: 1 }}>{admin.correo}</span>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--s-5)' }}>
-                <input
-                  type="radio"
-                  name={`decision-${admin.id}`}
-                  value="confirmar"
-                  aria-label={T.decisionConfirmar}
-                  checked={decisiones[admin.id] === 'confirmar'}
-                  onChange={() => setDecision(admin.id, 'confirmar')}
-                />
-                {T.decisionConfirmar}
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--s-5)' }}>
-                <input
-                  type="radio"
-                  name={`decision-${admin.id}`}
-                  value="retirar"
-                  aria-label={T.decisionRetirar}
-                  checked={decisiones[admin.id] === 'retirar'}
-                  onChange={() => setDecision(admin.id, 'retirar')}
-                />
-                {T.decisionRetirar}
-              </label>
-            </li>
-          ))}
-        </ul>
-        {error && <p role="alert" style={{ color: 'var(--bad)' }}>{error}</p>}
-        <div style={{ display: 'flex', gap: 'var(--s-8)', justifyContent: 'flex-end', marginTop: 'var(--s-21)' }}>
-          <button type="button" onClick={onCerrar}>{T.cancelar}</button>
-          <button type="submit" disabled={mutation.isPending}>{T.guardar}</button>
-        </div>
-      </form>
-    </div>
+    <FormularioDialogo titulo={textos.dialogoRevisionTitulo} error={error} ocupado={registrar.isPending}
+      textoConfirmar={textos.guardar} onEnviar={guardar} onCerrar={onCerrar}>
+      <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+        {revision.administradores.map((admin) => (
+          <FilaRevision key={admin.id} admin={admin} decision={decisiones[admin.id]} onDecidir={(decision) => decidir(admin.id, decision)} />
+        ))}
+      </ul>
+    </FormularioDialogo>
+  )
+}
+
+interface PropsFila { admin: Administrador; decision?: DecisionRevision; onDecidir: (decision: DecisionRevision) => void }
+
+function FilaRevision({ admin, decision, onDecidir }: PropsFila) {
+  return (
+    <li style={{ padding: 'var(--s-8) 0', display: 'flex', alignItems: 'center', gap: 'var(--s-13)' }}>
+      <span style={{ flex: 1 }}>{admin.correo}</span>
+      {DECISIONES.map((opcion) => (
+        <label key={opcion.valor} style={{ display: 'flex', alignItems: 'center', gap: 'var(--s-5)' }}>
+          <input type="radio" name={`decision-${admin.id}`} value={opcion.valor} aria-label={opcion.texto}
+            checked={decision === opcion.valor} onChange={() => onDecidir(opcion.valor)} />
+          {opcion.texto}
+        </label>
+      ))}
+    </li>
   )
 }

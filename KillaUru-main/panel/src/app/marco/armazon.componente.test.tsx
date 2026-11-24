@@ -8,34 +8,45 @@ import { migas } from './secciones'
 
 // Armazón del prototipo (`.ops-nav`, `.ops-top`, `.av`): menú, migas e iniciales. Patrón AAA.
 describe('Armazón del panel', () => {
-  it('las migas siguen la ruta, y la raíz es el Resumen', () => {
-    // Arrange + Act + Assert
-    expect(migas('/usuarios')).toEqual({ grupo: 'Administración', seccion: 'Usuarios' })
-    expect(migas('/')).toEqual({ grupo: 'Operación', seccion: 'Resumen' })
-    expect(migas('/no-existe')).toBeNull()
+  it.each([
+    ['/usuarios', { grupo: 'Administración', seccion: 'Usuarios' }],
+    ['/', { grupo: 'Operación', seccion: 'Resumen' }], // la raíz es el Resumen
+    ['/no-existe', null],
+  ])('las migas de %s → %j', (ruta, esperado) => {
+    // Arrange y Act
+    const resultado = migas(ruta)
+
+    // Assert
+    expect(resultado).toEqual(esperado)
   })
 
-  it('las iniciales salen del nombre de usuario del correo', () => {
-    // Arrange + Act + Assert
-    expect(iniciales('admin.operaciones@killauru.pe')).toBe('AO')
-    expect(iniciales('ops@killauru.pe')).toBe('OP')
+  it.each([
+    ['admin.operaciones@killauru.pe', 'AO'], // una letra por parte del nombre de usuario
+    ['ops@killauru.pe', 'OP'], // una sola parte: sus dos primeras letras
+  ])('las iniciales de %s → %s', (correo, esperado) => {
+    // Arrange y Act
+    const resultado = iniciales(correo)
+
+    // Assert
+    expect(resultado).toBe(esperado)
   })
 
   it('el menú marca la página actual y muestra cuántas esperan revisión', () => {
-    // Arrange
+    // Arrange y Act
     render(<MemoryRouter initialEntries={['/moderacion']}><MenuLateral porRevisar={3} /></MemoryRouter>)
-    // Act
-    const actual = screen.getByRole('link', { name: /Moderación/ })
+
     // Assert
+    const actual = screen.getByRole('link', { name: /Moderación/ })
     expect(actual.getAttribute('aria-current')).toBe('page')
     expect(screen.getByLabelText('3 por revisar')).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Resumen' }).getAttribute('aria-current')).toBeNull()
   })
 
   it('la barra superior muestra dónde estás y la marca DEMO fuera de producción', () => {
-    // Arrange
+    // Arrange y Act
     render(<MemoryRouter initialEntries={['/auditoria']}><BarraSuperior entorno="desarrollo" /></MemoryRouter>)
-    // Act + Assert
+
+    // Assert
     expect(screen.getByLabelText('Estás en').textContent).toBe('Administración / Auditoría')
     expect(screen.getByText('DEMO')).toBeTruthy()
   })

@@ -4,13 +4,13 @@ import {
   CACHE_LECTURA_AUDITADA_MIN,
 } from '@/config/constantes'
 
-const S = 1_000
-const MIN = 60 * S
+const SEGUNDO = 1_000
+const MIN = 60 * SEGUNDO
 
 export const TIEMPOS = {
   operativo: {
-    staleTime: 30 * S,
-    refetchInterval: REFRESCO_OPERATIVO_S * S,
+    staleTime: 30 * SEGUNDO,
+    refetchInterval: REFRESCO_OPERATIVO_S * SEGUNDO,
     refetchOnWindowFocus: true,
   },
   auditado: {

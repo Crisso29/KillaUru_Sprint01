@@ -1,52 +1,62 @@
-// T078 — textoDeAccion y textoDeCategoria
+// T078 — textoDeAccion y textoDeCategoria: cada código del contrato 002 en lenguaje claro
 import { describe, it, expect } from 'vitest'
 import { textoDeAccion, textoDeCategoria } from './textoAccion'
+import type { AccionAuditada, CategoriaAuditoria } from '@/api/dtos/002-auditoria'
 
 describe('textoDeAccion — 14 acciones', () => {
-  it('UsuarioCreado', () => expect(textoDeAccion('UsuarioCreado')).toBe('Usuario creado'))
-  it('RolCambiado', () => expect(textoDeAccion('RolCambiado')).toBe('Rol cambiado'))
-  it('CuentaDesactivada', () => expect(textoDeAccion('CuentaDesactivada')).toBe('Cuenta desactivada'))
-  it('CuentaActivada', () => expect(textoDeAccion('CuentaActivada')).toBe('Cuenta activada'))
-  it('CuentaEliminada', () => expect(textoDeAccion('CuentaEliminada')).toBe('Cuenta eliminada'))
-  it('InicioSesionFallido', () => expect(textoDeAccion('InicioSesionFallido')).toBe('Inicio de sesión fallido'))
-  it('CuentaBloqueada', () => expect(textoDeAccion('CuentaBloqueada')).toBe('Cuenta bloqueada'))
-  it('InicioSesionAdministrador', () => expect(textoDeAccion('InicioSesionAdministrador')).toBe('Inicio de sesión (administrador)'))
-  it('RecuperacionSolicitada', () => expect(textoDeAccion('RecuperacionSolicitada')).toBe('Recuperación solicitada'))
-  it('ContrasenaCambiada', () => expect(textoDeAccion('ContrasenaCambiada')).toBe('Contraseña cambiada'))
-  it('RevisionPrivilegios', () => expect(textoDeAccion('RevisionPrivilegios')).toBe('Revisión de privilegios'))
-  it('DatasetExportado', () => expect(textoDeAccion('DatasetExportado')).toBe('Dataset exportado'))
-  it('AccesoAdministrativoDatos', () => expect(textoDeAccion('AccesoAdministrativoDatos')).toBe('Acceso administrativo a datos'))
+  it.each<[AccionAuditada, string]>([
+    ['UsuarioCreado', 'Usuario creado'],
+    ['RolCambiado', 'Rol cambiado'],
+    ['CuentaDesactivada', 'Cuenta desactivada'],
+    ['CuentaActivada', 'Cuenta activada'],
+    ['CuentaEliminada', 'Cuenta eliminada'],
+    ['InicioSesionFallido', 'Inicio de sesión fallido'],
+    ['CuentaBloqueada', 'Cuenta bloqueada'],
+    ['InicioSesionAdministrador', 'Inicio de sesión (administrador)'],
+    ['RecuperacionSolicitada', 'Recuperación solicitada'],
+    ['ContrasenaCambiada', 'Contraseña cambiada'],
+    ['RevisionPrivilegios', 'Revisión de privilegios'],
+    ['AnomaliaModerada', 'Anomalía moderada'],
+    ['DatasetExportado', 'Dataset exportado'],
+    ['AccesoAdministrativoDatos', 'Acceso administrativo a datos'],
+  ])('%s → «%s»', (accion, esperado) => {
+    // Arrange y Act
+    const texto = textoDeAccion(accion)
 
-  it('AnomaliaModerada sin contexto → texto genérico', () => {
-    expect(textoDeAccion('AnomaliaModerada')).toBe('Anomalía moderada')
+    // Assert
+    expect(texto).toBe(esperado)
   })
 
-  it('AnomaliaModerada contexto.accion=MarcarReparada', () => {
-    expect(textoDeAccion('AnomaliaModerada', { accion: 'MarcarReparada' }))
-      .toBe('Anomalía marcada como reparada')
-  })
+  it.each([
+    ['MarcarReparada', 'Anomalía marcada como reparada'],
+    ['Descartar', 'Anomalía descartada'],
+    ['Reabrir', 'Anomalía reabierta'],
+    ['MantenerDescartada', 'Anomalía mantenida como descartada'],
+  ])('AnomaliaModerada con contexto.accion=%s → «%s»', (accionModeracion, esperado) => {
+    // Arrange
+    const contexto = { accion: accionModeracion }
 
-  it('AnomaliaModerada contexto.accion=Descartar', () => {
-    expect(textoDeAccion('AnomaliaModerada', { accion: 'Descartar' }))
-      .toBe('Anomalía descartada')
-  })
+    // Act
+    const texto = textoDeAccion('AnomaliaModerada', contexto)
 
-  it('AnomaliaModerada contexto.accion=Reabrir', () => {
-    expect(textoDeAccion('AnomaliaModerada', { accion: 'Reabrir' }))
-      .toBe('Anomalía reabierta')
-  })
-
-  it('AnomaliaModerada contexto.accion=MantenerDescartada', () => {
-    expect(textoDeAccion('AnomaliaModerada', { accion: 'MantenerDescartada' }))
-      .toBe('Anomalía mantenida como descartada')
+    // Assert
+    expect(texto).toBe(esperado)
   })
 })
 
 describe('textoDeCategoria — 6 categorías', () => {
-  it('Usuarios', () => expect(textoDeCategoria('Usuarios')).toBe('Usuarios'))
-  it('Sesion', () => expect(textoDeCategoria('Sesion')).toBe('Sesión'))
-  it('CuentaDelTitular', () => expect(textoDeCategoria('CuentaDelTitular')).toBe('Cuenta del titular'))
-  it('Moderacion', () => expect(textoDeCategoria('Moderacion')).toBe('Moderación'))
-  it('Exportacion', () => expect(textoDeCategoria('Exportacion')).toBe('Exportación'))
-  it('AccesoADatos', () => expect(textoDeCategoria('AccesoADatos')).toBe('Acceso a datos'))
+  it.each<[CategoriaAuditoria, string]>([
+    ['Usuarios', 'Usuarios'],
+    ['Sesion', 'Sesión'],
+    ['CuentaDelTitular', 'Cuenta del titular'],
+    ['Moderacion', 'Moderación'],
+    ['Exportacion', 'Exportación'],
+    ['AccesoADatos', 'Acceso a datos'],
+  ])('%s → «%s»', (categoria, esperado) => {
+    // Arrange y Act
+    const texto = textoDeCategoria(categoria)
+
+    // Assert
+    expect(texto).toBe(esperado)
+  })
 })

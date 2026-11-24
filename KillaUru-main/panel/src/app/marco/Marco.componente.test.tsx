@@ -28,41 +28,64 @@ function renderMarco(props?: Partial<Parameters<typeof Marco>[0]>) {
 
 describe('Marco', () => {
   it('muestra «Operación» y «Administración» en el menú', () => {
+    // Arrange y Act
     renderMarco()
+
+    // Assert
     expect(screen.getByText('Operación')).toBeTruthy()
     expect(screen.getByText('Administración')).toBeTruthy()
   })
 
   it('muestra contador de «Por revisar» cuando > 0', () => {
+    // Arrange y Act
     renderMarco({ porRevisar: 5 })
+
+    // Assert
     expect(screen.getByText('5')).toBeTruthy()
   })
 
   it('muestra «DEMO» cuando entorno ≠ produccion', () => {
+    // Arrange y Act
     renderMarco({ entorno: 'pruebas' })
+
+    // Assert
     expect(screen.getByText('DEMO')).toBeTruthy()
   })
 
   it('NO muestra «DEMO» en produccion', () => {
+    // Arrange y Act
     renderMarco({ entorno: 'produccion' })
+
+    // Assert
     expect(screen.queryByText('DEMO')).toBeNull()
   })
 
   it('muestra «Sesión hasta» con hora de vencimiento', () => {
+    // Arrange y Act
     renderMarco()
+
+    // Assert
     expect(screen.getByText(/Sesión hasta/)).toBeTruthy()
   })
 
   it('«Salir» llama a onSalir', async () => {
+    // Arrange
     const onSalir = vi.fn()
     renderMarco({ onSalir })
     const user = (await import('@testing-library/user-event')).default.setup()
+
+    // Act
     await user.click(screen.getByRole('button', { name: /Salir/i }))
+
+    // Assert
     expect(onSalir).toHaveBeenCalledOnce()
   })
 
   it('enlace «Saltar al contenido» apunta a #contenido', () => {
+    // Arrange y Act
     renderMarco()
+
+    // Assert
     const enlace = screen.getByRole('link', { name: /Saltar/i })
     expect(enlace.getAttribute('href')).toBe('#contenido')
   })

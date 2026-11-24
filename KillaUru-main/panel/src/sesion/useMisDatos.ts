@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import type { components } from '@/api/generado/identidad'
-import { entorno } from '@/config/entorno'
+import { pedirApi } from '@/api/http'
 
 /** `MisDatos` del contrato 003 (`GET /api/v1/me`): de aquí sale el correo que muestra el armazón. */
 export type MisDatos = components['schemas']['MisDatos']
@@ -15,9 +15,9 @@ export function useMisDatos(activa: boolean) {
     enabled: activa,
     staleTime: 10 * 60_000,
     queryFn: async () => {
-      const r = await fetch(`${entorno.urlApi}/api/v1/me`, { credentials: 'include' })
-      if (!r.ok) throw new Error(`GET /me ${r.status}`)
-      return r.json() as Promise<MisDatos>
+      const respuesta = await pedirApi(`/api/v1/me`)
+      if (!respuesta.ok) throw new Error(`GET /me ${respuesta.status}`)
+      return respuesta.json() as Promise<MisDatos>
     },
   })
 }

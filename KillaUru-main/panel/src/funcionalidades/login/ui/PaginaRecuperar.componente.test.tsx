@@ -19,11 +19,16 @@ async function enviarCorreo(correo: string) {
 
 describe('PaginaRecuperar', () => {
   it('202 → mensaje de confirmación (correo existente)', async () => {
+    // Arrange
     server.use(
       http.post(URL_RECUPERAR, () => new HttpResponse(null, { status: 202 })),
     )
     renderizar(<PaginaRecuperar />)
+
+    // Act
     await enviarCorreo('ops@killauru.pe')
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByRole('status')).toHaveTextContent(
         /si.*registrado.*recibirás/i,
@@ -32,11 +37,16 @@ describe('PaginaRecuperar', () => {
   })
 
   it('202 → mismo texto aunque el correo no exista', async () => {
+    // Arrange
     server.use(
       http.post(URL_RECUPERAR, () => new HttpResponse(null, { status: 202 })),
     )
     renderizar(<PaginaRecuperar />)
+
+    // Act
     await enviarCorreo('noexiste@ejemplo.pe')
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByRole('status')).toHaveTextContent(
         /si.*registrado.*recibirás/i,
@@ -45,13 +55,18 @@ describe('PaginaRecuperar', () => {
   })
 
   it('429 → aviso de límite excedido', async () => {
+    // Arrange
     server.use(
       http.post(URL_RECUPERAR, () =>
         HttpResponse.json({ codigo: 'limite_excedido' }, { status: 429 }),
       ),
     )
     renderizar(<PaginaRecuperar />)
+
+    // Act
     await enviarCorreo('ops@killauru.pe')
+
+    // Assert
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('muchas consultas')
     })

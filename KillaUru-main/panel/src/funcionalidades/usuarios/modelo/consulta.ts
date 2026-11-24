@@ -9,17 +9,17 @@ export function aConsulta(
   estado: EstadoUsuario | '',
   pagina: number,
 ): URLSearchParams {
-  const p = new URLSearchParams()
+  const parametros = new URLSearchParams()
 
   if (UUID_RE.test(texto)) {
-    p.set('ids', texto)
+    parametros.set('ids', texto)
   } else if (texto.length >= 3) {
-    p.set('busqueda', texto)
+    parametros.set('busqueda', texto)
   }
 
-  if (rol) p.set('rol', rol)
-  if (estado) p.set('estado', estado)
-  p.set('pagina', String(pagina))
+  if (rol) parametros.set('rol', rol)
+  if (estado) parametros.set('estado', estado)
+  parametros.set('pagina', String(pagina))
 
-  return p
+  return parametros
 }

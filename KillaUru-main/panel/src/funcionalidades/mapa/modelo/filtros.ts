@@ -27,17 +27,17 @@ export function filtrosDefecto(): FiltrosMapa {
 export function filtrosDeParams(params: URLSearchParams): FiltrosMapa {
   const estadoRaw = params.get('estado')
   const estados: readonly EstadoAnomalia[] = estadoRaw
-    ? estadoRaw.split(',').filter((e): e is EstadoAnomalia => ESTADOS_VALIDOS.includes(e as EstadoAnomalia))
+    ? estadoRaw.split(',').filter((estado): estado is EstadoAnomalia => ESTADOS_VALIDOS.includes(estado as EstadoAnomalia))
     : ['Activa', 'PendienteConfirmacion']
 
   const tipoRaw = params.get('tipo')
   const tipos: readonly TipoAnomalia[] = tipoRaw
-    ? tipoRaw.split(',').filter((t): t is TipoAnomalia => TIPOS_VALIDOS.includes(t as TipoAnomalia))
+    ? tipoRaw.split(',').filter((tipo): tipo is TipoAnomalia => TIPOS_VALIDOS.includes(tipo as TipoAnomalia))
     : ['Bache', 'Hundimiento']
 
   const sevRaw = params.get('severidad')
   const severidades = sevRaw
-    ? sevRaw.split(',').map(Number).filter(n => SEVERIDADES_VALIDAS.includes(n))
+    ? sevRaw.split(',').map(Number).filter(nivel => SEVERIDADES_VALIDAS.includes(nivel))
     : [1, 2, 3, 4, 5]
 
   const periodoRaw = params.get('periodo')
@@ -48,15 +48,15 @@ export function filtrosDeParams(params: URLSearchParams): FiltrosMapa {
   return { estados, tipos, severidades, periodo }
 }
 
-export function filtrosAParams(f: FiltrosMapa): URLSearchParams {
-  const p = new URLSearchParams()
-  p.set('estado', f.estados.join(','))
-  p.set('tipo', f.tipos.join(','))
-  p.set('severidad', f.severidades.join(','))
-  p.set('periodo', f.periodo)
-  return p
+export function filtrosAParams(filtros: FiltrosMapa): URLSearchParams {
+  const parametros = new URLSearchParams()
+  parametros.set('estado', filtros.estados.join(','))
+  parametros.set('tipo', filtros.tipos.join(','))
+  parametros.set('severidad', filtros.severidades.join(','))
+  parametros.set('periodo', filtros.periodo)
+  return parametros
 }
 
-export function esGrupoVacio(f: FiltrosMapa): boolean {
-  return f.estados.length === 0 || f.tipos.length === 0 || f.severidades.length === 0
+export function esGrupoVacio(filtros: FiltrosMapa): boolean {
+  return filtros.estados.length === 0 || filtros.tipos.length === 0 || filtros.severidades.length === 0
 }

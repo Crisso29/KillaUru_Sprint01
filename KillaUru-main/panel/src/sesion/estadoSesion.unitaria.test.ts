@@ -1,82 +1,40 @@
+// T015 — transiciones de la sesión del panel (data-model.md §1). Se compara el estado COMPLETO resultante, no solo su
+// tipo: así una transición que pierde el correo o el motivo también falla.
 import { describe, it, expect } from 'vitest'
-import { reducirSesion, type AccionSesion } from './estadoSesion'
-import type { EstadoSesion } from './estadoSesion'
+import { reducirSesion, type AccionSesion, type EstadoSesion } from './estadoSesion'
 
-// T015 — transiciones data-model.md §1
+const EXPIRA = new Date('2026-11-05T10:05:00Z')
+const VENCE = new Date('2026-11-05T18:00:00Z')
+const TIEMPOS = { expiraAccesoUtc: EXPIRA, sesionVenceUtc: VENCE, desfaseMs: 240_000 }
 
 const DESCONOCIDA: EstadoSesion = { tipo: 'desconocida' }
 const ANONIMA: EstadoSesion = { tipo: 'anonima' }
-const ACTIVA: EstadoSesion = {
-  tipo: 'activa',
-  expiraAccesoUtc: new Date('2026-11-05T10:05:00Z'),
-  sesionVenceUtc: new Date('2026-11-05T18:00:00Z'),
-  desfaseMs: 240_000,
-}
+const ACTIVA: EstadoSesion = { tipo: 'activa', ...TIEMPOS, correo: 'ops@killauru.pe' }
+
+const NUEVOS = { expiraAccesoUtc: new Date('2026-11-05T10:10:00Z'), sesionVenceUtc: VENCE, desfaseMs: 300_000 }
 
 describe('reducirSesion', () => {
-  it('desconocida + renovar200 → activa', () => {
-    const acc: AccionSesion = {
-      tipo: 'renovar_ok',
-      expiraAccesoUtc: new Date('2026-11-05T10:05:00Z'),
-      sesionVenceUtc: new Date('2026-11-05T18:00:00Z'),
-      desfaseMs: 240_000,
-    }
-    expect(reducirSesion(DESCONOCIDA, acc).tipo).toBe('activa')
-  })
+  it.each<[string, EstadoSesion, AccionSesion, EstadoSesion]>([
+    ['al abrir con cookie viva → activa (el correo llega después)', DESCONOCIDA, { tipo: 'renovar_ok', ...TIEMPOS },
+      { tipo: 'activa', ...TIEMPOS, correo: undefined }],
+    ['al abrir sin cookie → anónima sin motivo (no hubo sesión que perder)', DESCONOCIDA, { tipo: 'renovar_401' },
+      { tipo: 'anonima', motivo: undefined }],
+    ['login correcto → activa', ANONIMA, { tipo: 'login_ok', ...TIEMPOS }, { tipo: 'activa', ...TIEMPOS, correo: undefined }],
+    ['renovar → nuevos tiempos y conserva el correo ya conocido', ACTIVA, { tipo: 'renovar_ok', ...NUEVOS },
+      { tipo: 'activa', ...NUEVOS, correo: 'ops@killauru.pe' }],
+    ['renovación rechazada → anónima por sesión perdida', ACTIVA, { tipo: 'renovar_401' }, { tipo: 'anonima', motivo: 'sesion' }],
+    // La renovación rechazada y el reintento del pedido avisan los dos (E2E sesion.spec): el segundo aviso no debe
+    // borrar el motivo, o el login no explica por qué hay que volver a entrar
+    ['un segundo 401 con la sesión ya perdida conserva el motivo', { tipo: 'anonima', motivo: 'sesion' }, { tipo: 'renovar_401' },
+      { tipo: 'anonima', motivo: 'sesion' }],
+    ['salir → anónima por salida', ACTIVA, { tipo: 'salir' }, { tipo: 'anonima', motivo: 'salida' }],
+    ['llega el correo → activa con correo', { ...ACTIVA, correo: undefined }, { tipo: 'correo_ok', correo: 'ops@killauru.pe' }, ACTIVA],
+    ['correo sin sesión → no cambia nada', ANONIMA, { tipo: 'correo_ok', correo: 'ops@killauru.pe' }, ANONIMA],
+  ])('%s', (_caso, estado, accion, esperado) => {
+    // Arrange y Act
+    const siguiente = reducirSesion(estado, accion)
 
-  it('desconocida + renovar401 → anonima', () => {
-    const acc: AccionSesion = { tipo: 'renovar_401' }
-    expect(reducirSesion(DESCONOCIDA, acc).tipo).toBe('anonima')
-  })
-
-  it('anonima + login200 → activa', () => {
-    const acc: AccionSesion = {
-      tipo: 'login_ok',
-      expiraAccesoUtc: new Date('2026-11-05T10:05:00Z'),
-      sesionVenceUtc: new Date('2026-11-05T18:00:00Z'),
-      desfaseMs: 240_000,
-    }
-    expect(reducirSesion(ANONIMA, acc).tipo).toBe('activa')
-  })
-
-  it('activa + renovar200 → activa con nuevos tiempos', () => {
-    const nueva = new Date('2026-11-05T10:10:00Z')
-    const acc: AccionSesion = {
-      tipo: 'renovar_ok',
-      expiraAccesoUtc: nueva,
-      sesionVenceUtc: ACTIVA.sesionVenceUtc,
-      desfaseMs: 300_000,
-    }
-    const siguiente = reducirSesion(ACTIVA, acc)
-    expect(siguiente.tipo).toBe('activa')
-    if (siguiente.tipo === 'activa') {
-      expect(siguiente.expiraAccesoUtc).toEqual(nueva)
-    }
-  })
-
-  it('activa + renovar401 → anonima(sesion)', () => {
-    const acc: AccionSesion = { tipo: 'renovar_401' }
-    const siguiente = reducirSesion(ACTIVA, acc)
-    expect(siguiente.tipo).toBe('anonima')
-    if (siguiente.tipo === 'anonima') {
-      expect(siguiente.motivo).toBe('sesion')
-    }
-  })
-
-  it('activa + salir → anonima(salida)', () => {
-    const acc: AccionSesion = { tipo: 'salir' }
-    const siguiente = reducirSesion(ACTIVA, acc)
-    expect(siguiente.tipo).toBe('anonima')
-    if (siguiente.tipo === 'anonima') {
-      expect(siguiente.motivo).toBe('salida')
-    }
-  })
-
-  it('activa + correo_recibido → activa con correo', () => {
-    const acc: AccionSesion = { tipo: 'correo_ok', correo: 'ops@killauru.pe' }
-    const siguiente = reducirSesion(ACTIVA, acc)
-    if (siguiente.tipo === 'activa') {
-      expect(siguiente.correo).toBe('ops@killauru.pe')
-    }
+    // Assert
+    expect(siguiente).toEqual(esperado)
   })
 })

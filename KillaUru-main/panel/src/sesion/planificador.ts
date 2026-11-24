@@ -5,23 +5,23 @@ import {
   SESION_MAXIMA_HORAS,
 } from '@/config/constantes'
 
-const S = 1000
-const MIN = 60 * S
+const SEGUNDO = 1000
+const MIN = 60 * SEGUNDO
 
 export function calcularDesfase(expiraAccesoUtc: Date, ahora: Date): number {
   return expiraAccesoUtc.getTime() - VIDA_ACCESO_MIN * MIN - ahora.getTime()
 }
 
 export function debeRenovar(expiraAccesoUtc: Date, ahora: Date): boolean {
-  return ahora.getTime() >= expiraAccesoUtc.getTime() - MARGEN_RENOVACION_S * S
+  return ahora.getTime() >= expiraAccesoUtc.getTime() - MARGEN_RENOVACION_S * SEGUNDO
 }
 
 export function fraccionRestante(sesionVenceUtc: Date, ahora: Date): number {
   const restante = sesionVenceUtc.getTime() - ahora.getTime()
-  const maximo = SESION_MAXIMA_HORAS * 3600 * S
+  const maximo = SESION_MAXIMA_HORAS * 3600 * SEGUNDO
   return Math.max(0, Math.min(1, restante / maximo))
 }
 
 export function msDeltaRenovacion(expiraAccesoUtc: Date, ahora: Date): number {
-  return Math.max(0, expiraAccesoUtc.getTime() - MARGEN_RENOVACION_S * S - ahora.getTime())
+  return Math.max(0, expiraAccesoUtc.getTime() - MARGEN_RENOVACION_S * SEGUNDO - ahora.getTime())
 }

@@ -4,8 +4,8 @@ const MSG_CERRADA = 'cerrada'
 
 export function crearCanalSesion(onCerrada: () => void) {
   const canal = new BroadcastChannel(CANAL)
-  canal.onmessage = (e: MessageEvent) => {
-    if (e.data === MSG_CERRADA) onCerrada()
+  canal.onmessage = (evento: MessageEvent) => {
+    if (evento.data === MSG_CERRADA) onCerrada()
   }
 
   function emitirCerrada() {

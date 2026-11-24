@@ -17,12 +17,12 @@ const PREFIJO_RE = /^[0-9a-f]{8}$/i
 const KM_RE = /^\d+,\d+$/
 
 export function parsearBusqueda(texto: string): IntentoBusqueda {
-  const t = texto.trim()
-  if (!t) return { tipo: 'sin_resultados' }
-  if (UUID_RE.test(t)) return { tipo: 'id', id: t }
-  if (PREFIJO_RE.test(t)) return { tipo: 'id-prefijo', prefijo: t }
-  if (KM_RE.test(t)) return { tipo: 'km', km: parseFloat(t.replace(',', '.')) }
-  if (t.includes('@')) return { tipo: 'correo', correo: t }
+  const limpio = texto.trim()
+  if (!limpio) return { tipo: 'sin_resultados' }
+  if (UUID_RE.test(limpio)) return { tipo: 'id', id: limpio }
+  if (PREFIJO_RE.test(limpio)) return { tipo: 'id-prefijo', prefijo: limpio }
+  if (KM_RE.test(limpio)) return { tipo: 'km', km: parseFloat(limpio.replace(',', '.')) }
+  if (limpio.includes('@')) return { tipo: 'correo', correo: limpio }
   return { tipo: 'sin_resultados' }
 }
 

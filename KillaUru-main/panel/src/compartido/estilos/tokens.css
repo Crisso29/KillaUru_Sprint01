@@ -10,7 +10,7 @@
   /* Texto */
   --ink: #0F1E24;
   --ink-2: #3D4F57;
-  --ink-3: #63767E;
+  --ink-3: #56686F; /* 4,5:1 o más sobre --bg, --surface y --killa-soft (antes #63767E: 4,33:1) */
 
   /* Bordes */
   --line: #DCE4E6;
@@ -98,7 +98,7 @@
 
     --ink: #E6F0F2;
     --ink-2: #A6BAC0;
-    --ink-3: #7A9098;
+    --ink-3: #86A0A8; /* 4,5:1 o más también sobre --killa-soft (antes #7A9098: 3,97:1) */
 
     --line: #1E3440;
     --line-2: #2C4654;
@@ -154,7 +154,7 @@
 
   --ink: #E6F0F2;
   --ink-2: #A6BAC0;
-  --ink-3: #7A9098;
+  --ink-3: #86A0A8; /* 4,5:1 o más también sobre --killa-soft (antes #7A9098: 3,97:1) */
 
   --line: #1E3440;
   --line-2: #2C4654;

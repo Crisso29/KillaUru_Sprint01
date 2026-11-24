@@ -6,8 +6,8 @@ export function minutosRestantes(bloqueadoHastaUtc: Date, ahora: Date): number {
   return Math.ceil(ms / 60_000)
 }
 
-export function horaEnLima(d: Date): string {
-  return d.toLocaleTimeString('es-PE', {
+export function horaEnLima(fecha: Date): string {
+  return fecha.toLocaleTimeString('es-PE', {
     timeZone: ZONA,
     hour: '2-digit',
     minute: '2-digit',

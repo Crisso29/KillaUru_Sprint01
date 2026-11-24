@@ -26,54 +26,66 @@ function pendiente(id: string, venceUtc: string): ElementoPendiente {
 const AHORA = new Date('2026-11-07T12:00:00Z')
 
 describe('contarTemas', () => {
-  it('por revisar + pendientes sin revisión próxima', () => {
-    const r = revision('2026-11-24T00:00:00Z') // 16 días exactos
-    expect(contarTemas(2, 2, r, AHORA)).toBe(4)
-  })
+  it.each([
+    ['por revisar + pendientes, revisión a 16 días', 2, 2, '2026-11-24T00:00:00Z', 4],
+    ['la revisión a 15 días o menos suma un tema', 2, 2, '2026-11-22T12:00:00Z', 5],
+    ['la revisión vencida también suma un tema', 1, 1, '2026-11-06T12:00:00Z', 3],
+    ['nada pendiente y revisión lejana → 0', 0, 0, '2027-01-01T00:00:00Z', 0],
+  ])('%s', (_caso, porRevisar, pendientes, venceRevision, esperado) => {
+    // Arrange
+    const estadoRevision = revision(venceRevision)
 
-  it('revisión a 15 días suma 1 más', () => {
-    const r = revision('2026-11-22T12:00:00Z') // 15 días exactos
-    expect(contarTemas(2, 2, r, AHORA)).toBe(5)
-  })
+    // Act
+    const temas = contarTemas(porRevisar, pendientes, estadoRevision, AHORA)
 
-  it('revisión vencida suma 1 más', () => {
-    const r = revision('2026-11-06T12:00:00Z') // ayer
-    expect(contarTemas(1, 1, r, AHORA)).toBe(3)
-  })
-
-  it('cero por revisar y cero pendientes, revisión lejana → 0', () => {
-    const r = revision('2027-01-01T00:00:00Z')
-    expect(contarTemas(0, 0, r, AHORA)).toBe(0)
+    // Assert
+    expect(temas).toBe(esperado)
   })
 })
 
 describe('primerPendiente', () => {
   it('lista vacía → null', () => {
-    expect(primerPendiente([], AHORA)).toBeNull()
+    // Arrange y Act
+    const primero = primerPendiente([], AHORA)
+
+    // Assert
+    expect(primero).toBeNull()
   })
 
   it('devuelve el id del primero y las horas que faltan', () => {
+    // Arrange
     const vence = new Date(AHORA.getTime() + 3 * 60 * 60 * 1000).toISOString()
+
+    // Act
     const resultado = primerPendiente([pendiente('abc12345', vence)], AHORA)
+
+    // Assert
     expect(resultado).toContain('abc12345')
     expect(resultado).toContain('3 h')
   })
 
   it('usa los primeros 8 caracteres del id', () => {
+    // Arrange
     const vence = new Date(AHORA.getTime() + 2 * 60 * 60 * 1000).toISOString()
+
+    // Act
     const resultado = primerPendiente([pendiente('a1b2c3d4-9999', vence)], AHORA)
+
+    // Assert
     expect(resultado).toContain('a1b2c3d4')
   })
 })
 
-// Prototipo «A-1061 expira en 18 h»: la que vence antes y nunca horas negativas. Patrón AAA.
+// Prototipo «A-1061 expira en 18 h»: la que vence antes y nunca horas negativas.
 describe('primerPendiente: la más urgente', () => {
   it('elige la que vence antes, no la primera de la lista', () => {
     // Arrange
-    const h = (n: number) => new Date(AHORA.getTime() + n * 3600_000).toISOString()
-    const lista = [pendiente('tardia00', h(40)), pendiente('urgente0', h(5))]
+    const horasDesde = (numero: number) => new Date(AHORA.getTime() + numero * 3600_000).toISOString()
+    const lista = [pendiente('tardia00', horasDesde(40)), pendiente('urgente0', horasDesde(5))]
+
     // Act
     const resultado = primerPendiente(lista, AHORA)
+
     // Assert
     expect(resultado).toBe('urgente0 expira en 5 h')
   })
@@ -81,8 +93,10 @@ describe('primerPendiente: la más urgente', () => {
   it('si el plazo ya pasó no muestra horas negativas', () => {
     // Arrange
     const vencida = new Date(AHORA.getTime() - 320 * 3600_000).toISOString()
+
     // Act
     const resultado = primerPendiente([pendiente('vieja000', vencida)], AHORA)
+
     // Assert
     expect(resultado).toBe('vieja000 expira en menos de 1 h')
   })

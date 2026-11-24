@@ -20,50 +20,62 @@ interface Props {
 }
 
 export function DetalleAnomalia({ id, onCerrar }: Props) {
-  const { data: queryData, isLoading, error } = useDetalleAnomalia(id)
-  const [localData, setLocalData] = useState<TDetalle | null>(null)
-  const data = localData ?? queryData
-
+  const { data: consultado, isLoading, error } = useDetalleAnomalia(id)
+  // Tras moderar se muestra al instante lo que devolvió el servidor, sin esperar a que se vuelva a pedir el detalle
+  const [moderado, setModerado] = useState<TDetalle | null>(null)
+  const detalle = moderado ?? consultado
   if (isLoading) return <Esqueleto alto={300} />
-
-  if (error) {
-    const e = error as ErrorApi
-    if (e.codigo === 'no_encontrado') {
-      return (
-        <div style={{ padding: 'var(--s-21)' }}>
-          <p>{TEXTOS_DETALLE.noExiste}</p>
-          {onCerrar && <Boton variante="secundario" onClick={onCerrar}>Volver</Boton>}
-        </div>
-      )
-    }
-    return <EstadoError error={e} />
-  }
-
-  if (!data) return null
-
+  if (error) return <ErrorDetalle error={error as ErrorApi} onCerrar={onCerrar} />
+  if (!detalle) return null
   // Prototipo: encabezado `.dhead` (severidad, id, tipo y estado), secciones y acciones fijas al pie (`.rp-foot`).
   return (
     <article style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div className="rp-body">
-        <header className="dsec">
-          <div className="dhead">
-            <Severidad nivel={data.severidadMostrada} tamano="lg" />
-            <div style={{ flex: 1 }}>
-              <span className="mono hint">{data.id.slice(0, 8)}</span>
-              <h3>{data.tipo} · {NOMBRE_SEVERIDAD[data.severidadMostrada]?.toLowerCase()}</h3>
-              <p>{DESCRIPCION_SEVERIDAD[data.severidadMostrada]}</p>
-            </div>
-            <InsigniaEstado estado={data.estado} />
-          </div>
-        </header>
-        <DatosAnomalia detalle={data} />
-        <ReportesPorDia datos={data.reportesPorDia} />
-        <Historial historial={data.historial} />
+        <EncabezadoDetalle detalle={detalle} />
+        <DatosAnomalia detalle={detalle} />
+        <ReportesPorDia datos={detalle.reportesPorDia} />
+        <Historial historial={detalle.historial} />
       </div>
-      <div className="rp-foot">
-        <AccionesModeracion detalle={data} onModerado={setLocalData} />
-        {onCerrar && <Boton variante="fantasma" onClick={onCerrar} className="sp">Cerrar</Boton>}
-      </div>
+      <PieDetalle detalle={detalle} onModerado={setModerado} onCerrar={onCerrar} />
     </article>
+  )
+}
+
+/** Un id que ya no existe (enlace viejo) se explica con texto propio; los demás errores usan el estado común. */
+function ErrorDetalle({ error, onCerrar }: { error: ErrorApi; onCerrar?: () => void }) {
+  if (error.codigo !== 'no_encontrado') return <EstadoError error={error} />
+  return (
+    <div style={{ padding: 'var(--s-21)' }}>
+      <p>{TEXTOS_DETALLE.noExiste}</p>
+      {onCerrar && <Boton variante="secundario" onClick={onCerrar}>Volver</Boton>}
+    </div>
+  )
+}
+
+function EncabezadoDetalle({ detalle }: { detalle: TDetalle }) {
+  return (
+    <header className="dsec">
+      <div className="dhead">
+        <Severidad nivel={detalle.severidadMostrada} tamano="lg" />
+        <div style={{ flex: 1 }}>
+          <span className="mono hint">{detalle.id.slice(0, 8)}</span>
+          <h3>{detalle.tipo} · {NOMBRE_SEVERIDAD[detalle.severidadMostrada]?.toLowerCase()}</h3>
+          <p>{DESCRIPCION_SEVERIDAD[detalle.severidadMostrada]}</p>
+        </div>
+        <InsigniaEstado estado={detalle.estado} />
+      </div>
+    </header>
+  )
+}
+
+interface PropsPie { detalle: TDetalle; onModerado: (detalle: TDetalle) => void; onCerrar?: () => void }
+
+/** Acciones fijas al pie (`.rp-foot`): moderar según el estado y cerrar el detalle. */
+function PieDetalle({ detalle, onModerado, onCerrar }: PropsPie) {
+  return (
+    <div className="rp-foot">
+      <AccionesModeracion detalle={detalle} onModerado={onModerado} />
+      {onCerrar && <Boton variante="fantasma" onClick={onCerrar} className="sp">Cerrar</Boton>}
+    </div>
   )
 }
