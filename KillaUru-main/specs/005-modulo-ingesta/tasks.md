@@ -65,7 +65,7 @@ description: "Tareas del módulo Ingesta"
 ### Pruebas
 
 - [x] T019 [P] [US3] `ProcesarLoteUseCaseTests` (dobles): orden por `detectado_utc`; contexto con `ConSesion`, conteo y `RecibidoUtc`; marca `Procesado` ante `Procesado` y `YaProcesado`, `Descartado` con motivo; `RegistrarRetrasoCola(ahora − recibido)` al marcar; excepción → no marca, sin métrica, y sigue con el siguiente — `InT/Application/ProcesarLoteUseCaseTests.cs` · (FR-012…FR-014, FR-026; R-005, R-015)
-- [ ] T020 [US3] `PendientesRepositorioTests` (Testcontainers): `RecibidosDelLoteAsync` usa `ix_recibido_lote` (también con `lote_id IS NULL`); `ContarEnLaHoraAsync` con límites de la hora; `MarcarAsync`; `BarridoPendientesPostgres` — `tests/KillaUru.Integracion.Tests/specs/005-modulo-ingesta/integracion/PendientesRepositorioTests.cs` · (FR-013, FR-016; R-007, R-011)
+- [ ] T020 [US3] `PendientesRepositorioTests` (Testcontainers): `RecibidosDelLoteAsync` usa `ix_recibido_lote` (también con `lote_id IS NULL`); `ContarEnLaHoraAsync` con límites de la hora; `MarcarLoteAsync` (DT-01); `BarridoPendientesPostgres` — `tests/KillaUru.Integracion.Tests/specs/005-modulo-ingesta/integracion/PendientesRepositorioTests.cs` · (FR-013, FR-016; R-007, R-011)
 
 ### Implementación
 
@@ -102,7 +102,7 @@ description: "Tareas del módulo Ingesta"
 
 ## Deuda técnica detectada con k6 (2026-11-22)
 
-- [ ] T041 Procesamiento al menos tan rápido como la llegada en el pico de RNF-03 (~250 eventos/s; retraso de cola p95 ≤ 30 s, RNF-23). Primero medir el historial de 15 días por evento (`ProcesarReporteUseCase.cs:58`) y el commit aparte de `MarcarAsync` (`ProcesarLoteUseCase.cs:36`); el cambio a una transacción por lote necesita ADR. Detalle y evidencia en `docs/seguimiento/deuda-tecnica.md` DT-01 · (RNF-23; relacionada con 004/T053)
+- [x] T041 Procesamiento al menos tan rápido como la llegada en el pico de RNF-03 (~250 eventos/s; retraso de cola p95 ≤ 30 s, RNF-23). Primero medir el historial de 15 días por evento (`ProcesarReporteUseCase.cs:58`) y el commit aparte de `MarcarAsync` (`ProcesarLoteUseCase.cs:36`); el cambio a una transacción por lote necesita ADR. Detalle y evidencia en `docs/seguimiento/deuda-tecnica.md` DT-01 · (RNF-23; relacionada con 004/T053) _(implementado 2026-11-24: Fix A `MarcarLoteAsync` 1 commit WAL/lote + Fix B proyección slim 5 campos; 1182 pruebas, 9 nuevas unidad Ingesta)_
 
 ## Dependencies & Execution Order
 

@@ -99,15 +99,16 @@ La deuda técnica ya demostrada (procesamiento, pools, *healthcheck*, prueba int
 - **005/T012 bloque C:** halló un 500 real con cuerpos de más de 256 KB en Kestrel, `datos_invalidos` en vez de
   `lote_invalido` y errores sin `problem+json`. Corregido; detalle en `specs/005-modulo-ingesta/cierre.md`.
 - **Carga k6 (2026-11-21, local, misma máquina):** [progresiva hasta 2 000 usuarios](evidencias/carga/2026-11-21-local-progresiva-2000/README.md).
-  Metas de 300 (RNF-01, RNF-02) cumplidas, 0 5xx y 503 de defensa desde 1 000. **El procesamiento (77 eventos/s) es
-  más lento que la llegada desde 300 usuarios: riesgo para RNF-23, pendiente de medir y diagnosticar.** Repetir en la VM.
+  Metas de 300 (RNF-01, RNF-02) cumplidas, 0 5xx y 503 de defensa desde 1 000. ~~El procesamiento (77 eventos/s) es
+  más lento que la llegada desde 300 usuarios: riesgo para RNF-23, pendiente de medir y diagnosticar.~~ **DT-01 resuelta 2026-11-24.** Repetir en la VM.
 - **Diagnóstico (2026-11-22):** [trabajadores y pool](evidencias/carga/2026-11-22-local-trabajadores-y-pool/README.md). Más
   trabajadores empeoran; el procesamiento se frena al crecer los datos. Faltaba `Maximum Pool Size=30` (§3.7, ARQ-22):
-  bajo ráfaga daba 500 por error 53300. Ya está configurado y vigilado por `PoolDeConexionesTests`. Quedan 3 pools (techo real 90).
+  bajo ráfaga daba 500 por error 53300. Ya está configurado y vigilado por `PoolDeConexionesTests`. Quedan 3 pools (techo real 90, pendiente DT-02).
 - **Pruebas y cobertura del backend (2026-11-22):** [1 153 pruebas, 0 fallidas, 3 pendientes; dominio ≥ 97 %, backend 78,8 %](evidencias/pruebas/2026-11-22-backend/README.md),
   generado con `backend/tests/generar-resultados.ps1`.
 - **Pruebas y cobertura del panel (2026-11-22):** [389 Vitest aprobadas; 75,1 % de líneas; E2E: solo `resumen.spec.ts` implementado, 147 casos `skip/fixme`](evidencias/pruebas/2026-11-22-panel/README.md).
 - **Panel — parte 6 (2026-11-24):** [499 Vitest, 62×3 E2E (Chromium/Firefox/Edge), ESLint 0 errores](evidencias/pruebas/2026-11-24-panel-parte6/README.md). Funciones ≤ 20 líneas, AAA en todas las pruebas, 8 bugs corregidos (rutas de correo, severidad, sesión entre pestañas, contraste, foco). Simulador MSW con RN-07. 62 casos E2E en verde en 3 navegadores (todo simulado). T087 y entorno desplegado pendientes.
+- **DT-01 resuelta (2026-11-24):** Fix A `MarcarLoteAsync` → 1 commit WAL por lote (antes: N fsyncs, 38 % del tiempo en disco). Fix B proyección slim `DesdeAsync` → 5 columnas sin geometría `Posicion`. 9 tests unitarios nuevos en `KillaUru.Ingesta.Tests`; 1179/1182 en verde (3 omitidos de despliegue sin Docker). 005/T041 cerrado.
 - **Suite backend completa (2026-11-21, Docker, 2 ejecuciones seguidas):** 1141 casos: 1138 aprobados, 0 fallidos y 3 omitidos (E2E pendientes).
 - **Panel:** E2E simulados completos; `e2e:pruebas` requiere `PANEL_URL` y el entorno desplegado; T087 (.size-limit, Lighthouse) pendiente.
 - **Android:** aún no existen `src/androidTest/` ni `src/test/resources/`; quedan pruebas

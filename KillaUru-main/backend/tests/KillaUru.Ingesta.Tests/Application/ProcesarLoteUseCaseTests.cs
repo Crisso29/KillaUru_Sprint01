@@ -38,46 +38,64 @@ public sealed class ProcesarLoteUseCaseTests
     [Fact]
     public async Task Resultado_procesado_marca_fila_procesado()
     {
+        // Arrange
         var p = ProcesarLoteTests_Setup.Pendiente(ProcesarLoteTests_Setup.Ahora.AddMinutes(-5));
         var (uc, repo, anomalias, _, _) = ProcesarLoteTests_Setup.Crear();
         repo.RecibidosDelLoteAsync(ProcesarLoteTests_Setup.LoteId, Arg.Any<CancellationToken>()).Returns([p]);
         repo.ContarEnLaHoraAsync(Arg.Any<Guid>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>()).Returns(1);
         anomalias.ProcesarReporteAsync(Arg.Any<EventoReportado>(), Arg.Any<ContextoReporte>(), Arg.Any<CancellationToken>())
                  .Returns(new ResultadoProceso());
+        // Act
         await uc.EjecutarAsync(ProcesarLoteTests_Setup.LoteId, CancellationToken.None);
-        await repo.Received(1).MarcarAsync(p.Evento.EventoId, EstadoRecepcion.Procesado, null, Arg.Any<CancellationToken>());
+        // Assert
+        await repo.Received(1).MarcarLoteAsync(
+            Arg.Is<IReadOnlyList<MarcaEvento>>(m => m.Count == 1 && m[0].Estado == EstadoRecepcion.Procesado && m[0].Motivo == null),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Resultado_ya_procesado_marca_fila_procesado()
     {
+        // Arrange
         var p = ProcesarLoteTests_Setup.Pendiente(ProcesarLoteTests_Setup.Ahora.AddMinutes(-5));
         var (uc, repo, anomalias, _, _) = ProcesarLoteTests_Setup.Crear();
         repo.RecibidosDelLoteAsync(ProcesarLoteTests_Setup.LoteId, Arg.Any<CancellationToken>()).Returns([p]);
         repo.ContarEnLaHoraAsync(Arg.Any<Guid>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>()).Returns(1);
         anomalias.ProcesarReporteAsync(Arg.Any<EventoReportado>(), Arg.Any<ContextoReporte>(), Arg.Any<CancellationToken>())
                  .Returns(new ResultadoProceso(YaProcesado: true));
+        // Act
         await uc.EjecutarAsync(ProcesarLoteTests_Setup.LoteId, CancellationToken.None);
-        await repo.Received(1).MarcarAsync(p.Evento.EventoId, EstadoRecepcion.Procesado, null, Arg.Any<CancellationToken>());
+        // Assert
+        await repo.Received(1).MarcarLoteAsync(
+            Arg.Is<IReadOnlyList<MarcaEvento>>(m => m.Count == 1 && m[0].Estado == EstadoRecepcion.Procesado),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Resultado_descartado_marca_fila_descartado_con_motivo()
     {
+        // Arrange
         var p = ProcesarLoteTests_Setup.Pendiente(ProcesarLoteTests_Setup.Ahora.AddMinutes(-5));
         var (uc, repo, anomalias, _, _) = ProcesarLoteTests_Setup.Crear();
         repo.RecibidosDelLoteAsync(ProcesarLoteTests_Setup.LoteId, Arg.Any<CancellationToken>()).Returns([p]);
         repo.ContarEnLaHoraAsync(Arg.Any<Guid>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>()).Returns(1);
         anomalias.ProcesarReporteAsync(Arg.Any<EventoReportado>(), Arg.Any<ContextoReporte>(), Arg.Any<CancellationToken>())
                  .Returns(new ResultadoProceso(Motivo: MotivoDescarte.FueraDelCorredor));
+        // Act
         await uc.EjecutarAsync(ProcesarLoteTests_Setup.LoteId, CancellationToken.None);
-        await repo.Received(1).MarcarAsync(p.Evento.EventoId, EstadoRecepcion.Descartado,
-            (short)MotivoDescarte.FueraDelCorredor, Arg.Any<CancellationToken>());
+        // Assert
+        await repo.Received(1).MarcarLoteAsync(
+            Arg.Is<IReadOnlyList<MarcaEvento>>(m =>
+                m.Count == 1 &&
+                m[0].Estado == EstadoRecepcion.Descartado &&
+                m[0].Motivo == (short)MotivoDescarte.FueraDelCorredor),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Excepcion_en_procesar_deja_fila_recibido_y_continua()
     {
+        // Arrange — p1 lanza, p2 se procesa bien
         var p1 = ProcesarLoteTests_Setup.Pendiente(ProcesarLoteTests_Setup.Ahora.AddMinutes(-10));
         var p2 = ProcesarLoteTests_Setup.Pendiente(ProcesarLoteTests_Setup.Ahora.AddMinutes(-5));
         var (uc, repo, anomalias, _, _) = ProcesarLoteTests_Setup.Crear();
@@ -91,11 +109,15 @@ public sealed class ProcesarLoteUseCaseTests
             Arg.Is<EventoReportado>(e => e.EventoId == p2.Evento.EventoId),
             Arg.Any<ContextoReporte>(), Arg.Any<CancellationToken>())
             .Returns(new ResultadoProceso());
+        // Act
         await uc.EjecutarAsync(ProcesarLoteTests_Setup.LoteId, CancellationToken.None);
-        await repo.DidNotReceive().MarcarAsync(p1.Evento.EventoId, Arg.Any<EstadoRecepcion>(),
-            Arg.Any<short?>(), Arg.Any<CancellationToken>());
-        await repo.Received(1).MarcarAsync(p2.Evento.EventoId, EstadoRecepcion.Procesado,
-            null, Arg.Any<CancellationToken>());
+        // Assert — p1 no aparece en el batch; p2 sí; p1 queda Recibido para el barredor (R-015)
+        await repo.Received(1).MarcarLoteAsync(
+            Arg.Is<IReadOnlyList<MarcaEvento>>(m =>
+                m.Count == 1 &&
+                m[0].EventoId == p2.Evento.EventoId &&
+                m[0].Estado == EstadoRecepcion.Procesado),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]

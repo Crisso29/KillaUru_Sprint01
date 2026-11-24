@@ -33,13 +33,19 @@ internal sealed class PendientesRepositorio(IngestaDbContext db) : IPendientesRe
                           && f.DetectadoUtc < fin, ct);
     }
 
-    public async Task MarcarAsync(Guid eventoId, EstadoRecepcion estado, short? motivo, CancellationToken ct)
+    public async Task MarcarLoteAsync(IReadOnlyList<MarcaEvento> marcas, CancellationToken ct)
     {
-        await db.Set<EventoRecibidoFila>()
-            .Where(f => f.EventoId == eventoId)
-            .ExecuteUpdateAsync(s => s
-                .SetProperty(f => f.Estado, estado)
-                .SetProperty(f => f.Motivo, motivo), ct);
+        // Un único commit WAL para todo el lote (Fix A, DT-01). El caller garantiza lista no vacía.
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        foreach (var marca in marcas)
+        {
+            await db.Set<EventoRecibidoFila>()
+                .Where(f => f.EventoId == marca.EventoId)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(f => f.Estado, marca.Estado)
+                    .SetProperty(f => f.Motivo, marca.Motivo), ct);
+        }
+        await tx.CommitAsync(ct);
     }
 
     private static EventoPendiente MapearPendiente(EventoRecibidoFila fila)

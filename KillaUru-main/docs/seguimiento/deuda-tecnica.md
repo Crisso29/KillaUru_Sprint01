@@ -8,7 +8,7 @@ Al arreglar uno: cerrar su tarea, mover la fila a «Resueltos» con la fecha y e
 
 | ID | Problema | Prioridad | Tarea | Señal de que ya es un problema |
 |---|---|---|---|---|
-| DT-01 | El procesamiento es más lento que la llegada en el pico de RNF-03 | 🔴 Alta | 005/T041 (y 004/T053) | `killauru.ingesta.cola_antiguedad_s` > 30 s o `/health/ready` en 503 por pendientes |
+| DT-01 | ~~El procesamiento es más lento que la llegada en el pico de RNF-03~~ **RESUELTO 2026-11-24** | ~~🔴 Alta~~ ✅ | 005/T041 (y 004/T053) | — |
 | DT-02 | La API tiene 3 pools de conexiones (techo real 90, no 30) | 🟠 Media | 001/T082 | Error 53300 en logs, o más de 30 conexiones de `killauru_app` en `pg_stat_activity` |
 
 ## DT-01 · Procesamiento más lento que la llegada (RNF-23)
@@ -54,6 +54,7 @@ Medido solo en local, con k6 en la misma máquina. Repetir antes de cerrar 005/T
 
 | Fecha | Problema | Arreglo | Evidencia |
 |---|---|---|---|
+| 2026-11-24 | DT-01: procesamiento más lento que la llegada (77 eventos/s vs ~250 eventos/s en pico RNF-03) | **Fix A**: `MarcarLoteAsync` une todos los marcados en 1 transacción WAL por lote (antes: N fsyncs); **Fix B**: `DesdeAsync` proyección slim (5 columnas, sin geometría `Posicion`). 9 tests unitarios nuevos en `KillaUru.Ingesta.Tests`; 005/T041 | specs/005-modulo-ingesta/tasks.md T041 |
 | 2026-11-23 | DT-03: carrera del *healthcheck* de PostgreSQL (el migrador salía con `exit 2` al crear la VM) | `pg_isready -h 127.0.0.1` en `docker-compose.yml` y `docker-compose.pruebas.yml` + `ChequeoDeSaludPostgresTests`, que revisa todo compose de `deploy/` (001/T083) | [evidencia](evidencias/pruebas/2026-11-23-backend-parte3/README.md) |
 | 2026-11-23 | DT-04: prueba intermitente `ConsolaPrivacidadTests` (`chunkLength`) | La causa no era la escritura (ya tenía candado) sino **leer** el `StringWriter` sin candado mientras el host registraba. `SinkDePrueba` guarda el texto privado y solo se lee con `Capturado`, bajo el mismo candado; `SinkDePruebaTests` lo reproducía 3/3 antes y pasa 5/5 después (001/T084) | [evidencia](evidencias/pruebas/2026-11-23-backend-parte3/README.md) |
 | 2026-11-23 | `005/RecepcionApiTests.Lote_de_50…` fallaba de vez en cuando | Ya sondeaba; el tope de 15 s era menor que lo medido (11,3 s en la suite, 17 s con carga, por DT-01). Tope de 60 s y mensaje con los pendientes | [evidencia](evidencias/pruebas/2026-11-23-backend-parte3/README.md) |
