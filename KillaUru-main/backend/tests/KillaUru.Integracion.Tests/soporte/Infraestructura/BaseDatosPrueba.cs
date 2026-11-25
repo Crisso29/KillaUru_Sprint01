@@ -49,5 +49,5 @@ public sealed class BaseDatosPrueba : IAsyncLifetime
     public ValueTask DisposeAsync() => _contenedor.DisposeAsync();
 
     private string Cadena(string usuario, string clave) =>
-        $"Host={_contenedor.Hostname};Port={_contenedor.GetMappedPublicPort(5432)};Database=killauru;Username={usuario};Password={clave};Maximum Pool Size=20";
+        $"Host={_contenedor.Hostname};Port={_contenedor.GetMappedPublicPort(5432)};Database=killauru;Username={usuario};Password={clave};Maximum Pool Size=3;Minimum Pool Size=0";
 }
