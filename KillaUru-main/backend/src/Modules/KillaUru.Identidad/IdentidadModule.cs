@@ -17,6 +17,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Npgsql;
 
 namespace KillaUru.Identidad;
 
@@ -32,7 +33,7 @@ public static class IdentidadModule
         services.AddOptions<IdentidadOptions>().Bind(configuration.GetSection("Identidad")).ValidateOnStart();
         services.AddSingleton<IValidateOptions<IdentidadOptions>, ValidadorIdentidadOptions>();
         services.AddOptions<OpcionesFirmaJwt>().Bind(configuration.GetSection("Api:Jwt"));
-        services.AddDbContext<IdentidadDbContext>(o => o.UseNpgsql(configuration.GetConnectionString("KillaUru")));
+        services.AddDbContext<IdentidadDbContext>((sp, o) => o.UseNpgsql(sp.GetRequiredService<NpgsqlDataSource>()));
         RegistrarPersistencia(services);
         RegistrarSeguridad(services);
         RegistrarAplicacion(services);

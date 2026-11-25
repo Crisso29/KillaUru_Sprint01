@@ -4,6 +4,7 @@ using KillaUru.Dashboard.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 
 namespace KillaUru.Dashboard;
 
@@ -20,8 +21,7 @@ public static class DashboardModule
 
         services.Configure<DashboardOptions>(configuration.GetSection(DashboardOptions.Seccion));
 
-        services.AddDbContext<DashboardDbContext>(o =>
-            o.UseNpgsql(configuration.GetConnectionString("KillaUru")));
+        services.AddDbContext<DashboardDbContext>((sp, o) => o.UseNpgsql(sp.GetRequiredService<NpgsqlDataSource>()));
 
         services.AddSingleton<CalculadoUtcHolder>();
         services.AddScoped<IIndicadoresRepositorio, IndicadoresRepositorio>();

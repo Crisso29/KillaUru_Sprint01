@@ -7,6 +7,7 @@ using KillaUru.Anomalias.Domain;
 using KillaUru.Anomalias.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Npgsql;
 
 namespace KillaUru.Anomalias;
 
@@ -22,7 +23,8 @@ public static class AnomaliasModule
         ArgumentNullException.ThrowIfNull(configuration);
         services.AddOptions<AnomaliasOptions>().Bind(configuration.GetSection("Anomalias")).ValidateOnStart();
         services.AddSingleton<IValidateOptions<AnomaliasOptions>, ValidadorAnomaliasOptions>();
-        services.AddDbContext<AnomaliasDbContext>(o => o.UseNpgsql(configuration.GetConnectionString("KillaUru"), n => n.UseNetTopologySuite()));
+        services.AddDbContext<AnomaliasDbContext>((sp, o) =>
+            o.UseNpgsql(sp.GetRequiredService<NpgsqlDataSource>(), n => n.UseNetTopologySuite()));
         services.AddOpenApi("v1", o => o.AddSchemaTransformer<Adapters.Documentacion.EsquemasAnomalias>().AddOperationTransformer<Adapters.Documentacion.OperacionAnomalias>());
         services.AddSingleton<EstadoCorredor>();
         services.AddScoped<IAnomaliaRepository, AnomaliaRepositoryPostgis>();

@@ -6,6 +6,7 @@ using KillaUru.Auditoria.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 
 namespace KillaUru.Auditoria;
 
@@ -19,7 +20,7 @@ public static class AuditoriaModule
     public static IServiceCollection AddAuditoriaModule(this IServiceCollection services, IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);
-        services.AddDbContext<AuditoriaDbContext>(opciones => opciones.UseNpgsql(configuration.GetConnectionString("KillaUru")));
+        services.AddDbContext<AuditoriaDbContext>((sp, o) => o.UseNpgsql(sp.GetRequiredService<NpgsqlDataSource>()));
         services.AddScoped<FabricaContextoAuditoria>();
         services.AddScoped<IRegistroAuditoriaRepositorio, RegistroAuditoriaRepositorio>();
         services.AddScoped<IConsultaAuditoria, ConsultaAuditoriaRepositorio>();

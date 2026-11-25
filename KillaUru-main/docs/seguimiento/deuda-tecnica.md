@@ -9,7 +9,7 @@ Al arreglar uno: cerrar su tarea, mover la fila a «Resueltos» con la fecha y e
 | ID | Problema | Prioridad | Tarea | Señal de que ya es un problema |
 |---|---|---|---|---|
 | DT-01 | ~~El procesamiento es más lento que la llegada en el pico de RNF-03~~ **RESUELTO 2026-11-24** | ~~🔴 Alta~~ ✅ | 005/T041 (y 004/T053) | — |
-| DT-02 | La API tiene 3 pools de conexiones (techo real 90, no 30) | 🟠 Media | 001/T082 | Error 53300 en logs, o más de 30 conexiones de `killauru_app` en `pg_stat_activity` |
+| DT-02 | ~~La API tiene 3 pools de conexiones (techo real 90, no 30)~~ **RESUELTO 2026-11-24** | ~~🟠 Media~~ ✅ | 001/T082 | — |
 
 ## DT-01 · Procesamiento más lento que la llegada (RNF-23)
 
@@ -33,16 +33,15 @@ Al arreglar uno: cerrar su tarea, mover la fila a «Resueltos» con la fecha y e
      de su transacción por evento, con idempotencia por `eventoId` y bloqueo de celdas. Requiere un ADR nuevo antes de programar.
 - **Descartado:** subir `Ingesta:Trabajadores`. Un caché tampoco ataca la espera de disco, que es la parte mayor.
 
-## DT-02 · Tres pools de conexiones (diseño §3.7)
+## DT-02 · Tres pools de conexiones (diseño §3.7) — RESUELTO 2026-11-24
 
-- **Evidencia:** con `Maximum Pool Size=30` se midieron 35 conexiones de la API ([diagnóstico](evidencias/carga/2026-11-22-local-trabajadores-y-pool/README.md)).
-- **Dónde está:** cada uno de estos crea un pool propio con tope 30:
-  - `backend/src/KillaUru.Api/Configuracion/ConfiguracionExtensions.cs:19`: `NpgsqlDataSource.Create(cadena)` para los chequeos de salud.
-  - `backend/src/Modules/KillaUru.Anomalias/AnomaliasModule.cs:25`: `UseNpgsql(cadena, n => n.UseNetTopologySuite())`; la extensión hace que EF cree su propio origen de datos.
-  - Auditoría, Dashboard, Identidad e Ingesta: `UseNpgsql(cadena)`; comparten el pool por usar la misma cadena.
-- **Arreglo:** un solo `NpgsqlDataSource` (construido con NetTopologySuite) registrado una vez y usado por todos los
-  `DbContext` con `UseNpgsql(dataSource)`. Hay que mantener las reglas de capas: el registro va en la composición, no en Domain.
-- **Protección actual:** `backend/tests/KillaUru.Arquitectura.Tests/PoolDeConexionesTests.cs` exige el tope en cada cadena.
+- **Evidencia original:** con `Maximum Pool Size=30` se midieron 35 conexiones de la API ([diagnóstico](evidencias/carga/2026-11-22-local-trabajadores-y-pool/README.md)).
+- **Dónde estaba:** cada uno de estos creaba un pool propio con tope 30:
+  - `ConfiguracionExtensions.cs`: `NpgsqlDataSource.Create(cadena)` para los chequeos de salud.
+  - `AnomaliasModule.cs`: `UseNpgsql(cadena, n => n.UseNetTopologySuite())`; EF creaba su propio origen de datos.
+  - Auditoría, Dashboard, Identidad e Ingesta: `UseNpgsql(cadena)` con cadena literal.
+- **Arreglo aplicado:** `NpgsqlDataSourceBuilder` + `UseNetTopologySuite()` en `ConfiguracionExtensions`; singleton registrado en DI; los 5 módulos reciben la fuente con `sp.GetRequiredService<NpgsqlDataSource>()`. Un solo pool, techo 30 real.
+- **Protección nueva:** `backend/tests/KillaUru.Arquitectura.Tests/UnFuenteConexionesTests.cs` (3 pruebas, verde).
 
 ## Por confirmar en la VM (`killauru-pruebas`)
 

@@ -7,6 +7,7 @@ using KillaUru.Ingesta.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 
 namespace KillaUru.Ingesta;
 
@@ -21,8 +22,7 @@ public static class IngestaModule
             .Bind(configuration.GetSection("Ingesta"))
             .ValidateDataAnnotations()
             .ValidateOnStart();
-        services.AddDbContext<IngestaDbContext>(o =>
-            o.UseNpgsql(configuration.GetConnectionString("KillaUru")));
+        services.AddDbContext<IngestaDbContext>((sp, o) => o.UseNpgsql(sp.GetRequiredService<NpgsqlDataSource>()));
         RegistrarPersistencia(services);
         RegistrarProcesamiento(services);
         // Documentación: completa el OpenAPI v1 con el contrato de 005 (FR-001, FR-006)
