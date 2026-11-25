@@ -28,6 +28,7 @@ internal sealed class FabricaApi(BaseDatosPrueba bd, string entorno = "Developme
         builder.UseSetting("Identidad:TurnstileSecreto", "secreto-ficticio-pruebas");
         builder.UseSetting("Identidad:CorreoApiKey", "secreto-ficticio-pruebas");
         builder.UseSetting("Api:RedTunel", null);
+        builder.UseSetting("Ingesta:Trabajadores", "1"); // ProcessorCount en CI son 2 núcleos → 2 workers × 2 conn (Ingesta+Anomalías) + Barredor + Indicadores > pool
         builder.ConfigureTestServices(servicios =>
         {
             EliminarServiciosBackground(servicios);

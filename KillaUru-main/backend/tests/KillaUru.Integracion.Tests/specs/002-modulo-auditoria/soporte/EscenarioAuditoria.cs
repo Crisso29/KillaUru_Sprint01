@@ -21,7 +21,7 @@ internal sealed class EscenarioAuditoria : IDisposable
     {
         var configuracion = new ConfigurationBuilder().AddInMemoryCollection(
             new Dictionary<string, string?> { ["ConnectionStrings:KillaUru"] = cadena }).Build();
-        _servicios = new ServiceCollection().AddSingleton(NpgsqlDataSource.Create(cadena))
+        _servicios = new ServiceCollection().AddSingleton<NpgsqlDataSource>(new NpgsqlDataSourceBuilder(cadena).Build())
             .AddSingleton(TimeProvider.System).AddSingleton(Metricas)
             .AddScoped<IContextoTransaccion, ContextoTransaccion>().AddAuditoriaModule(configuracion).BuildServiceProvider();
         _scope = _servicios.CreateScope();

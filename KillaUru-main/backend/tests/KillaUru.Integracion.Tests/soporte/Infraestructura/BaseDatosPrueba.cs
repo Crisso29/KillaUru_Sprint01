@@ -19,7 +19,7 @@ public sealed class BaseDatosPrueba : IAsyncLifetime
         .WithUsername("postgres")
         .WithPassword(ClaveSuperusuario)
         .WithResourceMapping(new DirectoryInfo(Rutas.Migraciones), MigradorPrueba.CarpetaEnContenedor)
-        .WithCommand("-c", "max_connections=200") // muchos WebApplicationFactory en paralelo agotan el límite por defecto (100)
+        .WithCommand("-c", "max_connections=500") // 66 archivos de test × pool=5 = 330 conn; 500 da margen (original 100 era insuficiente)
         .Build();
 
     /// <summary>Aplica scripts SQL dentro del contenedor, como lo hace migrar.sh.</summary>
@@ -49,5 +49,5 @@ public sealed class BaseDatosPrueba : IAsyncLifetime
     public ValueTask DisposeAsync() => _contenedor.DisposeAsync();
 
     private string Cadena(string usuario, string clave) =>
-        $"Host={_contenedor.Hostname};Port={_contenedor.GetMappedPublicPort(5432)};Database=killauru;Username={usuario};Password={clave};Maximum Pool Size=3;Minimum Pool Size=0";
+        $"Host={_contenedor.Hostname};Port={_contenedor.GetMappedPublicPort(5432)};Database=killauru;Username={usuario};Password={clave};Maximum Pool Size=5;Minimum Pool Size=0";
 }
