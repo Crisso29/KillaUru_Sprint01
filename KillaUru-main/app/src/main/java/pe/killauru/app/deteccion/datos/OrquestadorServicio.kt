@@ -18,6 +18,7 @@ internal class OrquestadorServicio @Inject constructor(
     private val politicaDeteccion: PoliticaDeteccion,
     private val prefs: RepositorioPreferencias,
     private val reloj: Reloj,
+    private val descomposicion: DescomposicionEjes,
 ) {
     private var scope: CoroutineScope? = null
     private var buffer: BufferVentanas? = null
@@ -34,13 +35,15 @@ internal class OrquestadorServicio @Inject constructor(
         this.scope = scope
         scope.launch { cargarPrefs() }
         lectorBateria = LectorBateria(context).also { it.iniciar() }
-        val buf = BufferVentanas(onVentana = { ventana ->
-            val loc = ultimaUbicacion ?: return@BufferVentanas
-            scope.launch { procesarConUbicacion(ventana, loc) }
-        })
+        val velKmH = { ultimaUbicacion?.speed?.times(3.6f) ?: 0f }
+        val buf = BufferVentanas(descomposicion = descomposicion, velocidadKmH = velKmH,
+            onVentana = { ventana ->
+                val loc = ultimaUbicacion ?: return@BufferVentanas
+                scope.launch { procesarConUbicacion(ventana, loc) }
+            })
         buffer = buf
-        lectorSensores = LectorSensores(context) { muestra ->
-            scope.launch { buf.agregar(muestra, reloj.ahoraConfiable() ?: Instant.EPOCH) }
+        lectorSensores = LectorSensores(context) { accel, gyro ->
+            scope.launch { buf.agregar(accel, gyro, reloj.ahoraConfiable() ?: Instant.EPOCH) }
         }.also { it.iniciar() }
         lectorGps = LectorGps(context) { loc ->
             ultimaUbicacion = loc
@@ -53,7 +56,7 @@ internal class OrquestadorServicio @Inject constructor(
         soloVerMapa = prefs.obtenerSoloVerMapa()
     }
 
-    private suspend fun procesarConUbicacion(ventana: pe.killauru.app.deteccion.dominio.Ventana, loc: Location) {
+    private suspend fun procesarConUbicacion(ventana: Ventana, loc: Location) {
         val estado = PoliticaDeteccion.EstadoDeteccion(
             categoria = categoria,
             soloVerMapa = soloVerMapa,
@@ -63,10 +66,8 @@ internal class OrquestadorServicio @Inject constructor(
         if (!politicaDeteccion.puedeDetectar(estado)) return
         val fixUtc = Instant.ofEpochMilli(loc.time)
         val ahoraUtc = reloj.ahoraConfiable() ?: return
-        procesarVentana.procesar(
-            ventana, loc.latitude, loc.longitude,
-            loc.accuracy.toDouble(), fixUtc, ahoraUtc,
-        )
+        procesarVentana.procesar(ventana, loc.latitude, loc.longitude,
+            loc.accuracy.toDouble(), fixUtc, ahoraUtc)
     }
 
     fun detener() {

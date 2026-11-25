@@ -17,7 +17,7 @@ import kotlin.test.assertNull
 class ActualizacionesTest {
     private val prefs = PreferenciasMemoria()
     private val caso = ActualizarModeloUseCase(prefs, PoliticaActivacionModelo("1.2.0"))
-    private val modelo = ManifiestoModelo("2", "modelo.tflite", 1, listOf("Normal", "Bache", "Hundimiento"), 5, "1.0.0")
+    private val modelo = ManifiestoModelo("2", "modelo.tflite", listOf("Normal", "Bache", "Hundimiento"), "1.0.0", 1.0f, 1.2f)
 
     @Test fun `un modelo que pide una app mas nueva no se activa`() = runTest {
         // Arrange + Act

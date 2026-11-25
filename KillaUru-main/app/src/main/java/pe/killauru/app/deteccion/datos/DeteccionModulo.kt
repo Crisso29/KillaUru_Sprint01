@@ -30,18 +30,17 @@ internal object DeteccionModulo {
     @Provides fun guardar(repo: RepositorioEventos, p: ParametrosApp, fuentes: FuentesDeteccion) =
         GuardarEventoUseCase(repo, PoliticaGuardado(p.confidenceMinimo), fuentes, p.antiguedadMaximaFixMs.toLong())
 
+    @Provides fun descomposicion() = DescomposicionEjes()
+
     @Provides fun procesar(@ApplicationContext ctx: Context, p: ParametrosApp,
         guardar: GuardarEventoUseCase): ProcesarVentanaUseCase {
-        val manifiesto = ctx.assets.open("modelo/manifiesto.json").bufferedReader().use { JSONObject(it.readText()) }
-        return ProcesarVentanaUseCase(Prefiltro(manifiesto.getDouble("umbralPrefiltro")),
-            clasificador(ctx, manifiesto), FusionVentanas(p.fusionVentanasMs.toLong()), guardar)
-    }
-
-    private fun clasificador(ctx: Context, m: JSONObject): Clasificador {
-        val etiquetas = m.getJSONArray("etiquetas")
-        return ClasificadorLiteRt(ctx.assets, "modelo/" + m.getString("archivo"),
-            List(etiquetas.length()) { etiquetas.getString(it) }, m.getInt("severidades"),
-            NormalizadorEntrada(m.getDouble("mediaAceleracion").toFloat(),
-                m.getDouble("desviacionAceleracion").toFloat(), m.getInt("entradaLongitud")), m.getString("version"))
+        val json = ctx.assets.open("modelo/manifiesto.json").bufferedReader().use { JSONObject(it.readText()) }
+        val clases = json.getJSONArray("clases").let { a -> List(a.length()) { i -> a.getString(i) } }
+        val temperatura = json.getJSONObject("calibracion").getDouble("temperatura").toFloat()
+        val umbral = json.getJSONObject("prefiltro").getDouble("umbralPicoAPicoVerticalMs2").toFloat()
+        val version = json.getString("modeloVersion")
+        val clasificador = ClasificadorLiteRt(ctx.assets, "modelo/" + json.getString("archivo"),
+            clases, temperatura, version)
+        return ProcesarVentanaUseCase(Prefiltro(umbral), clasificador, FusionVentanas(p.fusionVentanasMs.toLong()), guardar)
     }
 }

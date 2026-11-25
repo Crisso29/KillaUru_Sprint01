@@ -3,16 +3,14 @@ package pe.killauru.app.actualizador.dominio
 /** FR-070, FR-071, R-017: si el modelo es compatible con la app instalada. */
 internal class PoliticaActivacionModelo(
     private val versionApp: String,
-    private val esquemaCompatible: Int = 1,
-    private val etiquetasEsperadasPorDefecto: List<String> = listOf("Normal", "Bache", "Hundimiento"),
+    private val clasesEsperadasPorDefecto: List<String> = listOf("Normal", "Bache", "Hundimiento"),
 ) {
     fun puedeActivar(
         manifiesto: ManifiestoModelo,
-        etiquetasEsperadas: List<String> = etiquetasEsperadasPorDefecto,
+        clasesEsperadas: List<String> = clasesEsperadasPorDefecto,
     ): Boolean {
-        if (manifiesto.esquema != esquemaCompatible) return false
         if (!esVersionCompatible(manifiesto.versionMinimaApp, versionApp)) return false
-        if (manifiesto.etiquetas != etiquetasEsperadas) return false
+        if (manifiesto.clases != clasesEsperadas) return false
         return true
     }
 

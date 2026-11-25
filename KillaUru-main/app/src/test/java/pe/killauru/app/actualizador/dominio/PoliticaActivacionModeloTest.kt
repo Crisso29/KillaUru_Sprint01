@@ -8,51 +8,33 @@ import kotlin.test.assertTrue
 class PoliticaActivacionModeloTest {
     private val politica = PoliticaActivacionModelo(versionApp = "1.2.0")
 
+    private fun manifiesto(version: String = "0.2.0", versionMinima: String = "1.0.0",
+                           clases: List<String> = listOf("Normal", "Bache", "Hundimiento")) =
+        ManifiestoModelo(version, "modelo.tflite", clases, versionMinima, 1.0f, 1.2f)
+
     @Test
     fun `version mayor compatible se puede descargar`() {
-        // Arrange
-        val manifiesto = ManifiestoModelo(
-            version = "0.2.0", archivo = "modelo.tflite", esquema = 1,
-            etiquetas = listOf("Normal", "Bache", "Hundimiento"), severidades = 5,
-            versionMinimaApp = "1.0.0",
-        )
-        // Act / Assert
-        assertTrue(politica.puedeActivar(manifiesto))
+        // Arrange / Act / Assert
+        assertTrue(politica.puedeActivar(manifiesto()))
     }
 
     @Test
     fun `versionMinimaApp mayor que app instalada no activa`() {
-        // Arrange
-        val manifiesto = ManifiestoModelo(
-            version = "0.3.0", archivo = "modelo.tflite", esquema = 1,
-            etiquetas = listOf("Normal", "Bache", "Hundimiento"), severidades = 5,
-            versionMinimaApp = "2.0.0",
-        )
-        // Act / Assert
-        assertFalse(politica.puedeActivar(manifiesto))
+        // Arrange / Act / Assert
+        assertFalse(politica.puedeActivar(manifiesto(versionMinima = "2.0.0")))
     }
 
     @Test
-    fun `esquema 2 no es compatible`() {
+    fun `clases distintas no activan el modelo`() {
         // Arrange
-        val manifiesto = ManifiestoModelo(
-            version = "0.2.0", archivo = "modelo.tflite", esquema = 2,
-            etiquetas = listOf("Normal", "Bache", "Hundimiento"), severidades = 5,
-            versionMinimaApp = "1.0.0",
-        )
+        val m = manifiesto(clases = listOf("Normal", "Grieta"))
         // Act / Assert
-        assertFalse(politica.puedeActivar(manifiesto))
+        assertFalse(politica.puedeActivar(m, clasesEsperadas = listOf("Normal", "Bache")))
     }
 
     @Test
-    fun `etiquetas distintas no activa`() {
-        // Arrange
-        val manifiesto = ManifiestoModelo(
-            version = "0.2.0", archivo = "modelo.tflite", esquema = 1,
-            etiquetas = listOf("Normal", "Grieta"),
-            severidades = 5, versionMinimaApp = "1.0.0",
-        )
-        // Act / Assert
-        assertFalse(politica.puedeActivar(manifiesto, etiquetasEsperadas = listOf("Normal", "Bache")))
+    fun `clases correctas y version compatible activan el modelo`() {
+        // Arrange / Act / Assert
+        assertTrue(politica.puedeActivar(manifiesto(version = "1.0.0")))
     }
 }

@@ -70,7 +70,7 @@ internal data class Paleta(
 
         val clara = Paleta(
             fondo = Color(0xFFF2F5F5), superficie = Color(0xFFFFFFFF), hundido = Color(0xFFE8EEEF),
-            tinta = Color(0xFF0F1E24), tinta2 = Color(0xFF3D4F57), tinta3 = Color(0xFF63767E),
+            tinta = Color(0xFF0F1E24), tinta2 = Color(0xFF3D4F57), tinta3 = Color(0xFF56686F),
             linea = Color(0xFFDCE4E6), linea2 = Color(0xFFC3CFD2),
             killa = Color(0xFF0F5C70), sobreKilla = Color(0xFFFFFFFF), killaSuave = Color(0xFFDCEFEF),
             luna = Color(0xFFD4930F), lunaSuave = Color(0xFFFBF0D6),
@@ -84,7 +84,7 @@ internal data class Paleta(
 
         val oscura = Paleta(
             fondo = Color(0xFF08141A), superficie = Color(0xFF0F1E26), hundido = Color(0xFF0B181F),
-            tinta = Color(0xFFE6F0F2), tinta2 = Color(0xFFA6BAC0), tinta3 = Color(0xFF7A9098),
+            tinta = Color(0xFFE6F0F2), tinta2 = Color(0xFFA6BAC0), tinta3 = Color(0xFF86A0A8),
             linea = Color(0xFF1E3440), linea2 = Color(0xFF2C4654),
             killa = Color(0xFF74D3C6), sobreKilla = Color(0xFF08141A), killaSuave = Color(0xFF12343A),
             luna = Color(0xFFF2C14E), lunaSuave = Color(0xFF3A2F17),

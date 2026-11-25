@@ -1,18 +1,10 @@
 package pe.killauru.app.deteccion.dominio
 
-/** FR-011, R-018: descarta ventanas con varianza de la norma por debajo del umbral. */
-internal class Prefiltro(private val varianzaMinima: Double) {
+/** FR-011, FR-018: descarta ventanas cuyo pico a pico vertical es menor que el umbral (009 §4). */
+internal class Prefiltro(private val umbralPicoAPicoMs2: Float) {
 
     fun pasar(ventana: Ventana): Boolean {
-        if (ventana.muestras.isEmpty()) return false
-        val normas = ventana.muestras.map { m ->
-            val ax = m.getOrElse(0) { 0f }
-            val ay = m.getOrElse(1) { 0f }
-            val az = m.getOrElse(2) { 0f }
-            Math.sqrt((ax * ax + ay * ay + az * az).toDouble())
-        }
-        val media = normas.average()
-        val varianza = normas.map { (it - media) * (it - media) }.average()
-        return varianza >= varianzaMinima
+        if (ventana.aV.isEmpty()) return false
+        return ventana.aV.max() - ventana.aV.min() >= umbralPicoAPicoMs2
     }
 }

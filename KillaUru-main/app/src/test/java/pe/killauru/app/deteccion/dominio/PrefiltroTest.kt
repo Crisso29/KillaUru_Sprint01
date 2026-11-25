@@ -5,39 +5,37 @@ import java.time.Instant
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/** T040 / FR-011, R-018: varianza bajo umbral no pasa al modelo. */
+/** T040 / FR-011, FR-018: v_pap < umbral no pasa al modelo; ahorra batería sin movimiento real. */
 class PrefiltroTest {
 
-    private val prefiltro = Prefiltro(varianzaMinima = 0.5)
+    private val prefiltro = Prefiltro(umbralPicoAPicoMs2 = 1.2f)
 
-    private fun ventanaPlana(): Ventana {
-        val muestras = List(100) { floatArrayOf(0f, 0f, 9.8f) }
-        return Ventana(muestras, Instant.EPOCH)
-    }
-
-    private fun ventanaConBache(): Ventana {
-        val muestras = (0 until 100).map { i ->
-            if (i == 50) floatArrayOf(0f, 0f, 25f) else floatArrayOf(0f, 0f, 9.8f)
-        }
-        return Ventana(muestras, Instant.EPOCH)
-    }
+    private fun ventana(aV: FloatArray) = Ventana(
+        aV = aV,
+        aH = FloatArray(25) { 0f },
+        w = FloatArray(25) { 0f },
+        contextoAv = FloatArray(100) { 0f },
+        velocidadKmH = 0f,
+        inicioUtc = Instant.EPOCH,
+    )
 
     @Test
     fun `ventana plana no pasa el prefiltro`() {
         // Arrange
-        val ventana = ventanaPlana()
+        val v = ventana(FloatArray(25) { 0f })
         // Act
-        val pasa = prefiltro.pasar(ventana)
+        val pasa = prefiltro.pasar(v)
         // Assert
         assertFalse(pasa)
     }
 
     @Test
     fun `ventana con bache pasa el prefiltro`() {
-        // Arrange
-        val ventana = ventanaConBache()
+        // Arrange — pico = 10, valle = 0 → v_pap = 10 >= 1.2
+        val aV = FloatArray(25) { if (it == 12) 10f else 0f }
+        val v = ventana(aV)
         // Act
-        val pasa = prefiltro.pasar(ventana)
+        val pasa = prefiltro.pasar(v)
         // Assert
         assertTrue(pasa)
     }
@@ -45,8 +43,17 @@ class PrefiltroTest {
     @Test
     fun `ventana vacia no pasa el prefiltro`() {
         // Arrange
-        val ventana = Ventana(emptyList(), Instant.EPOCH)
+        val v = Ventana(FloatArray(0), FloatArray(0), FloatArray(0), FloatArray(0), 0f, Instant.EPOCH)
         // Act / Assert
-        assertFalse(prefiltro.pasar(ventana))
+        assertFalse(prefiltro.pasar(v))
+    }
+
+    @Test
+    fun `v_pap exactamente al umbral pasa el prefiltro`() {
+        // Arrange — pap = 1.2 = umbral
+        val aV = FloatArray(25) { 0f }.also { it[0] = 1.2f }
+        val v = ventana(aV)
+        // Act / Assert
+        assertTrue(prefiltro.pasar(v))
     }
 }

@@ -1,11 +1,8 @@
 {
-  "version": "0.1.0",
+  "modeloVersion": "0.0.1-ci",
   "archivo": "modelo.tflite",
-  "esquema": 1,
-  "etiquetas": ["Normal", "Bache", "Hundimiento"],
-  "severidades": 5,
+  "clases": ["Normal", "Bache", "Hundimiento"],
   "versionMinimaApp": "1.0.0",
-  "entradaLongitud": 300,
-  "mediaAceleracion": 9.8,
-  "desviacionAceleracion": 2.5
+  "calibracion": { "temperatura": 1.0 },
+  "prefiltro": { "umbralPicoAPicoVerticalMs2": 1.2 }
 }

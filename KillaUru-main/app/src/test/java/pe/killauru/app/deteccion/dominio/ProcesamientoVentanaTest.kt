@@ -21,7 +21,16 @@ class ProcesamientoVentanaTest {
         override fun horaConfiable() = ahora
         override fun km(): Double? = null
     }
-    private val conMovimiento = Ventana(listOf(floatArrayOf(0f, 0f, 0f), floatArrayOf(5f, 0f, 0f)), ahora)
+
+    // aV con un pico de 5 m/s² → v_pap = 5 > 0.1 → pasa el prefiltro
+    private val conMovimiento = Ventana(
+        aV = FloatArray(25) { if (it == 12) 5f else 0f },
+        aH = FloatArray(25) { 0f },
+        w = FloatArray(25) { 0f },
+        contextoAv = FloatArray(100) { 0f },
+        velocidadKmH = 30f,
+        inicioUtc = ahora,
+    )
 
     /** Modelo de prueba: cuenta cuántas veces lo llamaron y responde lo que se le diga. */
     private class ClasificadorDoble(private val respuesta: Clasificacion) : Clasificador {
@@ -31,13 +40,14 @@ class ProcesamientoVentanaTest {
     }
 
     private fun caso(repo: EventosMemoria, modelo: Clasificador) =
-        ProcesarVentanaUseCase(Prefiltro(0.1), modelo, FusionVentanas(), GuardarEventoUseCase(repo, PoliticaGuardado(0.75), fuentes))
+        ProcesarVentanaUseCase(Prefiltro(0.1f), modelo, FusionVentanas(), GuardarEventoUseCase(repo, PoliticaGuardado(0.75), fuentes))
 
     @Test fun `en reposo el prefiltro no llama al modelo`() = runTest {
-        // Arrange
+        // Arrange — aV = cero → v_pap = 0 < 0.1
         val modelo = ClasificadorDoble(Clasificacion(TipoAnomalia.Bache, 3, 0.9f))
+        val enReposo = Ventana(FloatArray(25), FloatArray(25), FloatArray(25), FloatArray(100), 0f, ahora)
         // Act
-        caso(EventosMemoria(), modelo).procesar(Ventana(emptyList(), ahora), -13.0, -74.0, 5.0, ahora, ahora)
+        caso(EventosMemoria(), modelo).procesar(enReposo, -13.0, -74.0, 5.0, ahora, ahora)
         // Assert — ahorra batería: sin movimiento no hay inferencia
         assertEquals(0, modelo.inferencias)
     }

@@ -9,8 +9,14 @@ class FusionVentanasTest {
 
     private val fusion = FusionVentanas(ventanaMsFusion = 1_000L)
 
-    private fun ventana(offsetMs: Long) =
-        Ventana(listOf(floatArrayOf(0f, 0f, 1f)), Instant.EPOCH.plusMillis(offsetMs))
+    private fun ventana(offsetMs: Long) = Ventana(
+        aV = FloatArray(25) { 0f },
+        aH = FloatArray(25) { 0f },
+        w = FloatArray(25) { 0f },
+        contextoAv = FloatArray(100) { 0f },
+        velocidadKmH = 0f,
+        inicioUtc = Instant.EPOCH.plusMillis(offsetMs),
+    )
 
     private fun clasif(c: Float) = Clasificacion(TipoAnomalia.Bache, 3, c)
 
