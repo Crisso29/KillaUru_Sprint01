@@ -4,6 +4,7 @@ using KillaUru.Shared.Metricas;
 using KillaUru.Shared.Persistencia;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 using NSubstitute;
 namespace KillaUru.Integracion.Tests.Auditoria;
 
@@ -20,7 +21,8 @@ internal sealed class EscenarioAuditoria : IDisposable
     {
         var configuracion = new ConfigurationBuilder().AddInMemoryCollection(
             new Dictionary<string, string?> { ["ConnectionStrings:KillaUru"] = cadena }).Build();
-        _servicios = new ServiceCollection().AddSingleton(TimeProvider.System).AddSingleton(Metricas)
+        _servicios = new ServiceCollection().AddSingleton(NpgsqlDataSource.Create(cadena))
+            .AddSingleton(TimeProvider.System).AddSingleton(Metricas)
             .AddScoped<IContextoTransaccion, ContextoTransaccion>().AddAuditoriaModule(configuracion).BuildServiceProvider();
         _scope = _servicios.CreateScope();
     }
