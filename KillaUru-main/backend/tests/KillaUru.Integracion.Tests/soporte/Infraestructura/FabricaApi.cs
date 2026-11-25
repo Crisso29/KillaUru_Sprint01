@@ -30,13 +30,7 @@ internal sealed class FabricaApi(BaseDatosPrueba bd, string entorno = "Developme
         builder.UseSetting("Api:RedTunel", null);
         builder.ConfigureTestServices(servicios =>
         {
-            // Cada host comparte la BD sintética: las tareas se prueban aparte para no alterar datos de otro caso.
-            var purga = servicios.SingleOrDefault(x => x.ImplementationType == typeof(KillaUru.Identidad.Infrastructure.Tareas.PurgaIdentidadTarea));
-            if (purga is not null) servicios.Remove(purga);
-            var carga = servicios.SingleOrDefault(x => x.ImplementationType == typeof(KillaUru.Anomalias.Infrastructure.CargadorCorredor));
-            if (carga is not null) servicios.Remove(carga);
-            // Las purgas de Ingesta corren al arrancar: con el reloj de otra prueba en 2031 borraban filas ajenas (005/T012 #1).
-            foreach (var tarea in servicios.Where(x => EspaciosDeTareas.Contains(x.ImplementationType?.Namespace)).ToArray()) servicios.Remove(tarea);
+            EliminarServiciosBackground(servicios);
             // El corredor real se valida en sus pruebas; otros módulos no dependen de datos cartográficos externos.
             var corredor = new KillaUru.Anomalias.Application.Procesamiento.EstadoCorredor();
             corredor.Cargar(new([KillaUru.Shared.Domain.Coordenada.Crear(-13, -76)!.Value,
@@ -45,5 +39,23 @@ internal sealed class FabricaApi(BaseDatosPrueba bd, string entorno = "Developme
             servicios.AddControllers().ConfigureApplicationPartManager(partes =>
                 partes.ApplicationParts.Add(new AssemblyPart(typeof(ControladorDePrueba).Assembly)));
         });
+    }
+
+    /// <summary>Elimina los background services que abren conexiones a la BD al arrancar y alterarían datos de otros casos.</summary>
+    private static void EliminarServiciosBackground(IServiceCollection servicios)
+    {
+        var purga = servicios.SingleOrDefault(x => x.ImplementationType == typeof(KillaUru.Identidad.Infrastructure.Tareas.PurgaIdentidadTarea));
+        if (purga is not null) servicios.Remove(purga);
+        var carga = servicios.SingleOrDefault(x => x.ImplementationType == typeof(KillaUru.Anomalias.Infrastructure.CargadorCorredor));
+        if (carga is not null) servicios.Remove(carga);
+        var barredor = servicios.SingleOrDefault(x => x.ImplementationType == typeof(KillaUru.Ingesta.Infrastructure.BarredorBackgroundService));
+        if (barredor is not null) servicios.Remove(barredor);
+        var procesador = servicios.SingleOrDefault(x => x.ImplementationType == typeof(KillaUru.Ingesta.Infrastructure.ProcesadorEventosBackgroundService));
+        if (procesador is not null) servicios.Remove(procesador);
+        var indicadores = servicios.SingleOrDefault(x => x.ImplementationType == typeof(KillaUru.Dashboard.Infrastructure.TareaIndicadoresDiarios));
+        if (indicadores is not null) servicios.Remove(indicadores);
+        // Las purgas de Ingesta corren al arrancar: con el reloj de otra prueba en 2031 borraban filas ajenas (005/T012 #1).
+        foreach (var tarea in servicios.Where(x => EspaciosDeTareas.Contains(x.ImplementationType?.Namespace)).ToArray())
+            servicios.Remove(tarea);
     }
 }
