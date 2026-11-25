@@ -2,6 +2,8 @@ using KillaUru.Shared.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Logging;
+using Serilog.Context;
 
 namespace KillaUru.Integracion.Tests.Infraestructura;
 
@@ -43,4 +45,26 @@ public sealed class ControladorDePrueba : ControllerBase
         Response.Headers.CacheControl = "public, max-age=60";
         return Ok();
     }
+
+    private static readonly Action<ILogger, Exception?> _logVerificacion =
+        LoggerMessage.Define(LogLevel.Information, default, "Verificacion de filtro de propiedades en pipeline");
+
+    // Pushea propiedades al LogContext y emite un log — permite verificar que FiltroDatosPersonales
+    // las elimina en el pipeline real (T067).
+    [HttpPost("log-contexto")]
+    public IActionResult LogContexto(
+        [FromBody] LogContextoBody cuerpo,
+        [FromServices] ILogger<ControladorDePrueba> logger)
+    {
+        using var d1 = cuerpo.Propiedades.TryGetValue("Seudonimo", out var s) ? LogContext.PushProperty("Seudonimo", s) : null;
+        using var d2 = cuerpo.Propiedades.TryGetValue("Sub", out var sub) ? LogContext.PushProperty("Sub", sub) : null;
+        using var d3 = cuerpo.Propiedades.TryGetValue("LoteId", out var l) ? LogContext.PushProperty("LoteId", l) : null;
+        _logVerificacion(logger, null);
+        return Ok();
+    }
+}
+
+public sealed class LogContextoBody
+{
+    public Dictionary<string, string> Propiedades { get; init; } = [];
 }

@@ -7,6 +7,7 @@ import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.Style
 import org.maplibre.android.style.expressions.Expression
 import org.maplibre.android.style.layers.CircleLayer
+import org.maplibre.android.style.layers.FillLayer
 import org.maplibre.android.style.layers.LineLayer
 import org.maplibre.android.style.layers.Property
 import org.maplibre.android.style.layers.PropertyFactory
@@ -15,10 +16,12 @@ import org.maplibre.geojson.Feature
 import org.maplibre.geojson.FeatureCollection
 import org.maplibre.geojson.LineString
 import org.maplibre.geojson.Point
+import org.maplibre.geojson.Polygon
+import pe.killauru.app.comun.dominio.Coordenada
 import pe.killauru.app.mapa.dominio.AnomaliaLocal
 
-/** Colores de la vía y de cada severidad (los tokens de `Paleta`, como enteros ARGB para MapLibre). */
-internal class ColoresMapa(val via: Int, val bordeVia: Int, val contorno: Int, val severidades: List<Int>)
+/** Colores de la vía, severidades y zona demo (tokens de `Paleta`, enteros ARGB para MapLibre). */
+internal class ColoresMapa(val via: Int, val bordeVia: Int, val contorno: Int, val severidades: List<Int>, val zonaDemo: Int)
 
 /**
  * FR-040, FR-049 (prototipo «Mapa»): lo que la app dibuja encima del mapa base — la PE-28A con su borde dorado y las
@@ -26,8 +29,10 @@ internal class ColoresMapa(val via: Int, val bordeVia: Int, val contorno: Int, v
  */
 internal object CapasMapa {
     const val CAPA_ANOMALIAS = "anomalias-puntos"
+    const val CAPA_ZONA_DEMO = "zona-demo"
     private const val FUENTE_ANOMALIAS = "anomalias"
     private const val FUENTE_VIA = "via"
+    private const val FUENTE_ZONA_DEMO = "zona-demo-src"
     private const val MARGEN_PX = 64
 
     fun agregarVia(estilo: Style, via: List<Pair<Double, Double>>, colores: ColoresMapa) {
@@ -68,6 +73,21 @@ internal object CapasMapa {
             addStringProperty("id", anomalia.id)
             addNumberProperty("severidad", anomalia.severidad)
         }
+
+    /** T129 / FR-049: sombreado semitransparente del polígono del tramo demo sobre el mapa base. */
+    fun ponerZonaDemo(estilo: Style, vertices: List<Coordenada>, colorInt: Int) {
+        if (vertices.size < 3 || estilo.getSource(FUENTE_ZONA_DEMO) != null) return
+        val anillo = vertices.map { Point.fromLngLat(it.longitud, it.latitud) } +
+            Point.fromLngLat(vertices.first().longitud, vertices.first().latitud)
+        val geo = FeatureCollection.fromFeatures(
+            listOf(Feature.fromGeometry(Polygon.fromLngLats(listOf(anillo))))
+        )
+        estilo.addSource(GeoJsonSource(FUENTE_ZONA_DEMO, geo))
+        estilo.addLayer(FillLayer(CAPA_ZONA_DEMO, FUENTE_ZONA_DEMO).withProperties(
+            PropertyFactory.fillColor(colorInt),
+            PropertyFactory.fillOpacity(0.15f),
+        ))
+    }
 
     /** Al abrir, la cámara muestra la vía entera (aún sin GPS). */
     fun encuadrar(mapa: MapLibreMap, via: List<Pair<Double, Double>>) {
