@@ -71,8 +71,18 @@ private fun MapaBase(
             mapLibre.addOnMapClickListener { punto -> anomaliaEn(mapLibre, punto)?.let(onDetalle) != null }
         }
     }
+    CapasActivas(estilo, anomalias, tramosDemo, colores)
+    VistaConAviso(vista, avisoFueraDemo, alDescartarAviso)
+}
+
+@Composable
+private fun CapasActivas(estilo: Style?, anomalias: List<AnomaliaLocal>, tramosDemo: List<Coordenada>, colores: ColoresMapa) {
     LaunchedEffect(estilo, anomalias) { estilo?.let { CapasMapa.ponerAnomalias(it, anomalias, colores) } }
     LaunchedEffect(estilo, tramosDemo) { estilo?.let { CapasMapa.ponerZonaDemo(it, tramosDemo, colores.zonaDemo) } }
+}
+
+@Composable
+private fun VistaConAviso(vista: MapView, avisoFueraDemo: Boolean, alDescartarAviso: () -> Unit) {
     Box(Modifier.fillMaxSize()) {
         AndroidView(factory = { vista }, modifier = Modifier.fillMaxSize())
         AvisoDemoUi(

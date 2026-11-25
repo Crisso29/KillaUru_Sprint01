@@ -26,29 +26,34 @@ class CaracteristicasP1Test {
     }
 
     @Test
-    fun `vector con senal constante produce 20 caracteristicas correctas`() {
-        // Arrange — aV=1, aH=2, w=0.5, velocidad=60 kmh
-        val ventana = ventanaConstante(1f, 2f, 0.5f, 60f)
+    fun `vector constante produce caracteristicas verticales correctas`() {
+        // Arrange
+        val c = CaracteristicasP1.extraer(ventanaConstante(1f, 2f, 0.5f, 60f))
 
-        // Act
-        val c = CaracteristicasP1.extraer(ventana)
-
-        // Assert — índices según 009 data-model §4
+        // Assert — índices verticales según 009 data-model §4
         assertEquals(20, c.size)
-        assertEquals(1f, c[0], eps)   // v_media
-        assertEquals(0f, c[1], eps)   // v_desv (señal constante)
-        assertEquals(1f, c[2], eps)   // v_min
-        assertEquals(1f, c[3], eps)   // v_max
-        assertEquals(0f, c[4], eps)   // v_pap
-        assertEquals(1f, c[5], eps)   // v_rms
-        assertEquals(0f, c[6], eps)   // v_curtosis (desv=0)
-        assertEquals(0f, c[7], eps)   // v_cruces (sin cambios de signo)
-        assertEquals(0f, c[8], eps)   // v_jerk (sin variación)
-        assertEquals(0f, c[11], eps)  // h_desv
-        assertEquals(2f, c[12], eps)  // h_max
-        assertEquals(0f, c[13], eps)  // h_pap
-        assertEquals(2f, c[14], eps)  // h_rms
-        assertEquals(0f, c[15], eps)  // w_desv
+        assertEquals(1f, c[0], eps)  // v_media
+        assertEquals(0f, c[1], eps)  // v_desv
+        assertEquals(1f, c[2], eps)  // v_min
+        assertEquals(1f, c[3], eps)  // v_max
+        assertEquals(0f, c[4], eps)  // v_pap
+        assertEquals(1f, c[5], eps)  // v_rms
+        assertEquals(0f, c[6], eps)  // v_curtosis
+        assertEquals(0f, c[7], eps)  // v_cruces
+        assertEquals(0f, c[8], eps)  // v_jerk
+    }
+
+    @Test
+    fun `vector constante produce caracteristicas horizontal giroscopio y velocidad correctas`() {
+        // Arrange
+        val c = CaracteristicasP1.extraer(ventanaConstante(1f, 2f, 0.5f, 60f))
+
+        // Assert — índices h/w/vel según 009 data-model §4
+        assertEquals(0f, c[11], eps)   // h_desv
+        assertEquals(2f, c[12], eps)   // h_max
+        assertEquals(0f, c[13], eps)   // h_pap
+        assertEquals(2f, c[14], eps)   // h_rms
+        assertEquals(0f, c[15], eps)   // w_desv
         assertEquals(0.5f, c[16], eps) // w_max
         assertEquals(0.5f, c[17], eps) // w_rms
         assertEquals(60f, c[19], eps)  // velocidad_kmh

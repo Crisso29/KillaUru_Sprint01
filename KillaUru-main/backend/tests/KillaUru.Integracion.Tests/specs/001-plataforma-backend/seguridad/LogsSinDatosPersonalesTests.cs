@@ -5,7 +5,9 @@ using KillaUru.Shared.Domain;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Serilog;
+using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
 
@@ -20,23 +22,29 @@ public sealed class LogsSinDatosPersonalesTests(BaseDatosPrueba bd) : IClassFixt
 {
     private static readonly string RutaLogContexto = "/api/v1/prueba/log-contexto";
 
-    private static WebApplicationFactory<Program> ApiConSink(BaseDatosPrueba bd, SinkMemoria sink) =>
+    private static Logger LoggerConSink(SinkMemoria sink) =>
+        new LoggerConfiguration()
+            .MinimumLevel.Information()
+            .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+            .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
+            .Enrich.FromLogContext()
+            .Enrich.With<FiltroDatosPersonales>()
+            .WriteTo.Console(new RenderedCompactJsonFormatter())
+            .WriteTo.Sink(sink)
+            .CreateLogger();
+
+    private WebApplicationFactory<Program> ApiConSink(Serilog.ILogger logger) =>
         new FabricaApi(bd).WithWebHostBuilder(b => b.ConfigureTestServices(s =>
-            s.AddSerilog(c => c
-                .MinimumLevel.Information()
-                .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
-                .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
-                .Enrich.FromLogContext()
-                .Enrich.With<FiltroDatosPersonales>()
-                .WriteTo.Console(new RenderedCompactJsonFormatter())
-                .WriteTo.Sink(sink))));
+            s.AddSingleton<ILoggerFactory>(
+                new Serilog.Extensions.Logging.SerilogLoggerFactory(logger, dispose: false))));
 
     [Fact]
     public async Task Propiedades_prohibidas_se_eliminan_en_el_pipeline_http()
     {
-        // Arrange — un seudónimo que se pusheará al LogContext en el controlador de prueba
+        // Arrange
         var sink = new SinkMemoria();
-        using var api = ApiConSink(bd, sink);
+        using var logger = LoggerConSink(sink);
+        using var api = ApiConSink(logger);
         var cliente = api.CreateClient();
         var cuerpo = JsonContent.Create(new { propiedades = new Dictionary<string, string> { ["Seudonimo"] = "seudonimo-secreto-456" } });
 
@@ -54,9 +62,10 @@ public sealed class LogsSinDatosPersonalesTests(BaseDatosPrueba bd) : IClassFixt
     {
         // Arrange — el par Sub+LoteId viola la privacidad por correlación (RN-09)
         var sink = new SinkMemoria();
+        using var logger = LoggerConSink(sink);
+        using var api = ApiConSink(logger);
         var loteId = Guid.NewGuid().ToString();
         var subId = "cuenta-de-usuario-secreto";
-        using var api = ApiConSink(bd, sink);
         var cliente = api.CreateClient();
         var cuerpo = JsonContent.Create(new
         {
@@ -78,8 +87,9 @@ public sealed class LogsSinDatosPersonalesTests(BaseDatosPrueba bd) : IClassFixt
     {
         // Arrange — un conductor hace una petición autenticada; el token no debe quedar en ningún log
         var sink = new SinkMemoria();
+        using var logger = LoggerConSink(sink);
+        using var api = ApiConSink(logger);
         var token = Tokens.Emitir(Roles.ConductorRegistrado);
-        using var api = ApiConSink(bd, sink);
         var cliente = api.CreateClient();
         var peticion = Peticiones.Get("/api/v1/prueba/publica", token);
 
