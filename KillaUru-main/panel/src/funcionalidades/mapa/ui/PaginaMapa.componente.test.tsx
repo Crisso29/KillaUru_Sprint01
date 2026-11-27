@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderizar } from '@/../pruebas/renderizar'
@@ -43,6 +43,7 @@ function featureActiva(overrides: Record<string, unknown> = {}) {
 }
 
 describe('PaginaMapa', () => {
+  afterEach(() => vi.useRealTimers())
   it('primera petición lleva estado=Activa,PendienteConfirmacion', async () => {
     // Arrange
     let urlCapturada = ''
@@ -63,7 +64,9 @@ describe('PaginaMapa', () => {
   })
 
   it('lista muestra «Bache · km 287,4», id corto y «hace 2 h»', async () => {
-    // Arrange
+    // Arrange — fijar el reloj en mediodía Lima (UTC−5) para que «hace 2 h» nunca cruce a ayer
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-01-15T17:00:00.000Z'))
     server.use(
       http.get(URL_MAPA, () =>
         HttpResponse.json(geoJsonConFeaturas([featureActiva()])),
