@@ -11,9 +11,9 @@ export const manejadoresAuditoria = [
     const actorId = url.searchParams.get('actorId')
 
     let elementos = datosAuditoria.elementos as typeof datosAuditoria.elementos
-    if (accion) elementos = elementos.filter((e) => e.accion === accion)
-    if (categoria) elementos = elementos.filter((e) => e.categoria === categoria)
-    if (actorId) elementos = elementos.filter((e) => e.actorId === actorId)
+    if (accion) elementos = elementos.filter((el) => el.accion === accion)
+    if (categoria) elementos = elementos.filter((el) => el.categoria === categoria)
+    if (actorId) elementos = elementos.filter((el) => el.actorId === actorId)
 
     return HttpResponse.json({ ...datosAuditoria, elementos, total: elementos.length })
   }),

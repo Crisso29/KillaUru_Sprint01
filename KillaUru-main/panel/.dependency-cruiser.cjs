@@ -37,7 +37,8 @@ module.exports = {
       },
       to: {
         path: 'src/funcionalidades/[^/]+/',
-        pathNot: 'src/funcionalidades/[^/]+/index\\.ts',
+        // pagina.ts está separado del index de forma intencional para lazy-loading (T048)
+        pathNot: ['src/funcionalidades/[^/]+/index\\.ts', 'src/funcionalidades/[^/]+/pagina\\.ts'],
       },
     },
     // Una funcionalidad solo importa internals de otra via su index.ts

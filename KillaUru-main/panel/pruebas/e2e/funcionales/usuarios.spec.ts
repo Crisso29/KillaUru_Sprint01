@@ -68,7 +68,7 @@ test('admin puede desactivar una cuenta con motivo', async ({ page }) => {
 
 test('admin puede activar una cuenta desactivada', async ({ page }) => {
   // Arrange
-  const peticion = page.waitForRequest((p) => p.method() === 'POST' && /\/api\/v1\/usuarios\/[^/]+\/activar$/.test(p.url()))
+  const peticion = page.waitForRequest((req) => req.method() === 'POST' && /\/api\/v1\/usuarios\/[^/]+\/activar$/.test(req.url()))
 
   // Act
   await page.getByRole('row', { name: /desactivado@killauru\.pe/ }).getByRole('button', { name: 'Acciones' }).click()
@@ -80,7 +80,7 @@ test('admin puede activar una cuenta desactivada', async ({ page }) => {
 
 test('admin puede reenviar la invitación pendiente', async ({ page }) => {
   // Arrange
-  const peticion = page.waitForRequest((p) => p.method() === 'POST' && /\/api\/v1\/usuarios\/[^/]+\/reenviar-correo$/.test(p.url()))
+  const peticion = page.waitForRequest((req) => req.method() === 'POST' && /\/api\/v1\/usuarios\/[^/]+\/reenviar-correo$/.test(req.url()))
 
   // Act
   await page.getByRole('row', { name: /pendiente@killauru\.pe/ }).getByRole('button', { name: 'Acciones' }).click()
