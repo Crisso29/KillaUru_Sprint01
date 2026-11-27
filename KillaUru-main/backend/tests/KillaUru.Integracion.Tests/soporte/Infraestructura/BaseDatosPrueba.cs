@@ -19,7 +19,7 @@ public sealed class BaseDatosPrueba : IAsyncLifetime
         .WithUsername("postgres")
         .WithPassword(ClaveSuperusuario)
         .WithResourceMapping(new DirectoryInfo(Rutas.Migraciones), MigradorPrueba.CarpetaEnContenedor)
-        .WithCommand("-c", "max_connections=500") // 66 archivos de test × pool=5 = 330 conn; 500 da margen (original 100 era insuficiente)
+        .WithCommand("-c", "max_connections=2000") // 66 test × pool=5 = 330 conn; 2000 cubre el solapamiento de cierre TCP entre colecciones (original 100, luego 500 insuficientes)
         .Build();
 
     /// <summary>Aplica scripts SQL dentro del contenedor, como lo hace migrar.sh.</summary>
