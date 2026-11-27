@@ -17,13 +17,6 @@ declare global {
 export async function abrir(page: Page, ruta: string) {
   await page.goto(ruta)
   await page.waitForFunction(() => Boolean(window.__killauruSimulado))
-  // Firefox (CI): el SW activa pero no controla la primera carga (clients.claim() tardío).
-  // Segunda navegación fresca al mismo scope (sin salir): el SW sigue corriendo, intercepta la carga.
-  // about:blank terminaría el SW y causaría race condition en el handshake MOCK_ACTIVATE.
-  if (!await page.evaluate(() => Boolean(navigator?.serviceWorker?.controller))) {
-    await page.goto(ruta)
-    await page.waitForFunction(() => Boolean(window.__killauruSimulado))
-  }
 }
 
 export interface Escenario {
