@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;
 using KillaUru.Api.Observabilidad;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,7 +12,7 @@ public sealed class MetricasOpenTelemetryTests : IDisposable
 {
     private readonly ServiceProvider _proveedor = new ServiceCollection().AddMetrics().BuildServiceProvider();
     private readonly FakeTimeProvider _reloj = new(DateTimeOffset.FromUnixTimeSeconds(1_800_000_000));
-    private readonly List<(string Instrumento, double Valor, string Etiquetas)> _medidas = [];
+    private readonly ConcurrentBag<(string Instrumento, double Valor, string Etiquetas)> _medidas = new();
     private readonly MeterListener _oyente = new();
 
     public MetricasOpenTelemetryTests()

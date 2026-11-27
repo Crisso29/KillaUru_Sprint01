@@ -17,11 +17,12 @@ declare global {
 export async function abrir(page: Page, ruta: string) {
   await page.goto(ruta)
   await page.waitForFunction(() => Boolean(window.__killauruSimulado))
-  // Firefox (CI): el SW puede activarse sin controlar la página en la primera carga.
-  // Si no controla, recargar — la segunda carga ya empieza con el SW activo.
+  // Firefox (CI): el SW activa pero no controla páginas ya cargadas (clients.claim() tardío).
+  // Navegar a about:blank y volver crea una navegación fresca que el SW sí intercepta desde el inicio.
   const controlado = await page.evaluate(() => Boolean(navigator?.serviceWorker?.controller))
   if (!controlado) {
-    await page.reload()
+    await page.goto('about:blank')
+    await page.goto(ruta)
     await page.waitForFunction(() => Boolean(window.__killauruSimulado))
   }
 }
