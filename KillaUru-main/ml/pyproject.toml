@@ -15,6 +15,7 @@ include = ["killauru_ml*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v"
+pythonpath = ["."]  # ml/ en sys.path para que tests.sinteticos sea importable
 
 [tool.ruff]
 line-length = 99

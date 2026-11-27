@@ -17,7 +17,7 @@ def test_el_orden_de_clases_es_el_del_manifiesto_del_apk() -> None:
     # Arrange
     manifiesto = json.loads((RAIZ / "app/src/main/assets/modelo/manifiesto.json").read_text(encoding="utf-8"))
     # Act
-    etiquetas_apk = tuple(manifiesto["etiquetas"])
+    etiquetas_apk = tuple(manifiesto["clases"])  # la app lee "clases" (ManifiestoModelo.kt); CDN usa "etiquetas"
     # Assert
     assert etiquetas_apk == CLASES
 
