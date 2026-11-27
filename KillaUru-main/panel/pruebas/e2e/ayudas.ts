@@ -17,6 +17,13 @@ declare global {
 export async function abrir(page: Page, ruta: string) {
   await page.goto(ruta)
   await page.waitForFunction(() => Boolean(window.__killauruSimulado))
+  // Firefox (CI): el SW puede activarse sin controlar la página en la primera carga.
+  // Si no controla, recargar — la segunda carga ya empieza con el SW activo.
+  const controlado = await page.evaluate(() => Boolean(navigator?.serviceWorker?.controller))
+  if (!controlado) {
+    await page.reload()
+    await page.waitForFunction(() => Boolean(window.__killauruSimulado))
+  }
 }
 
 export interface Escenario {
