@@ -13,14 +13,18 @@ async function iniciar() {
   if (__SIMULADO__) {
     const { worker, exponerParaPruebas } = await import('../pruebas/msw/navegador')
     await worker.start({ onUnhandledRequest: 'bypass' })
-    // Firefox CI: CDP no establece controller; location.assign crea navegación nativa
-    // que el SW sí intercepta. sessionStorage evita bucle si tampoco funciona la segunda vez.
-    if (!navigator.serviceWorker.controller && !sessionStorage.getItem('sw_init')) {
-      sessionStorage.setItem('sw_init', '1')
-      location.assign(location.href)
-      return
+    // Firefox CI: CDP no establece controller; location.assign a URL diferente crea
+    // navegación nativa que el SW sí intercepta. Parámetro _sw evita bucle infinito.
+    if (!navigator.serviceWorker.controller) {
+      const url = new URL(location.href)
+      if (!url.searchParams.has('_sw')) {
+        url.searchParams.set('_sw', '1')
+        location.assign(url.toString())
+        return
+      }
+      url.searchParams.delete('_sw')
+      history.replaceState(null, '', url.toString())
     }
-    sessionStorage.removeItem('sw_init')
     exponerParaPruebas()
   }
   createRoot(raiz!).render(<StrictMode><App /></StrictMode>)
