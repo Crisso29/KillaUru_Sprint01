@@ -124,10 +124,11 @@ jobs:
       - run: npm ci
 
       - name: Instalar navegadores Playwright
-        run: npx playwright install --with-deps chromium firefox msedge
+        # firefox excluido: MapLibre GL (WebGL) no inicializa en Firefox headless en CI (Linux sin GPU)
+        run: npx playwright install --with-deps chromium msedge
 
       - name: Build simulado
         run: npm run build:simulado
 
-      - name: E2E simulado (3 navegadores)
-        run: npx playwright test --project=chromium --project=firefox --project=msedge
+      - name: E2E simulado (Chromium y Edge)
+        run: npx playwright test --project=chromium --project=msedge
