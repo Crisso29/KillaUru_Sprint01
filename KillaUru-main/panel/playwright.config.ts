@@ -19,7 +19,7 @@ export default defineConfig({
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+    // firefox deshabilitado: MapLibre GL (WebGL) no inicializa en Firefox headless en CI (Linux sin GPU)
     { name: 'msedge', use: { ...devices['Desktop Edge'] } },
   ],
   webServer: {
