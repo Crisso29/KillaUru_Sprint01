@@ -1,16 +1,31 @@
 // T012: ayudas reutilizables para pruebas e2e Playwright contra el build simulado.
 // page.route() intercepta la API antes del Service Worker — funciona en todos los navegadores (incluido Firefox CI
 // donde navigator.serviceWorker.controller es siempre null por el protocolo CDP de Playwright).
+// createRequire: Playwright ejecuta test files como ESM nativo de Node.js; los import de JSON requieren
+// «with { type: "json" }» en ESM, pero createRequire(CJS) los carga sin atributos en cualquier versión.
+import { createRequire } from 'node:module'
 import { expect, type Page, type Route } from '@playwright/test'
-import anomaliasJson from '../msw/datos/anomalias.json'
-import detalleBaseJson from '../msw/datos/detalle_anomalia.json'
-import porRevisarJson from '../msw/datos/porRevisar.json'
-import transicionesJson from '../msw/datos/transiciones.json'
-import dashboardJson from '../msw/datos/dashboard.json'
-import auditoriaJson from '../msw/datos/auditoria.json'
-import usuariosJson from '../msw/datos/usuarios.json'
-import revisionJson from '../msw/datos/revision.json'
-import pendientesJson from '../msw/datos/pendientes.json'
+
+const _req = createRequire(import.meta.url)
+
+interface AnomaliaPropiedades {
+  id: string; kmVia: number; tipo: string; severidad: number
+  persistencia: string; ultimaDeteccionUtc: string; venceUtc: string; estado: string
+}
+type Anomalia = { type: string; id: string; geometry: unknown; properties: AnomaliaPropiedades }
+type AnomaliaData = { type: string; generadoUtc: string; features: Anomalia[] }
+type PorRevisarItem = { id: string; [k: string]: unknown }
+type AuditoriaItem = { accion: string; categoria: string; actorId: string; [k: string]: unknown }
+
+const anomaliasJson = _req('../msw/datos/anomalias.json') as AnomaliaData
+const detalleBaseJson = _req('../msw/datos/detalle_anomalia.json') as Record<string, unknown>
+const porRevisarJson = _req('../msw/datos/porRevisar.json') as PorRevisarItem[]
+const transicionesJson: unknown = _req('../msw/datos/transiciones.json')
+const dashboardJson: unknown = _req('../msw/datos/dashboard.json')
+const auditoriaJson = _req('../msw/datos/auditoria.json') as { elementos: AuditoriaItem[]; [k: string]: unknown }
+const usuariosJson: unknown = _req('../msw/datos/usuarios.json')
+const revisionJson: unknown = _req('../msw/datos/revision.json')
+const pendientesJson: unknown = _req('../msw/datos/pendientes.json')
 
 /** Lo que el modo simulado deja en `window` (pruebas/msw/navegador.ts → exponerParaPruebas). */
 interface Simulado {
@@ -32,14 +47,10 @@ const TRANSICIONES: Record<string, { desde: string[]; hacia: string }> = {
   MantenerDescartada: { desde: ['Descartada'], hacia: 'Descartada' },
 }
 
-type Anomalia = (typeof anomaliasJson.features)[number]
-type PorRevisarItem = (typeof porRevisarJson)[number]
-type AuditoriaItem = (typeof auditoriaJson.elementos)[number]
-
 /** Estado en memoria de la sesión simulada: mismo comportamiento que anomaliasSimuladas.ts pero en Node.js. */
 function crearEstado() {
   const anomalias: Anomalia[] = structuredClone(anomaliasJson.features)
-  const porRevisar = new Set((porRevisarJson as PorRevisarItem[]).map((e) => e.id))
+  const porRevisar = new Set(porRevisarJson.map((e) => e.id))
   const buscar = (id: string) => anomalias.find((a) => a.properties.id === id)
 
   const detalleDe = (id: string): Record<string, unknown> | null => {
@@ -47,7 +58,7 @@ function crearEstado() {
     if (!a) return null
     const { severidad, ...propiedades } = a.properties
     return {
-      ...(detalleBaseJson as Record<string, unknown>),
+      ...detalleBaseJson,
       ...propiedades,
       severidadMostrada: severidad,
       porRevisar: porRevisar.has(id),
@@ -89,7 +100,7 @@ function crearEstado() {
       return { estado: 200, cuerpo: detalleDe(id)! }
     },
     porRevisarActual: (): PorRevisarItem[] =>
-      (porRevisarJson as PorRevisarItem[]).filter((e) => porRevisar.has(e.id)),
+      porRevisarJson.filter((e) => porRevisar.has(e.id)),
   }
 }
 
@@ -164,7 +175,7 @@ async function registrarRutas(page: Page) {
       const accion = url.searchParams.get('accion')
       const categoria = url.searchParams.get('categoria')
       const actorId = url.searchParams.get('actorId')
-      let elementos = auditoriaJson.elementos as AuditoriaItem[]
+      let elementos = auditoriaJson.elementos
       if (accion) elementos = elementos.filter((e) => e.accion === accion)
       if (categoria) elementos = elementos.filter((e) => e.categoria === categoria)
       if (actorId) elementos = elementos.filter((e) => e.actorId === actorId)
@@ -175,7 +186,7 @@ async function registrarRutas(page: Page) {
     if (m === 'GET' && p.endsWith('/usuarios/revision-privilegios'))
       return route.fulfill({ json: revisionJson })
     if (m === 'POST' && p.endsWith('/usuarios/revision-privilegios'))
-      return route.fulfill({ status: 201, json: revisionJson as unknown as Record<string, unknown> })
+      return route.fulfill({ status: 201, json: revisionJson })
     if (m === 'GET' && p.endsWith('/usuarios')) {
       const ids = url.searchParams.get('ids')?.split(',').filter(Boolean) ?? []
       if (ids.length > 0) {
