@@ -11,6 +11,10 @@ export default defineConfig({
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL: 'http://localhost:4173',
+    // serviceWorkers: 'block' — MSW activa el SW en Chromium/Edge y responde peticiones directamente
+    // sin pasar por la red; page.route() nunca las intercepta, por lo que simularRespuesta() no tiene
+    // efecto. Bloqueando el SW, page.route() intercepta todas las peticiones en todos los navegadores.
+    serviceWorkers: 'block',
     trace: 'on-first-retry',
   },
   projects: [
