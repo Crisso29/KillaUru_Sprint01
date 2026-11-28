@@ -164,7 +164,7 @@ export async function registrarRutas(page: Page) {
       const { formato } = JSON.parse((await req.postData()) ?? '{}') as { formato: string }
       if (formato === 'GeoJSON')
         return route.fulfill({ status: 200, headers: { 'Content-Type': 'application/geo+json', 'Content-Disposition': 'attachment; filename="killauru-anomalias.geojson"' }, body: '{"type":"FeatureCollection","features":[]}' })
-      return route.fulfill({ status: 200, headers: { 'Content-Type': 'text/csv', 'Content-Disposition': 'attachment; filename="killauru-anomalias.csv"' }, body: 'id,tipo,severidad,estado\n' })
+      return route.fulfill({ status: 200, headers: { 'Content-Type': 'text/csv', 'Content-Disposition': 'attachment; filename="killauru-anomalias.csv"' }, body: 'id,tipo,severidad,estado,persistencia,km,latitud,longitud,reportes,primer_reporte,ultimo_reporte\n' })
     }
     return route.fulfill({ status: 404, json: { codigo: 'no_encontrado' } })
   })

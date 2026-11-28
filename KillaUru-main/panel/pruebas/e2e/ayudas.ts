@@ -23,7 +23,9 @@ export interface Escenario {
  */
 export async function simularRespuesta(page: Page, escenario: Escenario) {
   const { ruta, estado, cuerpo, veces } = escenario
-  const pattern = `**${ruta.replace(/:([^/]+)/g, '*')}`
+  // RegExp en lugar de glob: el glob no coincide con URLs que tengan query params (?foo=bar)
+  const escapado = ruta.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/:[\w]+/g, '[^/?]+')
+  const pattern = new RegExp(escapado + '(\\?[^#]*)?$')
   const handler = async (route: Route) => {
     if (cuerpo !== undefined) await route.fulfill({ status: estado, json: cuerpo as Record<string, unknown> })
     else await route.fulfill({ status: estado })
