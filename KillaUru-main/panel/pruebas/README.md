@@ -23,9 +23,17 @@ npm run test:accesibilidad
 npm run test:seguridad
 npm run e2e -- --list
 npm run e2e -- --project=chromium
+npm run e2e -- --project=msedge
 ```
 
-Playwright inicia `build:simulado` con MSW. No acredita integración con la API real.
+Playwright inicia `build:simulado` y usa `page.route()` para interceptar todas las llamadas
+API. El Service Worker de MSW está bloqueado (`serviceWorkers: 'block'` en `playwright.config.ts`)
+para que `page.route()` capture las peticiones antes que el SW y los overrides de
+`simularRespuesta()` funcionen de forma fiable en todos los navegadores.
+Firefox está deshabilitado en CI: MapLibre GL JS requiere WebGL y Firefox headless en Linux
+no inicializa el contexto correctamente. Ver nota completa en
+[specs/010-panel-admin/pruebas.md](../../specs/010-panel-admin/pruebas.md).
+No acredita integración con la API real.
 `npm run e2e:pruebas` utiliza `playwright.pruebas.config.ts`, exige `PANEL_URL`
 HTTPS y no inicia servidor local. Selecciona `*.pruebas.ts`, todavía sin casos;
 por tanto no acredita validación desplegada y debe fallar si se intenta ejecutar vacío.

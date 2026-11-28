@@ -1,6 +1,6 @@
 # Pruebas 010 — Panel administrativo
 
-> Inventario regenerado (2026-11-24): todos los E2E implementados y ejecutados en 3 navegadores. Los requisitos y planes no equivalen a evidencia de implementación o despliegue.
+> Inventario regenerado (2026-11-24). Actualizado (2026-11-28): E2E ejecutados en Chromium y Edge (Firefox deshabilitado en CI por incompatibilidad WebGL/headless — ver nota al pie de «Cómo ejecutar»).
 
 [Guía común](../../docs/guias/pruebas.md) · [Requisitos](spec.md) · [Tareas](tasks.md)
 
@@ -33,26 +33,40 @@ npm run lint
 npm run deps
 npm run e2e -- --list
 npm run e2e -- --project=chromium
-npm run e2e -- --project=firefox
 npm run e2e -- --project=msedge
+# Firefox deshabilitado — ver nota abajo
 ```
 
-Playwright local arranca un build simulado con MSW. `e2e:pruebas` usa una configuración
+Playwright local arranca un build simulado. `e2e:pruebas` usa una configuración
 separada sin servidor local, requiere `PANEL_URL` HTTPS y selecciona `*.pruebas.ts`
 (T087: `mapa.pruebas.ts`). Los sufijos y comandos por categoría están en la
 [guía del panel](../../panel/pruebas/README.md).
 No confundir una prueba del panel con la autorización del backend: esta pertenece a 001/003/004.
 
-## Estado de las tareas E2E (2026-11-24)
+> **Por qué Firefox está deshabilitado en CI**
+> El componente `LienzoMapa` usa MapLibre GL JS, que requiere un contexto WebGL.
+> Firefox headless en Linux (GitHub Actions) no inicializa WebGL correctamente:
+> el contexto no llega a crearse o lo hace tan tarde que los tests de la página
+> `/mapa` agotan el tiempo de espera (30 s) antes de que aparezcan los botones.
+> Chromium y Edge (Chromium-based) cubren los mismos flujos sin este problema.
+> Adicionalmente, MSW se inicializa con `serviceWorkers: 'block'` en Playwright
+> (configurado en `playwright.config.ts`) para que `page.route()` intercepte todas
+> las peticiones API sin que el Service Worker de MSW las capture antes. Esto hace
+> que la intercepción sea uniforme en todos los navegadores.
+
+## Estado de las tareas E2E (2026-11-28)
 
 Todas las tareas T032–T036, T050, T058, T062, T068, T077, T080, T081, T085, T086 ejecutadas
-con éxito en los 3 navegadores (62 casos E2E). T087 parcial: `mapa.pruebas.ts` escrito,
-pendiente de ejecutar contra el entorno desplegado. Ver evidencia en
-[2026-11-24-panel-parte6](../../docs/seguimiento/evidencias/pruebas/2026-11-24-panel-parte6/README.md).
+con éxito en Chromium y Edge (62 casos E2E × 2 navegadores = 124 casos en CI).
+Firefox deshabilitado — causa documentada en la nota de «Cómo ejecutar».
+T087 parcial: `mapa.pruebas.ts` escrito, pendiente de ejecutar contra el entorno desplegado.
+Ver evidencia en [2026-11-24-panel-parte6](../../docs/seguimiento/evidencias/pruebas/2026-11-24-panel-parte6/README.md).
 
-**Nota sobre simulado vs. real:** todos los E2E corren contra el build simulado con MSW.
-Los tokens, cookies HttpOnly y CORS reales se verifican en el backend (003/004) y en el
-entorno de pruebas (`e2e:pruebas`). Ver `cierre.md` para los criterios de cierre pendientes.
+**Nota sobre simulado vs. real:** todos los E2E corren contra el build simulado con `page.route()`
+interceptando las llamadas API (MSW Service Worker bloqueado en Playwright mediante
+`serviceWorkers: 'block'`). Los tokens, cookies HttpOnly y CORS reales se verifican en el
+backend (003/004) y en el entorno de pruebas (`e2e:pruebas`). Ver `cierre.md` para los
+criterios de cierre pendientes.
 
 ## Inventario de archivos de prueba
 
