@@ -1,3 +1,4 @@
+# T012 / FR-001 — CI de la app Android (PRs que tocan app/**)
 name: App Android
 
 on:

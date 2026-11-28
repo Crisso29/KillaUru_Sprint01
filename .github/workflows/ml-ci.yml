@@ -1,4 +1,4 @@
-# T004 / FR-016, FR-033, D10 — CI del pipeline ML (PRs que tocan ml/**)
+# T004 / FR-016, FR-033, D10 — CI del módulo ML (PRs que tocan ml/**)
 # Corre: ruff, pytest, límite de 199 líneas y humo de punta a punta dos veces.
 name: ML CI
 
